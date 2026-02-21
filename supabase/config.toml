@@ -11,3 +11,6 @@ verify_jwt = false
 
 [functions.sitemap]
 verify_jwt = false
+
+[functions.yampi-checkout]
+verify_jwt = false
