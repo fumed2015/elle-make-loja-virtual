@@ -13,18 +13,13 @@ const Carrinho = () => {
   const shippingCost = shipping.selectedShipping?.price ?? 0;
   const total = cartTotal + shippingCost;
 
-  if (!user) {
-    return (
-      <div className="min-h-screen flex flex-col items-center justify-center px-4 text-center gap-4">
-        <ShoppingBag className="w-12 h-12 text-muted-foreground" />
-        <h1 className="text-xl font-display font-bold">Seu carrinho</h1>
-        <p className="text-sm text-muted-foreground">Faça login para ver seu carrinho</p>
-        <Button asChild className="bg-primary text-primary-foreground min-h-[44px] press-scale">
-          <Link to="/perfil">Entrar</Link>
-        </Button>
-      </div>
-    );
-  }
+  const needsLogin = !user;
+
+  const handleCheckout = () => {
+    if (needsLogin) {
+      // Will redirect to login; after login cart syncs automatically
+    }
+  };
 
   if (isLoading) {
     return (
@@ -147,8 +142,8 @@ const Carrinho = () => {
           <p className="text-xs font-semibold text-primary">🛵 Belém e Ananindeua: entrega em até 3 horas!</p>
         </div>
         <Button asChild className="w-full bg-primary text-primary-foreground shadow-marsala hover:bg-primary/90 min-h-[44px] press-scale">
-          <Link to="/checkout">
-            Finalizar Compra <ArrowRight className="w-4 h-4 ml-1" />
+          <Link to={needsLogin ? "/perfil" : "/checkout"}>
+            {needsLogin ? "Entrar para finalizar" : "Finalizar Compra"} <ArrowRight className="w-4 h-4 ml-1" />
           </Link>
         </Button>
       </div>
