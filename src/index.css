@@ -2,97 +2,56 @@
 @tailwind components;
 @tailwind utilities;
 
-@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=DM+Sans:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=DM+Sans:wght@300;400;500;600;700&display=swap');
 
 @layer base {
   :root {
-    --background: 0 0% 4%;
-    --foreground: 40 10% 92%;
-
-    --card: 0 0% 7%;
-    --card-foreground: 40 10% 92%;
-
-    --popover: 0 0% 7%;
-    --popover-foreground: 40 10% 92%;
-
-    --primary: 43 72% 55%;
-    --primary-foreground: 0 0% 4%;
-
-    --secondary: 174 55% 42%;
-    --secondary-foreground: 0 0% 98%;
-
-    --muted: 0 0% 12%;
-    --muted-foreground: 0 0% 55%;
-
-    --accent: 174 55% 42%;
-    --accent-foreground: 0 0% 98%;
-
-    --destructive: 0 72% 51%;
-    --destructive-foreground: 0 0% 98%;
-
-    --border: 0 0% 15%;
-    --input: 0 0% 15%;
-    --ring: 43 72% 55%;
-
-    --radius: 0.75rem;
-
-    --sidebar-background: 0 0% 6%;
-    --sidebar-foreground: 40 10% 92%;
-    --sidebar-primary: 43 72% 55%;
-    --sidebar-primary-foreground: 0 0% 4%;
-    --sidebar-accent: 0 0% 12%;
-    --sidebar-accent-foreground: 40 10% 92%;
-    --sidebar-border: 0 0% 15%;
-    --sidebar-ring: 43 72% 55%;
-
-    --gold: 43 72% 55%;
-    --gold-glow: 43 80% 65%;
-    --teal: 174 55% 42%;
-    --teal-glow: 174 65% 52%;
-  }
-
-  .light {
     --background: 40 20% 97%;
-    --foreground: 0 0% 10%;
+    --foreground: 0 0% 12%;
 
     --card: 0 0% 100%;
-    --card-foreground: 0 0% 10%;
+    --card-foreground: 0 0% 12%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 0 0% 10%;
+    --popover-foreground: 0 0% 12%;
 
-    --primary: 43 72% 45%;
-    --primary-foreground: 0 0% 100%;
+    --primary: 345 76% 25%;
+    --primary-foreground: 40 20% 97%;
 
-    --secondary: 174 55% 35%;
-    --secondary-foreground: 0 0% 100%;
+    --secondary: 40 30% 94%;
+    --secondary-foreground: 0 0% 12%;
 
-    --muted: 40 10% 92%;
-    --muted-foreground: 0 0% 40%;
+    --muted: 40 15% 93%;
+    --muted-foreground: 0 0% 45%;
 
-    --accent: 174 55% 35%;
+    --accent: 145 63% 42%;
     --accent-foreground: 0 0% 100%;
 
     --destructive: 0 72% 51%;
     --destructive-foreground: 0 0% 98%;
 
-    --border: 40 10% 88%;
-    --input: 40 10% 88%;
-    --ring: 43 72% 45%;
+    --border: 40 15% 88%;
+    --input: 40 15% 88%;
+    --ring: 345 76% 25%;
 
-    --sidebar-background: 40 20% 97%;
-    --sidebar-foreground: 0 0% 10%;
-    --sidebar-primary: 43 72% 45%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 40 10% 92%;
-    --sidebar-accent-foreground: 0 0% 10%;
-    --sidebar-border: 40 10% 88%;
-    --sidebar-ring: 43 72% 45%;
+    --radius: 0.5rem;
 
-    --gold: 43 72% 45%;
-    --gold-glow: 43 80% 55%;
-    --teal: 174 55% 35%;
-    --teal-glow: 174 65% 45%;
+    --sidebar-background: 345 76% 25%;
+    --sidebar-foreground: 40 20% 97%;
+    --sidebar-primary: 40 30% 94%;
+    --sidebar-primary-foreground: 345 76% 25%;
+    --sidebar-accent: 345 60% 20%;
+    --sidebar-accent-foreground: 40 20% 97%;
+    --sidebar-border: 345 60% 30%;
+    --sidebar-ring: 40 30% 94%;
+
+    --marsala: 345 76% 25%;
+    --marsala-light: 345 50% 35%;
+    --cream: 40 30% 94%;
+    --cream-dark: 40 20% 88%;
+    --whatsapp: 145 63% 42%;
+    --whatsapp-dark: 145 63% 36%;
+    --gold-star: 45 93% 58%;
   }
 }
 
@@ -107,30 +66,36 @@
   }
 
   h1, h2, h3, h4, h5, h6 {
-    font-family: 'Playfair Display', serif;
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 700;
   }
 }
 
 @layer utilities {
-  .text-gradient-gold {
+  .font-serif-accent {
+    font-family: 'Playfair Display', serif;
+    font-style: italic;
+  }
+
+  .text-gradient-marsala {
     @apply bg-clip-text text-transparent;
-    background-image: linear-gradient(135deg, hsl(var(--gold)), hsl(var(--gold-glow)));
+    background-image: linear-gradient(135deg, hsl(var(--marsala)), hsl(var(--marsala-light)));
   }
 
-  .bg-gradient-gold {
-    background-image: linear-gradient(135deg, hsl(var(--gold)), hsl(var(--gold-glow)));
+  .bg-gradient-marsala {
+    background-image: linear-gradient(135deg, hsl(var(--marsala)), hsl(var(--marsala-light)));
   }
 
-  .bg-gradient-teal {
-    background-image: linear-gradient(135deg, hsl(var(--teal)), hsl(var(--teal-glow)));
+  .bg-gradient-whatsapp {
+    background-image: linear-gradient(135deg, hsl(var(--whatsapp)), hsl(var(--whatsapp-dark)));
   }
 
-  .shadow-gold {
-    box-shadow: 0 8px 32px -8px hsl(var(--gold) / 0.3);
+  .shadow-marsala {
+    box-shadow: 0 4px 20px -4px hsl(var(--marsala) / 0.25);
   }
 
-  .shadow-teal {
-    box-shadow: 0 8px 32px -8px hsl(var(--teal) / 0.3);
+  .shadow-whatsapp {
+    box-shadow: 0 4px 20px -4px hsl(var(--whatsapp) / 0.3);
   }
 
   .scrollbar-hide {
@@ -146,7 +111,7 @@
   }
 
   .glass {
-    background: hsl(var(--card) / 0.6);
+    background: hsl(var(--card) / 0.85);
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
   }
