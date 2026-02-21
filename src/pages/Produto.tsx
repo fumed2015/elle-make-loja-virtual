@@ -1,15 +1,16 @@
 import { useState } from "react";
 import OptimizedImage from "@/components/ui/optimized-image";
 import { useParams, useNavigate, Link } from "react-router-dom";
-import { Heart, Minus, Plus, ShoppingBag, Truck, CreditCard, ShieldCheck, MessageCircle, MapPin, Package, Zap, Store, Sparkles } from "lucide-react";
+import { Heart, Minus, Plus, ShoppingBag, Truck, CreditCard, ShieldCheck, MessageCircle, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { useProduct } from "@/hooks/useProducts";
 import { useCart } from "@/hooks/useCart";
 import { useAuth } from "@/hooks/useAuth";
 import { useFavorites } from "@/hooks/useFavorites";
+import { useShipping } from "@/hooks/useShipping";
+import ShippingCalculator from "@/components/shipping/ShippingCalculator";
 import ReviewSection from "@/components/product/ReviewSection";
 import WhatsAppIcon from "@/components/icons/WhatsAppIcon";
 import { motion } from "framer-motion";
@@ -32,8 +33,7 @@ const Produto = () => {
   const { toggleFavorite, isFavorited } = useFavorites();
   const [selectedSwatch, setSelectedSwatch] = useState<any>(null);
   const [qty, setQty] = useState(1);
-  const [cep, setCep] = useState("");
-  const [showShipping, setShowShipping] = useState(false);
+  const shipping = useShipping();
 
   if (isLoading) {
     return (
@@ -267,68 +267,18 @@ const Produto = () => {
             </div>
 
             {/* Shipping Calculator */}
-            <div className="border border-border rounded-xl p-4 space-y-3">
-              <div className="flex items-center gap-2">
-                <Truck className="w-4 h-4 text-primary" />
-                <span className="text-sm font-semibold">Calcular Frete</span>
-              </div>
-
-              <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                <Package className="w-3.5 h-3.5" />
-                <span>🛵 Belém e Ananindeua: entrega em até 3h</span>
-              </div>
-
-              <div className="flex gap-2">
-                <Input
-                  value={cep}
-                  onChange={(e) => setCep(e.target.value.replace(/\D/g, "").slice(0, 8))}
-                  placeholder="00000-000"
-                  className="flex-1 h-9"
-                  maxLength={9}
-                />
-                <Button
-                  size="sm"
-                  onClick={() => setShowShipping(true)}
-                  disabled={cep.length < 8}
-                  className="bg-primary text-primary-foreground"
-                >
-                  Calcular
-                </Button>
-              </div>
-
-              {showShipping && (
-                <motion.div initial={{ opacity: 0, y: -5 }} animate={{ opacity: 1, y: 0 }} className="space-y-2 pt-1">
-                  <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                    <MapPin className="w-3.5 h-3.5" />
-                    <span>Belém, PA</span>
-                  </div>
-                  <div className="flex items-center justify-between p-2.5 bg-muted rounded-lg">
-                    <div className="flex items-center gap-2 text-sm">
-                      <Truck className="w-4 h-4 text-muted-foreground" />
-                      <span>Entrega Local (Belém / Ananindeua)</span>
-                    </div>
-                    <span className="text-sm font-semibold">R$ 20,00</span>
-                  </div>
-                  <div className="flex items-center justify-between p-2.5 bg-muted rounded-lg">
-                    <div className="flex items-center gap-2 text-sm">
-                      <Zap className="w-4 h-4 text-muted-foreground" />
-                      <span>Uber Flash / 99 Entrega</span>
-                    </div>
-                    <span className="text-sm font-semibold text-accent">A combinar</span>
-                  </div>
-                  <div className="flex items-center justify-between p-2.5 bg-muted rounded-lg">
-                    <div className="flex items-center gap-2 text-sm">
-                      <Store className="w-4 h-4 text-muted-foreground" />
-                      <div>
-                        <span>Retirada na Loja</span>
-                        <p className="text-[10px] text-muted-foreground">Disponível imediatamente</p>
-                      </div>
-                    </div>
-                    <span className="text-sm font-semibold text-accent">Grátis</span>
-                  </div>
-                </motion.div>
-              )}
-            </div>
+            <ShippingCalculator
+              cep={shipping.cep}
+              onCepChange={shipping.setCep}
+              onCalculate={shipping.calculateShipping}
+              loading={shipping.loading}
+              error={shipping.error}
+              options={shipping.options}
+              selectedOption={shipping.selectedOption}
+              onSelectOption={shipping.selectOption}
+              isLocal={shipping.isLocal}
+              addressInfo={shipping.addressInfo}
+            />
           </motion.div>
         </div>
 
