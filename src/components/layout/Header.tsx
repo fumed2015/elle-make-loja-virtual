@@ -22,16 +22,16 @@ const navLinks: NavItem[] = [
   {
     label: "Marcas", to: "/explorar",
     subs: [
-      { label: "Ruby Rose", to: "/explorar?q=Ruby Rose" },
-      { label: "Max Love", to: "/explorar?q=Max Love" },
-      { label: "Sarah Beauty", to: "/explorar?q=Sarah Beauty" },
-      { label: "Phallebeauty", to: "/explorar?q=Phallebeauty" },
-      { label: "Luisance", to: "/explorar?q=Luisance" },
-      { label: "Macrilan", to: "/explorar?q=Macrilan" },
+      { label: "Ruby Rose", to: "/marca/ruby-rose" },
+      { label: "Max Love", to: "/marca/max-love" },
+      { label: "Sarah Beauty", to: "/marca/sarah-beauty" },
+      { label: "Phallebeauty", to: "/marca/phallebeauty" },
+      { label: "Luisance", to: "/marca/luisance" },
+      { label: "Macrilan", to: "/marca/macrilan" },
     ],
   },
   {
-    label: "Rosto", to: "/explorar?cat=rosto",
+    label: "Rosto", to: "/categoria/rosto",
     subs: [
       { label: "Bases & Corretivos", to: "/explorar?cat=rosto&q=base" },
       { label: "Pós & Bronzers", to: "/explorar?cat=rosto&q=po" },
@@ -40,7 +40,7 @@ const navLinks: NavItem[] = [
     ],
   },
   {
-    label: "Olhos", to: "/explorar?cat=olhos",
+    label: "Olhos", to: "/categoria/olhos",
     subs: [
       { label: "Sombras & Paletas", to: "/explorar?cat=paletas" },
       { label: "Delineadores", to: "/explorar?cat=olhos&q=delineador" },
@@ -49,7 +49,7 @@ const navLinks: NavItem[] = [
     ],
   },
   {
-    label: "Lábios", to: "/explorar?cat=labios",
+    label: "Lábios", to: "/categoria/labios",
     subs: [
       { label: "Batons", to: "/explorar?cat=labios&q=batom" },
       { label: "Glosses", to: "/explorar?cat=labios&q=gloss" },
@@ -57,15 +57,15 @@ const navLinks: NavItem[] = [
     ],
   },
   {
-    label: "Skin", to: "/explorar?cat=skincare",
+    label: "Skincare", to: "/categoria/skincare",
     subs: [
       { label: "Hidratantes", to: "/explorar?cat=skincare&q=hidratante" },
       { label: "Protetor Solar", to: "/explorar?cat=skincare&q=protetor" },
       { label: "Séruns", to: "/explorar?cat=skincare&q=serum" },
     ],
   },
-  { label: "Acessórios", to: "/explorar?cat=acessorios" },
-  { label: "Ofertas", to: "/explorar?cat=ofertas" },
+  { label: "Acessórios", to: "/categoria/acessorios" },
+  { label: "Ofertas", to: "/categoria/ofertas" },
 ];
 
 const Header = () => {

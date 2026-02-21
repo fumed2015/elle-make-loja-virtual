@@ -17,6 +17,8 @@ const Perfil = lazy(() => import("./pages/Perfil"));
 const Pedidos = lazy(() => import("./pages/Pedidos"));
 const Favoritos = lazy(() => import("./pages/Favoritos"));
 const Admin = lazy(() => import("./pages/Admin"));
+const Categoria = lazy(() => import("./pages/Categoria"));
+const Marca = lazy(() => import("./pages/Marca"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 const queryClient = new QueryClient();
@@ -40,6 +42,8 @@ const App = () => (
                 <Route path="/" element={<Index />} />
                 <Route path="/explorar" element={<Explorar />} />
                 <Route path="/produto/:slug" element={<Produto />} />
+                <Route path="/categoria/:slug" element={<Categoria />} />
+                <Route path="/marca/:slug" element={<Marca />} />
                 <Route path="/carrinho" element={<Carrinho />} />
                 <Route path="/checkout" element={<Checkout />} />
                 <Route path="/perfil" element={<Perfil />} />
