@@ -160,22 +160,25 @@ const Index = () => {
         ]}
       />
 
-      {/* Hero — video served from public/ with preload="none" */}
+      {/* Hero — video with robust mobile/browser fallback */}
       <section className="relative overflow-hidden bg-background">
         <video
           ref={videoRef}
-          src="/hero-banner.mp4"
           loop
           muted
           playsInline
-          // @ts-ignore — webkit attribute for iOS Safari
-          webkit-playsinline=""
           autoPlay
-          preload="none"
+          preload="metadata"
           poster="/pwa-512x512.png"
           className="w-full h-[320px] md:h-[480px] object-cover"
           style={{ objectPosition: "200% center" }}
-        />
+          onCanPlay={(e) => {
+            const vid = e.currentTarget;
+            vid.play().catch(() => {});
+          }}
+        >
+          <source src="/hero-banner.mp4" type="video/mp4" />
+        </video>
         {/* Gradient overlay */}
         <div className="absolute inset-0 bg-gradient-to-r from-background/95 via-background/60 to-transparent" />
         <div className="absolute inset-0 bg-gradient-to-t from-background/50 via-transparent to-transparent" />
