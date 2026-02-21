@@ -148,22 +148,22 @@ const Index = () => {
           preload="auto"
           className="w-full h-[280px] md:h-[420px] object-cover"
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-background/90 via-background/40 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-t from-background via-background/70 to-background/20" />
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.2 }}
           className="absolute inset-0 flex flex-col items-center justify-end pb-8 md:pb-12 px-4 text-center"
         >
-          <h1 className="text-2xl md:text-5xl font-bold leading-tight text-foreground mb-2 drop-shadow-sm">
+          <h1 className="text-2xl md:text-5xl font-bold leading-tight text-foreground mb-2" style={{ textShadow: '0 2px 8px hsl(var(--background) / 0.6)' }}>
             Maquiagem e Cosméticos em{" "}
-            <span className="font-serif-accent text-primary">Belém</span>
+            <span className="font-serif-accent text-primary" style={{ textShadow: '0 2px 12px hsl(var(--primary) / 0.3)' }}>Belém</span>
           </h1>
-          <p className="text-muted-foreground text-sm md:text-base leading-relaxed mb-1 max-w-lg mx-auto">
+          <p className="text-foreground/80 text-sm md:text-base leading-relaxed mb-1 max-w-lg mx-auto" style={{ textShadow: '0 1px 4px hsl(var(--background) / 0.5)' }}>
             Delivery rápido em até 3h.{" "}
             <strong className="text-foreground">Frete grátis acima de R$ 199.</strong>
           </p>
-          <p className="text-xs font-semibold text-primary mb-5 animate-pulse">
+          <p className="text-xs font-semibold text-primary mb-5 animate-pulse" style={{ textShadow: '0 1px 6px hsl(var(--background) / 0.5)' }}>
             🛵 Belém e Ananindeua: entrega em até 3 horas!
           </p>
           <div className="flex flex-wrap gap-3 justify-center">
