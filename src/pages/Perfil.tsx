@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { LogOut, Package, Settings, User, Heart, Shield, MapPin, Star, Trash2, Plus, Award } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -29,6 +29,8 @@ const Perfil = () => {
   const [phone, setPhone] = useState("");
   const [birthday, setBirthday] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [forgotMode, setForgotMode] = useState(false);
+  const [forgotEmail, setForgotEmail] = useState("");
   const [showAddressForm, setShowAddressForm] = useState(false);
   const [showEditProfile, setShowEditProfile] = useState(false);
   const [editName, setEditName] = useState("");
@@ -135,16 +137,38 @@ const Perfil = () => {
               <Label htmlFor="password">Senha</Label>
               <Input id="password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="••••••••" className="bg-muted border-none min-h-[44px]" required />
             </div>
-            <Button type="submit" disabled={submitting} className="w-full bg-primary text-primary-foreground shadow-marsala hover:bg-primary/90 min-h-[44px] press-scale">
-              {submitting ? "Carregando..." : isLogin ? "Entrar" : "Criar conta"}
-            </Button>
-          </form>
-          <p className="text-center text-xs text-muted-foreground mt-6">
-            {isLogin ? "Não tem conta? " : "Já tem conta? "}
-            <button onClick={() => setIsLogin(!isLogin)} className="text-primary font-medium hover:underline">
-              {isLogin ? "Cadastre-se" : "Entrar"}
-            </button>
-          </p>
+             <Button type="submit" disabled={submitting} className="w-full bg-primary text-primary-foreground shadow-marsala hover:bg-primary/90 min-h-[44px] press-scale">
+               {submitting ? "Carregando..." : isLogin ? "Entrar" : "Criar conta"}
+             </Button>
+           </form>
+           {isLogin && (
+             <button
+               onClick={async () => {
+                 if (!email) { toast.error("Digite seu e-mail acima primeiro"); return; }
+                 setSubmitting(true);
+                 try {
+                   const { error } = await supabase.auth.resetPasswordForEmail(email, {
+                     redirectTo: `${window.location.origin}/reset-password`,
+                   });
+                   if (error) throw error;
+                   toast.success("E-mail de recuperação enviado! Verifique sua caixa de entrada.");
+                 } catch (err: any) {
+                   toast.error(err.message || "Erro ao enviar e-mail");
+                 } finally {
+                   setSubmitting(false);
+                 }
+               }}
+               className="block w-full text-center text-xs text-primary hover:underline mt-3"
+             >
+               Esqueceu a senha?
+             </button>
+           )}
+           <p className="text-center text-xs text-muted-foreground mt-4">
+             {isLogin ? "Não tem conta? " : "Já tem conta? "}
+             <button onClick={() => setIsLogin(!isLogin)} className="text-primary font-medium hover:underline">
+               {isLogin ? "Cadastre-se" : "Entrar"}
+             </button>
+           </p>
         </motion.div>
       </div>
     );

@@ -12,7 +12,7 @@ interface SEOHeadProps {
 
 const SITE_NAME = "Elle Make | Maquiagem em Belém";
 const DEFAULT_DESC = "Loja de maquiagem e cosméticos com delivery rápido em Belém do Pará. Frete grátis acima de R$ 199. Entrega em até 3h.";
-const DEFAULT_IMAGE = "/pwa-512x512.png";
+const DEFAULT_IMAGE = "/og-image.jpg";
 
 const SEOHead = ({
   title,

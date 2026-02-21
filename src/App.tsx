@@ -21,6 +21,10 @@ const Favoritos = lazy(() => import("./pages/Favoritos"));
 const Admin = lazy(() => import("./pages/Admin"));
 const Categoria = lazy(() => import("./pages/Categoria"));
 const Marca = lazy(() => import("./pages/Marca"));
+const Privacidade = lazy(() => import("./pages/Privacidade"));
+const Termos = lazy(() => import("./pages/Termos"));
+const Sobre = lazy(() => import("./pages/Sobre"));
+const ResetPassword = lazy(() => import("./pages/ResetPassword"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 const queryClient = new QueryClient();
@@ -55,6 +59,10 @@ const App = () => (
                   <Route path="/pedidos" element={<Pedidos />} />
                   <Route path="/favoritos" element={<Favoritos />} />
                   <Route path="/admin" element={<Admin />} />
+                  <Route path="/privacidade" element={<Privacidade />} />
+                  <Route path="/termos" element={<Termos />} />
+                  <Route path="/sobre" element={<Sobre />} />
+                  <Route path="/reset-password" element={<ResetPassword />} />
                 </Route>
                 <Route path="*" element={<NotFound />} />
               </Routes>
