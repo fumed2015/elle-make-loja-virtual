@@ -1,5 +1,5 @@
 import { Search, User, ShoppingBag, ChevronDown, LogIn, LogOut, Settings } from "lucide-react";
-import { ShopifyCartDrawer } from "@/components/shopify/ShopifyCartDrawer";
+
 import WhatsAppIcon from "@/components/icons/WhatsAppIcon";
 import { Link, useNavigate } from "react-router-dom";
 import { Input } from "@/components/ui/input";
@@ -243,7 +243,7 @@ const Header = () => {
               </DropdownMenuContent>
             </DropdownMenu>
 
-            <ShopifyCartDrawer />
+            
 
             <Link to="/carrinho" className="w-9 h-9 md:w-10 md:h-10 flex items-center justify-center rounded-full hover:bg-muted transition-colors relative" aria-label="Carrinho">
               <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
