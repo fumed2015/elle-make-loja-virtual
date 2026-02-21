@@ -560,6 +560,42 @@ export type Database = {
         }
         Relationships: []
       }
+      seo_reports: {
+        Row: {
+          created_at: string
+          id: string
+          products_without_description: number | null
+          products_without_images: number | null
+          report: Json
+          score: number | null
+          sitemap_urls: number | null
+          total_categories: number | null
+          total_products: number | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          products_without_description?: number | null
+          products_without_images?: number | null
+          report?: Json
+          score?: number | null
+          sitemap_urls?: number | null
+          total_categories?: number | null
+          total_products?: number | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          products_without_description?: number | null
+          products_without_images?: number | null
+          report?: Json
+          score?: number | null
+          sitemap_urls?: number | null
+          total_categories?: number | null
+          total_products?: number | null
+        }
+        Relationships: []
+      }
       ugc_posts: {
         Row: {
           caption: string | null
