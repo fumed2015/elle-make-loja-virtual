@@ -1,5 +1,6 @@
 import { motion } from "framer-motion";
-import { ArrowRight, MessageCircle, Truck, CreditCard, ShieldCheck, Star, ChevronDown } from "lucide-react";
+import { ArrowRight, Truck, CreditCard, ShieldCheck, Star, ChevronDown } from "lucide-react";
+import WhatsAppIcon from "@/components/icons/WhatsAppIcon";
 import { Link } from "react-router-dom";
 import SEOHead from "@/components/SEOHead";
 import { Button } from "@/components/ui/button";
@@ -125,7 +126,7 @@ const Index = () => {
             </Button>
             <Button variant="outline" asChild className="min-h-[48px] px-6 rounded-full border-accent text-accent hover:bg-accent hover:text-accent-foreground font-semibold">
               <a href="https://wa.me/5591983045531?text=Olá! Gostaria de saber mais sobre os produtos" target="_blank" rel="noopener noreferrer">
-                <MessageCircle className="w-4 h-4 mr-1.5" /> Falar no WhatsApp
+                <WhatsAppIcon className="w-4 h-4 mr-1.5" /> Falar no WhatsApp
               </a>
             </Button>
           </div>
