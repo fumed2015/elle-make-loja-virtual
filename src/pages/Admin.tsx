@@ -95,6 +95,15 @@ const DashboardTab = () => {
   const { data: products } = useProducts({});
   const { data: orders } = useAllOrders();
   const { data: influencers } = useInfluencers();
+  const [yampiStatus, setYampiStatus] = useState<"checking" | "connected" | "error">("checking");
+
+  useState(() => {
+    supabase.functions.invoke('yampi-checkout', {
+      body: { action: 'get-checkout-url' },
+    }).then(({ data, error }) => {
+      setYampiStatus(error || !data?.success ? "error" : "connected");
+    }).catch(() => setYampiStatus("error"));
+  });
 
   const totalRevenue = orders?.reduce((sum, o) => sum + Number(o.total), 0) || 0;
   const totalOrders = orders?.length || 0;
@@ -113,15 +122,53 @@ const DashboardTab = () => {
   ];
 
   return (
-    <div className="grid grid-cols-2 gap-3">
-      {stats.map((stat, i) => (
-        <motion.div key={stat.label} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.1 }}
-          className="bg-card rounded-xl p-4 border border-border">
-          <stat.icon className={`w-5 h-5 mb-2 ${(stat as any).bad ? "text-destructive" : "text-primary"}`} />
-          <p className={`text-lg font-bold ${(stat as any).bad ? "text-destructive" : ""}`}>{stat.value}</p>
-          <p className="text-xs text-muted-foreground">{stat.label}</p>
-        </motion.div>
-      ))}
+    <div className="space-y-4">
+      {/* Yampi Integration Status */}
+      <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
+        className={`rounded-xl p-4 border flex items-center gap-3 ${
+          yampiStatus === "connected" ? "bg-accent/5 border-accent/30" :
+          yampiStatus === "error" ? "bg-destructive/5 border-destructive/30" :
+          "bg-muted border-border"
+        }`}>
+        <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
+          yampiStatus === "connected" ? "bg-accent/15" :
+          yampiStatus === "error" ? "bg-destructive/15" :
+          "bg-muted"
+        }`}>
+          {yampiStatus === "checking" ? <Loader2 className="w-5 h-5 text-muted-foreground animate-spin" /> :
+           yampiStatus === "connected" ? <CheckCircle className="w-5 h-5 text-accent" /> :
+           <AlertTriangle className="w-5 h-5 text-destructive" />}
+        </div>
+        <div className="flex-1">
+          <div className="flex items-center gap-2">
+            <p className="text-sm font-semibold">Yampi Checkout</p>
+            <Badge variant="secondary" className={`text-[9px] ${
+              yampiStatus === "connected" ? "bg-accent/15 text-accent" :
+              yampiStatus === "error" ? "bg-destructive/15 text-destructive" :
+              ""
+            }`}>
+              {yampiStatus === "checking" ? "Verificando..." :
+               yampiStatus === "connected" ? "✓ Conectado" : "✗ Erro"}
+            </Badge>
+          </div>
+          <p className="text-[10px] text-muted-foreground">
+            {yampiStatus === "connected" ? "Credenciais configuradas • Checkout seguro ativo" :
+             yampiStatus === "error" ? "Verifique as credenciais no painel de secrets" :
+             "Verificando conexão com a API Yampi..."}
+          </p>
+        </div>
+      </motion.div>
+
+      <div className="grid grid-cols-2 gap-3">
+        {stats.map((stat, i) => (
+          <motion.div key={stat.label} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.1 }}
+            className="bg-card rounded-xl p-4 border border-border">
+            <stat.icon className={`w-5 h-5 mb-2 ${(stat as any).bad ? "text-destructive" : "text-primary"}`} />
+            <p className={`text-lg font-bold ${(stat as any).bad ? "text-destructive" : ""}`}>{stat.value}</p>
+            <p className="text-xs text-muted-foreground">{stat.label}</p>
+          </motion.div>
+        ))}
+      </div>
     </div>
   );
 };
