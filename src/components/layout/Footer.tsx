@@ -1,4 +1,4 @@
-import { MessageCircle, Instagram, MapPin, Phone, Mail } from "lucide-react";
+import { MessageCircle, Instagram, MapPin, Phone, Mail, Clock } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 
@@ -65,6 +65,14 @@ const Footer = () => {
               <li className="flex items-center gap-2 text-xs"><MapPin className="w-3.5 h-3.5 flex-shrink-0" /> Belém, PA</li>
               <li className="flex items-center gap-2 text-xs"><Phone className="w-3.5 h-3.5 flex-shrink-0" /><a href="tel:+5591983045531" className="hover:text-background transition-colors">(91) 98304-5531</a></li>
               <li className="flex items-center gap-2 text-xs"><Mail className="w-3.5 h-3.5 flex-shrink-0" /> contato@ellemake.com</li>
+              <li className="flex items-start gap-2 text-xs mt-3">
+                <Clock className="w-3.5 h-3.5 flex-shrink-0 mt-0.5" />
+                <div>
+                  <p className="font-semibold text-background">Atendimento</p>
+                  <p>Seg–Sex: 9h às 18h</p>
+                  <p>Sáb: 9h às 13h</p>
+                </div>
+              </li>
             </ul>
             <div className="flex gap-3 mt-4">
               <a href="https://instagram.com/michelle_makestore" target="_blank" rel="noopener noreferrer" className="w-8 h-8 rounded-full bg-background/10 flex items-center justify-center hover:bg-background/20 transition-colors">
