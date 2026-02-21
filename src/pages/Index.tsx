@@ -102,18 +102,28 @@ const Index = () => {
 
     const timeout = setTimeout(() => {
       if (video.readyState < 2) setVideoFailed(true);
-    }, 4000);
+    }, 6000);
 
-    const playPromise = video.play();
-    if (playPromise !== undefined) {
-      playPromise.catch(() => {
-        setVideoFailed(true);
-        const handleInteraction = () => {
-          video.play().then(() => setVideoFailed(false)).catch(() => {});
-          document.removeEventListener('touchstart', handleInteraction);
-        };
-        document.addEventListener('touchstart', handleInteraction, { once: true });
-      });
+    const tryPlay = () => {
+      const p = video.play();
+      if (p !== undefined) {
+        p.then(() => setVideoFailed(false)).catch(() => {
+          setVideoFailed(true);
+          // Wait for user interaction (Safari often needs this)
+          const resume = () => {
+            video.play().then(() => setVideoFailed(false)).catch(() => {});
+          };
+          document.addEventListener('touchstart', resume, { once: true });
+          document.addEventListener('click', resume, { once: true });
+        });
+      }
+    };
+
+    // Safari needs data loaded before play
+    if (video.readyState >= 2) {
+      tryPlay();
+    } else {
+      video.addEventListener('loadeddata', tryPlay, { once: true });
     }
 
     video.addEventListener('error', () => setVideoFailed(true));
@@ -188,7 +198,7 @@ const Index = () => {
           muted
           playsInline
           autoPlay
-          preload="metadata"
+          preload="auto"
           poster="/pwa-512x512.png"
           className={`w-full h-[320px] md:h-[480px] object-cover ${videoFailed ? 'hidden' : ''}`}
           style={{ objectPosition: "200% center" }}
