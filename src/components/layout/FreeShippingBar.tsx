@@ -1,8 +1,7 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Truck, Gift } from "lucide-react";
+import { X, Truck } from "lucide-react";
 import { useCart } from "@/hooks/useCart";
-import { Progress } from "@/components/ui/progress";
 
 const FREE_SHIPPING_MIN = 199;
 
@@ -16,7 +15,7 @@ const FreeShippingBar = () => {
   const achieved = cartTotal >= FREE_SHIPPING_MIN;
 
   useEffect(() => {
-    const timer = setTimeout(() => setVisible(true), 2000);
+    const timer = setTimeout(() => setVisible(true), 2500);
     return () => clearTimeout(timer);
   }, []);
 
@@ -35,71 +34,42 @@ const FreeShippingBar = () => {
   return (
     <AnimatePresence>
       <motion.div
-        initial={{ opacity: 0, y: 60 }}
+        initial={{ opacity: 0, y: 40 }}
         animate={{ opacity: 1, y: 0 }}
-        exit={{ opacity: 0, y: 60 }}
-        transition={{ type: "spring", damping: 20, stiffness: 300 }}
-        className="fixed bottom-20 md:bottom-6 left-1/2 -translate-x-1/2 z-50 w-[92%] max-w-md"
+        exit={{ opacity: 0, y: 40 }}
+        transition={{ type: "spring", damping: 22, stiffness: 300 }}
+        className="fixed bottom-[4.5rem] md:bottom-5 left-3 right-3 md:left-auto md:right-5 z-50 md:w-80"
       >
-        <div className="bg-card border border-border rounded-2xl shadow-2xl overflow-hidden">
-          {/* Close */}
-          <button
-            onClick={handleDismiss}
-            className="absolute top-2 right-2 w-6 h-6 flex items-center justify-center rounded-full bg-muted hover:bg-muted/80 transition-colors z-10"
-            aria-label="Fechar"
-          >
-            <X className="w-3.5 h-3.5 text-muted-foreground" />
-          </button>
+        <div className="bg-card/95 backdrop-blur-md border border-border rounded-xl shadow-lg px-3 py-2.5 flex items-center gap-2.5">
+          <Truck className={`w-4 h-4 flex-shrink-0 ${achieved ? "text-accent" : "text-primary"}`} />
 
-          <div className="px-4 pt-3.5 pb-3">
-            {/* Icon + Text */}
-            <div className="flex items-center gap-3 mb-2.5">
-              <div className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 ${
-                achieved ? "bg-accent/15" : "bg-primary/10"
-              }`}>
-                {achieved ? (
-                  <Gift className="w-5 h-5 text-accent" />
-                ) : (
-                  <Truck className="w-5 h-5 text-primary" />
-                )}
-              </div>
-              <div className="flex-1 min-w-0">
-                {achieved ? (
-                  <>
-                    <p className="text-sm font-bold text-accent">Parabéns! Frete Grátis! 🎉</p>
-                    <p className="text-[11px] text-muted-foreground">
-                      Seu pedido já tem frete grátis para Belém e Região Metropolitana
-                    </p>
-                  </>
-                ) : cartTotal > 0 ? (
-                  <>
-                    <p className="text-sm font-bold text-foreground">
-                      Faltam <span className="text-primary">R$ {remaining.toFixed(2).replace('.', ',')}</span>
-                    </p>
-                    <p className="text-[11px] text-muted-foreground">
-                      para frete grátis em Belém e Região Metropolitana
-                    </p>
-                  </>
-                ) : (
-                  <>
-                    <p className="text-sm font-bold text-foreground">Frete Grátis 🚚</p>
-                    <p className="text-[11px] text-muted-foreground">
-                      Em compras acima de R$ 199 para Belém e Região Metropolitana
-                    </p>
-                  </>
-                )}
-              </div>
-            </div>
-
-            {/* Progress bar */}
-            <div className="space-y-1">
-              <Progress value={progress} className="h-2.5 bg-muted" />
-              <div className="flex justify-between text-[10px] text-muted-foreground">
-                <span>R$ {cartTotal.toFixed(2).replace('.', ',')}</span>
-                <span>R$ {FREE_SHIPPING_MIN.toFixed(2).replace('.', ',')}</span>
-              </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-[11px] font-semibold text-foreground leading-tight truncate">
+              {achieved
+                ? "Frete grátis garantido! 🎉"
+                : cartTotal > 0
+                  ? <>Faltam <span className="text-primary">R$ {remaining.toFixed(2).replace('.', ',')}</span> p/ frete grátis</>
+                  : "Frete grátis acima de R$ 199"
+              }
+            </p>
+            {/* Mini progress bar */}
+            <div className="mt-1 h-1 w-full rounded-full bg-muted overflow-hidden">
+              <motion.div
+                initial={{ width: 0 }}
+                animate={{ width: `${progress}%` }}
+                transition={{ duration: 0.6, ease: "easeOut" }}
+                className={`h-full rounded-full ${achieved ? "bg-accent" : "bg-primary"}`}
+              />
             </div>
           </div>
+
+          <button
+            onClick={handleDismiss}
+            className="w-5 h-5 flex items-center justify-center rounded-full hover:bg-muted transition-colors flex-shrink-0"
+            aria-label="Fechar"
+          >
+            <X className="w-3 h-3 text-muted-foreground" />
+          </button>
         </div>
       </motion.div>
     </AnimatePresence>
