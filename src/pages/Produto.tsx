@@ -10,6 +10,7 @@ import { useFavorites } from "@/hooks/useFavorites";
 import ReviewSection from "@/components/product/ReviewSection";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
+import SEOHead from "@/components/SEOHead";
 
 const Produto = () => {
   const { slug } = useParams<{ slug: string }>();
@@ -54,6 +55,25 @@ const Produto = () => {
 
   return (
     <div className="min-h-screen max-w-lg mx-auto">
+      <SEOHead
+        title={product.name}
+        description={product.description || `${product.name} - ${product.brand}`}
+        image={product.images?.[0]}
+        jsonLd={{
+          "@context": "https://schema.org",
+          "@type": "Product",
+          name: product.name,
+          description: product.description,
+          image: product.images?.[0],
+          brand: { "@type": "Brand", name: product.brand },
+          offers: {
+            "@type": "Offer",
+            price: product.price,
+            priceCurrency: "BRL",
+            availability: product.stock > 0 ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
+          },
+        }}
+      />
       <div className="relative aspect-square bg-muted">
         {product.images?.[0] && (
           <img src={product.images[0]} alt={product.name} className="w-full h-full object-cover" />

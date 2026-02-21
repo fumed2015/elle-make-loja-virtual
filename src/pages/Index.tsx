@@ -1,6 +1,7 @@
 import { motion } from "framer-motion";
 import { ArrowRight, Sparkles, TrendingUp, MessageCircle, Bell } from "lucide-react";
 import { Link } from "react-router-dom";
+import SEOHead from "@/components/SEOHead";
 import { Button } from "@/components/ui/button";
 import { useProducts, useCategories } from "@/hooks/useProducts";
 import ProductCard from "@/components/product/ProductCard";
@@ -56,6 +57,17 @@ const Index = () => {
 
   return (
     <div className="min-h-screen">
+      <SEOHead
+        title="Maquiagem com Ativos Amazônicos"
+        description="Descubra maquiagens e skincare com ativos amazônicos. Ciência e natureza para uma pele radiante em Belém do Pará."
+        jsonLd={{
+          "@context": "https://schema.org",
+          "@type": "WebSite",
+          name: "Beleza Phygital Belém",
+          url: window.location.origin,
+          potentialAction: { "@type": "SearchAction", target: `${window.location.origin}/explorar?q={search_term_string}`, "query-input": "required name=search_term_string" },
+        }}
+      />
       {/* Push Notification Banner */}
       {showPushBanner && (
         <motion.div
