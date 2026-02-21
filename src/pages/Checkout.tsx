@@ -7,6 +7,8 @@ import { Label } from "@/components/ui/label";
 import { useCart } from "@/hooks/useCart";
 import { useAuth } from "@/hooks/useAuth";
 import { useCoupon } from "@/hooks/useCoupon";
+import { useShipping } from "@/hooks/useShipping";
+import ShippingCalculator from "@/components/shipping/ShippingCalculator";
 import { supabase } from "@/integrations/supabase/client";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
@@ -19,6 +21,7 @@ const Checkout = () => {
   const { user } = useAuth();
   const { items, cartTotal, cartCount } = useCart();
   const { validateCoupon } = useCoupon();
+  const shipping = useShipping();
   const [step, setStep] = useState<Step>("address");
   const [submitting, setSubmitting] = useState(false);
   const [orderId, setOrderId] = useState("");
@@ -34,7 +37,9 @@ const Checkout = () => {
   if (!user) { navigate("/perfil"); return null; }
   if (items.length === 0 && step !== "success" && step !== "processing") { navigate("/carrinho"); return null; }
 
-  const finalTotal = Math.max(0, cartTotal - (appliedCoupon?.discount || 0));
+  const shippingCost = shipping.selectedShipping?.price ?? 0;
+  const freeShipping = cartTotal >= 199 && shipping.isLocal;
+  const finalTotal = Math.max(0, cartTotal + (freeShipping ? 0 : shippingCost) - (appliedCoupon?.discount || 0));
 
   const handleApplyCoupon = async () => {
     if (!couponCode.trim()) return;
@@ -277,7 +282,20 @@ const Checkout = () => {
 
             <div className="bg-card rounded-xl p-4 border border-border">
               <div className="flex items-center gap-2 mb-2"><MapPin className="w-4 h-4 text-primary" /><h3 className="text-sm font-medium">Entrega</h3></div>
-              <p className="text-xs text-muted-foreground">{address.street}, {address.number} {address.complement && `- ${address.complement}`}<br />{address.neighborhood}, {address.city} - {address.state}<br />CEP: {address.zip}</p>
+              <p className="text-xs text-muted-foreground mb-3">{address.street}, {address.number} {address.complement && `- ${address.complement}`}<br />{address.neighborhood}, {address.city} - {address.state}<br />CEP: {address.zip}</p>
+              <ShippingCalculator
+                cep={shipping.cep || address.zip}
+                onCepChange={shipping.setCep}
+                onCalculate={shipping.calculateShipping}
+                loading={shipping.loading}
+                error={shipping.error}
+                options={shipping.options}
+                selectedOption={shipping.selectedOption}
+                onSelectOption={shipping.selectOption}
+                isLocal={shipping.isLocal}
+                addressInfo={shipping.addressInfo}
+                compact
+              />
             </div>
 
             {/* Payment Method Selection */}
@@ -321,7 +339,20 @@ const Checkout = () => {
               {appliedCoupon && (
                 <div className="flex justify-between text-sm"><span className="text-accent">Cupom {appliedCoupon.code}</span><span className="text-accent">-R$ {appliedCoupon.discount.toFixed(2).replace(".", ",")}</span></div>
               )}
-              <div className="flex justify-between text-sm"><span className="text-muted-foreground">Frete</span><span className="text-accent">Grátis</span></div>
+              <div className="flex justify-between text-sm">
+                <span className="text-muted-foreground">Frete</span>
+                {shipping.selectedShipping ? (
+                  freeShipping ? (
+                    <span className="text-accent font-medium">Grátis</span>
+                  ) : shipping.selectedShipping.price !== null ? (
+                    <span>R$ {shipping.selectedShipping.price.toFixed(2).replace(".", ",")}</span>
+                  ) : (
+                    <span className="text-accent">A combinar</span>
+                  )
+                ) : (
+                  <span className="text-muted-foreground text-xs">Calcule acima</span>
+                )}
+              </div>
               <div className="border-t border-border pt-2 flex justify-between">
                 <span className="font-display font-bold">Total</span>
                 <span className="font-bold text-lg text-primary">R$ {finalTotal.toFixed(2).replace(".", ",")}</span>

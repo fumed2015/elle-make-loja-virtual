@@ -4,10 +4,14 @@ import { useCart } from "@/hooks/useCart";
 import { useAuth } from "@/hooks/useAuth";
 import { Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-
+import { useShipping } from "@/hooks/useShipping";
+import ShippingCalculator from "@/components/shipping/ShippingCalculator";
 const Carrinho = () => {
   const { items, isLoading, removeFromCart, cartTotal, cartCount } = useCart();
   const { user } = useAuth();
+  const shipping = useShipping();
+  const shippingCost = shipping.selectedShipping?.price ?? 0;
+  const total = cartTotal + shippingCost;
 
   if (!user) {
     return (
@@ -92,6 +96,23 @@ const Carrinho = () => {
         </div>
       </AnimatePresence>
 
+      {/* Shipping Calculator */}
+      <div className="mb-4">
+        <ShippingCalculator
+          cep={shipping.cep}
+          onCepChange={shipping.setCep}
+          onCalculate={shipping.calculateShipping}
+          loading={shipping.loading}
+          error={shipping.error}
+          options={shipping.options}
+          selectedOption={shipping.selectedOption}
+          onSelectOption={shipping.selectOption}
+          isLocal={shipping.isLocal}
+          addressInfo={shipping.addressInfo}
+          compact
+        />
+      </div>
+
       {/* Total */}
       <div className="bg-card rounded-xl p-4 border border-border space-y-3">
         <div className="flex justify-between text-sm">
@@ -100,12 +121,26 @@ const Carrinho = () => {
         </div>
         <div className="flex justify-between text-sm">
           <span className="text-muted-foreground">Frete</span>
-          <span className="text-secondary font-medium">Calcular na finalização</span>
+          {shipping.selectedShipping ? (
+            shipping.selectedShipping.price !== null ? (
+              <span className="font-medium">R$ {shipping.selectedShipping.price.toFixed(2).replace(".", ",")}</span>
+            ) : (
+              <span className="text-accent font-medium">A combinar</span>
+            )
+          ) : (
+            <span className="text-muted-foreground text-xs">Informe o CEP</span>
+          )}
         </div>
+        {cartTotal >= 199 && shipping.isLocal && (
+          <div className="flex justify-between text-sm">
+            <span className="text-accent font-medium">Frete grátis aplicado!</span>
+            <span className="text-accent font-medium line-through">R$ {shippingCost.toFixed(2).replace(".", ",")}</span>
+          </div>
+        )}
         <div className="border-t border-border pt-3 flex justify-between">
           <span className="font-display font-bold">Total</span>
           <span className="font-bold text-lg text-primary">
-            R$ {cartTotal.toFixed(2).replace(".", ",")}
+            R$ {(cartTotal >= 199 && shipping.isLocal ? cartTotal : total).toFixed(2).replace(".", ",")}
           </span>
         </div>
         <div className="bg-primary/10 rounded-lg p-2.5 text-center">
