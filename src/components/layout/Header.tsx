@@ -3,7 +3,7 @@ import WhatsAppIcon from "@/components/icons/WhatsAppIcon";
 import { Link, useNavigate } from "react-router-dom";
 import { Input } from "@/components/ui/input";
 import { useCart } from "@/hooks/useCart";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
 interface SubItem {
@@ -18,7 +18,14 @@ interface NavItem {
 }
 
 const navLinks: NavItem[] = [
-  { label: "Novidades", to: "/explorar?cat=novidades" },
+  {
+    label: "Novidades", to: "/explorar?cat=novidades",
+    subs: [
+      { label: "Lançamentos", to: "/explorar?cat=novidades&q=lancamento" },
+      { label: "Mais Vendidos", to: "/explorar?cat=novidades&q=vendido" },
+      { label: "Tendências", to: "/explorar?cat=novidades&q=tendencia" },
+    ],
+  },
   {
     label: "Marcas", to: "/explorar",
     subs: [
@@ -64,8 +71,22 @@ const navLinks: NavItem[] = [
       { label: "Séruns", to: "/explorar?cat=skincare&q=serum" },
     ],
   },
-  { label: "Acessórios", to: "/categoria/acessorios" },
-  { label: "Ofertas", to: "/categoria/ofertas" },
+  {
+    label: "Acessórios", to: "/categoria/acessorios",
+    subs: [
+      { label: "Pincéis", to: "/explorar?cat=acessorios&q=pincel" },
+      { label: "Esponjas", to: "/explorar?cat=acessorios&q=esponja" },
+      { label: "Necessaires", to: "/explorar?cat=acessorios&q=necessaire" },
+    ],
+  },
+  {
+    label: "Ofertas", to: "/categoria/ofertas",
+    subs: [
+      { label: "Até 30% Off", to: "/explorar?cat=ofertas&q=30" },
+      { label: "Até 50% Off", to: "/explorar?cat=ofertas&q=50" },
+      { label: "Kits Promocionais", to: "/explorar?cat=kits-bundles" },
+    ],
+  },
 ];
 
 const Header = () => {
@@ -74,6 +95,20 @@ const Header = () => {
   const [search, setSearch] = useState("");
   const [hoveredNav, setHoveredNav] = useState<string | null>(null);
   const [promoIndex, setPromoIndex] = useState(0);
+
+  const closeTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const handleMouseEnter = useCallback((label: string) => {
+    if (closeTimeoutRef.current) {
+      clearTimeout(closeTimeoutRef.current);
+      closeTimeoutRef.current = null;
+    }
+    setHoveredNav(label);
+  }, []);
+
+  const handleMouseLeave = useCallback(() => {
+    closeTimeoutRef.current = setTimeout(() => setHoveredNav(null), 150);
+  }, []);
 
   const promoMessages = [
     "✨ FRETE GRÁTIS acima de R$ 199 para Belém e Região Metropolitana ✨",
@@ -171,8 +206,8 @@ const Header = () => {
             <div
               key={link.label}
               className="relative flex-1"
-              onMouseEnter={() => link.subs && setHoveredNav(link.label)}
-              onMouseLeave={() => setHoveredNav(null)}
+              onMouseEnter={() => handleMouseEnter(link.label)}
+              onMouseLeave={handleMouseLeave}
             >
               <Link
                 to={link.to}
