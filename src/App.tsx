@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { ThemeProvider } from "@/hooks/useTheme";
 import { lazy, Suspense } from "react";
 import { ScrollToTop } from "@/components/ScrollToTop";
+import { useCartSync } from "@/hooks/useCartSync";
 import AppLayout from "@/components/layout/AppLayout";
 import Index from "./pages/Index";
 
@@ -30,6 +31,11 @@ const PageLoader = () => (
   </div>
 );
 
+const CartSyncWrapper = ({ children }: { children: React.ReactNode }) => {
+  useCartSync();
+  return <>{children}</>;
+};
+
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <ThemeProvider>
@@ -37,26 +43,27 @@ const App = () => (
         <Toaster />
         <Sonner />
         <BrowserRouter>
-          <ScrollToTop />
-          <Suspense fallback={<PageLoader />}>
-            <Routes>
-              <Route element={<AppLayout />}>
-                <Route path="/" element={<Index />} />
-                <Route path="/explorar" element={<Explorar />} />
-                <Route path="/produto/:slug" element={<Produto />} />
-                <Route path="/categoria/:slug" element={<Categoria />} />
-                <Route path="/marca/:slug" element={<Marca />} />
-                <Route path="/carrinho" element={<Carrinho />} />
-                <Route path="/checkout" element={<Checkout />} />
-                <Route path="/perfil" element={<Perfil />} />
-                <Route path="/pedidos" element={<Pedidos />} />
-                <Route path="/favoritos" element={<Favoritos />} />
-                <Route path="/admin" element={<Admin />} />
-                
-              </Route>
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </Suspense>
+          <CartSyncWrapper>
+            <ScrollToTop />
+            <Suspense fallback={<PageLoader />}>
+              <Routes>
+                <Route element={<AppLayout />}>
+                  <Route path="/" element={<Index />} />
+                  <Route path="/explorar" element={<Explorar />} />
+                  <Route path="/produto/:slug" element={<Produto />} />
+                  <Route path="/categoria/:slug" element={<Categoria />} />
+                  <Route path="/marca/:slug" element={<Marca />} />
+                  <Route path="/carrinho" element={<Carrinho />} />
+                  <Route path="/checkout" element={<Checkout />} />
+                  <Route path="/perfil" element={<Perfil />} />
+                  <Route path="/pedidos" element={<Pedidos />} />
+                  <Route path="/favoritos" element={<Favoritos />} />
+                  <Route path="/admin" element={<Admin />} />
+                </Route>
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </Suspense>
+          </CartSyncWrapper>
         </BrowserRouter>
       </TooltipProvider>
     </ThemeProvider>
