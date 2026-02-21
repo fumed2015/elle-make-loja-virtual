@@ -52,6 +52,11 @@ const Produto = () => {
   }
 
   const swatches = typeof product.swatches === 'string' ? JSON.parse(product.swatches) : (product.swatches || []);
+
+  // Auto-select first swatch if available
+  if (swatches.length > 0 && !selectedSwatch) {
+    setSelectedSwatch(swatches[0]);
+  }
   const hasDiscount = product.compare_at_price && Number(product.compare_at_price) > Number(product.price);
   const tags = product.tags || [];
   const favorited = isFavorited(product.id);
@@ -233,7 +238,7 @@ const Produto = () => {
             <div className="space-y-2.5">
               <Button
                 onClick={handleAddToCart}
-                disabled={addToCart.isPending || (swatches.length > 0 && !selectedSwatch)}
+                disabled={addToCart.isPending}
                 className="w-full bg-primary text-primary-foreground hover:bg-primary/90 min-h-[48px] text-base font-semibold shadow-marsala"
               >
                 <ShoppingBag className="w-5 h-5 mr-2" />
@@ -243,7 +248,7 @@ const Produto = () => {
               <Button
                 onClick={handleBuyNow}
                 variant="outline"
-                disabled={swatches.length > 0 && !selectedSwatch}
+                disabled={false}
                 className="w-full min-h-[48px] text-base font-semibold border-2"
               >
                 <CreditCard className="w-5 h-5 mr-2 text-accent" />
