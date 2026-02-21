@@ -82,7 +82,14 @@ const Index = () => {
   const moreProducts = useMemo(() => allProducts?.filter(p => !p.is_featured).slice(0, 10) || [], [allProducts]);
 
   useEffect(() => {
+    // Immediate scroll
     window.scrollTo(0, 0);
+    document.documentElement.scrollTop = 0;
+    document.body.scrollTop = 0;
+    // Deferred scroll after paint to beat browser restore
+    requestAnimationFrame(() => {
+      window.scrollTo(0, 0);
+    });
   }, []);
 
   useEffect(() => {
