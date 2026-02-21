@@ -27,14 +27,19 @@ const InlineConsultant = () => {
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const hasInteracted = useRef(false);
 
   useEffect(() => {
-    scrollRef.current?.scrollIntoView({ behavior: "smooth" });
+    // Only auto-scroll after user has sent a message, not on initial render
+    if (hasInteracted.current) {
+      scrollRef.current?.scrollIntoView({ behavior: "smooth" });
+    }
   }, [messages]);
 
   const send = async (text?: string) => {
     const msg = text || input.trim();
     if (!msg || isLoading) return;
+    hasInteracted.current = true;
     const userMsg: Msg = { role: "user", content: msg };
     const newMessages = [...messages, userMsg];
     setMessages(newMessages);
