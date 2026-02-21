@@ -163,10 +163,7 @@ const Index = () => {
           <p className="text-foreground/80 text-sm md:text-base leading-relaxed mb-1 max-w-lg mx-auto" style={{ textShadow: '0 1px 4px hsl(var(--background) / 0.5)' }}>
             <strong className="text-foreground">Frete grátis acima de R$ 199.</strong>
           </p>
-          <p className="text-xs font-semibold text-primary mb-5 animate-pulse" style={{ textShadow: '0 1px 6px hsl(var(--background) / 0.5)' }}>
-            🛵 Belém e Ananindeua: entrega em até 3 horas!
-          </p>
-          <div className="flex flex-wrap gap-3 justify-center">
+          <div className="flex flex-wrap gap-3 justify-center mt-5">
             <Button asChild className="bg-primary text-primary-foreground hover:bg-primary/90 min-h-[48px] px-8 rounded-full font-semibold shadow-marsala">
               <Link to="/explorar">
                 Ver Produtos <ArrowRight className="w-4 h-4 ml-1.5" />
@@ -183,6 +180,14 @@ const Index = () => {
 
       {/* Benefits bar */}
       <section className="border-b border-border bg-card px-4 py-5">
+        <motion.p
+          initial={{ opacity: 0, y: -5 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          className="text-center text-sm md:text-base font-bold text-primary mb-4 animate-pulse"
+        >
+          🛵 Belém e Ananindeua: entrega em até 3 horas!
+        </motion.p>
         <div className="max-w-4xl mx-auto grid grid-cols-4 gap-4">
           {benefits.map((b, i) => (
             <motion.div
