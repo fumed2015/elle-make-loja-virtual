@@ -140,15 +140,17 @@ const ProductCard = ({ product, index = 0 }: ProductCardProps) => {
             )}
           </div>
 
-          {/* Add to cart button */}
-          <Button
-            onClick={handleQuickAdd}
-            className="w-full bg-primary text-primary-foreground hover:bg-primary/90 rounded-full text-[10px] h-7 font-semibold mt-1.5"
-            size="sm"
-          >
-            <ShoppingBag className="w-3 h-3 mr-1" />
-            {swatches.length > 0 ? "Ver cores" : "Adicionar"}
-          </Button>
+          {/* Add to cart button - visible on hover */}
+          <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+            <Button
+              onClick={handleQuickAdd}
+              className="w-full bg-primary text-primary-foreground hover:bg-primary/90 rounded-full text-[10px] h-7 font-semibold mt-1.5"
+              size="sm"
+            >
+              <ShoppingBag className="w-3 h-3 mr-1" />
+              {swatches.length > 0 ? "Ver cores" : "Adicionar"}
+            </Button>
+          </div>
         </div>
       </motion.div>
     </Link>
