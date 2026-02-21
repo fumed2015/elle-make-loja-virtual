@@ -1,20 +1,20 @@
 import { motion } from "framer-motion";
-import { useRef, useEffect } from "react";
+import { useRef, useEffect, lazy, Suspense, useMemo } from "react";
 import { ArrowRight, Truck, CreditCard, ShieldCheck, Star, ChevronDown, Heart, Eye, Sparkles, Droplets, Package, Paintbrush, Gem, Palette, Wind, Tag, Zap, Scissors, ShowerHead, SprayCan, Smile, Sun } from "lucide-react";
 import WhatsAppIcon from "@/components/icons/WhatsAppIcon";
 import { Link } from "react-router-dom";
 import SEOHead from "@/components/SEOHead";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { useProducts, useCategories } from "@/hooks/useProducts";
+import { useAllProductsUnified, useCategories } from "@/hooks/useProducts";
 import ProductCard from "@/components/product/ProductCard";
 import UGCSection from "@/components/social/UGCSection";
 import Footer from "@/components/layout/Footer";
-import InlineConsultant from "@/components/chat/InlineConsultant";
 import { useState } from "react";
-import heroBanner from "@/assets/hero-banner.mp4";
-import { useCoupon } from "@/hooks/useCoupon";
 import { toast } from "sonner";
+
+// Lazy load heavy InlineConsultant (pulls react-markdown ~69KB)
+const InlineConsultant = lazy(() => import("@/components/chat/InlineConsultant"));
 
 const container = {
   hidden: { opacity: 0 },
@@ -69,12 +69,17 @@ const categoryIcons: Record<string, React.ElementType> = {
 };
 
 const Index = () => {
-  const { data: featured, isLoading } = useProducts({ featured: true });
-  const { data: allProducts, isLoading: loadingAll } = useProducts({});
+  // Single unified query instead of 2 separate ones
+  const { data: allProducts, isLoading } = useAllProductsUnified();
   const { data: categories } = useCategories();
   const [couponCode, setCouponCode] = useState("");
   const [openFaq, setOpenFaq] = useState<number | null>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
+
+  // Derive featured + offers from single query (no extra network calls)
+  const featured = useMemo(() => allProducts?.filter(p => p.is_featured).slice(0, 5) || [], [allProducts]);
+  const offers = useMemo(() => allProducts?.filter(p => p.compare_at_price && p.compare_at_price > p.price).slice(0, 5) || [], [allProducts]);
+  const moreProducts = useMemo(() => allProducts?.filter(p => !p.is_featured).slice(0, 10) || [], [allProducts]);
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -89,7 +94,6 @@ const Index = () => {
     const playPromise = video.play();
     if (playPromise !== undefined) {
       playPromise.catch(() => {
-        // Autoplay blocked — try playing on first user interaction
         const handleInteraction = () => {
           video.play().catch(() => {});
           document.removeEventListener('touchstart', handleInteraction);
@@ -149,22 +153,23 @@ const Index = () => {
         ]}
       />
 
-      {/* Hero with Video Banner */}
+      {/* Hero — video served from public/ with preload="none" */}
       <section className="relative overflow-hidden bg-background">
         <video
           ref={videoRef}
-          src={heroBanner}
+          src="/hero-banner.mp4"
           loop
           muted
           playsInline
           // @ts-ignore — webkit attribute for iOS Safari
           webkit-playsinline=""
           autoPlay
-          preload="metadata"
+          preload="none"
+          poster="/pwa-512x512.png"
           className="w-full h-[320px] md:h-[480px] object-cover"
           style={{ objectPosition: "200% center" }}
         />
-        {/* Gradient overlay — esquerda forte para legibilidade */}
+        {/* Gradient overlay */}
         <div className="absolute inset-0 bg-gradient-to-r from-background/95 via-background/60 to-transparent" />
         <div className="absolute inset-0 bg-gradient-to-t from-background/50 via-transparent to-transparent" />
 
@@ -234,17 +239,14 @@ const Index = () => {
         </motion.div>
       </section>
 
-      {/* Benefits bar */}
+      {/* Benefits bar — removed individual whileInView, single container animation */}
       <section className="border-b border-border bg-card/50 backdrop-blur-sm px-4 py-4">
         <div className="max-w-5xl mx-auto flex justify-between gap-2 overflow-x-auto scrollbar-hide">
           {benefits.map((b, i) => (
-            <motion.div
+            <div
               key={i}
-              initial={{ opacity: 0, y: 20, scale: 0.9 }}
-              whileInView={{ opacity: 1, y: 0, scale: 1 }}
-              viewport={{ once: true }}
-              transition={{ delay: i * 0.15, type: "spring", stiffness: 200 }}
-              className="flex items-center gap-2 px-3 py-2.5 rounded-lg min-w-fit flex-1"
+              className="flex items-center gap-2 px-3 py-2.5 rounded-lg min-w-fit flex-1 animate-fade-in"
+              style={{ animationDelay: `${i * 100}ms` }}
             >
               <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
                 <b.icon className="w-4 h-4 text-primary" />
@@ -253,7 +255,7 @@ const Index = () => {
                 <p className="text-xs font-bold text-foreground whitespace-nowrap">{b.text}</p>
                 <p className="text-[10px] text-muted-foreground whitespace-nowrap">{b.sub}</p>
               </div>
-            </motion.div>
+            </div>
           ))}
         </div>
       </section>
@@ -277,7 +279,7 @@ const Index = () => {
           </div>
         ) : (
           <motion.div variants={container} initial="hidden" whileInView="show" viewport={{ once: true }} className="grid grid-cols-2 md:grid-cols-5 gap-2">
-            {featured?.slice(0, 5).map((product, i) => (
+            {featured.map((product, i) => (
               <motion.div key={product.id} variants={item}>
                 <ProductCard product={product} index={i} />
               </motion.div>
@@ -286,14 +288,9 @@ const Index = () => {
         )}
       </section>
 
-      {/* Free shipping progress bar */}
+      {/* Free shipping bar */}
       <section className="px-4 py-3 max-w-5xl mx-auto">
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          className="bg-accent/10 border border-accent/20 rounded-xl p-4 flex items-center gap-3"
-        >
+        <div className="bg-accent/10 border border-accent/20 rounded-xl p-4 flex items-center gap-3">
           <Truck className="w-6 h-6 text-accent flex-shrink-0" />
           <div className="flex-1">
             <p className="text-xs font-bold text-foreground">Frete GRÁTIS acima de R$ 199</p>
@@ -304,7 +301,7 @@ const Index = () => {
               Comprar
             </Button>
           </Link>
-        </motion.div>
+        </div>
       </section>
 
       {/* Super Ofertas */}
@@ -316,7 +313,7 @@ const Index = () => {
           </div>
           <Link to="/explorar" className="text-xs text-primary font-semibold hover:underline flex items-center gap-1">Ver tudo <ArrowRight className="w-3 h-3" /></Link>
         </div>
-        {loadingAll ? (
+        {isLoading ? (
           <div className="grid grid-cols-2 md:grid-cols-5 gap-2">
             {[...Array(5)].map((_, i) => (
               <div key={i} className="aspect-[3/4] rounded-lg bg-muted animate-shimmer" />
@@ -324,7 +321,7 @@ const Index = () => {
           </div>
         ) : (
           <motion.div variants={container} initial="hidden" whileInView="show" viewport={{ once: true }} className="grid grid-cols-2 md:grid-cols-5 gap-2">
-            {allProducts?.filter(p => p.compare_at_price && p.compare_at_price > p.price).slice(0, 5).map((product, i) => (
+            {offers.map((product, i) => (
               <motion.div key={product.id} variants={item}>
                 <ProductCard product={product} index={i} />
               </motion.div>
@@ -342,9 +339,9 @@ const Index = () => {
           </div>
           <Link to="/explorar" className="text-xs text-primary font-semibold hover:underline flex items-center gap-1">Ver catálogo <ArrowRight className="w-3 h-3" /></Link>
         </div>
-        {!loadingAll && (
+        {!isLoading && (
           <motion.div variants={container} initial="hidden" whileInView="show" viewport={{ once: true }} className="grid grid-cols-2 md:grid-cols-5 gap-2">
-            {allProducts?.filter(p => !p.is_featured).slice(0, 10).map((product, i) => (
+            {moreProducts.map((product, i) => (
               <motion.div key={product.id} variants={item}>
                 <ProductCard product={product} index={i} />
               </motion.div>
@@ -353,25 +350,26 @@ const Index = () => {
         )}
       </section>
 
-      {/* Glow – Consultora IA inline */}
-      <InlineConsultant />
+      {/* Glow – Consultora IA inline (lazy loaded) */}
+      <Suspense fallback={
+        <div className="px-4 py-10 max-w-3xl mx-auto text-center">
+          <div className="h-[400px] bg-muted rounded-2xl animate-pulse flex items-center justify-center">
+            <p className="text-sm text-muted-foreground">Carregando consultora...</p>
+          </div>
+        </div>
+      }>
+        <InlineConsultant />
+      </Suspense>
 
-      {/* Categories Sections */}
+      {/* Categories */}
       {categories && categories.length > 0 && (
         <section className="px-4 py-6 max-w-5xl mx-auto">
           <h2 className="text-lg font-bold text-foreground mb-3">Categorias</h2>
           <div className="flex gap-3 overflow-x-auto scrollbar-hide pb-1">
-            {categories.map((cat, i) => {
+            {categories.map((cat) => {
               const IconComp = categoryIcons[cat.slug] || Sparkles;
               return (
-                <motion.div
-                  key={cat.id}
-                  initial={{ opacity: 0, scale: 0.9 }}
-                  whileInView={{ opacity: 1, scale: 1 }}
-                  viewport={{ once: true }}
-                  transition={{ delay: i * 0.03 }}
-                  className="flex-shrink-0"
-                >
+                <div key={cat.id} className="flex-shrink-0">
                   <Link
                     to={`/explorar?cat=${cat.slug}`}
                     className="flex flex-col items-center gap-1 w-14 text-center group"
@@ -381,21 +379,16 @@ const Index = () => {
                     </div>
                     <p className="text-[9px] font-medium text-muted-foreground group-hover:text-primary transition-colors leading-tight truncate w-full">{cat.name}</p>
                   </Link>
-                </motion.div>
+                </div>
               );
             })}
           </div>
         </section>
       )}
 
-      {/* Coupon Section */}
+      {/* Coupon Section — removed whileInView */}
       <section className="px-4 py-8 max-w-lg mx-auto">
-        <motion.div
-          initial={{ opacity: 0, scale: 0.98 }}
-          whileInView={{ opacity: 1, scale: 1 }}
-          viewport={{ once: true }}
-          className="bg-card border-2 border-dashed border-primary/30 rounded-xl p-6 text-center"
-        >
+        <div className="bg-card border-2 border-dashed border-primary/30 rounded-xl p-6 text-center">
           <h2 className="text-lg font-bold text-foreground mb-1">🎟️ Tem um cupom de desconto?</h2>
           <p className="text-xs text-muted-foreground mb-4">Aplique seu cupom e economize na sua compra</p>
           <form
@@ -418,21 +411,18 @@ const Index = () => {
               Aplicar
             </Button>
           </form>
-        </motion.div>
+        </div>
       </section>
 
-      {/* Testimonials */}
+      {/* Testimonials — removed individual whileInView, CSS animation */}
       <section className="px-4 py-8 max-w-5xl mx-auto">
         <h2 className="text-xl font-bold text-foreground mb-5 text-center">Veja a opinião de quem já comprou</h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {testimonials.map((t, i) => (
-            <motion.div
+            <div
               key={i}
-              initial={{ opacity: 0, y: 10 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: i * 0.1 }}
-              className="bg-card border border-border rounded-lg p-5"
+              className="bg-card border border-border rounded-lg p-5 animate-fade-in"
+              style={{ animationDelay: `${i * 100}ms` }}
             >
               <div className="flex gap-0.5 mb-2">
                 {[...Array(t.rating)].map((_, j) => (
@@ -441,21 +431,18 @@ const Index = () => {
               </div>
               <p className="text-sm text-foreground leading-relaxed mb-3">"{t.text}"</p>
               <p className="text-xs font-semibold text-muted-foreground">— {t.name}</p>
-            </motion.div>
+            </div>
           ))}
         </div>
       </section>
 
-      {/* FAQ */}
+      {/* FAQ — removed individual whileInView */}
       <section className="px-4 py-8 max-w-2xl mx-auto">
         <h2 className="text-xl font-bold text-foreground mb-5 text-center">Perguntas Frequentes</h2>
         <div className="space-y-2">
           {faqs.map((faq, i) => (
-            <motion.div
+            <div
               key={i}
-              initial={{ opacity: 0 }}
-              whileInView={{ opacity: 1 }}
-              viewport={{ once: true }}
               className="bg-card border border-border rounded-lg overflow-hidden"
             >
               <button
@@ -475,7 +462,7 @@ const Index = () => {
                   <p className="text-sm text-muted-foreground leading-relaxed">{faq.a}</p>
                 </motion.div>
               )}
-            </motion.div>
+            </div>
           ))}
         </div>
       </section>
