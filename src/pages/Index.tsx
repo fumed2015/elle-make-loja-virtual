@@ -84,7 +84,19 @@ const Index = () => {
     const video = videoRef.current;
     if (!video) return;
     video.muted = true;
-    video.play().catch(() => {});
+    video.setAttribute('playsinline', '');
+    video.setAttribute('webkit-playsinline', '');
+    const playPromise = video.play();
+    if (playPromise !== undefined) {
+      playPromise.catch(() => {
+        // Autoplay blocked — try playing on first user interaction
+        const handleInteraction = () => {
+          video.play().catch(() => {});
+          document.removeEventListener('touchstart', handleInteraction);
+        };
+        document.addEventListener('touchstart', handleInteraction, { once: true });
+      });
+    }
   }, []);
 
   return (
@@ -145,10 +157,12 @@ const Index = () => {
           loop
           muted
           playsInline
+          // @ts-ignore — webkit attribute for iOS Safari
+          webkit-playsinline=""
           autoPlay
-          preload="auto"
+          preload="metadata"
           className="w-full h-[320px] md:h-[480px] object-cover"
-            style={{ objectPosition: "200% center" }}
+          style={{ objectPosition: "200% center" }}
         />
         {/* Gradient overlay — esquerda forte para legibilidade */}
         <div className="absolute inset-0 bg-gradient-to-r from-background/95 via-background/60 to-transparent" />
