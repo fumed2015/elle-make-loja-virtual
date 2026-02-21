@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { LayoutDashboard, Package, ShoppingCart, Plus, ArrowLeft, TrendingUp, Box, Tag, Star, Users, ImageIcon, Eye, EyeOff, Percent, Trash2, Search, AlertTriangle, CheckCircle, Info, FolderOpen, Pencil, Wand2, Sparkles, Loader2, RefreshCw, UserPlus, Cake, MessageCircle, Calendar, Gift } from "lucide-react";
+import { LayoutDashboard, Package, ShoppingCart, Plus, ArrowLeft, TrendingUp, Box, Tag, Star, Users, ImageIcon, Eye, EyeOff, Percent, Trash2, Search, AlertTriangle, CheckCircle, Info, FolderOpen, Pencil, Wand2, Sparkles, Loader2, RefreshCw, UserPlus, Cake, MessageCircle, Calendar, Gift, DollarSign, Target, Settings2, Megaphone } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -18,8 +18,12 @@ import { toast } from "sonner";
 import { motion } from "framer-motion";
 
 import AdminProductsPanel from "@/components/admin/AdminProductsPanel";
+import FinanceiroTab from "@/components/admin/FinanceiroTab";
+import ComercialTab from "@/components/admin/ComercialTab";
+import OperacionalTab from "@/components/admin/OperacionalTab";
+import MarketingTab from "@/components/admin/MarketingTab";
 
-type Tab = "dashboard" | "products" | "orders" | "add-product" | "coupons" | "reviews" | "influencers" | "seo" | "categories" | "ai-content" | "leads" | "birthdays";
+type Tab = "dashboard" | "products" | "orders" | "add-product" | "coupons" | "reviews" | "influencers" | "seo" | "categories" | "ai-content" | "leads" | "birthdays" | "financeiro" | "comercial" | "operacional" | "marketing";
 
 const statusLabels: Record<string, string> = {
   pending: "Pendente", confirmed: "Confirmado", preparing: "Preparando",
@@ -49,6 +53,10 @@ const Admin = () => {
 
   const tabs = [
     { id: "dashboard" as Tab, label: "Dashboard", icon: TrendingUp },
+    { id: "financeiro" as Tab, label: "Financeiro", icon: DollarSign },
+    { id: "comercial" as Tab, label: "Comercial", icon: Target },
+    { id: "operacional" as Tab, label: "Operacional", icon: Settings2 },
+    { id: "marketing" as Tab, label: "Marketing", icon: Megaphone },
     { id: "products" as Tab, label: "Produtos", icon: Box },
     { id: "categories" as Tab, label: "Categorias", icon: FolderOpen },
     { id: "orders" as Tab, label: "Pedidos", icon: ShoppingCart },
@@ -80,6 +88,10 @@ const Admin = () => {
       </div>
 
       {tab === "dashboard" && <DashboardTab />}
+      {tab === "financeiro" && <FinanceiroTab />}
+      {tab === "comercial" && <ComercialTab />}
+      {tab === "operacional" && <OperacionalTab />}
+      {tab === "marketing" && <MarketingTab />}
       {tab === "products" && <AdminProductsPanel />}
       {tab === "orders" && <OrdersTab />}
       {tab === "coupons" && <CouponsTab />}
