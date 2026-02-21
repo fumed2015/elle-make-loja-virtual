@@ -65,10 +65,10 @@ const ProductCard = ({ product, index = 0 }: ProductCardProps) => {
               src={product.images[0]}
               alt={product.name}
               className="group-hover:scale-105 transition-transform duration-700 ease-out"
-              aspectRatio="4/5"
+              aspectRatio="1/1"
             />
           ) : (
-            <div className="aspect-[4/5] bg-muted flex items-center justify-center text-muted-foreground text-[9px]">
+            <div className="aspect-square bg-muted flex items-center justify-center text-muted-foreground text-[9px]">
               Sem imagem
             </div>
           )}
@@ -110,9 +110,9 @@ const ProductCard = ({ product, index = 0 }: ProductCardProps) => {
         </div>
 
         {/* Info */}
-        <div className="p-1.5 space-y-0.5">
-          <p className="text-[8px] text-muted-foreground uppercase tracking-wider leading-none">{product.brand}</p>
-          <h3 className="text-[11px] font-medium leading-tight line-clamp-2 text-foreground">{product.name}</h3>
+        <div className="p-2.5 space-y-1">
+          <p className="text-[9px] text-muted-foreground uppercase tracking-wider leading-none">{product.brand}</p>
+          <h3 className="text-xs font-semibold leading-snug line-clamp-2 text-foreground">{product.name}</h3>
 
           {/* Swatches preview */}
           {swatches.length > 0 && (
@@ -132,20 +132,20 @@ const ProductCard = ({ product, index = 0 }: ProductCardProps) => {
           )}
 
           {/* Price */}
-          <div>
+          <div className="pt-0.5">
             {hasDiscount && (
-              <span className="text-[9px] text-muted-foreground line-through block leading-none">
+              <span className="text-[10px] text-muted-foreground line-through block leading-none">
                 R$ {Number(product.compare_at_price).toFixed(2).replace(".", ",")}
               </span>
             )}
-            <span className="text-xs font-bold text-primary">
+            <span className="text-sm font-bold text-primary">
               R$ {Number(product.price).toFixed(2).replace(".", ",")}
             </span>
-            <p className="text-[7px] text-accent font-semibold leading-none">
+            <p className="text-[8px] text-accent font-semibold leading-none mt-0.5">
               R$ {pixPrice} no Pix
             </p>
             {Number(product.price) >= 30 && (
-              <p className="text-[7px] text-muted-foreground leading-none">
+              <p className="text-[8px] text-muted-foreground leading-none mt-0.5">
                 ou 3x de R$ {(Number(product.price) / 3).toFixed(2).replace(".", ",")}
               </p>
             )}
