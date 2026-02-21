@@ -149,58 +149,81 @@ const Index = () => {
           preload="auto"
           className="w-full h-[280px] md:h-[420px] object-cover"
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-background via-background/70 to-background/20" />
+        <div className="absolute inset-0 bg-gradient-to-t from-background/90 via-background/40 to-transparent" />
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.2 }}
-          className="absolute inset-0 flex flex-col items-center justify-end pb-8 md:pb-12 px-4 text-center"
+          initial={{ opacity: 0, y: 30, scale: 0.95 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          transition={{ duration: 0.7, delay: 0.3, ease: "easeOut" }}
+          className="absolute inset-0 flex items-center justify-center px-4"
         >
-          <h1 className="text-2xl md:text-5xl font-bold leading-tight text-foreground mb-2" style={{ textShadow: '0 2px 8px hsl(var(--background) / 0.6)' }}>
-            Maquiagem e Cosméticos em{" "}
-            <span className="font-serif-accent text-primary" style={{ textShadow: '0 2px 12px hsl(var(--primary) / 0.3)' }}>Belém</span>
-          </h1>
-          <p className="text-foreground/80 text-sm md:text-base leading-relaxed mb-1 max-w-lg mx-auto" style={{ textShadow: '0 1px 4px hsl(var(--background) / 0.5)' }}>
-            <strong className="text-foreground">Frete grátis acima de R$ 199.</strong>
-          </p>
-          <div className="flex flex-wrap gap-3 justify-center mt-5">
-            <Button asChild className="bg-primary text-primary-foreground hover:bg-primary/90 min-h-[48px] px-8 rounded-full font-semibold shadow-marsala">
-              <Link to="/explorar">
-                Ver Produtos <ArrowRight className="w-4 h-4 ml-1.5" />
-              </Link>
-            </Button>
-            <Button variant="outline" asChild className="min-h-[48px] px-6 rounded-full border-accent text-accent hover:bg-accent hover:text-accent-foreground font-semibold bg-card/80 backdrop-blur-sm">
-              <a href="https://wa.me/5591983045531?text=Olá! Gostaria de fazer um pedido" target="_blank" rel="noopener noreferrer">
-                <WhatsAppIcon className="w-4 h-4 mr-1.5" /> Comprar no WhatsApp
-              </a>
-            </Button>
+          <div className="bg-card/60 backdrop-blur-xl border border-border/50 rounded-2xl px-6 py-8 md:px-12 md:py-10 max-w-xl w-full text-center shadow-2xl shadow-primary/10">
+            <motion.h1
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.5 }}
+              className="text-2xl md:text-4xl font-bold leading-tight text-foreground mb-3"
+            >
+              Maquiagem e Cosméticos em{" "}
+              <span className="font-serif-accent text-primary drop-shadow-sm">Belém</span>
+            </motion.h1>
+
+            <motion.p
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.7 }}
+              className="text-foreground/80 text-sm md:text-base mb-2"
+            >
+              <strong className="text-foreground">Frete grátis acima de R$ 199</strong>
+            </motion.p>
+
+            <motion.p
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: 0.9, type: "spring", stiffness: 200 }}
+              className="inline-block bg-primary/15 text-primary text-xs md:text-sm font-bold px-4 py-1.5 rounded-full mb-5 border border-primary/20"
+            >
+              🛵 Belém e Ananindeua: entrega em até 3 horas!
+            </motion.p>
+
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 1.1 }}
+              className="flex flex-wrap gap-3 justify-center"
+            >
+              <Button asChild className="bg-primary text-primary-foreground hover:bg-primary/90 min-h-[48px] px-8 rounded-full font-semibold shadow-marsala">
+                <Link to="/explorar">
+                  Ver Produtos <ArrowRight className="w-4 h-4 ml-1.5" />
+                </Link>
+              </Button>
+              <Button variant="outline" asChild className="min-h-[48px] px-6 rounded-full border-accent text-accent hover:bg-accent hover:text-accent-foreground font-semibold bg-card/80 backdrop-blur-sm">
+                <a href="https://wa.me/5591983045531?text=Olá! Gostaria de fazer um pedido" target="_blank" rel="noopener noreferrer">
+                  <WhatsAppIcon className="w-4 h-4 mr-1.5" /> Comprar no WhatsApp
+                </a>
+              </Button>
+            </motion.div>
           </div>
         </motion.div>
       </section>
 
       {/* Benefits bar */}
-      <section className="border-b border-border bg-card px-4 py-5">
-        <motion.p
-          initial={{ opacity: 0, y: -5 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          className="text-center text-sm md:text-base font-bold text-primary mb-4 animate-pulse"
-        >
-          🛵 Belém e Ananindeua: entrega em até 3 horas!
-        </motion.p>
-        <div className="max-w-4xl mx-auto grid grid-cols-4 gap-4">
+      <section className="border-b border-border bg-card/50 backdrop-blur-sm px-4 py-6">
+        <div className="max-w-4xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-3">
           {benefits.map((b, i) => (
             <motion.div
               key={i}
-              initial={{ opacity: 0, y: 10 }}
-              whileInView={{ opacity: 1, y: 0 }}
+              initial={{ opacity: 0, y: 20, scale: 0.9 }}
+              whileInView={{ opacity: 1, y: 0, scale: 1 }}
               viewport={{ once: true }}
-              transition={{ delay: i * 0.1 }}
-              className="flex flex-col items-center text-center gap-1.5"
+              transition={{ delay: i * 0.15, type: "spring", stiffness: 200 }}
+              whileHover={{ scale: 1.05, y: -3 }}
+              className="flex flex-col items-center text-center gap-2 p-4 rounded-xl bg-card/80 backdrop-blur-sm border border-border/50 shadow-sm hover:shadow-md hover:border-primary/30 transition-all duration-300"
             >
-              <b.icon className="w-5 h-5 text-primary" />
-              <p className="text-xs font-semibold text-foreground">{b.text}</p>
-              <p className="text-[10px] text-muted-foreground">{b.sub}</p>
+              <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+                <b.icon className="w-5 h-5 text-primary" />
+              </div>
+              <p className="text-xs font-bold text-foreground">{b.text}</p>
+              <p className="text-[10px] text-muted-foreground leading-tight">{b.sub}</p>
             </motion.div>
           ))}
         </div>
