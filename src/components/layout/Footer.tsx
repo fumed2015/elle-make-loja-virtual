@@ -19,7 +19,7 @@ const Footer = () => {
             asChild
             className="bg-card text-accent hover:bg-card/90 font-bold px-8 min-h-[48px] rounded-full shadow-whatsapp"
           >
-            <a href="https://wa.me/5591999999999?text=Olá! Gostaria de saber mais sobre os produtos" target="_blank" rel="noopener noreferrer">
+            <a href="https://wa.me/5591983045531?text=Olá! Gostaria de saber mais sobre os produtos" target="_blank" rel="noopener noreferrer">
               Falar com Consultora Agora
             </a>
           </Button>
@@ -63,11 +63,11 @@ const Footer = () => {
             <h4 className="text-xs font-bold text-background uppercase tracking-wider mb-3">Contato</h4>
             <ul className="space-y-2">
               <li className="flex items-center gap-2 text-xs"><MapPin className="w-3.5 h-3.5 flex-shrink-0" /> Belém, PA</li>
-              <li className="flex items-center gap-2 text-xs"><Phone className="w-3.5 h-3.5 flex-shrink-0" /> (91) 99999-9999</li>
+              <li className="flex items-center gap-2 text-xs"><Phone className="w-3.5 h-3.5 flex-shrink-0" /><a href="tel:+5591983045531" className="hover:text-background transition-colors">(91) 98304-5531</a></li>
               <li className="flex items-center gap-2 text-xs"><Mail className="w-3.5 h-3.5 flex-shrink-0" /> contato@ellemake.com</li>
             </ul>
             <div className="flex gap-3 mt-4">
-              <a href="#" className="w-8 h-8 rounded-full bg-background/10 flex items-center justify-center hover:bg-background/20 transition-colors">
+              <a href="https://instagram.com/michelle_makestore" target="_blank" rel="noopener noreferrer" className="w-8 h-8 rounded-full bg-background/10 flex items-center justify-center hover:bg-background/20 transition-colors">
                 <Instagram className="w-4 h-4" />
               </a>
             </div>
