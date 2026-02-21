@@ -17,6 +17,8 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
 
+import AdminProductsPanel from "@/components/admin/AdminProductsPanel";
+
 type Tab = "dashboard" | "products" | "orders" | "add-product" | "coupons" | "reviews" | "influencers" | "seo" | "categories" | "ai-content";
 
 const statusLabels: Record<string, string> = {
@@ -55,7 +57,6 @@ const Admin = () => {
     { id: "influencers" as Tab, label: "Influencers", icon: Users },
     { id: "seo" as Tab, label: "SEO", icon: Search },
     { id: "ai-content" as Tab, label: "IA Conteúdo", icon: Wand2 },
-    { id: "add-product" as Tab, label: "+Produto", icon: Plus },
   ];
 
   return (
@@ -77,7 +78,7 @@ const Admin = () => {
       </div>
 
       {tab === "dashboard" && <DashboardTab />}
-      {tab === "products" && <ProductsTab />}
+      {tab === "products" && <AdminProductsPanel />}
       {tab === "orders" && <OrdersTab />}
       {tab === "coupons" && <CouponsTab />}
       {tab === "reviews" && <ReviewsTab />}
@@ -85,7 +86,6 @@ const Admin = () => {
       {tab === "categories" && <CategoriesTab />}
       {tab === "seo" && <SEOTab />}
       {tab === "ai-content" && <AIContentTab />}
-      {tab === "add-product" && <AddProductTab onDone={() => setTab("products")} />}
     </div>
   );
 };
@@ -223,78 +223,7 @@ const DashboardTab = () => {
   );
 };
 
-// ========== Products ==========
-const ProductsTab = () => {
-  const { data: products, isLoading, refetch } = useProducts({});
-  const [generatingId, setGeneratingId] = useState<string | null>(null);
-  
-  const handleToggleActive = async (id: string, currentActive: boolean) => {
-    const { error } = await supabase.from("products").update({ is_active: !currentActive }).eq("id", id);
-    if (error) toast.error("Erro ao atualizar");
-    else { toast.success(currentActive ? "Produto desativado" : "Produto ativado"); refetch(); }
-  };
-
-  const handleGenerateAI = async (productId: string) => {
-    setGeneratingId(productId);
-    try {
-      const { data, error } = await supabase.functions.invoke("ai-content-generator", {
-        body: { action: "generate", product_id: productId },
-      });
-      if (error) throw error;
-      if (data?.content) {
-        const updateData: any = {};
-        if (data.content.description) updateData.description = data.content.description;
-        if (data.content.sensorial_description) updateData.sensorial_description = data.content.sensorial_description;
-        if (data.content.how_to_use) updateData.how_to_use = data.content.how_to_use;
-        if (data.content.tags) updateData.tags = data.content.tags;
-        
-        if (Object.keys(updateData).length > 0) {
-          await supabase.from("products").update(updateData).eq("id", productId);
-        }
-        toast.success("Conteúdo IA gerado e salvo!");
-        refetch();
-      }
-    } catch (e: any) {
-      toast.error(e.message || "Erro ao gerar conteúdo IA");
-    } finally {
-      setGeneratingId(null);
-    }
-  };
-
-  if (isLoading) return <div className="text-center py-8 text-muted-foreground text-sm">Carregando...</div>;
-  return (
-    <div className="space-y-3">
-      {products?.map((product) => {
-        const needsContent = !product.description || product.description.length < 30;
-        return (
-          <div key={product.id} className="bg-card rounded-xl p-4 border border-border flex items-center gap-3">
-            <div className="w-14 h-14 rounded-lg bg-muted overflow-hidden flex-shrink-0">{product.images?.[0] && <img src={product.images[0]} alt="" className="w-full h-full object-cover" />}</div>
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium line-clamp-1">{product.name}</p>
-              <p className="text-xs text-muted-foreground">Estoque: {product.stock}</p>
-              <p className="text-xs font-bold text-primary">R$ {Number(product.price).toFixed(2).replace(".", ",")}</p>
-              {needsContent && <Badge variant="secondary" className="text-[8px] mt-0.5 bg-destructive/10 text-destructive">Sem descrição</Badge>}
-            </div>
-            <div className="flex gap-1">
-              <Button
-                variant="ghost" size="sm"
-                onClick={() => handleGenerateAI(product.id)}
-                disabled={generatingId === product.id}
-                className="text-xs h-8 w-8 p-0"
-                title="Gerar conteúdo com IA"
-              >
-                {generatingId === product.id ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Wand2 className="w-3.5 h-3.5 text-primary" />}
-              </Button>
-              <Button variant={product.is_active ? "outline" : "default"} size="sm" onClick={() => handleToggleActive(product.id, product.is_active!)} className="text-xs">
-                {product.is_active ? "Desativar" : "Ativar"}
-              </Button>
-            </div>
-          </div>
-        );
-      })}
-    </div>
-  );
-};
+// ProductsTab and AddProductTab moved to AdminProductsPanel component
 
 // ========== AI Content Tab ==========
 const AIContentTab = () => {
@@ -734,133 +663,7 @@ const InfluencersTab = () => {
   );
 };
 
-// ========== Add Product ==========
-const AddProductTab = ({ onDone }: { onDone: () => void }) => {
-  const { data: categories } = useCategories();
-  const [form, setForm] = useState({
-    name: "", slug: "", description: "", sensorial_description: "",
-    price: "", compare_at_price: "", brand: "", ingredients: "",
-    stock: "0", category_id: "", image_url: "",
-  });
-  const [submitting, setSubmitting] = useState(false);
-  const [aiGenerating, setAiGenerating] = useState(false);
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setSubmitting(true);
-    try {
-      const slug = form.slug || form.name.toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, "");
-      const { data: inserted, error } = await supabase.from("products").insert({
-        name: form.name, slug, description: form.description,
-        sensorial_description: form.sensorial_description || null,
-        price: parseFloat(form.price),
-        compare_at_price: form.compare_at_price ? parseFloat(form.compare_at_price) : null,
-        brand: form.brand || null, ingredients: form.ingredients || null,
-        stock: parseInt(form.stock), category_id: form.category_id || null,
-        images: form.image_url ? [form.image_url] : [], is_active: true,
-      }).select().single();
-      if (error) throw error;
-
-      // Auto-generate AI content if description is empty
-      if (!form.description && inserted) {
-        try {
-          const { data: aiData } = await supabase.functions.invoke("ai-content-generator", {
-            body: { action: "generate", product_id: inserted.id },
-          });
-          if (aiData?.content) {
-            await supabase.from("products").update({
-              description: aiData.content.description,
-              sensorial_description: aiData.content.sensorial_description,
-              how_to_use: aiData.content.how_to_use,
-              tags: aiData.content.tags,
-            }).eq("id", inserted.id);
-            toast.success("Produto criado com conteúdo IA! 🎉");
-          } else {
-            toast.success("Produto criado com sucesso!");
-          }
-        } catch {
-          toast.success("Produto criado! (IA indisponível para conteúdo)");
-        }
-      } else {
-        toast.success("Produto criado com sucesso!");
-      }
-      onDone();
-    } catch (err: any) {
-      toast.error(err.message || "Erro ao criar produto");
-    } finally {
-      setSubmitting(false);
-    }
-  };
-
-  const handleAIFill = async () => {
-    if (!form.name) { toast.error("Preencha o nome do produto primeiro"); return; }
-    setAiGenerating(true);
-    try {
-      // Create temp product to generate content
-      const slug = form.name.toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, "");
-      const { data: temp, error } = await supabase.from("products").insert({
-        name: form.name, slug: slug + "-temp-" + Date.now(),
-        price: parseFloat(form.price) || 1, stock: 0,
-        brand: form.brand || null, ingredients: form.ingredients || null,
-        is_active: false,
-      }).select().single();
-      if (error) throw error;
-
-      const { data: aiData } = await supabase.functions.invoke("ai-content-generator", {
-        body: { action: "generate", product_id: temp.id },
-      });
-
-      // Delete temp product
-      await supabase.from("products").delete().eq("id", temp.id);
-
-      if (aiData?.content) {
-        setForm(prev => ({
-          ...prev,
-          description: aiData.content.description || prev.description,
-          sensorial_description: aiData.content.sensorial_description || prev.sensorial_description,
-        }));
-        toast.success("Conteúdo IA gerado!");
-      }
-    } catch (e: any) {
-      toast.error(e.message || "Erro ao gerar conteúdo IA");
-    } finally {
-      setAiGenerating(false);
-    }
-  };
-
-  return (
-    <form onSubmit={handleSubmit} className="space-y-4">
-      <div className="grid grid-cols-2 gap-3">
-        <div className="col-span-2 space-y-2"><Label>Nome do Produto *</Label><Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} className="bg-muted border-none min-h-[44px]" required /></div>
-        <div className="space-y-2"><Label>Preço (R$) *</Label><Input type="number" step="0.01" value={form.price} onChange={(e) => setForm({ ...form, price: e.target.value })} className="bg-muted border-none min-h-[44px]" required /></div>
-        <div className="space-y-2"><Label>Preço Anterior</Label><Input type="number" step="0.01" value={form.compare_at_price} onChange={(e) => setForm({ ...form, compare_at_price: e.target.value })} className="bg-muted border-none min-h-[44px]" /></div>
-        <div className="space-y-2"><Label>Marca</Label><Input value={form.brand} onChange={(e) => setForm({ ...form, brand: e.target.value })} className="bg-muted border-none min-h-[44px]" /></div>
-        <div className="space-y-2"><Label>Estoque</Label><Input type="number" value={form.stock} onChange={(e) => setForm({ ...form, stock: e.target.value })} className="bg-muted border-none min-h-[44px]" /></div>
-        <div className="col-span-2 space-y-2">
-          <Label>Categoria</Label>
-          <Select value={form.category_id} onValueChange={(val) => setForm({ ...form, category_id: val })}>
-            <SelectTrigger className="bg-muted border-none min-h-[44px]"><SelectValue placeholder="Selecione" /></SelectTrigger>
-            <SelectContent>{categories?.map((cat) => (<SelectItem key={cat.id} value={cat.id}>{cat.name}</SelectItem>))}</SelectContent>
-          </Select>
-        </div>
-        <div className="col-span-2 space-y-2"><Label>URL da Imagem</Label><Input value={form.image_url} onChange={(e) => setForm({ ...form, image_url: e.target.value })} placeholder="https://..." className="bg-muted border-none min-h-[44px]" /></div>
-        <div className="col-span-2 space-y-2">
-          <div className="flex items-center justify-between">
-            <Label>Descrição</Label>
-            <Button type="button" onClick={handleAIFill} disabled={aiGenerating || !form.name} size="sm" variant="ghost" className="text-xs gap-1 text-primary h-6">
-              {aiGenerating ? <Loader2 className="w-3 h-3 animate-spin" /> : <Wand2 className="w-3 h-3" />}
-              Gerar com IA
-            </Button>
-          </div>
-          <Textarea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} className="bg-muted border-none min-h-[80px]" />
-        </div>
-        <div className="col-span-2 space-y-2"><Label>Descrição Sensorial</Label><Textarea value={form.sensorial_description} onChange={(e) => setForm({ ...form, sensorial_description: e.target.value })} className="bg-muted border-none min-h-[80px]" /></div>
-        <div className="col-span-2 space-y-2"><Label>Ingredientes-chave</Label><Input value={form.ingredients} onChange={(e) => setForm({ ...form, ingredients: e.target.value })} className="bg-muted border-none min-h-[44px]" /></div>
-      </div>
-      <Button type="submit" disabled={submitting} className="w-full bg-primary text-primary-foreground shadow-marsala hover:bg-primary/90 min-h-[44px]">{submitting ? "Criando..." : "Criar Produto"}</Button>
-    </form>
-  );
-};
+// AddProductTab removed — now part of AdminProductsPanel
 
 // ========== Categories ==========
 const CategoriesTab = () => {
