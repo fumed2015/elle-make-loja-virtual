@@ -69,6 +69,11 @@ const ProductCard = ({ product, index = 0 }: ProductCardProps) => {
             <span className="text-base font-bold text-primary">
               R$ {Number(product.price).toFixed(2).replace(".", ",")}
             </span>
+            {Number(product.price) >= 30 && (
+              <p className="text-[10px] text-muted-foreground">
+                ou 3x de R$ {(Number(product.price) / 3).toFixed(2).replace(".", ",")} sem juros
+              </p>
+            )}
           </div>
           {product.swatches && JSON.parse(typeof product.swatches === 'string' ? product.swatches : JSON.stringify(product.swatches)).length > 0 && (
             <div className="flex gap-1 pt-0.5">
