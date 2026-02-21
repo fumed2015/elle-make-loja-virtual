@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { LayoutDashboard, Package, ShoppingCart, Plus, ArrowLeft, TrendingUp, Box, Tag, Star, Users, ImageIcon, Eye, EyeOff, Percent, Trash2 } from "lucide-react";
+import { LayoutDashboard, Package, ShoppingCart, Plus, ArrowLeft, TrendingUp, Box, Tag, Star, Users, ImageIcon, Eye, EyeOff, Percent, Trash2, Search, AlertTriangle, CheckCircle, Info } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -17,7 +17,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
 
-type Tab = "dashboard" | "products" | "orders" | "add-product" | "coupons" | "reviews" | "influencers";
+type Tab = "dashboard" | "products" | "orders" | "add-product" | "coupons" | "reviews" | "influencers" | "seo";
 
 const statusLabels: Record<string, string> = {
   pending: "Pendente", confirmed: "Confirmado", preparing: "Preparando",
@@ -52,6 +52,7 @@ const Admin = () => {
     { id: "coupons" as Tab, label: "Cupons", icon: Tag },
     { id: "reviews" as Tab, label: "Reviews", icon: Star },
     { id: "influencers" as Tab, label: "Influencers", icon: Users },
+    { id: "seo" as Tab, label: "SEO", icon: Search },
     { id: "add-product" as Tab, label: "+Produto", icon: Plus },
   ];
 
@@ -79,6 +80,7 @@ const Admin = () => {
       {tab === "coupons" && <CouponsTab />}
       {tab === "reviews" && <ReviewsTab />}
       {tab === "influencers" && <InfluencersTab />}
+      {tab === "seo" && <SEOTab />}
       {tab === "add-product" && <AddProductTab onDone={() => setTab("products")} />}
     </div>
   );
@@ -421,6 +423,133 @@ const AddProductTab = ({ onDone }: { onDone: () => void }) => {
       </div>
       <Button type="submit" disabled={submitting} className="w-full bg-gradient-gold text-primary-foreground shadow-gold hover:opacity-90 min-h-[44px]">{submitting ? "Criando..." : "Criar Produto"}</Button>
     </form>
+  );
+};
+
+const SEOTab = () => {
+  const [generating, setGenerating] = useState(false);
+  const { data: reports, isLoading, refetch } = useQuery({
+    queryKey: ["seo-reports"],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("seo_reports").select("*").order("created_at", { ascending: false }).limit(5);
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  const handleGenerate = async () => {
+    setGenerating(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("seo-report");
+      if (error) throw error;
+      toast.success("Relatório SEO gerado!");
+      refetch();
+    } catch (e: any) {
+      toast.error(e.message || "Erro ao gerar relatório");
+    } finally {
+      setGenerating(false);
+    }
+  };
+
+  const latest = reports?.[0];
+  const report = latest?.report as any;
+
+  const severityIcon = (sev: string) => {
+    if (sev === "error") return <AlertTriangle className="w-3.5 h-3.5 text-destructive flex-shrink-0" />;
+    if (sev === "warn") return <Info className="w-3.5 h-3.5 text-yellow-500 flex-shrink-0" />;
+    return <CheckCircle className="w-3.5 h-3.5 text-accent flex-shrink-0" />;
+  };
+
+  const scoreColor = (score: number) => {
+    if (score >= 80) return "text-accent";
+    if (score >= 50) return "text-yellow-500";
+    return "text-destructive";
+  };
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <h2 className="text-sm font-bold">Relatório SEO</h2>
+        <Button onClick={handleGenerate} disabled={generating} size="sm" className="bg-primary text-primary-foreground text-xs gap-1 press-scale">
+          <Search className="w-3 h-3" />
+          {generating ? "Gerando..." : "Gerar Agora"}
+        </Button>
+      </div>
+
+      {isLoading ? (
+        <div className="text-center py-8 text-muted-foreground text-sm">Carregando...</div>
+      ) : !latest ? (
+        <div className="bg-card rounded-xl p-6 border border-border text-center">
+          <Search className="w-8 h-8 text-muted-foreground mx-auto mb-2" />
+          <p className="text-sm text-muted-foreground">Nenhum relatório encontrado. Clique em "Gerar Agora" para criar o primeiro.</p>
+        </div>
+      ) : (
+        <>
+          {/* Score */}
+          <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="bg-card rounded-xl p-5 border border-border text-center">
+            <p className="text-xs text-muted-foreground mb-1">Score SEO</p>
+            <p className={`text-4xl font-bold ${scoreColor(latest.score || 0)}`}>{latest.score}/100</p>
+            <p className="text-[10px] text-muted-foreground mt-1">
+              Gerado em {new Date(latest.created_at).toLocaleString("pt-BR")}
+            </p>
+          </motion.div>
+
+          {/* Summary cards */}
+          <div className="grid grid-cols-2 gap-3">
+            {[
+              { label: "Produtos ativos", value: latest.total_products },
+              { label: "Sem descrição", value: latest.products_without_description, bad: true },
+              { label: "Sem imagens", value: latest.products_without_images, bad: true },
+              { label: "URLs no sitemap", value: latest.sitemap_urls },
+              { label: "Categorias", value: latest.total_categories },
+            ].map((s, i) => (
+              <div key={i} className="bg-card rounded-lg p-3 border border-border">
+                <p className={`text-lg font-bold ${s.bad && s.value > 0 ? "text-destructive" : "text-foreground"}`}>{s.value}</p>
+                <p className="text-[10px] text-muted-foreground">{s.label}</p>
+              </div>
+            ))}
+          </div>
+
+          {/* Issues */}
+          {report?.issues?.length > 0 && (
+            <div className="space-y-2">
+              <h3 className="text-xs font-bold text-foreground">Problemas encontrados ({report.issues.length})</h3>
+              <div className="space-y-1.5 max-h-64 overflow-y-auto">
+                {report.issues.map((issue: any, i: number) => (
+                  <div key={i} className="flex items-start gap-2 bg-card rounded-lg p-3 border border-border">
+                    {severityIcon(issue.severity)}
+                    <div className="min-w-0">
+                      <p className="text-xs font-medium text-foreground">{issue.message}</p>
+                      {issue.product && <p className="text-[10px] text-muted-foreground truncate">{issue.product}</p>}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {report?.issues?.length === 0 && (
+            <div className="bg-card rounded-xl p-4 border border-accent/30 text-center">
+              <CheckCircle className="w-6 h-6 text-accent mx-auto mb-1" />
+              <p className="text-sm font-medium text-accent">Nenhum problema de SEO encontrado!</p>
+            </div>
+          )}
+
+          {/* History */}
+          {reports && reports.length > 1 && (
+            <div className="space-y-2">
+              <h3 className="text-xs font-bold text-foreground">Histórico</h3>
+              {reports.slice(1).map((r) => (
+                <div key={r.id} className="flex items-center justify-between bg-card rounded-lg p-3 border border-border">
+                  <p className="text-xs text-muted-foreground">{new Date(r.created_at).toLocaleDateString("pt-BR")}</p>
+                  <p className={`text-sm font-bold ${scoreColor(r.score || 0)}`}>{r.score}/100</p>
+                </div>
+              ))}
+            </div>
+          )}
+        </>
+      )}
+    </div>
   );
 };
 
