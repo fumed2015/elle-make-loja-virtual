@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, MapPin, CreditCard, CheckCircle, Tag, X } from "lucide-react";
+import { ArrowLeft, MapPin, CreditCard, CheckCircle, Tag, X, ExternalLink, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -10,8 +10,9 @@ import { useCoupon } from "@/hooks/useCoupon";
 import { supabase } from "@/integrations/supabase/client";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
+import WhatsAppIcon from "@/components/icons/WhatsAppIcon";
 
-type Step = "address" | "review" | "success";
+type Step = "address" | "review" | "processing" | "success";
 
 const Checkout = () => {
   const navigate = useNavigate();
@@ -24,13 +25,14 @@ const Checkout = () => {
   const [couponCode, setCouponCode] = useState("");
   const [appliedCoupon, setAppliedCoupon] = useState<{ code: string; discount: number } | null>(null);
   const [couponLoading, setCouponLoading] = useState(false);
+  const [paymentMethod, setPaymentMethod] = useState<"yampi" | "whatsapp">("yampi");
   const [address, setAddress] = useState({
     street: "", number: "", complement: "", neighborhood: "",
     city: "Belém", state: "PA", zip: "",
   });
 
   if (!user) { navigate("/perfil"); return null; }
-  if (items.length === 0 && step !== "success") { navigate("/carrinho"); return null; }
+  if (items.length === 0 && step !== "success" && step !== "processing") { navigate("/carrinho"); return null; }
 
   const finalTotal = Math.max(0, cartTotal - (appliedCoupon?.discount || 0));
 
@@ -60,22 +62,73 @@ const Checkout = () => {
         };
       });
 
-      const { data, error } = await supabase.from("orders").insert({
+      // 1. Create order in our database
+      const { data: orderData, error: orderError } = await supabase.from("orders").insert({
         user_id: user.id, total: finalTotal,
-        shipping_address: address, payment_method: "pix",
+        shipping_address: address, payment_method: paymentMethod,
         items: orderItems, coupon_code: appliedCoupon?.code || null,
         discount: appliedCoupon?.discount || 0,
       }).select("id").single();
 
-      if (error) throw error;
+      if (orderError) throw orderError;
+
+      // 2. Clear cart
       for (const item of items) {
         await supabase.from("cart_items").delete().eq("id", item.id);
       }
-      setOrderId(data.id);
-      setStep("success");
-      toast.success("Pedido realizado com sucesso! 🎉");
+
+      setOrderId(orderData.id);
+
+      if (paymentMethod === "whatsapp") {
+        // WhatsApp checkout — redirect to WhatsApp with order details
+        const itemsList = orderItems.map(i => `• ${i.name} (${i.quantity}x) - R$ ${(i.price * i.quantity).toFixed(2).replace(".", ",")}`).join('\n');
+        const msg = encodeURIComponent(
+          `🛒 *Novo Pedido #${orderData.id.slice(0, 8)}*\n\n${itemsList}\n\n💰 Total: R$ ${finalTotal.toFixed(2).replace(".", ",")}\n📍 ${address.street}, ${address.number} - ${address.neighborhood}, ${address.city}\n\nForma de pagamento: Combinar pelo WhatsApp`
+        );
+        window.open(`https://wa.me/5591983045531?text=${msg}`, '_blank');
+        setStep("success");
+        toast.success("Pedido enviado pelo WhatsApp! 🎉");
+      } else {
+        // Yampi checkout — call edge function to create order and get checkout URL
+        setStep("processing");
+        
+        try {
+          const { data: yampiData, error: yampiError } = await supabase.functions.invoke('yampi-checkout', {
+            body: {
+              action: 'create-order',
+              items: orderItems,
+              customer: {
+                name: user.user_metadata?.full_name || '',
+                email: user.email || '',
+                phone: user.phone || '',
+              },
+              address,
+              total: finalTotal,
+              discount: appliedCoupon?.discount || 0,
+              coupon_code: appliedCoupon?.code,
+              supabase_order_id: orderData.id,
+            },
+          });
+
+          if (yampiError) throw yampiError;
+
+          if (yampiData?.checkout_url) {
+            window.open(yampiData.checkout_url, '_blank');
+          }
+
+          setStep("success");
+          toast.success("Pedido criado! Complete o pagamento no checkout Yampi 🎉");
+        } catch (yampiErr: any) {
+          console.error('Yampi error:', yampiErr);
+          // Fallback — redirect to Yampi checkout directly
+          window.open('https://elle-make.checkout.yampi.com.br', '_blank');
+          setStep("success");
+          toast.success("Pedido registrado! Complete o pagamento no checkout Yampi 🎉");
+        }
+      }
     } catch (err: any) {
       toast.error(err.message || "Erro ao finalizar pedido");
+      setStep("review");
     } finally {
       setSubmitting(false);
     }
@@ -84,13 +137,15 @@ const Checkout = () => {
   return (
     <div className="min-h-screen max-w-lg mx-auto px-4 pt-6 pb-4">
       <div className="flex items-center gap-3 mb-6">
-        <button onClick={() => step === "address" ? navigate("/carrinho") : setStep("address")} className="w-10 h-10 rounded-full bg-muted flex items-center justify-center">
+        <button onClick={() => step === "address" ? navigate("/carrinho") : step === "review" ? setStep("address") : null} className="w-10 h-10 rounded-full bg-muted flex items-center justify-center">
           <ArrowLeft className="w-5 h-5" />
         </button>
-        <h1 className="text-xl font-display font-bold">{step === "success" ? "Pedido Confirmado" : "Finalizar Compra"}</h1>
+        <h1 className="text-xl font-display font-bold">
+          {step === "success" ? "Pedido Confirmado" : step === "processing" ? "Processando..." : "Finalizar Compra"}
+        </h1>
       </div>
 
-      {step !== "success" && (
+      {step !== "success" && step !== "processing" && (
         <div className="flex gap-2 mb-6">
           {["address", "review"].map((s) => (
             <div key={s} className={`flex-1 h-1 rounded-full ${step === s || (s === "address" && step === "review") ? "bg-primary" : "bg-muted"}`} />
@@ -127,7 +182,7 @@ const Checkout = () => {
               <div className="space-y-2"><Label>Cidade</Label><Input value={address.city} disabled className="bg-muted border-none min-h-[44px]" /></div>
               <div className="space-y-2"><Label>Estado</Label><Input value={address.state} disabled className="bg-muted border-none min-h-[44px]" /></div>
             </div>
-            <Button onClick={() => setStep("review")} disabled={!address.street || !address.number || !address.neighborhood || !address.zip} className="w-full bg-gradient-gold text-primary-foreground shadow-gold hover:opacity-90 min-h-[44px] mt-4">
+            <Button onClick={() => setStep("review")} disabled={!address.street || !address.number || !address.neighborhood || !address.zip} className="w-full bg-primary text-primary-foreground hover:bg-primary/90 min-h-[44px] mt-4">
               Continuar para Revisão
             </Button>
           </motion.div>
@@ -161,9 +216,9 @@ const Checkout = () => {
                 <h3 className="text-sm font-medium">Cupom de Desconto</h3>
               </div>
               {appliedCoupon ? (
-                <div className="flex items-center justify-between bg-secondary/10 rounded-lg px-3 py-2">
+                <div className="flex items-center justify-between bg-accent/10 rounded-lg px-3 py-2">
                   <div>
-                    <p className="text-xs font-bold text-secondary">{appliedCoupon.code}</p>
+                    <p className="text-xs font-bold text-accent">{appliedCoupon.code}</p>
                     <p className="text-[10px] text-muted-foreground">-R$ {appliedCoupon.discount.toFixed(2).replace(".", ",")}</p>
                   </div>
                   <button onClick={() => setAppliedCoupon(null)} className="text-muted-foreground hover:text-destructive">
@@ -185,38 +240,96 @@ const Checkout = () => {
               <p className="text-xs text-muted-foreground">{address.street}, {address.number} {address.complement && `- ${address.complement}`}<br />{address.neighborhood}, {address.city} - {address.state}<br />CEP: {address.zip}</p>
             </div>
 
-            <div className="bg-card rounded-xl p-4 border border-border">
-              <div className="flex items-center gap-2 mb-2"><CreditCard className="w-4 h-4 text-primary" /><h3 className="text-sm font-medium">Pagamento</h3></div>
-              <p className="text-xs text-muted-foreground">PIX (simulado)</p>
+            {/* Payment Method Selection */}
+            <div className="bg-card rounded-xl p-4 border border-border space-y-3">
+              <div className="flex items-center gap-2 mb-1">
+                <CreditCard className="w-4 h-4 text-primary" />
+                <h3 className="text-sm font-medium">Forma de Pagamento</h3>
+              </div>
+              <div className="space-y-2">
+                <button
+                  onClick={() => setPaymentMethod("yampi")}
+                  className={`w-full flex items-center gap-3 p-3 rounded-lg border-2 transition-colors ${paymentMethod === "yampi" ? "border-primary bg-primary/5" : "border-border"}`}
+                >
+                  <CreditCard className="w-5 h-5 text-primary" />
+                  <div className="text-left flex-1">
+                    <p className="text-xs font-semibold">Checkout Seguro (Yampi)</p>
+                    <p className="text-[10px] text-muted-foreground">Pix, Cartão, Boleto — com proteção ao comprador</p>
+                  </div>
+                  <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${paymentMethod === "yampi" ? "border-primary" : "border-muted-foreground"}`}>
+                    {paymentMethod === "yampi" && <div className="w-2 h-2 rounded-full bg-primary" />}
+                  </div>
+                </button>
+                <button
+                  onClick={() => setPaymentMethod("whatsapp")}
+                  className={`w-full flex items-center gap-3 p-3 rounded-lg border-2 transition-colors ${paymentMethod === "whatsapp" ? "border-accent bg-accent/5" : "border-border"}`}
+                >
+                  <WhatsAppIcon className="w-5 h-5 text-accent" />
+                  <div className="text-left flex-1">
+                    <p className="text-xs font-semibold">WhatsApp</p>
+                    <p className="text-[10px] text-muted-foreground">Combine o pagamento diretamente com a loja</p>
+                  </div>
+                  <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${paymentMethod === "whatsapp" ? "border-accent" : "border-muted-foreground"}`}>
+                    {paymentMethod === "whatsapp" && <div className="w-2 h-2 rounded-full bg-accent" />}
+                  </div>
+                </button>
+              </div>
             </div>
 
             <div className="bg-card rounded-xl p-4 border border-border space-y-2">
               <div className="flex justify-between text-sm"><span className="text-muted-foreground">Subtotal</span><span>R$ {cartTotal.toFixed(2).replace(".", ",")}</span></div>
               {appliedCoupon && (
-                <div className="flex justify-between text-sm"><span className="text-secondary">Cupom {appliedCoupon.code}</span><span className="text-secondary">-R$ {appliedCoupon.discount.toFixed(2).replace(".", ",")}</span></div>
+                <div className="flex justify-between text-sm"><span className="text-accent">Cupom {appliedCoupon.code}</span><span className="text-accent">-R$ {appliedCoupon.discount.toFixed(2).replace(".", ",")}</span></div>
               )}
-              <div className="flex justify-between text-sm"><span className="text-muted-foreground">Frete</span><span className="text-secondary">Grátis</span></div>
+              <div className="flex justify-between text-sm"><span className="text-muted-foreground">Frete</span><span className="text-accent">Grátis</span></div>
               <div className="border-t border-border pt-2 flex justify-between">
                 <span className="font-display font-bold">Total</span>
                 <span className="font-bold text-lg text-primary">R$ {finalTotal.toFixed(2).replace(".", ",")}</span>
               </div>
             </div>
 
-            <Button onClick={handlePlaceOrder} disabled={submitting} className="w-full bg-gradient-gold text-primary-foreground shadow-gold hover:opacity-90 min-h-[44px]">
-              {submitting ? "Processando..." : "Confirmar Pedido"}
+            <Button onClick={handlePlaceOrder} disabled={submitting} className="w-full bg-primary text-primary-foreground hover:bg-primary/90 min-h-[48px] font-semibold shadow-marsala">
+              {submitting ? (
+                <><Loader2 className="w-5 h-5 mr-2 animate-spin" /> Processando...</>
+              ) : paymentMethod === "yampi" ? (
+                <><ExternalLink className="w-5 h-5 mr-2" /> Ir para Pagamento Seguro</>
+              ) : (
+                <><WhatsAppIcon className="w-5 h-5 mr-2" /> Enviar Pedido pelo WhatsApp</>
+              )}
             </Button>
+          </motion.div>
+        )}
+
+        {step === "processing" && (
+          <motion.div key="processing" initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="text-center py-16 space-y-4">
+            <Loader2 className="w-12 h-12 text-primary mx-auto animate-spin" />
+            <h2 className="text-lg font-display font-bold">Preparando seu checkout...</h2>
+            <p className="text-sm text-muted-foreground">Você será redirecionado para o pagamento seguro</p>
           </motion.div>
         )}
 
         {step === "success" && (
           <motion.div key="success" initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="text-center py-12 space-y-4">
             <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ type: "spring", delay: 0.2 }}>
-              <CheckCircle className="w-20 h-20 text-secondary mx-auto" />
+              <CheckCircle className="w-20 h-20 text-accent mx-auto" />
             </motion.div>
-            <h2 className="text-2xl font-display font-bold">Pedido Confirmado!</h2>
-            <p className="text-sm text-muted-foreground">Seu pedido #{orderId.slice(0, 8)} foi recebido com sucesso.</p>
+            <h2 className="text-2xl font-display font-bold">Pedido Registrado!</h2>
+            <p className="text-sm text-muted-foreground">
+              Seu pedido #{orderId.slice(0, 8)} foi recebido com sucesso.
+              {paymentMethod === "yampi" && <><br />Complete o pagamento na janela do checkout Yampi que abriu.</>}
+            </p>
+            {paymentMethod === "yampi" && (
+              <Button
+                variant="outline"
+                onClick={() => window.open('https://elle-make.checkout.yampi.com.br', '_blank')}
+                className="text-xs gap-1.5"
+              >
+                <ExternalLink className="w-3.5 h-3.5" />
+                Abrir Checkout Novamente
+              </Button>
+            )}
             <div className="flex flex-col gap-2 pt-4">
-              <Button onClick={() => navigate("/pedidos")} className="bg-gradient-gold text-primary-foreground min-h-[44px]">Ver Meus Pedidos</Button>
+              <Button onClick={() => navigate("/pedidos")} className="bg-primary text-primary-foreground min-h-[44px]">Ver Meus Pedidos</Button>
               <Button variant="outline" onClick={() => navigate("/")} className="min-h-[44px]">Voltar à Loja</Button>
             </div>
           </motion.div>
