@@ -6,7 +6,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { ThemeProvider } from "@/hooks/useTheme";
 import { lazy, Suspense } from "react";
 import { ScrollToTop } from "@/components/ScrollToTop";
-import { useCartSync } from "@/hooks/useCartSync";
+
 import AppLayout from "@/components/layout/AppLayout";
 import Index from "./pages/Index";
 
@@ -31,10 +31,6 @@ const PageLoader = () => (
   </div>
 );
 
-const CartSyncWrapper = ({ children }: { children: React.ReactNode }) => {
-  useCartSync();
-  return <>{children}</>;
-};
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
@@ -43,7 +39,7 @@ const App = () => (
         <Toaster />
         <Sonner />
         <BrowserRouter>
-          <CartSyncWrapper>
+          <>
             <ScrollToTop />
             <Suspense fallback={<PageLoader />}>
               <Routes>
@@ -63,7 +59,7 @@ const App = () => (
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </Suspense>
-          </CartSyncWrapper>
+          </>
         </BrowserRouter>
       </TooltipProvider>
     </ThemeProvider>
