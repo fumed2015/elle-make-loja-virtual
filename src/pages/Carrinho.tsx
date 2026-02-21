@@ -107,8 +107,10 @@ const Carrinho = () => {
             R$ {cartTotal.toFixed(2).replace(".", ",")}
           </span>
         </div>
-        <Button className="w-full bg-gradient-gold text-primary-foreground shadow-gold hover:opacity-90 min-h-[44px]">
-          Finalizar Compra <ArrowRight className="w-4 h-4 ml-1" />
+        <Button asChild className="w-full bg-gradient-gold text-primary-foreground shadow-gold hover:opacity-90 min-h-[44px]">
+          <Link to="/checkout">
+            Finalizar Compra <ArrowRight className="w-4 h-4 ml-1" />
+          </Link>
         </Button>
       </div>
     </div>
