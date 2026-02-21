@@ -20,6 +20,17 @@ interface NavItem {
 const navLinks: NavItem[] = [
   { label: "Novidades", to: "/explorar?cat=novidades" },
   {
+    label: "Marcas", to: "/explorar",
+    subs: [
+      { label: "Ruby Rose", to: "/explorar?q=Ruby Rose" },
+      { label: "Max Love", to: "/explorar?q=Max Love" },
+      { label: "Sarah Beauty", to: "/explorar?q=Sarah Beauty" },
+      { label: "Phallebeauty", to: "/explorar?q=Phallebeauty" },
+      { label: "Luisance", to: "/explorar?q=Luisance" },
+      { label: "Macrilan", to: "/explorar?q=Macrilan" },
+    ],
+  },
+  {
     label: "Rosto", to: "/explorar?cat=rosto",
     subs: [
       { label: "Bases & Corretivos", to: "/explorar?cat=rosto&q=base" },
@@ -53,7 +64,6 @@ const navLinks: NavItem[] = [
       { label: "Séruns", to: "/explorar?cat=skincare&q=serum" },
     ],
   },
-  { label: "Cabelos", to: "/explorar?cat=cabelos" },
   { label: "Acessórios", to: "/explorar?cat=acessorios" },
   { label: "Ofertas", to: "/explorar?cat=ofertas" },
 ];
