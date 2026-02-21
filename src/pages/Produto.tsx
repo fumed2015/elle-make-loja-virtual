@@ -60,20 +60,44 @@ const Produto = () => {
         title={product.name}
         description={product.description || `${product.name} - ${product.brand}`}
         image={product.images?.[0]}
-        jsonLd={{
-          "@context": "https://schema.org",
-          "@type": "Product",
-          name: product.name,
-          description: product.description,
-          image: product.images?.[0],
-          brand: { "@type": "Brand", name: product.brand },
-          offers: {
-            "@type": "Offer",
-            price: product.price,
-            priceCurrency: "BRL",
-            availability: product.stock > 0 ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
+        url={`${window.location.origin}/produto/${product.slug}`}
+        type="product"
+        jsonLd={[
+          {
+            "@context": "https://schema.org",
+            "@type": "Product",
+            name: product.name,
+            description: product.description,
+            image: product.images || [],
+            sku: product.id,
+            brand: { "@type": "Brand", name: product.brand || "Elle Make" },
+            category: tags?.[0] || "Maquiagem",
+            offers: {
+              "@type": "Offer",
+              url: `${window.location.origin}/produto/${product.slug}`,
+              price: Number(product.price).toFixed(2),
+              priceCurrency: "BRL",
+              availability: product.stock > 0 ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
+              itemCondition: "https://schema.org/NewCondition",
+              seller: {
+                "@type": "Organization",
+                name: "Elle Make",
+              },
+              ...(hasDiscount ? {
+                priceValidUntil: new Date(Date.now() + 30 * 86400000).toISOString().split("T")[0],
+              } : {}),
+            },
           },
-        }}
+          {
+            "@context": "https://schema.org",
+            "@type": "BreadcrumbList",
+            itemListElement: [
+              { "@type": "ListItem", position: 1, name: "Início", item: window.location.origin },
+              { "@type": "ListItem", position: 2, name: "Produtos", item: `${window.location.origin}/explorar` },
+              { "@type": "ListItem", position: 3, name: product.name, item: `${window.location.origin}/produto/${product.slug}` },
+            ],
+          },
+        ]}
       />
       <div className="relative">
         {product.images?.[0] ? (

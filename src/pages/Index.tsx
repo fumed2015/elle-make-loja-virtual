@@ -52,13 +52,49 @@ const Index = () => {
       <SEOHead
         title="Maquiagem e Cosméticos em Belém"
         description="Loja de maquiagem com delivery rápido em Belém do Pará. Frete grátis acima de R$ 199. Entrega em até 3h na região metropolitana."
-        jsonLd={{
-          "@context": "https://schema.org",
-          "@type": "WebSite",
-          name: "Elle Make",
-          url: window.location.origin,
-          potentialAction: { "@type": "SearchAction", target: `${window.location.origin}/explorar?q={search_term_string}`, "query-input": "required name=search_term_string" },
-        }}
+        url={window.location.origin}
+        jsonLd={[
+          {
+            "@context": "https://schema.org",
+            "@type": "WebSite",
+            name: "Elle Make",
+            url: window.location.origin,
+            potentialAction: { "@type": "SearchAction", target: `${window.location.origin}/explorar?q={search_term_string}`, "query-input": "required name=search_term_string" },
+          },
+          {
+            "@context": "https://schema.org",
+            "@type": "Organization",
+            name: "Elle Make",
+            url: window.location.origin,
+            logo: `${window.location.origin}/pwa-512x512.png`,
+            contactPoint: {
+              "@type": "ContactPoint",
+              telephone: "+55-91-99999-9999",
+              contactType: "customer service",
+              areaServed: "BR",
+              availableLanguage: "Portuguese",
+            },
+            address: {
+              "@type": "PostalAddress",
+              addressLocality: "Belém",
+              addressRegion: "PA",
+              addressCountry: "BR",
+            },
+          },
+          {
+            "@context": "https://schema.org",
+            "@type": "LocalBusiness",
+            name: "Elle Make",
+            image: `${window.location.origin}/pwa-512x512.png`,
+            address: {
+              "@type": "PostalAddress",
+              addressLocality: "Belém",
+              addressRegion: "PA",
+              addressCountry: "BR",
+            },
+            priceRange: "$$",
+          },
+        ]}
       />
 
       {/* Hero */}
