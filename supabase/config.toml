@@ -17,3 +17,6 @@ verify_jwt = false
 
 [functions.yampi-sync]
 verify_jwt = false
+
+[functions.melhor-envio-shipping]
+verify_jwt = false
