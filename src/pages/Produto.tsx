@@ -1,7 +1,7 @@
 import { useState } from "react";
 import OptimizedImage from "@/components/ui/optimized-image";
 import { useParams, useNavigate, Link } from "react-router-dom";
-import { Heart, Minus, Plus, ShoppingBag, Truck, Sparkles, ShieldCheck, MessageCircle, MapPin, Package, Zap, Store } from "lucide-react";
+import { Heart, Minus, Plus, ShoppingBag, Truck, CreditCard, ShieldCheck, MessageCircle, MapPin, Package, Zap, Store, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -246,7 +246,7 @@ const Produto = () => {
                 disabled={swatches.length > 0 && !selectedSwatch}
                 className="w-full min-h-[48px] text-base font-semibold border-2"
               >
-                <Sparkles className="w-5 h-5 mr-2 text-accent" />
+                <CreditCard className="w-5 h-5 mr-2 text-accent" />
                 Comprar Agora
               </Button>
 
