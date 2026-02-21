@@ -147,56 +147,69 @@ const Index = () => {
           playsInline
           autoPlay
           preload="auto"
-          className="w-full h-[280px] md:h-[420px] object-cover"
+          className="w-full h-[320px] md:h-[480px] object-cover"
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-background/90 via-background/40 to-transparent" />
+        {/* Gradient overlay — lateral + bottom */}
+        <div className="absolute inset-0 bg-gradient-to-r from-background/95 via-background/50 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-t from-background/80 via-transparent to-transparent" />
+
         <motion.div
-          initial={{ opacity: 0, y: 30, scale: 0.95 }}
-          animate={{ opacity: 1, y: 0, scale: 1 }}
-          transition={{ duration: 0.7, delay: 0.3, ease: "easeOut" }}
-          className="absolute inset-0 flex items-center justify-center px-4"
+          initial={{ opacity: 0, x: -40 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.8, delay: 0.2, ease: "easeOut" }}
+          className="absolute inset-0 flex items-center px-6 md:px-16"
         >
-          <div className="bg-card/60 backdrop-blur-xl border border-border/50 rounded-2xl px-6 py-8 md:px-12 md:py-10 max-w-xl w-full text-center shadow-2xl shadow-primary/10">
+          <div className="max-w-lg">
             <motion.h1
-              initial={{ opacity: 0, y: 10 }}
+              initial={{ opacity: 0, y: 15 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.5 }}
-              className="text-2xl md:text-4xl font-bold leading-tight text-foreground mb-3"
+              transition={{ duration: 0.6, delay: 0.4 }}
+              className="font-serif-accent text-3xl md:text-5xl font-bold leading-tight text-foreground mb-4"
+              style={{ textShadow: '0 2px 20px hsl(var(--background) / 0.8), 0 1px 4px hsl(var(--background) / 0.6)' }}
             >
-              Maquiagem e Cosméticos em{" "}
-              <span className="font-serif-accent text-primary drop-shadow-sm">Belém</span>
+              Maquiagem e{" "}
+              <span className="text-primary" style={{ textShadow: '0 2px 16px hsl(var(--primary) / 0.4)' }}>
+                Cosméticos
+              </span>
+              <br />em Belém
             </motion.h1>
 
             <motion.p
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
               transition={{ delay: 0.7 }}
-              className="text-foreground/80 text-sm md:text-base mb-2"
+              className="text-sm md:text-lg font-semibold text-foreground/90 mb-3"
+              style={{ textShadow: '0 1px 8px hsl(var(--background) / 0.7)' }}
             >
-              <strong className="text-foreground">Frete grátis acima de R$ 199</strong>
-            </motion.p>
-
-            <motion.p
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: 0.9, type: "spring", stiffness: 200 }}
-              className="inline-block bg-primary/15 text-primary text-xs md:text-sm font-bold px-4 py-1.5 rounded-full mb-5 border border-primary/20"
-            >
-              🛵 Belém e Ananindeua: entrega em até 3 horas!
+              Frete grátis acima de R$ 199
             </motion.p>
 
             <motion.div
-              initial={{ opacity: 0, y: 10 }}
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: 0.9, type: "spring", stiffness: 200 }}
+              className="inline-flex items-center gap-2 bg-primary text-primary-foreground text-xs md:text-sm font-bold px-5 py-2 rounded-full mb-6 shadow-lg"
+              style={{ boxShadow: '0 0 20px hsl(var(--primary) / 0.4), 0 4px 12px hsl(var(--primary) / 0.3)' }}
+            >
+              <span className="animate-pulse">🛵</span>
+              Entrega em até 3h · Belém e Ananindeua
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, y: 15 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 1.1 }}
-              className="flex flex-wrap gap-3 justify-center"
+              className="flex flex-wrap gap-3"
             >
-              <Button asChild className="bg-primary text-primary-foreground hover:bg-primary/90 min-h-[48px] px-8 rounded-full font-semibold shadow-marsala">
+              <Button asChild className="bg-primary text-primary-foreground hover:bg-primary/90 min-h-[48px] px-8 rounded-full font-semibold shadow-lg relative overflow-hidden group">
                 <Link to="/explorar">
-                  Ver Produtos <ArrowRight className="w-4 h-4 ml-1.5" />
+                  <span className="relative z-10 flex items-center">
+                    Ver Produtos <ArrowRight className="w-4 h-4 ml-1.5" />
+                  </span>
+                  <span className="absolute inset-0 bg-gradient-to-r from-transparent via-primary-foreground/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700" />
                 </Link>
               </Button>
-              <Button variant="outline" asChild className="min-h-[48px] px-6 rounded-full border-accent text-accent hover:bg-accent hover:text-accent-foreground font-semibold bg-card/80 backdrop-blur-sm">
+              <Button variant="outline" asChild className="min-h-[48px] px-6 rounded-full border-accent text-accent hover:bg-accent hover:text-accent-foreground font-semibold bg-background/70 backdrop-blur-sm shadow-lg">
                 <a href="https://wa.me/5591983045531?text=Olá! Gostaria de fazer um pedido" target="_blank" rel="noopener noreferrer">
                   <WhatsAppIcon className="w-4 h-4 mr-1.5" /> Comprar no WhatsApp
                 </a>
