@@ -175,7 +175,7 @@ const Index = () => {
             </Button>
             <Button variant="outline" asChild className="min-h-[48px] px-6 rounded-full border-accent text-accent hover:bg-accent hover:text-accent-foreground font-semibold bg-card/80 backdrop-blur-sm">
               <a href="https://wa.me/5591983045531?text=Olá! Gostaria de fazer um pedido" target="_blank" rel="noopener noreferrer">
-                <WhatsAppIcon className="w-4 h-4 mr-1.5" /> Pedir no WhatsApp
+                <WhatsAppIcon className="w-4 h-4 mr-1.5" /> Comprar no WhatsApp
               </a>
             </Button>
           </div>
