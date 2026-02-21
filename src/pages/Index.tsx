@@ -161,7 +161,6 @@ const Index = () => {
             <span className="font-serif-accent text-primary" style={{ textShadow: '0 2px 12px hsl(var(--primary) / 0.3)' }}>Belém</span>
           </h1>
           <p className="text-foreground/80 text-sm md:text-base leading-relaxed mb-1 max-w-lg mx-auto" style={{ textShadow: '0 1px 4px hsl(var(--background) / 0.5)' }}>
-            Delivery rápido em até 3h.{" "}
             <strong className="text-foreground">Frete grátis acima de R$ 199.</strong>
           </p>
           <p className="text-xs font-semibold text-primary mb-5 animate-pulse" style={{ textShadow: '0 1px 6px hsl(var(--background) / 0.5)' }}>
