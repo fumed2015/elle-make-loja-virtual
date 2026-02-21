@@ -1,11 +1,14 @@
 import { Link } from "react-router-dom";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { ShoppingBag } from "lucide-react";
+import { ShoppingBag, Heart, Eye } from "lucide-react";
 import { useCart } from "@/hooks/useCart";
 import { useAuth } from "@/hooks/useAuth";
+import { useFavorites } from "@/hooks/useFavorites";
 import { motion } from "framer-motion";
 import OptimizedImage from "@/components/ui/optimized-image";
+import { cn } from "@/lib/utils";
+import { useNavigate } from "react-router-dom";
 
 interface ProductCardProps {
   product: any;
@@ -13,19 +16,39 @@ interface ProductCardProps {
 }
 
 const ProductCard = ({ product, index = 0 }: ProductCardProps) => {
+  const navigate = useNavigate();
   const hasDiscount = product.compare_at_price && product.compare_at_price > product.price;
   const discountPercent = hasDiscount
     ? Math.round(((product.compare_at_price - product.price) / product.compare_at_price) * 100)
     : 0;
   const { addToCart } = useCart();
   const { user } = useAuth();
+  const { toggleFavorite, isFavorited } = useFavorites();
+  const favorited = user ? isFavorited(product.id) : false;
+  const lowStock = product.stock > 0 && product.stock <= 5;
+  const pixPrice = (Number(product.price) * 0.95).toFixed(2).replace(".", ",");
 
   const handleQuickAdd = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    if (!user) return;
+    if (!user) { navigate("/perfil"); return; }
+    // If product has swatches, navigate to product page instead
+    const swatches = typeof product.swatches === 'string' ? JSON.parse(product.swatches) : (product.swatches || []);
+    if (swatches.length > 0) {
+      navigate(`/produto/${product.slug}`);
+      return;
+    }
     addToCart.mutate({ productId: product.id, quantity: 1 });
   };
+
+  const handleToggleFav = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!user) { navigate("/perfil"); return; }
+    toggleFavorite.mutate(product.id);
+  };
+
+  const swatches = typeof product.swatches === 'string' ? JSON.parse(product.swatches) : (product.swatches || []);
 
   return (
     <Link to={`/produto/${product.slug}`} className="block group">
@@ -33,9 +56,9 @@ const ProductCard = ({ product, index = 0 }: ProductCardProps) => {
         whileHover={{ y: -4, boxShadow: "0 8px 30px -10px hsl(var(--foreground) / 0.1)" }}
         whileTap={{ scale: 0.98 }}
         transition={{ type: "spring", stiffness: 400, damping: 25 }}
-        className="bg-card rounded-lg overflow-hidden border border-border"
+        className="bg-card rounded-lg overflow-hidden border border-border relative"
       >
-        {/* Image with lazy loading */}
+        {/* Image */}
         <div className="relative">
           {product.images?.[0] ? (
             <OptimizedImage
@@ -49,17 +72,66 @@ const ProductCard = ({ product, index = 0 }: ProductCardProps) => {
               Sem imagem
             </div>
           )}
-          {hasDiscount && (
-            <Badge className="absolute top-1 left-1 bg-primary text-primary-foreground text-[8px] px-1.5 py-0 rounded-sm leading-tight">
-              -{discountPercent}%
-            </Badge>
-          )}
+
+          {/* Badges */}
+          <div className="absolute top-1 left-1 flex flex-col gap-0.5">
+            {hasDiscount && (
+              <Badge className="bg-destructive text-destructive-foreground text-[8px] px-1.5 py-0 rounded-sm leading-tight">
+                -{discountPercent}%
+              </Badge>
+            )}
+            {lowStock && (
+              <Badge className="bg-primary text-primary-foreground text-[7px] px-1 py-0 rounded-sm leading-tight animate-pulse">
+                Últimas unid.
+              </Badge>
+            )}
+          </div>
+
+          {/* Favorite button */}
+          <motion.button
+            whileTap={{ scale: 0.8 }}
+            onClick={handleToggleFav}
+            className="absolute top-1 right-1 w-7 h-7 rounded-full bg-background/70 backdrop-blur-sm flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+          >
+            <Heart className={cn("w-3.5 h-3.5 transition-colors", favorited ? "fill-destructive text-destructive" : "text-foreground/60")} />
+          </motion.button>
+
+          {/* Quick view overlay */}
+          <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-background/80 to-transparent p-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
+            <Button
+              onClick={handleQuickAdd}
+              className="w-full bg-primary text-primary-foreground hover:bg-primary/90 rounded-full text-[9px] h-6 font-semibold"
+              size="sm"
+            >
+              <ShoppingBag className="w-3 h-3 mr-1" />
+              {swatches.length > 0 ? "Ver cores" : "Adicionar"}
+            </Button>
+          </div>
         </div>
 
         {/* Info */}
         <div className="p-1.5 space-y-0.5">
           <p className="text-[8px] text-muted-foreground uppercase tracking-wider leading-none">{product.brand}</p>
           <h3 className="text-[11px] font-medium leading-tight line-clamp-2 text-foreground">{product.name}</h3>
+
+          {/* Swatches preview */}
+          {swatches.length > 0 && (
+            <div className="flex items-center gap-0.5">
+              {swatches.slice(0, 5).map((s: any, i: number) => (
+                <div
+                  key={i}
+                  className="w-3 h-3 rounded-full border border-border"
+                  style={{ backgroundColor: s.color }}
+                  title={s.name}
+                />
+              ))}
+              {swatches.length > 5 && (
+                <span className="text-[7px] text-muted-foreground">+{swatches.length - 5}</span>
+              )}
+            </div>
+          )}
+
+          {/* Price */}
           <div>
             {hasDiscount && (
               <span className="text-[9px] text-muted-foreground line-through block leading-none">
@@ -69,35 +141,15 @@ const ProductCard = ({ product, index = 0 }: ProductCardProps) => {
             <span className="text-xs font-bold text-primary">
               R$ {Number(product.price).toFixed(2).replace(".", ",")}
             </span>
+            <p className="text-[7px] text-accent font-semibold leading-none">
+              R$ {pixPrice} no Pix
+            </p>
             {Number(product.price) >= 30 && (
-              <p className="text-[8px] text-muted-foreground leading-none">
+              <p className="text-[7px] text-muted-foreground leading-none">
                 ou 3x de R$ {(Number(product.price) / 3).toFixed(2).replace(".", ",")}
               </p>
             )}
           </div>
-          {product.swatches && JSON.parse(typeof product.swatches === 'string' ? product.swatches : JSON.stringify(product.swatches)).length > 0 && (
-            <div className="flex gap-0.5">
-              {JSON.parse(typeof product.swatches === 'string' ? product.swatches : JSON.stringify(product.swatches)).slice(0, 4).map((s: any, i: number) => (
-                <motion.div
-                  key={i}
-                  whileHover={{ scale: 1.3 }}
-                  className="w-3 h-3 rounded-full border border-border"
-                  style={{ backgroundColor: s.color }}
-                  title={s.name}
-                />
-              ))}
-            </div>
-          )}
-          <motion.div whileTap={{ scale: 0.95 }}>
-            <Button
-              onClick={handleQuickAdd}
-              className="w-full mt-1 bg-primary text-primary-foreground hover:bg-primary/90 rounded-full text-[10px] h-7 font-semibold press-scale"
-              size="sm"
-            >
-              <ShoppingBag className="w-3 h-3 mr-1" />
-              Adicionar
-            </Button>
-          </motion.div>
         </div>
       </motion.div>
     </Link>

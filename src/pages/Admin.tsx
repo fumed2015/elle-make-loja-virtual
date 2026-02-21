@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { LayoutDashboard, Package, ShoppingCart, Plus, ArrowLeft, TrendingUp, Box, Tag, Star, Users, ImageIcon, Eye, EyeOff, Percent, Trash2, Search, AlertTriangle, CheckCircle, Info, FolderOpen, Pencil } from "lucide-react";
+import { LayoutDashboard, Package, ShoppingCart, Plus, ArrowLeft, TrendingUp, Box, Tag, Star, Users, ImageIcon, Eye, EyeOff, Percent, Trash2, Search, AlertTriangle, CheckCircle, Info, FolderOpen, Pencil, Wand2, Sparkles, Loader2, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -17,7 +17,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
 
-type Tab = "dashboard" | "products" | "orders" | "add-product" | "coupons" | "reviews" | "influencers" | "seo" | "categories";
+type Tab = "dashboard" | "products" | "orders" | "add-product" | "coupons" | "reviews" | "influencers" | "seo" | "categories" | "ai-content";
 
 const statusLabels: Record<string, string> = {
   pending: "Pendente", confirmed: "Confirmado", preparing: "Preparando",
@@ -54,6 +54,7 @@ const Admin = () => {
     { id: "reviews" as Tab, label: "Reviews", icon: Star },
     { id: "influencers" as Tab, label: "Influencers", icon: Users },
     { id: "seo" as Tab, label: "SEO", icon: Search },
+    { id: "ai-content" as Tab, label: "IA Conteúdo", icon: Wand2 },
     { id: "add-product" as Tab, label: "+Produto", icon: Plus },
   ];
 
@@ -83,11 +84,13 @@ const Admin = () => {
       {tab === "influencers" && <InfluencersTab />}
       {tab === "categories" && <CategoriesTab />}
       {tab === "seo" && <SEOTab />}
+      {tab === "ai-content" && <AIContentTab />}
       {tab === "add-product" && <AddProductTab onDone={() => setTab("products")} />}
     </div>
   );
 };
 
+// ========== Dashboard ==========
 const DashboardTab = () => {
   const { data: products } = useProducts({});
   const { data: orders } = useAllOrders();
@@ -98,6 +101,7 @@ const DashboardTab = () => {
   const totalProducts = products?.length || 0;
   const pendingOrders = orders?.filter((o) => o.status === "pending").length || 0;
   const activeInfluencers = influencers?.filter((i) => i.is_active).length || 0;
+  const productsNoDesc = products?.filter(p => !p.description || p.description.length < 30).length || 0;
 
   const stats = [
     { label: "Receita Total", value: `R$ ${totalRevenue.toFixed(2).replace(".", ",")}`, icon: TrendingUp },
@@ -105,6 +109,7 @@ const DashboardTab = () => {
     { label: "Produtos", value: totalProducts, icon: Box },
     { label: "Pendentes", value: pendingOrders, icon: Package },
     { label: "Influencers", value: activeInfluencers, icon: Users },
+    { label: "Sem Descrição", value: productsNoDesc, icon: AlertTriangle, bad: productsNoDesc > 0 },
   ];
 
   return (
@@ -112,8 +117,8 @@ const DashboardTab = () => {
       {stats.map((stat, i) => (
         <motion.div key={stat.label} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.1 }}
           className="bg-card rounded-xl p-4 border border-border">
-          <stat.icon className="w-5 h-5 text-primary mb-2" />
-          <p className="text-lg font-bold">{stat.value}</p>
+          <stat.icon className={`w-5 h-5 mb-2 ${(stat as any).bad ? "text-destructive" : "text-primary"}`} />
+          <p className={`text-lg font-bold ${(stat as any).bad ? "text-destructive" : ""}`}>{stat.value}</p>
           <p className="text-xs text-muted-foreground">{stat.label}</p>
         </motion.div>
       ))}
@@ -121,33 +126,284 @@ const DashboardTab = () => {
   );
 };
 
+// ========== Products ==========
 const ProductsTab = () => {
   const { data: products, isLoading, refetch } = useProducts({});
+  const [generatingId, setGeneratingId] = useState<string | null>(null);
+  
   const handleToggleActive = async (id: string, currentActive: boolean) => {
     const { error } = await supabase.from("products").update({ is_active: !currentActive }).eq("id", id);
     if (error) toast.error("Erro ao atualizar");
     else { toast.success(currentActive ? "Produto desativado" : "Produto ativado"); refetch(); }
   };
+
+  const handleGenerateAI = async (productId: string) => {
+    setGeneratingId(productId);
+    try {
+      const { data, error } = await supabase.functions.invoke("ai-content-generator", {
+        body: { action: "generate", product_id: productId },
+      });
+      if (error) throw error;
+      if (data?.content) {
+        const updateData: any = {};
+        if (data.content.description) updateData.description = data.content.description;
+        if (data.content.sensorial_description) updateData.sensorial_description = data.content.sensorial_description;
+        if (data.content.tags) updateData.tags = data.content.tags;
+        
+        if (Object.keys(updateData).length > 0) {
+          await supabase.from("products").update(updateData).eq("id", productId);
+        }
+        toast.success("Conteúdo IA gerado e salvo!");
+        refetch();
+      }
+    } catch (e: any) {
+      toast.error(e.message || "Erro ao gerar conteúdo IA");
+    } finally {
+      setGeneratingId(null);
+    }
+  };
+
   if (isLoading) return <div className="text-center py-8 text-muted-foreground text-sm">Carregando...</div>;
   return (
     <div className="space-y-3">
-      {products?.map((product) => (
-        <div key={product.id} className="bg-card rounded-xl p-4 border border-border flex items-center gap-3">
-          <div className="w-14 h-14 rounded-lg bg-muted overflow-hidden flex-shrink-0">{product.images?.[0] && <img src={product.images[0]} alt="" className="w-full h-full object-cover" />}</div>
-          <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium line-clamp-1">{product.name}</p>
-            <p className="text-xs text-muted-foreground">Estoque: {product.stock}</p>
-            <p className="text-xs font-bold text-primary">R$ {Number(product.price).toFixed(2).replace(".", ",")}</p>
+      {products?.map((product) => {
+        const needsContent = !product.description || product.description.length < 30;
+        return (
+          <div key={product.id} className="bg-card rounded-xl p-4 border border-border flex items-center gap-3">
+            <div className="w-14 h-14 rounded-lg bg-muted overflow-hidden flex-shrink-0">{product.images?.[0] && <img src={product.images[0]} alt="" className="w-full h-full object-cover" />}</div>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-medium line-clamp-1">{product.name}</p>
+              <p className="text-xs text-muted-foreground">Estoque: {product.stock}</p>
+              <p className="text-xs font-bold text-primary">R$ {Number(product.price).toFixed(2).replace(".", ",")}</p>
+              {needsContent && <Badge variant="secondary" className="text-[8px] mt-0.5 bg-destructive/10 text-destructive">Sem descrição</Badge>}
+            </div>
+            <div className="flex gap-1">
+              <Button
+                variant="ghost" size="sm"
+                onClick={() => handleGenerateAI(product.id)}
+                disabled={generatingId === product.id}
+                className="text-xs h-8 w-8 p-0"
+                title="Gerar conteúdo com IA"
+              >
+                {generatingId === product.id ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Wand2 className="w-3.5 h-3.5 text-primary" />}
+              </Button>
+              <Button variant={product.is_active ? "outline" : "default"} size="sm" onClick={() => handleToggleActive(product.id, product.is_active!)} className="text-xs">
+                {product.is_active ? "Desativar" : "Ativar"}
+              </Button>
+            </div>
           </div>
-          <Button variant={product.is_active ? "outline" : "default"} size="sm" onClick={() => handleToggleActive(product.id, product.is_active!)} className="text-xs">
-            {product.is_active ? "Desativar" : "Ativar"}
-          </Button>
-        </div>
-      ))}
+        );
+      })}
     </div>
   );
 };
 
+// ========== AI Content Tab ==========
+const AIContentTab = () => {
+  const { data: products, refetch } = useProducts({});
+  const [bulkRunning, setBulkRunning] = useState(false);
+  const [results, setResults] = useState<any[] | null>(null);
+  const [generatingId, setGeneratingId] = useState<string | null>(null);
+  const [preview, setPreview] = useState<any>(null);
+
+  const productsNoDesc = products?.filter(p => !p.description || p.description.length < 30) || [];
+  const productsNoSensorial = products?.filter(p => !p.sensorial_description) || [];
+  const productsNoTags = products?.filter(p => !p.tags || p.tags.length === 0) || [];
+
+  const handleBulkSEO = async () => {
+    setBulkRunning(true);
+    setResults(null);
+    try {
+      const { data, error } = await supabase.functions.invoke("ai-content-generator", {
+        body: { action: "bulk-seo" },
+      });
+      if (error) throw error;
+      setResults(data?.results || []);
+      toast.success(`${data?.updated || 0} produtos otimizados!`);
+      refetch();
+    } catch (e: any) {
+      toast.error(e.message || "Erro no SEO em lote");
+    } finally {
+      setBulkRunning(false);
+    }
+  };
+
+  const handleGeneratePreview = async (productId: string) => {
+    setGeneratingId(productId);
+    setPreview(null);
+    try {
+      const { data, error } = await supabase.functions.invoke("ai-content-generator", {
+        body: { action: "generate", product_id: productId },
+      });
+      if (error) throw error;
+      setPreview({ ...data?.content, product_id: productId });
+    } catch (e: any) {
+      toast.error(e.message || "Erro ao gerar preview");
+    } finally {
+      setGeneratingId(null);
+    }
+  };
+
+  const handleApplyPreview = async () => {
+    if (!preview) return;
+    const updateData: any = {};
+    if (preview.description) updateData.description = preview.description;
+    if (preview.sensorial_description) updateData.sensorial_description = preview.sensorial_description;
+    if (preview.tags) updateData.tags = preview.tags;
+
+    const { error } = await supabase.from("products").update(updateData).eq("id", preview.product_id);
+    if (error) toast.error("Erro ao salvar");
+    else {
+      toast.success("Conteúdo aplicado com sucesso!");
+      setPreview(null);
+      refetch();
+    }
+  };
+
+  return (
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="bg-gradient-to-r from-primary/10 to-accent/10 rounded-xl p-5 border border-primary/20">
+        <div className="flex items-center gap-3 mb-2">
+          <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center">
+            <Wand2 className="w-5 h-5 text-primary" />
+          </div>
+          <div>
+            <h2 className="text-sm font-bold text-foreground">Gerador de Conteúdo com IA</h2>
+            <p className="text-xs text-muted-foreground">Crie descrições, títulos SEO e tags automaticamente</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Stats */}
+      <div className="grid grid-cols-3 gap-3">
+        <div className="bg-card rounded-lg p-3 border border-border text-center">
+          <p className={`text-lg font-bold ${productsNoDesc.length > 0 ? "text-destructive" : "text-accent"}`}>{productsNoDesc.length}</p>
+          <p className="text-[10px] text-muted-foreground">Sem descrição</p>
+        </div>
+        <div className="bg-card rounded-lg p-3 border border-border text-center">
+          <p className={`text-lg font-bold ${productsNoSensorial.length > 0 ? "text-yellow-500" : "text-accent"}`}>{productsNoSensorial.length}</p>
+          <p className="text-[10px] text-muted-foreground">Sem copy sensorial</p>
+        </div>
+        <div className="bg-card rounded-lg p-3 border border-border text-center">
+          <p className={`text-lg font-bold ${productsNoTags.length > 0 ? "text-yellow-500" : "text-accent"}`}>{productsNoTags.length}</p>
+          <p className="text-[10px] text-muted-foreground">Sem tags</p>
+        </div>
+      </div>
+
+      {/* Bulk Action */}
+      <div className="bg-card rounded-xl p-4 border border-border space-y-3">
+        <h3 className="text-sm font-bold flex items-center gap-2">
+          <Sparkles className="w-4 h-4 text-primary" />
+          Otimização em Lote
+        </h3>
+        <p className="text-xs text-muted-foreground">
+          A IA irá gerar automaticamente descrições sensoriais, copy de venda e tags SEO para até 10 produtos que estejam sem conteúdo.
+        </p>
+        <Button onClick={handleBulkSEO} disabled={bulkRunning} className="bg-primary text-primary-foreground text-xs gap-2">
+          {bulkRunning ? <><Loader2 className="w-3.5 h-3.5 animate-spin" />Processando...</> : <><Wand2 className="w-3.5 h-3.5" />Otimizar Produtos sem Conteúdo</>}
+        </Button>
+
+        {results && (
+          <div className="space-y-1.5 max-h-48 overflow-y-auto">
+            {results.map((r, i) => (
+              <div key={i} className="flex items-center gap-2 text-xs p-2 bg-muted rounded-lg">
+                {r.status === "updated" ? <CheckCircle className="w-3.5 h-3.5 text-accent flex-shrink-0" /> :
+                 r.status === "skipped" ? <Info className="w-3.5 h-3.5 text-muted-foreground flex-shrink-0" /> :
+                 <AlertTriangle className="w-3.5 h-3.5 text-destructive flex-shrink-0" />}
+                <span className="truncate">{r.name}</span>
+                <Badge variant="secondary" className="text-[8px] ml-auto flex-shrink-0">
+                  {r.status === "updated" ? `✓ ${r.fields?.join(", ")}` : r.status}
+                </Badge>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Individual Product Generator */}
+      <div className="bg-card rounded-xl p-4 border border-border space-y-3">
+        <h3 className="text-sm font-bold flex items-center gap-2">
+          <Wand2 className="w-4 h-4 text-primary" />
+          Gerar para Produto Específico
+        </h3>
+        <p className="text-xs text-muted-foreground">Selecione um produto para gerar e visualizar o conteúdo antes de aplicar.</p>
+
+        <div className="space-y-2 max-h-64 overflow-y-auto">
+          {products?.map((p) => (
+            <div key={p.id} className="flex items-center gap-2 p-2 bg-muted rounded-lg">
+              <div className="w-8 h-8 rounded bg-background overflow-hidden flex-shrink-0">
+                {p.images?.[0] && <img src={p.images[0]} alt="" className="w-full h-full object-cover" />}
+              </div>
+              <span className="text-xs truncate flex-1">{p.name}</span>
+              <Button
+                size="sm" variant="ghost"
+                onClick={() => handleGeneratePreview(p.id)}
+                disabled={generatingId === p.id}
+                className="text-xs h-7 gap-1"
+              >
+                {generatingId === p.id ? <Loader2 className="w-3 h-3 animate-spin" /> : <Wand2 className="w-3 h-3" />}
+                Gerar
+              </Button>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Preview */}
+      {preview && (
+        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="bg-card rounded-xl p-5 border-2 border-primary/30 space-y-4">
+          <h3 className="text-sm font-bold flex items-center gap-2 text-primary">
+            <Eye className="w-4 h-4" />
+            Preview do Conteúdo Gerado
+          </h3>
+          
+          <div className="space-y-3">
+            <div>
+              <Label className="text-xs font-bold text-muted-foreground">Descrição</Label>
+              <p className="text-xs text-foreground leading-relaxed mt-1 bg-muted p-3 rounded-lg">{preview.description}</p>
+            </div>
+            <div>
+              <Label className="text-xs font-bold text-muted-foreground">Descrição Sensorial</Label>
+              <p className="text-xs text-foreground leading-relaxed mt-1 bg-muted p-3 rounded-lg">{preview.sensorial_description}</p>
+            </div>
+            {preview.seo_title && (
+              <div>
+                <Label className="text-xs font-bold text-muted-foreground">Título SEO</Label>
+                <p className="text-xs text-foreground mt-1 bg-muted p-3 rounded-lg">{preview.seo_title}</p>
+              </div>
+            )}
+            {preview.meta_description && (
+              <div>
+                <Label className="text-xs font-bold text-muted-foreground">Meta Description</Label>
+                <p className="text-xs text-foreground mt-1 bg-muted p-3 rounded-lg">{preview.meta_description}</p>
+              </div>
+            )}
+            {preview.tags && (
+              <div>
+                <Label className="text-xs font-bold text-muted-foreground">Tags SEO</Label>
+                <div className="flex flex-wrap gap-1 mt-1">
+                  {preview.tags.map((tag: string, i: number) => (
+                    <Badge key={i} variant="secondary" className="text-[10px]">{tag}</Badge>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+
+          <div className="flex gap-2">
+            <Button onClick={handleApplyPreview} className="bg-primary text-primary-foreground text-xs gap-1 flex-1">
+              <CheckCircle className="w-3.5 h-3.5" />Aplicar ao Produto
+            </Button>
+            <Button onClick={() => setPreview(null)} variant="outline" className="text-xs">Descartar</Button>
+          </div>
+        </motion.div>
+      )}
+    </div>
+  );
+};
+
+// ========== Orders ==========
 const OrdersTab = () => {
   const { data: orders, isLoading, refetch } = useAllOrders();
   const handleUpdateStatus = async (orderId: string, newStatus: string) => {
@@ -184,6 +440,7 @@ const OrdersTab = () => {
   );
 };
 
+// ========== Coupons ==========
 const CouponsTab = () => {
   const queryClient = useQueryClient();
   const { data: coupons, isLoading } = useQuery({
@@ -216,7 +473,7 @@ const CouponsTab = () => {
 
   return (
     <div className="space-y-3">
-      <Button onClick={() => setShowForm(!showForm)} size="sm" className="bg-gradient-gold text-primary-foreground text-xs gap-1"><Plus className="w-3 h-3" />Novo Cupom</Button>
+      <Button onClick={() => setShowForm(!showForm)} size="sm" className="bg-primary text-primary-foreground text-xs gap-1"><Plus className="w-3 h-3" />Novo Cupom</Button>
       {showForm && (
         <div className="bg-card rounded-xl p-4 border border-border space-y-3">
           <div className="grid grid-cols-2 gap-2">
@@ -233,7 +490,7 @@ const CouponsTab = () => {
             <div className="space-y-1"><Label className="text-xs">Máx. usos</Label><Input type="number" value={form.max_uses} onChange={(e) => setForm({ ...form, max_uses: e.target.value })} placeholder="Ilimitado" className="bg-muted border-none min-h-[36px] text-xs" /></div>
           </div>
           <div className="space-y-1"><Label className="text-xs">Descrição</Label><Input value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} className="bg-muted border-none min-h-[36px] text-xs" /></div>
-          <Button onClick={handleCreate} size="sm" className="text-xs bg-gradient-gold text-primary-foreground">Criar Cupom</Button>
+          <Button onClick={handleCreate} size="sm" className="text-xs bg-primary text-primary-foreground">Criar Cupom</Button>
         </div>
       )}
       {isLoading ? <div className="text-center py-4 text-xs text-muted-foreground">Carregando...</div> : coupons?.map((c) => (
@@ -254,6 +511,7 @@ const CouponsTab = () => {
   );
 };
 
+// ========== Reviews ==========
 const ReviewsTab = () => {
   const queryClient = useQueryClient();
   const { data: reviews, isLoading } = useQuery({
@@ -300,6 +558,7 @@ const ReviewsTab = () => {
   );
 };
 
+// ========== Influencers ==========
 const InfluencersTab = () => {
   const { data: influencers, isLoading } = useInfluencers();
   const createInfluencer = useCreateInfluencer();
@@ -334,7 +593,7 @@ const InfluencersTab = () => {
 
   return (
     <div className="space-y-3">
-      <Button onClick={() => setShowForm(!showForm)} size="sm" className="bg-gradient-gold text-primary-foreground text-xs gap-1"><Plus className="w-3 h-3" />Nova Influenciadora</Button>
+      <Button onClick={() => setShowForm(!showForm)} size="sm" className="bg-primary text-primary-foreground text-xs gap-1"><Plus className="w-3 h-3" />Nova Influenciadora</Button>
       {showForm && (
         <div className="bg-card rounded-xl p-4 border border-border space-y-3">
           <div className="grid grid-cols-2 gap-2">
@@ -343,7 +602,7 @@ const InfluencersTab = () => {
             <div className="space-y-1"><Label className="text-xs">Instagram</Label><Input value={form.instagram} onChange={(e) => setForm({ ...form, instagram: e.target.value })} className="bg-muted border-none min-h-[36px] text-xs" placeholder="@usuario" /></div>
             <div className="space-y-1"><Label className="text-xs">Comissão (%)</Label><Input type="number" value={form.commission_percent} onChange={(e) => setForm({ ...form, commission_percent: e.target.value })} className="bg-muted border-none min-h-[36px] text-xs" /></div>
           </div>
-          <Button onClick={handleCreate} disabled={createInfluencer.isPending} size="sm" className="text-xs bg-gradient-gold text-primary-foreground">Cadastrar</Button>
+          <Button onClick={handleCreate} disabled={createInfluencer.isPending} size="sm" className="text-xs bg-primary text-primary-foreground">Cadastrar</Button>
         </div>
       )}
       {isLoading ? <div className="text-center py-4 text-xs text-muted-foreground">Carregando...</div> : influencers?.map((inf) => (
@@ -370,6 +629,7 @@ const InfluencersTab = () => {
   );
 };
 
+// ========== Add Product ==========
 const AddProductTab = ({ onDone }: { onDone: () => void }) => {
   const { data: categories } = useCategories();
   const [form, setForm] = useState({
@@ -378,13 +638,14 @@ const AddProductTab = ({ onDone }: { onDone: () => void }) => {
     stock: "0", category_id: "", image_url: "",
   });
   const [submitting, setSubmitting] = useState(false);
+  const [aiGenerating, setAiGenerating] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSubmitting(true);
     try {
       const slug = form.slug || form.name.toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, "");
-      const { error } = await supabase.from("products").insert({
+      const { data: inserted, error } = await supabase.from("products").insert({
         name: form.name, slug, description: form.description,
         sensorial_description: form.sensorial_description || null,
         price: parseFloat(form.price),
@@ -392,14 +653,72 @@ const AddProductTab = ({ onDone }: { onDone: () => void }) => {
         brand: form.brand || null, ingredients: form.ingredients || null,
         stock: parseInt(form.stock), category_id: form.category_id || null,
         images: form.image_url ? [form.image_url] : [], is_active: true,
-      });
+      }).select().single();
       if (error) throw error;
-      toast.success("Produto criado com sucesso!");
+
+      // Auto-generate AI content if description is empty
+      if (!form.description && inserted) {
+        try {
+          const { data: aiData } = await supabase.functions.invoke("ai-content-generator", {
+            body: { action: "generate", product_id: inserted.id },
+          });
+          if (aiData?.content) {
+            await supabase.from("products").update({
+              description: aiData.content.description,
+              sensorial_description: aiData.content.sensorial_description,
+              tags: aiData.content.tags,
+            }).eq("id", inserted.id);
+            toast.success("Produto criado com conteúdo IA! 🎉");
+          } else {
+            toast.success("Produto criado com sucesso!");
+          }
+        } catch {
+          toast.success("Produto criado! (IA indisponível para conteúdo)");
+        }
+      } else {
+        toast.success("Produto criado com sucesso!");
+      }
       onDone();
     } catch (err: any) {
       toast.error(err.message || "Erro ao criar produto");
     } finally {
       setSubmitting(false);
+    }
+  };
+
+  const handleAIFill = async () => {
+    if (!form.name) { toast.error("Preencha o nome do produto primeiro"); return; }
+    setAiGenerating(true);
+    try {
+      // Create temp product to generate content
+      const slug = form.name.toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, "");
+      const { data: temp, error } = await supabase.from("products").insert({
+        name: form.name, slug: slug + "-temp-" + Date.now(),
+        price: parseFloat(form.price) || 1, stock: 0,
+        brand: form.brand || null, ingredients: form.ingredients || null,
+        is_active: false,
+      }).select().single();
+      if (error) throw error;
+
+      const { data: aiData } = await supabase.functions.invoke("ai-content-generator", {
+        body: { action: "generate", product_id: temp.id },
+      });
+
+      // Delete temp product
+      await supabase.from("products").delete().eq("id", temp.id);
+
+      if (aiData?.content) {
+        setForm(prev => ({
+          ...prev,
+          description: aiData.content.description || prev.description,
+          sensorial_description: aiData.content.sensorial_description || prev.sensorial_description,
+        }));
+        toast.success("Conteúdo IA gerado!");
+      }
+    } catch (e: any) {
+      toast.error(e.message || "Erro ao gerar conteúdo IA");
+    } finally {
+      setAiGenerating(false);
     }
   };
 
@@ -419,15 +738,25 @@ const AddProductTab = ({ onDone }: { onDone: () => void }) => {
           </Select>
         </div>
         <div className="col-span-2 space-y-2"><Label>URL da Imagem</Label><Input value={form.image_url} onChange={(e) => setForm({ ...form, image_url: e.target.value })} placeholder="https://..." className="bg-muted border-none min-h-[44px]" /></div>
-        <div className="col-span-2 space-y-2"><Label>Descrição</Label><Textarea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} className="bg-muted border-none min-h-[80px]" /></div>
+        <div className="col-span-2 space-y-2">
+          <div className="flex items-center justify-between">
+            <Label>Descrição</Label>
+            <Button type="button" onClick={handleAIFill} disabled={aiGenerating || !form.name} size="sm" variant="ghost" className="text-xs gap-1 text-primary h-6">
+              {aiGenerating ? <Loader2 className="w-3 h-3 animate-spin" /> : <Wand2 className="w-3 h-3" />}
+              Gerar com IA
+            </Button>
+          </div>
+          <Textarea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} className="bg-muted border-none min-h-[80px]" />
+        </div>
         <div className="col-span-2 space-y-2"><Label>Descrição Sensorial</Label><Textarea value={form.sensorial_description} onChange={(e) => setForm({ ...form, sensorial_description: e.target.value })} className="bg-muted border-none min-h-[80px]" /></div>
         <div className="col-span-2 space-y-2"><Label>Ingredientes-chave</Label><Input value={form.ingredients} onChange={(e) => setForm({ ...form, ingredients: e.target.value })} className="bg-muted border-none min-h-[44px]" /></div>
       </div>
-      <Button type="submit" disabled={submitting} className="w-full bg-gradient-gold text-primary-foreground shadow-gold hover:opacity-90 min-h-[44px]">{submitting ? "Criando..." : "Criar Produto"}</Button>
+      <Button type="submit" disabled={submitting} className="w-full bg-primary text-primary-foreground shadow-marsala hover:bg-primary/90 min-h-[44px]">{submitting ? "Criando..." : "Criar Produto"}</Button>
     </form>
   );
 };
 
+// ========== Categories ==========
 const CategoriesTab = () => {
   const queryClient = useQueryClient();
   const { data: categories, isLoading } = useCategories();
@@ -571,6 +900,7 @@ const CategoriesTab = () => {
   );
 };
 
+// ========== SEO ==========
 const SEOTab = () => {
   const [generating, setGenerating] = useState(false);
   const { data: reports, isLoading, refetch } = useQuery({
@@ -630,7 +960,6 @@ const SEOTab = () => {
         </div>
       ) : (
         <>
-          {/* Score */}
           <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="bg-card rounded-xl p-5 border border-border text-center">
             <p className="text-xs text-muted-foreground mb-1">Score SEO</p>
             <p className={`text-4xl font-bold ${scoreColor(latest.score || 0)}`}>{latest.score}/100</p>
@@ -639,7 +968,6 @@ const SEOTab = () => {
             </p>
           </motion.div>
 
-          {/* Summary cards */}
           <div className="grid grid-cols-2 gap-3">
             {[
               { label: "Produtos ativos", value: latest.total_products },
@@ -655,7 +983,6 @@ const SEOTab = () => {
             ))}
           </div>
 
-          {/* Issues */}
           {report?.issues?.length > 0 && (
             <div className="space-y-2">
               <h3 className="text-xs font-bold text-foreground">Problemas encontrados ({report.issues.length})</h3>
@@ -680,7 +1007,6 @@ const SEOTab = () => {
             </div>
           )}
 
-          {/* History */}
           {reports && reports.length > 1 && (
             <div className="space-y-2">
               <h3 className="text-xs font-bold text-foreground">Histórico</h3>
