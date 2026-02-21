@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { motion, AnimatePresence } from "framer-motion";
 import ReactMarkdown from "react-markdown";
 import { toast } from "sonner";
+import { Link } from "react-router-dom";
 
 type Msg = { role: "user" | "assistant"; content: string };
 
@@ -21,7 +22,7 @@ const quickQuestions = [
 
 const InlineConsultant = () => {
   const [messages, setMessages] = useState<Msg[]>([
-    { role: "assistant", content: "Olá! ✨ Sou a **Glow**, sua consultora de beleza. Me conta o que você procura — posso recomendar os melhores produtos pra você!" },
+    { role: "assistant", content: "Oi, amiga! 😊 Sou a **Michelle**, consultora de beleza da Elle Make. Me conta o que você tá procurando — vou te ajudar a encontrar os produtos perfeitos pra você!" },
   ]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -105,10 +106,10 @@ const InlineConsultant = () => {
     <section className="px-4 py-10 max-w-3xl mx-auto">
       <div className="text-center mb-6">
         <div className="inline-flex items-center gap-2 bg-primary/10 text-primary px-4 py-1.5 rounded-full text-xs font-semibold mb-3">
-          <Sparkles className="w-3.5 h-3.5" /> Consultora com IA
+          <Sparkles className="w-3.5 h-3.5" /> Michelle — Consultora de Beleza
         </div>
         <h2 className="text-2xl font-bold text-foreground mb-1">Precisa de ajuda para escolher?</h2>
-        <p className="text-sm text-muted-foreground">Pergunte à Glow — ela conhece todos os nossos produtos!</p>
+        <p className="text-sm text-muted-foreground">Fala com a Michelle — ela conhece todos os nossos produtos e vai te dar dicas incríveis!</p>
       </div>
 
       <div className="bg-card border border-border rounded-2xl overflow-hidden shadow-sm">
@@ -129,7 +130,22 @@ const InlineConsultant = () => {
                 }`}>
                   {msg.role === "assistant" ? (
                     <div className="prose prose-sm max-w-none [&_p]:m-0 [&_ul]:my-1 [&_li]:my-0 text-foreground">
-                      <ReactMarkdown>{msg.content}</ReactMarkdown>
+                      <ReactMarkdown
+                        components={{
+                          a: ({ href, children }) => {
+                            if (href?.startsWith("/")) {
+                              return (
+                                <Link to={href} className="text-primary font-semibold underline hover:text-primary/80 transition-colors">
+                                  {children}
+                                </Link>
+                              );
+                            }
+                            return <a href={href} target="_blank" rel="noopener noreferrer" className="text-primary underline">{children}</a>;
+                          },
+                        }}
+                      >
+                        {msg.content}
+                      </ReactMarkdown>
                     </div>
                   ) : msg.content}
                 </div>
