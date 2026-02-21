@@ -1,23 +1,43 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
-    <loc>https://belezaphygital.lovable.app/</loc>
+    <loc>https://id-preview--c0b8ed42-b9c9-4e15-a93b-150bf43bc611.lovable.app/</loc>
     <changefreq>daily</changefreq>
     <priority>1.0</priority>
   </url>
   <url>
-    <loc>https://belezaphygital.lovable.app/explorar</loc>
+    <loc>https://id-preview--c0b8ed42-b9c9-4e15-a93b-150bf43bc611.lovable.app/explorar</loc>
     <changefreq>daily</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
-    <loc>https://belezaphygital.lovable.app/consultora</loc>
+    <loc>https://id-preview--c0b8ed42-b9c9-4e15-a93b-150bf43bc611.lovable.app/carrinho</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.4</priority>
+  </url>
+  <url>
+    <loc>https://id-preview--c0b8ed42-b9c9-4e15-a93b-150bf43bc611.lovable.app/perfil</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.3</priority>
+  </url>
+  <url>
+    <loc>https://id-preview--c0b8ed42-b9c9-4e15-a93b-150bf43bc611.lovable.app/pedidos</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.3</priority>
+  </url>
+  <url>
+    <loc>https://id-preview--c0b8ed42-b9c9-4e15-a93b-150bf43bc611.lovable.app/favoritos</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  <url>
+    <loc>https://id-preview--c0b8ed42-b9c9-4e15-a93b-150bf43bc611.lovable.app/consultora</loc>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://belezaphygital.lovable.app/favoritos</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.5</priority>
+    <loc>https://id-preview--c0b8ed42-b9c9-4e15-a93b-150bf43bc611.lovable.app/checkout</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.3</priority>
   </url>
 </urlset>
