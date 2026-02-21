@@ -22,9 +22,10 @@ const item = {
 };
 
 const benefits = [
-  { icon: Truck, text: "Entrega Flash em Belém", sub: "Até 3h na região metropolitana" },
-  { icon: CreditCard, text: "Parcele sem juros", sub: "Em até 12x no cartão" },
-  { icon: ShieldCheck, text: "Compra Segura", sub: "100% protegida" },
+  { icon: Truck, text: "Entrega Rápida", sub: "Motoboy express em Belém" },
+  { icon: ShieldCheck, text: "100% Original", sub: "Registro ANVISA" },
+  { icon: CreditCard, text: "Pix com 5% Off", sub: "Cartão até 3x s/ juros" },
+  { icon: Star, text: "Brindes", sub: "Pedidos acima de R$200" },
 ];
 
 const testimonials = [
