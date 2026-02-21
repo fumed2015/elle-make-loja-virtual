@@ -6,6 +6,7 @@ import { useProducts, useCategories } from "@/hooks/useProducts";
 import ProductCard from "@/components/product/ProductCard";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
+import SEOHead from "@/components/SEOHead";
 
 const Explorar = () => {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -35,6 +36,7 @@ const Explorar = () => {
 
   return (
     <div className="px-4 pt-8 pb-4 max-w-lg mx-auto">
+      <SEOHead title="Explorar Produtos" description="Explore nossa coleção de maquiagens e skincare com ativos amazônicos. Filtros por categoria e busca inteligente." />
       <h1 className="text-2xl font-display font-bold mb-4">Explorar</h1>
 
       {/* Search */}
