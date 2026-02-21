@@ -1,0 +1,1 @@
+ALTER TABLE public.products ADD COLUMN how_to_use text;
