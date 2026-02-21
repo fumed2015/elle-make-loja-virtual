@@ -110,9 +110,12 @@ const Index = () => {
             Maquiagem e Cosméticos em{" "}
             <span className="font-serif-accent text-primary">Belém</span>
           </h1>
-          <p className="text-muted-foreground text-sm md:text-base leading-relaxed mb-6 max-w-lg mx-auto">
+          <p className="text-muted-foreground text-sm md:text-base leading-relaxed mb-2 max-w-lg mx-auto">
             Delivery rápido em até 3h para a região metropolitana.{" "}
             <strong className="text-foreground">Frete grátis acima de R$ 199.</strong>
+          </p>
+          <p className="text-xs font-semibold text-primary mb-6 animate-pulse">
+            🛵 Belém e Ananindeua: entrega em até 3 horas!
           </p>
           <div className="flex flex-wrap gap-3 justify-center">
             <Button asChild className="bg-primary text-primary-foreground hover:bg-primary/90 min-h-[48px] px-8 rounded-full font-semibold shadow-marsala">

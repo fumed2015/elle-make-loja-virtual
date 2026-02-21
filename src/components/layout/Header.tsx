@@ -3,7 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { Input } from "@/components/ui/input";
 import { useCart } from "@/hooks/useCart";
 import { ThemeToggle } from "@/hooks/useTheme";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
 interface SubItem {
@@ -63,6 +63,18 @@ const Header = () => {
   const navigate = useNavigate();
   const [search, setSearch] = useState("");
   const [hoveredNav, setHoveredNav] = useState<string | null>(null);
+  const [promoIndex, setPromoIndex] = useState(0);
+
+  const promoMessages = [
+    "✨ FRETE GRÁTIS acima de R$ 199 para Belém e Região Metropolitana ✨",
+    "🛵 Belém e Ananindeua: entrega em até 3 horas!",
+    "💳 Pix com 5% OFF • Cartão até 3x sem juros",
+  ];
+
+  useEffect(() => {
+    const interval = setInterval(() => setPromoIndex((i) => (i + 1) % promoMessages.length), 4000);
+    return () => clearInterval(interval);
+  }, []);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -72,10 +84,19 @@ const Header = () => {
   return (
     <header className="sticky top-0 z-40">
       {/* Promo bar */}
-      <div className="bg-primary text-primary-foreground text-center py-1.5 px-4">
-        <p className="text-[11px] font-medium tracking-wide">
-          ✨ FRETE GRÁTIS acima de R$ 199 para Belém e Região Metropolitana ✨
-        </p>
+      <div className="bg-primary text-primary-foreground text-center py-1.5 px-4 overflow-hidden h-8 flex items-center justify-center">
+        <AnimatePresence mode="wait">
+          <motion.p
+            key={promoIndex}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            transition={{ duration: 0.3 }}
+            className="text-[11px] font-medium tracking-wide"
+          >
+            {promoMessages[promoIndex]}
+          </motion.p>
+        </AnimatePresence>
       </div>
 
       {/* Main header */}
