@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
 import { useRef, useEffect } from "react";
-import { ArrowRight, Truck, CreditCard, ShieldCheck, Star, ChevronDown, Heart, Eye, Sparkles, Droplets, Package, Brush, Hand, Gem, Palette, Wind, Tag, Zap, Scissors, Bath, SprayCan } from "lucide-react";
+import { ArrowRight, Truck, CreditCard, ShieldCheck, Star, ChevronDown, Heart, Eye, Sparkles, Droplets, Package, Paintbrush, Gem, Palette, Wind, Tag, Zap, Scissors, ShowerHead, SprayCan, Smile, Sun } from "lucide-react";
 import WhatsAppIcon from "@/components/icons/WhatsAppIcon";
 import { Link } from "react-router-dom";
 import SEOHead from "@/components/SEOHead";
@@ -51,20 +51,21 @@ const faqs = [
 
 const categoryIcons: Record<string, React.ElementType> = {
   labios: Heart,
-  rosto: Sparkles,
+  rosto: Smile,
   olhos: Eye,
   skincare: Droplets,
   "kits-bundles": Package,
-  sobrancelhas: Brush,
-  unhas: Hand,
+  sobrancelhas: Paintbrush,
+  unhas: Gem,
   acessorios: Gem,
   paletas: Palette,
   perfumaria: Wind,
   ofertas: Tag,
   novidades: Zap,
   cabelos: Scissors,
-  "corpo-banho": Bath,
+  "corpo-banho": ShowerHead,
   "primers-fixadores": SprayCan,
+  protecao: Sun,
 };
 
 const Index = () => {
@@ -254,27 +255,28 @@ const Index = () => {
 
       {/* Categories Sections */}
       {categories && categories.length > 0 && (
-        <section className="px-4 py-8 max-w-5xl mx-auto">
-          <h2 className="text-xl font-bold text-foreground mb-5">Categorias</h2>
-          <div className="grid grid-cols-3 md:grid-cols-5 gap-2">
+        <section className="px-4 py-6 max-w-5xl mx-auto">
+          <h2 className="text-lg font-bold text-foreground mb-3">Categorias</h2>
+          <div className="flex gap-3 overflow-x-auto scrollbar-hide pb-1">
             {categories.map((cat, i) => {
               const IconComp = categoryIcons[cat.slug] || Sparkles;
               return (
                 <motion.div
                   key={cat.id}
-                  initial={{ opacity: 0, y: 10 }}
-                  whileInView={{ opacity: 1, y: 0 }}
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  whileInView={{ opacity: 1, scale: 1 }}
                   viewport={{ once: true }}
                   transition={{ delay: i * 0.03 }}
+                  className="flex-shrink-0"
                 >
                   <Link
                     to={`/explorar?cat=${cat.slug}`}
-                    className="flex flex-col items-center gap-1.5 bg-card border border-border rounded-xl p-3 text-center hover:border-primary hover:shadow-marsala transition-all group"
+                    className="flex flex-col items-center gap-1 w-14 text-center group"
                   >
-                    <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
-                      <IconComp className="w-5 h-5 text-primary" />
+                    <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 group-hover:scale-110 transition-all">
+                      <IconComp className="w-4 h-4 text-primary" />
                     </div>
-                    <p className="text-[11px] font-semibold text-foreground group-hover:text-primary transition-colors leading-tight">{cat.name}</p>
+                    <p className="text-[9px] font-medium text-muted-foreground group-hover:text-primary transition-colors leading-tight truncate w-full">{cat.name}</p>
                   </Link>
                 </motion.div>
               );
