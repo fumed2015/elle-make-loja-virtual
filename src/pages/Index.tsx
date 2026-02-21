@@ -204,7 +204,7 @@ const Index = () => {
               <Button asChild className="bg-primary text-primary-foreground hover:bg-primary/90 min-h-[48px] px-8 rounded-full font-semibold shadow-lg relative overflow-hidden group">
                 <Link to="/explorar">
                   <span className="relative z-10 flex items-center">
-                    Ver Produtos <ArrowRight className="w-4 h-4 ml-1.5" />
+                    Ver Catálogo <ArrowRight className="w-4 h-4 ml-1.5" />
                   </span>
                   <span className="absolute inset-0 bg-gradient-to-r from-transparent via-primary-foreground/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700" />
                 </Link>
