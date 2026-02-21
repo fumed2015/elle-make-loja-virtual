@@ -96,8 +96,8 @@ const ProductCard = ({ product, index = 0 }: ProductCardProps) => {
             <Heart className={cn("w-3.5 h-3.5 transition-colors", favorited ? "fill-destructive text-destructive" : "text-foreground/60")} />
           </motion.button>
 
-          {/* Quick view overlay */}
-          <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-background/80 to-transparent p-1.5 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
+          {/* Quick add overlay */}
+          <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-background/80 to-transparent p-1.5 transition-opacity">
             <Button
               onClick={handleQuickAdd}
               className="w-full bg-primary text-primary-foreground hover:bg-primary/90 rounded-full text-[9px] h-6 font-semibold"
