@@ -103,6 +103,7 @@ const Header = () => {
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
   const [search, setSearch] = useState("");
+  const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
   const [hoveredNav, setHoveredNav] = useState<string | null>(null);
   const [promoIndex, setPromoIndex] = useState(0);
 
@@ -168,16 +169,24 @@ const Header = () => {
             </motion.h1>
           </Link>
 
-          {/* Search */}
-          <form onSubmit={handleSearch} className="flex-1 min-w-0 relative">
+          {/* Search — icon-only on mobile, full bar on desktop */}
+          <form onSubmit={handleSearch} className="hidden md:flex flex-1 min-w-0 relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <Input
-              placeholder="Buscar..."
+              placeholder="Buscar produtos..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="pl-9 h-9 md:h-10 bg-muted border-none rounded-full text-sm focus:ring-2 focus:ring-primary/30 w-full"
+              className="pl-9 h-10 bg-muted border-none rounded-full text-sm focus:ring-2 focus:ring-primary/30 w-full"
             />
           </form>
+          <button
+            type="button"
+            onClick={() => setMobileSearchOpen(v => !v)}
+            className="md:hidden w-9 h-9 flex items-center justify-center rounded-full hover:bg-muted transition-colors"
+            aria-label="Buscar"
+          >
+            <Search className="w-5 h-5 text-foreground" />
+          </button>
 
           {/* Icons */}
           <div className="flex items-center gap-0.5 md:gap-1 flex-shrink-0">
@@ -247,6 +256,30 @@ const Header = () => {
           </div>
         </div>
       </div>
+
+      {/* Mobile search bar */}
+      <AnimatePresence>
+        {mobileSearchOpen && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.15 }}
+            className="md:hidden bg-card border-b border-border overflow-hidden"
+          >
+            <form onSubmit={(e) => { handleSearch(e); setMobileSearchOpen(false); }} className="px-3 py-2 relative">
+              <Search className="absolute left-6 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+              <Input
+                autoFocus
+                placeholder="Buscar produtos..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="pl-9 h-9 bg-muted border-none rounded-full text-sm focus:ring-2 focus:ring-primary/30 w-full"
+              />
+            </form>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Navigation */}
       <nav
