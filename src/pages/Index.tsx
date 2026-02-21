@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
 import { useRef, useEffect } from "react";
-import { ArrowRight, Truck, CreditCard, ShieldCheck, Star, ChevronDown } from "lucide-react";
+import { ArrowRight, Truck, CreditCard, ShieldCheck, Star, ChevronDown, Heart, Eye, Sparkles, Droplets, Package, Brush, Hand, Gem, Palette, Wind, Tag, Zap, Scissors, Bath, SprayCan } from "lucide-react";
 import WhatsAppIcon from "@/components/icons/WhatsAppIcon";
 import { Link } from "react-router-dom";
 import SEOHead from "@/components/SEOHead";
@@ -48,6 +48,24 @@ const faqs = [
   { q: "Quais marcas vocês trabalham?", a: "Trabalhamos com as melhores marcas nacionais: Ruby Rose, Max Love, Sarah Beauty, Phallebeauty, Luisance e Macrilan. Todas com excelente custo-benefício." },
   { q: "Como escolher o tom certo de base?", a: "O ideal é testar na mandíbula. Se não puder vir pessoalmente, envie uma foto pelo WhatsApp e nossa equipe ajuda a encontrar o tom perfeito!" },
 ];
+
+const categoryIcons: Record<string, React.ElementType> = {
+  labios: Heart,
+  rosto: Sparkles,
+  olhos: Eye,
+  skincare: Droplets,
+  "kits-bundles": Package,
+  sobrancelhas: Brush,
+  unhas: Hand,
+  acessorios: Gem,
+  paletas: Palette,
+  perfumaria: Wind,
+  ofertas: Tag,
+  novidades: Zap,
+  cabelos: Scissors,
+  "corpo-banho": Bath,
+  "primers-fixadores": SprayCan,
+};
 
 const Index = () => {
   const { data: featured, isLoading } = useProducts({ featured: true });
@@ -190,16 +208,16 @@ const Index = () => {
           <Link to="/explorar" className="text-xs text-primary font-semibold hover:underline">Ver tudo →</Link>
         </div>
         {isLoading ? (
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-            {[...Array(4)].map((_, i) => (
+          <div className="grid grid-cols-3 md:grid-cols-5 gap-2">
+            {[...Array(5)].map((_, i) => (
               <div key={i} className="aspect-[3/4] rounded-lg bg-muted overflow-hidden">
                 <div className="w-full h-full bg-gradient-to-r from-muted via-muted-foreground/5 to-muted animate-shimmer bg-[length:200%_100%]" />
               </div>
             ))}
           </div>
         ) : (
-          <motion.div variants={container} initial="hidden" whileInView="show" viewport={{ once: true }} className="grid grid-cols-2 md:grid-cols-4 gap-3">
-            {featured?.slice(0, 4).map((product, i) => (
+          <motion.div variants={container} initial="hidden" whileInView="show" viewport={{ once: true }} className="grid grid-cols-3 md:grid-cols-5 gap-2">
+            {featured?.slice(0, 5).map((product, i) => (
               <motion.div key={product.id} variants={item}>
                 <ProductCard product={product} index={i} />
               </motion.div>
@@ -215,14 +233,14 @@ const Index = () => {
           <Link to="/explorar" className="text-xs text-primary font-semibold hover:underline">Ver tudo →</Link>
         </div>
         {loadingAll ? (
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-            {[...Array(4)].map((_, i) => (
+          <div className="grid grid-cols-3 md:grid-cols-5 gap-2">
+            {[...Array(5)].map((_, i) => (
               <div key={i} className="aspect-[3/4] rounded-lg bg-muted animate-shimmer" />
             ))}
           </div>
         ) : (
-          <motion.div variants={container} initial="hidden" whileInView="show" viewport={{ once: true }} className="grid grid-cols-2 md:grid-cols-4 gap-3">
-            {allProducts?.filter(p => p.compare_at_price && p.compare_at_price > p.price).slice(0, 4).map((product, i) => (
+          <motion.div variants={container} initial="hidden" whileInView="show" viewport={{ once: true }} className="grid grid-cols-3 md:grid-cols-5 gap-2">
+            {allProducts?.filter(p => p.compare_at_price && p.compare_at_price > p.price).slice(0, 5).map((product, i) => (
               <motion.div key={product.id} variants={item}>
                 <ProductCard product={product} index={i} />
               </motion.div>
@@ -238,30 +256,29 @@ const Index = () => {
       {categories && categories.length > 0 && (
         <section className="px-4 py-8 max-w-5xl mx-auto">
           <h2 className="text-xl font-bold text-foreground mb-5">Categorias</h2>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-            {categories.map((cat, i) => (
-              <motion.div
-                key={cat.id}
-                initial={{ opacity: 0, y: 10 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: i * 0.05 }}
-              >
-                <Link
-                  to={`/explorar?cat=${cat.slug}`}
-                  className="block bg-card border border-border rounded-lg p-5 text-center hover:border-primary hover:shadow-marsala transition-all group"
+          <div className="grid grid-cols-3 md:grid-cols-5 gap-2">
+            {categories.map((cat, i) => {
+              const IconComp = categoryIcons[cat.slug] || Sparkles;
+              return (
+                <motion.div
+                  key={cat.id}
+                  initial={{ opacity: 0, y: 10 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: i * 0.03 }}
                 >
-                  {cat.image_url ? (
-                    <img src={cat.image_url} alt={cat.name} className="w-12 h-12 mx-auto mb-2 object-contain" />
-                  ) : (
-                    <div className="w-12 h-12 mx-auto mb-2 rounded-full bg-primary/10 flex items-center justify-center text-primary text-lg font-bold">
-                      {cat.name.charAt(0)}
+                  <Link
+                    to={`/explorar?cat=${cat.slug}`}
+                    className="flex flex-col items-center gap-1.5 bg-card border border-border rounded-xl p-3 text-center hover:border-primary hover:shadow-marsala transition-all group"
+                  >
+                    <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
+                      <IconComp className="w-5 h-5 text-primary" />
                     </div>
-                  )}
-                  <p className="text-sm font-semibold text-foreground group-hover:text-primary transition-colors">{cat.name}</p>
-                </Link>
-              </motion.div>
-            ))}
+                    <p className="text-[11px] font-semibold text-foreground group-hover:text-primary transition-colors leading-tight">{cat.name}</p>
+                  </Link>
+                </motion.div>
+              );
+            })}
           </div>
         </section>
       )}
