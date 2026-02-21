@@ -166,20 +166,20 @@ const Header = () => {
 
       {/* Navigation */}
       <nav className="bg-primary overflow-x-auto scrollbar-hide relative">
-        <div className="max-w-5xl mx-auto flex items-center gap-0 px-2">
+        <div className="max-w-5xl mx-auto flex items-center justify-between px-1 md:px-2">
           {navLinks.map((link) => (
             <div
               key={link.label}
-              className="relative"
+              className="relative flex-1"
               onMouseEnter={() => link.subs && setHoveredNav(link.label)}
               onMouseLeave={() => setHoveredNav(null)}
             >
               <Link
                 to={link.to}
-                className="flex items-center gap-1 flex-shrink-0 px-3.5 py-2.5 text-[12px] font-semibold text-primary-foreground/90 hover:text-primary-foreground hover:bg-primary-foreground/10 transition-all tracking-wide uppercase whitespace-nowrap relative group"
+                className="flex items-center justify-center gap-0.5 px-1 md:px-2 py-2.5 text-[10px] md:text-[11px] font-semibold text-primary-foreground/90 hover:text-primary-foreground hover:bg-primary-foreground/10 transition-all tracking-wide uppercase whitespace-nowrap relative group"
               >
                 {link.label}
-                {link.subs && <ChevronDown className="w-3 h-3" />}
+                {link.subs && <ChevronDown className="w-2.5 h-2.5 md:w-3 md:h-3" />}
                 <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-0 h-0.5 bg-primary-foreground/50 group-hover:w-3/4 transition-all duration-300" />
               </Link>
 
@@ -190,7 +190,7 @@ const Header = () => {
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -4 }}
                     transition={{ duration: 0.15 }}
-                    className="absolute top-full left-0 z-50 min-w-[200px] bg-card border border-border rounded-lg shadow-lg py-1.5 mt-0"
+                    className="absolute top-full left-0 z-50 min-w-[180px] bg-card border border-border rounded-lg shadow-lg py-1.5 mt-0"
                   >
                     {link.subs.map((sub) => (
                       <Link
