@@ -1,4 +1,5 @@
 import { useState } from "react";
+import OptimizedImage from "@/components/ui/optimized-image";
 import { useParams, useNavigate } from "react-router-dom";
 import { ArrowLeft, Heart, Minus, Plus, ShoppingBag } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -74,10 +75,10 @@ const Produto = () => {
           },
         }}
       />
-      <div className="relative aspect-square bg-muted">
-        {product.images?.[0] && (
-          <img src={product.images[0]} alt={product.name} className="w-full h-full object-cover" />
-        )}
+      <div className="relative">
+        {product.images?.[0] ? (
+          <OptimizedImage src={product.images[0]} alt={product.name} aspectRatio="1/1" />
+        ) : <div className="aspect-square bg-muted" />}
         <motion.button whileTap={{ scale: 0.85 }} onClick={() => navigate(-1)} className="absolute top-4 left-4 w-10 h-10 rounded-full bg-background/80 backdrop-blur flex items-center justify-center hover-lift">
           <ArrowLeft className="w-5 h-5" />
         </motion.button>

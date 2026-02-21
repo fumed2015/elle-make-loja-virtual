@@ -9,8 +9,8 @@ interface SEOHeadProps {
   jsonLd?: Record<string, any>;
 }
 
-const SITE_NAME = "Beleza Phygital Belém";
-const DEFAULT_DESC = "Loja de maquiagem com ativos amazônicos em Belém do Pará. Descubra produtos de beleza que combinam ciência e natureza.";
+const SITE_NAME = "Elle Make | Maquiagem em Belém";
+const DEFAULT_DESC = "Loja de maquiagem e cosméticos com delivery rápido em Belém do Pará. Frete grátis acima de R$ 199. Entrega em até 3h.";
 const DEFAULT_IMAGE = "/pwa-512x512.png";
 
 const SEOHead = ({
@@ -41,11 +41,14 @@ const SEOHead = ({
     setMeta("property", "og:description", description);
     setMeta("property", "og:type", type);
     setMeta("property", "og:image", image);
+    setMeta("property", "og:site_name", "Elle Make");
+    setMeta("property", "og:locale", "pt_BR");
     if (url) setMeta("property", "og:url", url);
     setMeta("name", "twitter:card", "summary_large_image");
     setMeta("name", "twitter:title", fullTitle);
     setMeta("name", "twitter:description", description);
     setMeta("name", "twitter:image", image);
+    setMeta("name", "robots", "index, follow");
 
     // Canonical
     let canonical = document.querySelector("link[rel='canonical']") as HTMLLinkElement;

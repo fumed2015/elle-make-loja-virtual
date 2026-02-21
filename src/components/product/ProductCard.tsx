@@ -2,10 +2,10 @@ import { Link } from "react-router-dom";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ShoppingBag } from "lucide-react";
-import { useState } from "react";
 import { useCart } from "@/hooks/useCart";
 import { useAuth } from "@/hooks/useAuth";
 import { motion } from "framer-motion";
+import OptimizedImage from "@/components/ui/optimized-image";
 
 interface ProductCardProps {
   product: any;
@@ -17,7 +17,6 @@ const ProductCard = ({ product, index = 0 }: ProductCardProps) => {
   const discountPercent = hasDiscount
     ? Math.round(((product.compare_at_price - product.price) / product.compare_at_price) * 100)
     : 0;
-  const [imgLoaded, setImgLoaded] = useState(false);
   const { addToCart } = useCart();
   const { user } = useAuth();
 
@@ -36,23 +35,17 @@ const ProductCard = ({ product, index = 0 }: ProductCardProps) => {
         transition={{ type: "spring", stiffness: 400, damping: 25 }}
         className="bg-card rounded-lg overflow-hidden border border-border"
       >
-        {/* Image */}
-        <div className="relative aspect-square bg-muted overflow-hidden">
+        {/* Image with lazy loading */}
+        <div className="relative">
           {product.images?.[0] ? (
-            <>
-              {!imgLoaded && (
-                <div className="absolute inset-0 bg-gradient-to-r from-muted via-muted-foreground/5 to-muted animate-shimmer bg-[length:200%_100%]" />
-              )}
-              <img
-                src={product.images[0]}
-                alt={product.name}
-                className={`w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 ease-out ${imgLoaded ? "opacity-100" : "opacity-0"}`}
-                loading="lazy"
-                onLoad={() => setImgLoaded(true)}
-              />
-            </>
+            <OptimizedImage
+              src={product.images[0]}
+              alt={product.name}
+              className="group-hover:scale-105 transition-transform duration-700 ease-out"
+              aspectRatio="1/1"
+            />
           ) : (
-            <div className="w-full h-full flex items-center justify-center text-muted-foreground text-xs">
+            <div className="aspect-square bg-muted flex items-center justify-center text-muted-foreground text-xs">
               Sem imagem
             </div>
           )}
