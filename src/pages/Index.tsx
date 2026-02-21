@@ -147,8 +147,7 @@ const Index = () => {
           playsInline
           autoPlay
           preload="auto"
-className="w-full h-[320px] md:h-[480px] object-cover"
-            style={{ objectPosition: "75% center" }}
+className="w-full h-[320px] md:h-[480px] object-cover object-right"
         />
         {/* Gradient overlay — esquerda forte para legibilidade */}
         <div className="absolute inset-0 bg-gradient-to-r from-background/95 via-background/60 to-transparent" />
