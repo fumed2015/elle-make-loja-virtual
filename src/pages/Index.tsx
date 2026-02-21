@@ -69,7 +69,7 @@ const Index = () => {
             logo: `${window.location.origin}/pwa-512x512.png`,
             contactPoint: {
               "@type": "ContactPoint",
-              telephone: "+55-91-99999-9999",
+              telephone: "+55-91-98304-5531",
               contactType: "customer service",
               areaServed: "BR",
               availableLanguage: "Portuguese",
@@ -120,7 +120,7 @@ const Index = () => {
               </Link>
             </Button>
             <Button variant="outline" asChild className="min-h-[48px] px-6 rounded-full border-accent text-accent hover:bg-accent hover:text-accent-foreground font-semibold">
-              <a href="https://wa.me/5591999999999?text=Olá! Gostaria de saber mais sobre os produtos" target="_blank" rel="noopener noreferrer">
+              <a href="https://wa.me/5591983045531?text=Olá! Gostaria de saber mais sobre os produtos" target="_blank" rel="noopener noreferrer">
                 <MessageCircle className="w-4 h-4 mr-1.5" /> Falar no WhatsApp
               </a>
             </Button>
