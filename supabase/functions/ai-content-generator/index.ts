@@ -62,9 +62,10 @@ Ingredientes: ${product.ingredients || "N/A"}
 Gere EXATAMENTE o seguinte conteúdo usando a function tool:
 1. description: Descrição persuasiva do produto (150-250 palavras). Use linguagem sensorial. Mencione benefícios, não apenas características. Inclua palavras-chave naturais para SEO. Foque no público brasileiro.
 2. sensorial_description: Descrição sensorial curta (2-3 frases) focada na textura, fragrância e sensação ao aplicar.
-3. seo_title: Título SEO otimizado (máx 60 chars) com palavra-chave principal + marca.
-4. meta_description: Meta descrição (máx 155 chars) com CTA e palavra-chave.
-5. tags: Array de 5-8 tags relevantes para filtros e SEO (ex: "pele oleosa", "longa duração", "vegano").`;
+3. how_to_use: Instruções de uso detalhadas (3-5 passos). Comece cada passo com um verbo no imperativo. Inclua dicas de aplicação profissional. Seja prática e objetiva.
+4. seo_title: Título SEO otimizado (máx 60 chars) com palavra-chave principal + marca.
+5. meta_description: Meta descrição (máx 155 chars) com CTA e palavra-chave.
+6. tags: Array de 5-8 tags relevantes para filtros e SEO (ex: "pele oleosa", "longa duração", "vegano").`;
 
       const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
         method: "POST",
@@ -89,11 +90,12 @@ Gere EXATAMENTE o seguinte conteúdo usando a function tool:
                   properties: {
                     description: { type: "string", description: "Product description 150-250 words" },
                     sensorial_description: { type: "string", description: "Sensorial description 2-3 sentences" },
+                    how_to_use: { type: "string", description: "How to use instructions 3-5 steps" },
                     seo_title: { type: "string", description: "SEO title max 60 chars" },
                     meta_description: { type: "string", description: "Meta description max 155 chars" },
                     tags: { type: "array", items: { type: "string" }, description: "5-8 relevant tags" },
                   },
-                  required: ["description", "sensorial_description", "seo_title", "meta_description", "tags"],
+                  required: ["description", "sensorial_description", "how_to_use", "seo_title", "meta_description", "tags"],
                   additionalProperties: false,
                 },
               },
@@ -135,14 +137,14 @@ Gere EXATAMENTE o seguinte conteúdo usando a function tool:
       
       let query = supabase
         .from("products")
-        .select("id, name, brand, price, tags, ingredients, description, sensorial_description, categories(name)")
+        .select("id, name, brand, price, tags, ingredients, description, sensorial_description, how_to_use, categories(name)")
         .eq("is_active", true);
 
       if (targetIds && targetIds.length > 0) {
         query = query.in("id", targetIds);
       } else {
         // Find products missing descriptions
-        query = query.or("description.is.null,description.eq.,sensorial_description.is.null");
+        query = query.or("description.is.null,description.eq.,sensorial_description.is.null,how_to_use.is.null");
         query = query.limit(10);
       }
 
@@ -167,7 +169,7 @@ Tags: ${(product.tags || []).join(", ")}
 Ingredientes: ${product.ingredients || "N/A"}
 Descrição atual: ${product.description || "NENHUMA"}
 
-Gere: description (150-250 palavras, sensorial, SEO), sensorial_description (2-3 frases), tags (5-8 tags).`;
+Gere: description (150-250 palavras, sensorial, SEO), sensorial_description (2-3 frases), how_to_use (3-5 passos com verbos imperativos, dicas profissionais), tags (5-8 tags).`;
 
           const aiResp = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
             method: "POST",
@@ -192,9 +194,10 @@ Gere: description (150-250 palavras, sensorial, SEO), sensorial_description (2-3
                       properties: {
                         description: { type: "string" },
                         sensorial_description: { type: "string" },
+                        how_to_use: { type: "string" },
                         tags: { type: "array", items: { type: "string" } },
                       },
-                      required: ["description", "sensorial_description", "tags"],
+                      required: ["description", "sensorial_description", "how_to_use", "tags"],
                       additionalProperties: false,
                     },
                   },
@@ -225,6 +228,9 @@ Gere: description (150-250 palavras, sensorial, SEO), sensorial_description (2-3
           }
           if (!product.sensorial_description) {
             updateData.sensorial_description = content.sensorial_description;
+          }
+          if (!(product as any).how_to_use) {
+            updateData.how_to_use = content.how_to_use;
           }
           if (!product.tags || product.tags.length === 0) {
             updateData.tags = content.tags;

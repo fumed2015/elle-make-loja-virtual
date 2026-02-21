@@ -347,6 +347,7 @@ export type Database = {
           compare_at_price: number | null
           created_at: string
           description: string | null
+          how_to_use: string | null
           id: string
           images: string[] | null
           ingredients: string | null
@@ -367,6 +368,7 @@ export type Database = {
           compare_at_price?: number | null
           created_at?: string
           description?: string | null
+          how_to_use?: string | null
           id?: string
           images?: string[] | null
           ingredients?: string | null
@@ -387,6 +389,7 @@ export type Database = {
           compare_at_price?: number | null
           created_at?: string
           description?: string | null
+          how_to_use?: string | null
           id?: string
           images?: string[] | null
           ingredients?: string | null

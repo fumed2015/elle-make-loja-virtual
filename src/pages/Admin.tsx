@@ -148,6 +148,7 @@ const ProductsTab = () => {
         const updateData: any = {};
         if (data.content.description) updateData.description = data.content.description;
         if (data.content.sensorial_description) updateData.sensorial_description = data.content.sensorial_description;
+        if (data.content.how_to_use) updateData.how_to_use = data.content.how_to_use;
         if (data.content.tags) updateData.tags = data.content.tags;
         
         if (Object.keys(updateData).length > 0) {
@@ -249,6 +250,7 @@ const AIContentTab = () => {
     const updateData: any = {};
     if (preview.description) updateData.description = preview.description;
     if (preview.sensorial_description) updateData.sensorial_description = preview.sensorial_description;
+    if (preview.how_to_use) updateData.how_to_use = preview.how_to_use;
     if (preview.tags) updateData.tags = preview.tags;
 
     const { error } = await supabase.from("products").update(updateData).eq("id", preview.product_id);
@@ -367,6 +369,12 @@ const AIContentTab = () => {
               <Label className="text-xs font-bold text-muted-foreground">Descrição Sensorial</Label>
               <p className="text-xs text-foreground leading-relaxed mt-1 bg-muted p-3 rounded-lg">{preview.sensorial_description}</p>
             </div>
+            {preview.how_to_use && (
+              <div>
+                <Label className="text-xs font-bold text-muted-foreground">Como Usar</Label>
+                <p className="text-xs text-foreground leading-relaxed mt-1 bg-muted p-3 rounded-lg whitespace-pre-line">{preview.how_to_use}</p>
+              </div>
+            )}
             {preview.seo_title && (
               <div>
                 <Label className="text-xs font-bold text-muted-foreground">Título SEO</Label>
@@ -666,6 +674,7 @@ const AddProductTab = ({ onDone }: { onDone: () => void }) => {
             await supabase.from("products").update({
               description: aiData.content.description,
               sensorial_description: aiData.content.sensorial_description,
+              how_to_use: aiData.content.how_to_use,
               tags: aiData.content.tags,
             }).eq("id", inserted.id);
             toast.success("Produto criado com conteúdo IA! 🎉");
