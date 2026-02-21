@@ -75,6 +75,7 @@ const Index = () => {
   const [couponCode, setCouponCode] = useState("");
   const [openFaq, setOpenFaq] = useState<number | null>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
+  const [videoFailed, setVideoFailed] = useState(false);
 
   // Derive featured + offers from single query (no extra network calls)
   const featured = useMemo(() => allProducts?.filter(p => p.is_featured).slice(0, 5) || [], [allProducts]);
@@ -98,16 +99,26 @@ const Index = () => {
     video.muted = true;
     video.setAttribute('playsinline', '');
     video.setAttribute('webkit-playsinline', '');
+
+    const timeout = setTimeout(() => {
+      if (video.readyState < 2) setVideoFailed(true);
+    }, 4000);
+
     const playPromise = video.play();
     if (playPromise !== undefined) {
       playPromise.catch(() => {
+        setVideoFailed(true);
         const handleInteraction = () => {
-          video.play().catch(() => {});
+          video.play().then(() => setVideoFailed(false)).catch(() => {});
           document.removeEventListener('touchstart', handleInteraction);
         };
         document.addEventListener('touchstart', handleInteraction, { once: true });
       });
     }
+
+    video.addEventListener('error', () => setVideoFailed(true));
+
+    return () => clearTimeout(timeout);
   }, []);
 
   return (
@@ -162,6 +173,15 @@ const Index = () => {
 
       {/* Hero — video with robust mobile/browser fallback */}
       <section className="relative overflow-hidden bg-background">
+        {/* Fallback image shown when video can't play */}
+        {videoFailed && (
+          <img
+            src="/pwa-512x512.png"
+            alt="Elle Make - Maquiagem e Cosméticos"
+            className="w-full h-[320px] md:h-[480px] object-cover"
+            style={{ objectPosition: "center" }}
+          />
+        )}
         <video
           ref={videoRef}
           loop
@@ -170,12 +190,13 @@ const Index = () => {
           autoPlay
           preload="metadata"
           poster="/pwa-512x512.png"
-          className="w-full h-[320px] md:h-[480px] object-cover"
+          className={`w-full h-[320px] md:h-[480px] object-cover ${videoFailed ? 'hidden' : ''}`}
           style={{ objectPosition: "200% center" }}
           onCanPlay={(e) => {
-            const vid = e.currentTarget;
-            vid.play().catch(() => {});
+            setVideoFailed(false);
+            e.currentTarget.play().catch(() => {});
           }}
+          onError={() => setVideoFailed(true)}
         >
           <source src="/hero-banner.mp4" type="video/mp4" />
         </video>
