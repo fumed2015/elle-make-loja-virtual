@@ -63,6 +63,22 @@ async function fetchMelhorEnvio(cep: string): Promise<MelhorEnvioResult[]> {
   return (data?.options || []) as MelhorEnvioResult[];
 }
 
+const STORAGE_KEY = "ellemake_shipping_cep";
+
+function getSavedCep(): string {
+  try {
+    return localStorage.getItem(STORAGE_KEY) || "";
+  } catch {
+    return "";
+  }
+}
+
+function saveCep(cep: string) {
+  try {
+    localStorage.setItem(STORAGE_KEY, cep);
+  } catch {}
+}
+
 export interface ShippingState {
   cep: string;
   loading: boolean;
@@ -75,7 +91,7 @@ export interface ShippingState {
 
 export const useShipping = () => {
   const [state, setState] = useState<ShippingState>({
-    cep: "",
+    cep: formatCep(getSavedCep()),
     loading: false,
     error: null,
     options: [],
@@ -85,7 +101,10 @@ export const useShipping = () => {
   });
 
   const setCep = useCallback((value: string) => {
-    setState((s) => ({ ...s, cep: formatCep(value), error: null, options: [], selectedOption: null }));
+    const formatted = formatCep(value);
+    setState((s) => ({ ...s, cep: formatted, error: null, options: [], selectedOption: null }));
+    const clean = sanitizeCep(formatted);
+    if (clean.length === 8) saveCep(clean);
   }, []);
 
   const selectOption = useCallback((id: string) => {
