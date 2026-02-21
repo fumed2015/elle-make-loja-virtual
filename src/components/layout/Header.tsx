@@ -110,43 +110,43 @@ const Header = () => {
       </div>
 
       {/* Main header */}
-      <div className="bg-card border-b border-border px-4 py-3">
-        <div className="max-w-5xl mx-auto flex items-center gap-3">
+      <div className="bg-card border-b border-border px-3 md:px-4 py-2 md:py-3">
+        <div className="max-w-5xl mx-auto flex items-center gap-2 md:gap-3 min-w-0">
           {/* Logo */}
           <Link to="/" className="flex-shrink-0">
             <motion.h1
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
-              className="text-xl font-bold tracking-wider text-primary"
+              className="text-lg md:text-xl font-bold tracking-wider text-primary"
             >
               ELLE MAKE
             </motion.h1>
           </Link>
 
           {/* Search */}
-          <form onSubmit={handleSearch} className="flex-1 max-w-md mx-auto relative">
+          <form onSubmit={handleSearch} className="flex-1 min-w-0 relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <Input
-              placeholder="O que você procura?"
+              placeholder="Buscar..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="pl-9 h-10 bg-muted border-none rounded-full text-sm focus:ring-2 focus:ring-primary/30"
+              className="pl-9 h-9 md:h-10 bg-muted border-none rounded-full text-sm focus:ring-2 focus:ring-primary/30 w-full"
             />
           </form>
 
           {/* Icons */}
-          <div className="flex items-center gap-1">
-            <a href="https://wa.me/5591983045531?text=Olá! Gostaria de saber mais sobre os produtos" target="_blank" rel="noopener noreferrer" className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-muted transition-colors" aria-label="WhatsApp">
+          <div className="flex items-center gap-0.5 md:gap-1 flex-shrink-0">
+            <a href="https://wa.me/5591983045531?text=Olá! Gostaria de saber mais sobre os produtos" target="_blank" rel="noopener noreferrer" className="w-9 h-9 md:w-10 md:h-10 flex items-center justify-center rounded-full hover:bg-muted transition-colors" aria-label="WhatsApp">
               <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
                 <WhatsAppIcon className="w-5 h-5 text-accent" />
               </motion.div>
             </a>
-            <Link to="/perfil" className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-muted transition-colors" aria-label="Perfil">
+            <Link to="/perfil" className="w-9 h-9 md:w-10 md:h-10 flex items-center justify-center rounded-full hover:bg-muted transition-colors hidden md:flex" aria-label="Perfil">
               <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
                 <User className="w-5 h-5 text-foreground" />
               </motion.div>
             </Link>
-            <Link to="/carrinho" className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-muted transition-colors relative" aria-label="Carrinho">
+            <Link to="/carrinho" className="w-9 h-9 md:w-10 md:h-10 flex items-center justify-center rounded-full hover:bg-muted transition-colors relative" aria-label="Carrinho">
               <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
                 <ShoppingBag className="w-5 h-5 text-foreground" />
               </motion.div>
