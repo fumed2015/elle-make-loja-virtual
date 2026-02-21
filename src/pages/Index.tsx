@@ -134,7 +134,7 @@ const Index = () => {
 
       {/* Benefits bar */}
       <section className="border-b border-border bg-card px-4 py-5">
-        <div className="max-w-4xl mx-auto grid grid-cols-3 gap-4">
+        <div className="max-w-4xl mx-auto grid grid-cols-4 gap-4">
           {benefits.map((b, i) => (
             <motion.div
               key={i}
