@@ -76,6 +76,7 @@ const Index = () => {
   const [openFaq, setOpenFaq] = useState<number | null>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const [videoFailed, setVideoFailed] = useState(false);
+  const [videoReady, setVideoReady] = useState(false);
 
   // Derive featured + offers from single query (no extra network calls)
   const featured = useMemo(() => allProducts?.filter(p => p.is_featured).slice(0, 5) || [], [allProducts]);
@@ -181,14 +182,14 @@ const Index = () => {
         ]}
       />
 
-      {/* Hero — video with robust mobile/browser fallback */}
+      {/* Hero — video with instant poster + lazy video load */}
       <section className="relative overflow-hidden bg-background">
-        {/* Fallback image shown when video can't play */}
-        {videoFailed && (
+        {/* Poster image shown immediately while video loads */}
+        {(!videoReady || videoFailed) && (
           <img
             src="/pwa-512x512.png"
             alt="Elle Make - Maquiagem e Cosméticos"
-            className="w-full h-[320px] md:h-[480px] object-cover"
+            className="w-full h-[320px] md:h-[480px] object-cover absolute inset-0"
             style={{ objectPosition: "center" }}
           />
         )}
@@ -198,11 +199,11 @@ const Index = () => {
           muted
           playsInline
           autoPlay
-          preload="auto"
-          poster="/pwa-512x512.png"
-          className={`w-full h-[320px] md:h-[480px] object-cover ${videoFailed ? 'hidden' : ''}`}
+          preload="metadata"
+          className={`w-full h-[320px] md:h-[480px] object-cover transition-opacity duration-500 ${videoReady && !videoFailed ? 'opacity-100' : 'opacity-0'}`}
           style={{ objectPosition: "200% center" }}
           onCanPlay={(e) => {
+            setVideoReady(true);
             setVideoFailed(false);
             e.currentTarget.play().catch(() => {});
           }}
