@@ -8,11 +8,14 @@ import { useAdmin } from "@/hooks/useAdmin";
 import { useAddresses, useSaveAddress, useDeleteAddress, SavedAddress } from "@/hooks/useAddresses";
 import { useLoyalty, TIER_LABELS } from "@/hooks/useLoyalty";
 import { supabase } from "@/integrations/supabase/client";
-import { Link } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
 
 const Perfil = () => {
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const redirectTo = searchParams.get("redirect");
   const { user, loading, signIn, signUp, signOut } = useAuth();
   const { isAdmin } = useAdmin();
   const { data: addresses } = useAddresses();
@@ -44,6 +47,7 @@ const Perfil = () => {
         const { error } = await signIn(email, password);
         if (error) throw error;
         toast.success("Bem-vinda de volta! 💄");
+        if (redirectTo) navigate(redirectTo);
       } else {
         const { error, data } = await signUp(email, password, fullName);
         if (error) throw error;
@@ -56,7 +60,8 @@ const Perfil = () => {
             await supabase.from("profiles").update(updates).eq("user_id", data.user.id);
           }
         }
-        toast.success("Conta criada! Verifique seu e-mail para confirmar.");
+        toast.success("Conta criada com sucesso! 🎉");
+        if (redirectTo) navigate(redirectTo);
       }
     } catch (err: any) {
       toast.error(err.message || "Erro ao autenticar");
