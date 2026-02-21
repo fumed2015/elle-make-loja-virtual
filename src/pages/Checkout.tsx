@@ -34,7 +34,7 @@ const Checkout = () => {
     city: "Belém", state: "PA", zip: "",
   });
 
-  if (!user) { navigate("/perfil"); return null; }
+  if (!user) { navigate("/perfil?redirect=/checkout"); return null; }
   if (items.length === 0 && step !== "success" && step !== "processing") { navigate("/carrinho"); return null; }
 
   const shippingCost = shipping.selectedShipping?.price ?? 0;

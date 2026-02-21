@@ -75,7 +75,7 @@ const Produto = () => {
   const handleBuyNow = () => {
     addToCart.mutate({ productId: product.id, quantity: qty, swatch: selectedSwatch }, {
       onSuccess: () => {
-        if (!user) { navigate("/perfil"); return; }
+        if (!user) { navigate("/perfil?redirect=/checkout"); return; }
         navigate("/checkout");
       },
     });
