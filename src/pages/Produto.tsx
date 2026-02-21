@@ -124,6 +124,11 @@ const Produto = () => {
             <span className="text-xl font-bold text-primary">R$ {Number(product.price).toFixed(2).replace(".", ",")}</span>
             {hasDiscount && <span className="text-sm text-muted-foreground line-through">R$ {Number(product.compare_at_price).toFixed(2).replace(".", ",")}</span>}
           </div>
+          {Number(product.price) >= 30 && (
+            <p className="text-xs text-muted-foreground mt-1">
+              ou 3x de <span className="font-semibold text-foreground">R$ {(Number(product.price) / 3).toFixed(2).replace(".", ",")}</span> sem juros
+            </p>
+          )}
         </div>
 
         {tags.length > 0 && (
