@@ -613,6 +613,33 @@ export type Database = {
         }
         Relationships: []
       }
+      tracking_pixels: {
+        Row: {
+          created_at: string
+          id: string
+          is_active: boolean
+          name: string
+          pixel_code: string
+          platform: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          name: string
+          pixel_code: string
+          platform: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          name?: string
+          pixel_code?: string
+          platform?: string
+        }
+        Relationships: []
+      }
       ugc_posts: {
         Row: {
           caption: string | null

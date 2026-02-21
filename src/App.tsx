@@ -8,6 +8,7 @@ import { lazy, Suspense } from "react";
 import { ScrollToTop } from "@/components/ScrollToTop";
 
 import AppLayout from "@/components/layout/AppLayout";
+import TrackingPixelsInjector from "@/components/TrackingPixelsInjector";
 import Index from "./pages/Index";
 
 // Lazy load non-critical routes
@@ -45,6 +46,7 @@ const App = () => (
         <BrowserRouter>
           <>
             <ScrollToTop />
+            <TrackingPixelsInjector />
             <Suspense fallback={<PageLoader />}>
               <Routes>
                 <Route element={<AppLayout />}>
