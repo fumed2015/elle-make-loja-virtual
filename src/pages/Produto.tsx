@@ -78,12 +78,12 @@ const Produto = () => {
         {product.images?.[0] && (
           <img src={product.images[0]} alt={product.name} className="w-full h-full object-cover" />
         )}
-        <button onClick={() => navigate(-1)} className="absolute top-4 left-4 w-10 h-10 rounded-full bg-background/80 backdrop-blur flex items-center justify-center">
+        <motion.button whileTap={{ scale: 0.85 }} onClick={() => navigate(-1)} className="absolute top-4 left-4 w-10 h-10 rounded-full bg-background/80 backdrop-blur flex items-center justify-center hover-lift">
           <ArrowLeft className="w-5 h-5" />
-        </button>
-        <button onClick={handleToggleFavorite} className="absolute top-4 right-4 w-10 h-10 rounded-full bg-background/80 backdrop-blur flex items-center justify-center">
+        </motion.button>
+        <motion.button whileTap={{ scale: 0.85 }} onClick={handleToggleFavorite} className="absolute top-4 right-4 w-10 h-10 rounded-full bg-background/80 backdrop-blur flex items-center justify-center hover-lift">
           <Heart className={cn("w-5 h-5 transition-colors", favorited ? "fill-destructive text-destructive" : "")} />
-        </button>
+        </motion.button>
         {hasDiscount && (
           <Badge className="absolute bottom-4 left-4 bg-destructive text-destructive-foreground">
             -{Math.round(((Number(product.compare_at_price) - Number(product.price)) / Number(product.compare_at_price)) * 100)}%
@@ -112,7 +112,8 @@ const Produto = () => {
             <p className="text-xs font-medium mb-2">Cor: {selectedSwatch?.name || "Selecione"}</p>
             <div className="flex gap-2">
               {swatches.map((s: any, i: number) => (
-                <button key={i} onClick={() => setSelectedSwatch(s)}
+                <motion.button key={i} onClick={() => setSelectedSwatch(s)}
+                  whileHover={{ scale: 1.15 }} whileTap={{ scale: 0.9 }}
                   className={cn("w-9 h-9 rounded-full border-2 transition-all", selectedSwatch?.color === s.color ? "border-primary scale-110" : "border-border")}
                   style={{ backgroundColor: s.color }} title={s.name} />
               ))}
@@ -148,7 +149,7 @@ const Produto = () => {
             </button>
           </div>
           <Button onClick={handleAddToCart} disabled={addToCart.isPending || (swatches.length > 0 && !selectedSwatch)}
-            className="flex-1 bg-gradient-gold text-primary-foreground shadow-gold hover:opacity-90 min-h-[44px]">
+            className="flex-1 bg-primary text-primary-foreground shadow-marsala hover:bg-primary/90 min-h-[44px] press-scale">
             <ShoppingBag className="w-4 h-4 mr-2" />
             {addToCart.isPending ? "Adicionando..." : "Adicionar"}
           </Button>

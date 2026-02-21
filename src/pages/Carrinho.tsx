@@ -15,7 +15,7 @@ const Carrinho = () => {
         <ShoppingBag className="w-12 h-12 text-muted-foreground" />
         <h1 className="text-xl font-display font-bold">Seu carrinho</h1>
         <p className="text-sm text-muted-foreground">Faça login para ver seu carrinho</p>
-        <Button asChild className="bg-gradient-gold text-primary-foreground min-h-[44px]">
+        <Button asChild className="bg-primary text-primary-foreground min-h-[44px] press-scale">
           <Link to="/perfil">Entrar</Link>
         </Button>
       </div>
@@ -79,12 +79,13 @@ const Carrinho = () => {
                     R$ {(Number(product?.price || 0) * item.quantity).toFixed(2).replace(".", ",")}
                   </p>
                 </div>
-                <button
+                <motion.button
+                  whileTap={{ scale: 0.8, rotate: -10 }}
                   onClick={() => removeFromCart.mutate(item.id)}
                   className="self-start p-2 text-muted-foreground hover:text-destructive transition-colors"
                 >
                   <Trash2 className="w-4 h-4" />
-                </button>
+                </motion.button>
               </motion.div>
             );
           })}
@@ -107,7 +108,7 @@ const Carrinho = () => {
             R$ {cartTotal.toFixed(2).replace(".", ",")}
           </span>
         </div>
-        <Button asChild className="w-full bg-gradient-gold text-primary-foreground shadow-gold hover:opacity-90 min-h-[44px]">
+        <Button asChild className="w-full bg-primary text-primary-foreground shadow-marsala hover:bg-primary/90 min-h-[44px] press-scale">
           <Link to="/checkout">
             Finalizar Compra <ArrowRight className="w-4 h-4 ml-1" />
           </Link>

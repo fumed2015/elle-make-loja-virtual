@@ -5,6 +5,7 @@ import { ShoppingBag } from "lucide-react";
 import { useState } from "react";
 import { useCart } from "@/hooks/useCart";
 import { useAuth } from "@/hooks/useAuth";
+import { motion } from "framer-motion";
 
 interface ProductCardProps {
   product: any;
@@ -29,9 +30,14 @@ const ProductCard = ({ product, index = 0 }: ProductCardProps) => {
 
   return (
     <Link to={`/produto/${product.slug}`} className="block group">
-      <div className="bg-card rounded-lg overflow-hidden border border-border hover:shadow-md transition-shadow">
+      <motion.div
+        whileHover={{ y: -4, boxShadow: "0 8px 30px -10px hsl(var(--foreground) / 0.1)" }}
+        whileTap={{ scale: 0.98 }}
+        transition={{ type: "spring", stiffness: 400, damping: 25 }}
+        className="bg-card rounded-lg overflow-hidden border border-border"
+      >
         {/* Image */}
-        <div className="relative aspect-square bg-muted">
+        <div className="relative aspect-square bg-muted overflow-hidden">
           {product.images?.[0] ? (
             <>
               {!imgLoaded && (
@@ -40,7 +46,7 @@ const ProductCard = ({ product, index = 0 }: ProductCardProps) => {
               <img
                 src={product.images[0]}
                 alt={product.name}
-                className={`w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 ${imgLoaded ? "opacity-100" : "opacity-0"}`}
+                className={`w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 ease-out ${imgLoaded ? "opacity-100" : "opacity-0"}`}
                 loading="lazy"
                 onLoad={() => setImgLoaded(true)}
               />
@@ -74,8 +80,9 @@ const ProductCard = ({ product, index = 0 }: ProductCardProps) => {
           {product.swatches && JSON.parse(typeof product.swatches === 'string' ? product.swatches : JSON.stringify(product.swatches)).length > 0 && (
             <div className="flex gap-1 pt-0.5">
               {JSON.parse(typeof product.swatches === 'string' ? product.swatches : JSON.stringify(product.swatches)).slice(0, 4).map((s: any, i: number) => (
-                <div
+                <motion.div
                   key={i}
+                  whileHover={{ scale: 1.3 }}
                   className="w-4 h-4 rounded-full border border-border"
                   style={{ backgroundColor: s.color }}
                   title={s.name}
@@ -83,16 +90,18 @@ const ProductCard = ({ product, index = 0 }: ProductCardProps) => {
               ))}
             </div>
           )}
-          <Button
-            onClick={handleQuickAdd}
-            className="w-full mt-2 bg-primary text-primary-foreground hover:bg-primary/90 rounded-full text-xs h-9 font-semibold"
-            size="sm"
-          >
-            <ShoppingBag className="w-3.5 h-3.5 mr-1.5" />
-            Adicionar
-          </Button>
+          <motion.div whileTap={{ scale: 0.95 }}>
+            <Button
+              onClick={handleQuickAdd}
+              className="w-full mt-2 bg-primary text-primary-foreground hover:bg-primary/90 rounded-full text-xs h-9 font-semibold press-scale"
+              size="sm"
+            >
+              <ShoppingBag className="w-3.5 h-3.5 mr-1.5" />
+              Adicionar
+            </Button>
+          </motion.div>
         </div>
-      </div>
+      </motion.div>
     </Link>
   );
 };

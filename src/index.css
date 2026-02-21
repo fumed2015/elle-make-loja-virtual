@@ -53,6 +53,53 @@
     --whatsapp-dark: 145 63% 36%;
     --gold-star: 45 93% 58%;
   }
+
+  .dark {
+    --background: 0 0% 6%;
+    --foreground: 40 10% 92%;
+
+    --card: 0 0% 9%;
+    --card-foreground: 40 10% 92%;
+
+    --popover: 0 0% 9%;
+    --popover-foreground: 40 10% 92%;
+
+    --primary: 345 65% 40%;
+    --primary-foreground: 40 20% 97%;
+
+    --secondary: 0 0% 14%;
+    --secondary-foreground: 40 10% 92%;
+
+    --muted: 0 0% 14%;
+    --muted-foreground: 0 0% 55%;
+
+    --accent: 145 55% 38%;
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 98%;
+
+    --border: 0 0% 16%;
+    --input: 0 0% 16%;
+    --ring: 345 65% 40%;
+
+    --sidebar-background: 0 0% 8%;
+    --sidebar-foreground: 40 10% 92%;
+    --sidebar-primary: 345 65% 40%;
+    --sidebar-primary-foreground: 40 20% 97%;
+    --sidebar-accent: 0 0% 14%;
+    --sidebar-accent-foreground: 40 10% 92%;
+    --sidebar-border: 0 0% 16%;
+    --sidebar-ring: 345 65% 40%;
+
+    --marsala: 345 65% 40%;
+    --marsala-light: 345 50% 50%;
+    --cream: 0 0% 14%;
+    --cream-dark: 0 0% 10%;
+    --whatsapp: 145 55% 38%;
+    --whatsapp-dark: 145 55% 32%;
+    --gold-star: 45 93% 58%;
+  }
 }
 
 @layer base {
@@ -63,11 +110,27 @@
   body {
     @apply bg-background text-foreground font-sans antialiased;
     font-family: 'DM Sans', sans-serif;
+    transition: background-color 0.4s ease, color 0.3s ease;
   }
 
   h1, h2, h3, h4, h5, h6 {
     font-family: 'DM Sans', sans-serif;
     font-weight: 700;
+  }
+
+  /* Smooth theme transitions on all themed elements */
+  *,
+  *::before,
+  *::after {
+    transition-property: background-color, border-color, color, fill, stroke, box-shadow;
+    transition-duration: 0.3s;
+    transition-timing-function: ease;
+  }
+
+  /* Exclude transforms/opacity from global transition so animations aren't slowed */
+  .no-theme-transition,
+  .no-theme-transition * {
+    transition-property: none !important;
   }
 }
 
@@ -114,5 +177,30 @@
     background: hsl(var(--card) / 0.85);
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
+  }
+
+  /* Micro-interaction utilities */
+  .hover-lift {
+    @apply transition-transform duration-200;
+  }
+  .hover-lift:hover {
+    transform: translateY(-2px);
+  }
+  .hover-lift:active {
+    transform: translateY(0);
+  }
+
+  .press-scale {
+    @apply transition-transform duration-150;
+  }
+  .press-scale:active {
+    transform: scale(0.97);
+  }
+
+  .hover-glow {
+    @apply transition-shadow duration-300;
+  }
+  .hover-glow:hover {
+    box-shadow: 0 0 20px hsl(var(--primary) / 0.15);
   }
 }
