@@ -2,6 +2,7 @@ import { Outlet, useLocation } from "react-router-dom";
 import { AnimatePresence, motion } from "framer-motion";
 import Header from "./Header";
 import BottomNav from "./BottomNav";
+import FloatingWhatsApp from "./FloatingWhatsApp";
 
 const AppLayout = () => {
   const location = useLocation();
@@ -22,6 +23,7 @@ const AppLayout = () => {
         </motion.main>
       </AnimatePresence>
       <BottomNav />
+      <FloatingWhatsApp />
     </div>
   );
 };
