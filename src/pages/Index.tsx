@@ -247,11 +247,14 @@ const Index = () => {
       {/* Featured / Novidades */}
       <section className="px-4 py-8 max-w-5xl mx-auto">
         <div className="flex items-center justify-between mb-5">
-          <h2 className="text-xl font-bold text-foreground">Novidades</h2>
-          <Link to="/explorar" className="text-xs text-primary font-semibold hover:underline">Ver tudo →</Link>
+          <div>
+            <h2 className="text-xl font-bold text-foreground">✨ Novidades</h2>
+            <p className="text-xs text-muted-foreground">Acabou de chegar na loja</p>
+          </div>
+          <Link to="/explorar" className="text-xs text-primary font-semibold hover:underline flex items-center gap-1">Ver tudo <ArrowRight className="w-3 h-3" /></Link>
         </div>
         {isLoading ? (
-          <div className="grid grid-cols-3 md:grid-cols-5 gap-2">
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-2">
             {[...Array(5)].map((_, i) => (
               <div key={i} className="aspect-[3/4] rounded-lg bg-muted overflow-hidden">
                 <div className="w-full h-full bg-gradient-to-r from-muted via-muted-foreground/5 to-muted animate-shimmer bg-[length:200%_100%]" />
@@ -259,7 +262,7 @@ const Index = () => {
             ))}
           </div>
         ) : (
-          <motion.div variants={container} initial="hidden" whileInView="show" viewport={{ once: true }} className="grid grid-cols-3 md:grid-cols-5 gap-2">
+          <motion.div variants={container} initial="hidden" whileInView="show" viewport={{ once: true }} className="grid grid-cols-2 md:grid-cols-5 gap-2">
             {featured?.slice(0, 5).map((product, i) => (
               <motion.div key={product.id} variants={item}>
                 <ProductCard product={product} index={i} />
@@ -269,21 +272,65 @@ const Index = () => {
         )}
       </section>
 
+      {/* Free shipping progress bar */}
+      <section className="px-4 py-3 max-w-5xl mx-auto">
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          className="bg-accent/10 border border-accent/20 rounded-xl p-4 flex items-center gap-3"
+        >
+          <Truck className="w-6 h-6 text-accent flex-shrink-0" />
+          <div className="flex-1">
+            <p className="text-xs font-bold text-foreground">Frete GRÁTIS acima de R$ 199</p>
+            <p className="text-[10px] text-muted-foreground">Entrega rápida para Belém e região metropolitana • Motoboy em até 3h</p>
+          </div>
+          <Link to="/explorar">
+            <Button size="sm" variant="outline" className="text-[10px] h-7 rounded-full border-accent text-accent hover:bg-accent hover:text-accent-foreground">
+              Comprar
+            </Button>
+          </Link>
+        </motion.div>
+      </section>
+
       {/* Super Ofertas */}
-      <section className="px-4 py-8 max-w-5xl mx-auto bg-cream/50">
+      <section className="px-4 py-8 max-w-5xl mx-auto">
         <div className="flex items-center justify-between mb-5">
-          <h2 className="text-xl font-bold text-primary">🔥 Super Ofertas</h2>
-          <Link to="/explorar" className="text-xs text-primary font-semibold hover:underline">Ver tudo →</Link>
+          <div>
+            <h2 className="text-xl font-bold text-primary">🔥 Super Ofertas</h2>
+            <p className="text-xs text-muted-foreground">Economize até 50% em produtos selecionados</p>
+          </div>
+          <Link to="/explorar" className="text-xs text-primary font-semibold hover:underline flex items-center gap-1">Ver tudo <ArrowRight className="w-3 h-3" /></Link>
         </div>
         {loadingAll ? (
-          <div className="grid grid-cols-3 md:grid-cols-5 gap-2">
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-2">
             {[...Array(5)].map((_, i) => (
               <div key={i} className="aspect-[3/4] rounded-lg bg-muted animate-shimmer" />
             ))}
           </div>
         ) : (
-          <motion.div variants={container} initial="hidden" whileInView="show" viewport={{ once: true }} className="grid grid-cols-3 md:grid-cols-5 gap-2">
+          <motion.div variants={container} initial="hidden" whileInView="show" viewport={{ once: true }} className="grid grid-cols-2 md:grid-cols-5 gap-2">
             {allProducts?.filter(p => p.compare_at_price && p.compare_at_price > p.price).slice(0, 5).map((product, i) => (
+              <motion.div key={product.id} variants={item}>
+                <ProductCard product={product} index={i} />
+              </motion.div>
+            ))}
+          </motion.div>
+        )}
+      </section>
+
+      {/* Mais Produtos */}
+      <section className="px-4 py-8 max-w-5xl mx-auto">
+        <div className="flex items-center justify-between mb-5">
+          <div>
+            <h2 className="text-xl font-bold text-foreground">🛍️ Mais Produtos</h2>
+            <p className="text-xs text-muted-foreground">Explore todo nosso catálogo</p>
+          </div>
+          <Link to="/explorar" className="text-xs text-primary font-semibold hover:underline flex items-center gap-1">Ver catálogo <ArrowRight className="w-3 h-3" /></Link>
+        </div>
+        {!loadingAll && (
+          <motion.div variants={container} initial="hidden" whileInView="show" viewport={{ once: true }} className="grid grid-cols-2 md:grid-cols-5 gap-2">
+            {allProducts?.filter(p => !p.is_featured).slice(0, 10).map((product, i) => (
               <motion.div key={product.id} variants={item}>
                 <ProductCard product={product} index={i} />
               </motion.div>

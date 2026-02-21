@@ -2,3 +2,12 @@ project_id = "xinkvwlhctwgdfwixzxf"
 
 [functions.beauty-consultant]
 verify_jwt = false
+
+[functions.ai-content-generator]
+verify_jwt = false
+
+[functions.seo-report]
+verify_jwt = false
+
+[functions.sitemap]
+verify_jwt = false
