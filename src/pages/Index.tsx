@@ -58,6 +58,10 @@ const Index = () => {
   const videoRef = useRef<HTMLVideoElement>(null);
 
   useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
+
+  useEffect(() => {
     const video = videoRef.current;
     if (!video) return;
     video.muted = true;
