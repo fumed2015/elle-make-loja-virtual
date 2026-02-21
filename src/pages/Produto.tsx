@@ -1,17 +1,27 @@
 import { useState } from "react";
 import OptimizedImage from "@/components/ui/optimized-image";
-import { useParams, useNavigate } from "react-router-dom";
-import { ArrowLeft, Heart, Minus, Plus, ShoppingBag } from "lucide-react";
+import { useParams, useNavigate, Link } from "react-router-dom";
+import { Heart, Minus, Plus, ShoppingBag, Truck, Sparkles, ShieldCheck, MessageCircle, MapPin, Package, Zap, Store } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { useProduct } from "@/hooks/useProducts";
 import { useCart } from "@/hooks/useCart";
 import { useAuth } from "@/hooks/useAuth";
 import { useFavorites } from "@/hooks/useFavorites";
 import ReviewSection from "@/components/product/ReviewSection";
+import WhatsAppIcon from "@/components/icons/WhatsAppIcon";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 import SEOHead from "@/components/SEOHead";
+
+const trustBadges = [
+  { icon: ShieldCheck, text: "Entrega Segura", sub: "Embalagem protegida" },
+  { icon: Sparkles, text: "100% Original", sub: "Registro ANVISA" },
+  { icon: Heart, text: "Cruelty Free", sub: "Não testado em animais" },
+  { icon: Truck, text: "Envio Rápido", sub: "Motoboy em Belém" },
+];
 
 const Produto = () => {
   const { slug } = useParams<{ slug: string }>();
@@ -22,6 +32,8 @@ const Produto = () => {
   const { toggleFavorite, isFavorited } = useFavorites();
   const [selectedSwatch, setSelectedSwatch] = useState<any>(null);
   const [qty, setQty] = useState(1);
+  const [cep, setCep] = useState("");
+  const [showShipping, setShowShipping] = useState(false);
 
   if (isLoading) {
     return (
@@ -43,6 +55,8 @@ const Produto = () => {
   const hasDiscount = product.compare_at_price && Number(product.compare_at_price) > Number(product.price);
   const tags = product.tags || [];
   const favorited = isFavorited(product.id);
+  const discountPercent = hasDiscount ? Math.round(((Number(product.compare_at_price) - Number(product.price)) / Number(product.compare_at_price)) * 100) : 0;
+  const pixPrice = (Number(product.price) * 0.95).toFixed(2).replace(".", ",");
 
   const handleAddToCart = () => {
     if (!user) { navigate("/perfil"); return; }
@@ -54,8 +68,17 @@ const Produto = () => {
     toggleFavorite.mutate(product.id);
   };
 
+  const handleBuyNow = () => {
+    if (!user) { navigate("/perfil"); return; }
+    addToCart.mutate({ productId: product.id, quantity: qty, swatch: selectedSwatch }, {
+      onSuccess: () => navigate("/checkout"),
+    });
+  };
+
+  const whatsappMsg = encodeURIComponent(`Olá! Gostaria de comprar: ${product.name}${selectedSwatch ? ` - Cor: ${selectedSwatch.name}` : ''} (${qty}x)`);
+
   return (
-    <div className="min-h-screen max-w-lg mx-auto">
+    <div className="min-h-screen">
       <SEOHead
         title={product.name}
         description={product.description || `${product.name} - ${product.brand}`}
@@ -79,119 +102,299 @@ const Produto = () => {
               priceCurrency: "BRL",
               availability: product.stock > 0 ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
               itemCondition: "https://schema.org/NewCondition",
-              seller: {
-                "@type": "Organization",
-                name: "Elle Make",
-              },
-              ...(hasDiscount ? {
-                priceValidUntil: new Date(Date.now() + 30 * 86400000).toISOString().split("T")[0],
-              } : {}),
+              seller: { "@type": "Organization", name: "Elle Make" },
+              ...(hasDiscount ? { priceValidUntil: new Date(Date.now() + 30 * 86400000).toISOString().split("T")[0] } : {}),
             },
           },
           {
             "@context": "https://schema.org",
             "@type": "BreadcrumbList",
             itemListElement: [
-              { "@type": "ListItem", position: 1, name: "Início", item: window.location.origin },
+              { "@type": "ListItem", position: 1, name: "Home", item: window.location.origin },
               { "@type": "ListItem", position: 2, name: "Produtos", item: `${window.location.origin}/explorar` },
               { "@type": "ListItem", position: 3, name: product.name, item: `${window.location.origin}/produto/${product.slug}` },
             ],
           },
         ]}
       />
-      <div className="relative">
-        {product.images?.[0] ? (
-          <OptimizedImage src={product.images[0]} alt={product.name} aspectRatio="1/1" />
-        ) : <div className="aspect-square bg-muted" />}
-        <motion.button whileTap={{ scale: 0.85 }} onClick={() => navigate(-1)} className="absolute top-4 left-4 w-10 h-10 rounded-full bg-background/80 backdrop-blur flex items-center justify-center hover-lift">
-          <ArrowLeft className="w-5 h-5" />
-        </motion.button>
-        <motion.button whileTap={{ scale: 0.85 }} onClick={handleToggleFavorite} className="absolute top-4 right-4 w-10 h-10 rounded-full bg-background/80 backdrop-blur flex items-center justify-center hover-lift">
-          <Heart className={cn("w-5 h-5 transition-colors", favorited ? "fill-destructive text-destructive" : "")} />
-        </motion.button>
-        {hasDiscount && (
-          <Badge className="absolute bottom-4 left-4 bg-destructive text-destructive-foreground">
-            -{Math.round(((Number(product.compare_at_price) - Number(product.price)) / Number(product.compare_at_price)) * 100)}%
-          </Badge>
-        )}
+
+      {/* Breadcrumb */}
+      <div className="max-w-5xl mx-auto px-4 py-3">
+        <nav className="flex items-center gap-1.5 text-xs text-muted-foreground">
+          <Link to="/" className="hover:text-primary transition-colors">Home</Link>
+          <span>/</span>
+          <Link to="/explorar" className="hover:text-primary transition-colors">Produtos</Link>
+          <span>/</span>
+          <span className="text-foreground font-medium truncate">{product.name}</span>
+        </nav>
       </div>
 
-      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="px-4 py-6 space-y-5">
-        <div>
-          <p className="text-xs text-muted-foreground mb-1">{product.brand}</p>
-          <h1 className="text-2xl font-display font-bold">{product.name}</h1>
-          <div className="flex items-center gap-3 mt-2">
-            <span className="text-xl font-bold text-primary">R$ {Number(product.price).toFixed(2).replace(".", ",")}</span>
-            {hasDiscount && <span className="text-sm text-muted-foreground line-through">R$ {Number(product.compare_at_price).toFixed(2).replace(".", ",")}</span>}
-          </div>
-          {Number(product.price) >= 30 && (
-            <p className="text-xs text-muted-foreground mt-1">
-              ou 3x de <span className="font-semibold text-foreground">R$ {(Number(product.price) / 3).toFixed(2).replace(".", ",")}</span> sem juros
-            </p>
-          )}
-        </div>
-
-        {tags.length > 0 && (
-          <div className="flex flex-wrap gap-1.5">
-            {tags.map((tag: string) => <Badge key={tag} variant="secondary" className="text-[10px]">{tag}</Badge>)}
-          </div>
-        )}
-
-        {swatches.length > 0 && (
-          <div>
-            <p className="text-xs font-medium mb-2">Cor: {selectedSwatch?.name || "Selecione"}</p>
-            <div className="flex gap-2">
-              {swatches.map((s: any, i: number) => (
-                <motion.button key={i} onClick={() => setSelectedSwatch(s)}
-                  whileHover={{ scale: 1.15 }} whileTap={{ scale: 0.9 }}
-                  className={cn("w-9 h-9 rounded-full border-2 transition-all", selectedSwatch?.color === s.color ? "border-primary scale-110" : "border-border")}
-                  style={{ backgroundColor: s.color }} title={s.name} />
-              ))}
+      {/* Main content — side by side on desktop */}
+      <div className="max-w-5xl mx-auto px-4 pb-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-10">
+          {/* Left: Image */}
+          <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} className="relative">
+            <div className="rounded-xl overflow-hidden bg-muted sticky top-24">
+              {product.images?.[0] ? (
+                <OptimizedImage src={product.images[0]} alt={product.name} aspectRatio="1/1" />
+              ) : (
+                <div className="aspect-square bg-muted flex items-center justify-center text-muted-foreground">Sem imagem</div>
+              )}
+              {hasDiscount && (
+                <Badge className="absolute top-4 left-4 bg-destructive text-destructive-foreground text-sm px-3 py-1">
+                  -{discountPercent}%
+                </Badge>
+              )}
+              <motion.button
+                whileTap={{ scale: 0.85 }}
+                onClick={handleToggleFavorite}
+                className="absolute top-4 right-4 w-10 h-10 rounded-full bg-background/80 backdrop-blur flex items-center justify-center shadow-sm"
+              >
+                <Heart className={cn("w-5 h-5 transition-colors", favorited ? "fill-destructive text-destructive" : "")} />
+              </motion.button>
             </div>
-          </div>
-        )}
+          </motion.div>
 
-        <div className="space-y-3">
-          <p className="text-sm text-foreground/80 leading-relaxed">{product.description}</p>
-          {product.sensorial_description && (
-            <div className="bg-card rounded-xl p-4 border border-border">
-              <p className="text-xs font-medium text-primary mb-1">✨ Experiência Sensorial</p>
-              <p className="text-xs text-muted-foreground leading-relaxed">{product.sensorial_description}</p>
+          {/* Right: Product info */}
+          <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="space-y-5">
+            {/* Brand & Title */}
+            <div>
+              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1">{product.brand}</p>
+              <h1 className="text-2xl md:text-3xl font-display font-bold text-foreground">{product.name}</h1>
             </div>
-          )}
+
+            {/* Pricing */}
+            <div className="space-y-1">
+              <div className="flex items-baseline gap-3">
+                {hasDiscount && (
+                  <span className="text-sm text-muted-foreground line-through">De R$ {Number(product.compare_at_price).toFixed(2).replace(".", ",")}</span>
+                )}
+              </div>
+              <p className="text-2xl md:text-3xl font-bold text-foreground">
+                R$ {Number(product.price).toFixed(2).replace(".", ",")}
+              </p>
+              {Number(product.price) >= 30 && (
+                <p className="text-sm text-muted-foreground">
+                  ou 3x de <span className="font-semibold text-foreground">R$ {(Number(product.price) / 3).toFixed(2).replace(".", ",")}</span> sem juros
+                </p>
+              )}
+              <p className="text-sm text-accent font-semibold">
+                R$ {pixPrice} no Pix (5% off)
+              </p>
+            </div>
+
+            {/* Swatches */}
+            {swatches.length > 0 && (
+              <div>
+                <p className="text-sm font-medium mb-2">Cor: <span className="text-primary">{selectedSwatch?.name || "Selecione"}</span></p>
+                <div className="flex flex-wrap gap-2.5">
+                  {swatches.map((s: any, i: number) => (
+                    <motion.button
+                      key={i}
+                      onClick={() => setSelectedSwatch(s)}
+                      whileHover={{ scale: 1.1 }}
+                      whileTap={{ scale: 0.9 }}
+                      className={cn(
+                        "w-10 h-10 rounded-full border-2 transition-all shadow-sm",
+                        selectedSwatch?.color === s.color ? "border-primary ring-2 ring-primary/30 scale-110" : "border-border"
+                      )}
+                      style={{ backgroundColor: s.color }}
+                      title={s.name}
+                    />
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Tags */}
+            {tags.length > 0 && (
+              <div className="flex flex-wrap gap-1.5">
+                {tags.map((tag: string) => (
+                  <Badge key={tag} variant="secondary" className="text-[10px]">{tag}</Badge>
+                ))}
+              </div>
+            )}
+
+            {/* Quantity + Stock */}
+            <div className="flex items-center gap-3">
+              <div className="flex items-center gap-1 bg-muted rounded-lg p-1">
+                <button onClick={() => setQty(Math.max(1, qty - 1))} className="w-9 h-9 flex items-center justify-center rounded-md hover:bg-background transition-colors">
+                  <Minus className="w-4 h-4" />
+                </button>
+                <span className="w-10 text-center text-sm font-semibold">{qty}</span>
+                <button onClick={() => setQty(Math.min(product.stock, qty + 1))} className="w-9 h-9 flex items-center justify-center rounded-md hover:bg-background transition-colors">
+                  <Plus className="w-4 h-4" />
+                </button>
+              </div>
+              <span className="text-sm text-muted-foreground">{product.stock} em estoque</span>
+            </div>
+
+            {/* Action Buttons */}
+            <div className="space-y-2.5">
+              <Button
+                onClick={handleAddToCart}
+                disabled={addToCart.isPending || (swatches.length > 0 && !selectedSwatch)}
+                className="w-full bg-primary text-primary-foreground hover:bg-primary/90 min-h-[48px] text-base font-semibold shadow-marsala"
+              >
+                <ShoppingBag className="w-5 h-5 mr-2" />
+                {addToCart.isPending ? "Adicionando..." : "Adicionar à Sacola"}
+              </Button>
+
+              <Button
+                onClick={handleBuyNow}
+                variant="outline"
+                disabled={swatches.length > 0 && !selectedSwatch}
+                className="w-full min-h-[48px] text-base font-semibold border-2"
+              >
+                <Sparkles className="w-5 h-5 mr-2 text-accent" />
+                Comprar Agora
+              </Button>
+
+              <a
+                href={`https://wa.me/5591983045531?text=${whatsappMsg}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-full min-h-[48px] text-base font-semibold border-2 border-border rounded-md flex items-center justify-center gap-2 hover:bg-muted transition-colors"
+              >
+                <WhatsAppIcon className="w-5 h-5 text-accent" />
+                Comprar pelo WhatsApp
+              </a>
+            </div>
+
+            {/* Shipping Calculator */}
+            <div className="border border-border rounded-xl p-4 space-y-3">
+              <div className="flex items-center gap-2">
+                <Truck className="w-4 h-4 text-primary" />
+                <span className="text-sm font-semibold">Calcular Frete</span>
+              </div>
+
+              <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                <Package className="w-3.5 h-3.5" />
+                <span>🛵 Belém e Ananindeua: entrega em até 3h</span>
+              </div>
+
+              <div className="flex gap-2">
+                <Input
+                  value={cep}
+                  onChange={(e) => setCep(e.target.value.replace(/\D/g, "").slice(0, 8))}
+                  placeholder="00000-000"
+                  className="flex-1 h-9"
+                  maxLength={9}
+                />
+                <Button
+                  size="sm"
+                  onClick={() => setShowShipping(true)}
+                  disabled={cep.length < 8}
+                  className="bg-primary text-primary-foreground"
+                >
+                  Calcular
+                </Button>
+              </div>
+
+              {showShipping && (
+                <motion.div initial={{ opacity: 0, y: -5 }} animate={{ opacity: 1, y: 0 }} className="space-y-2 pt-1">
+                  <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                    <MapPin className="w-3.5 h-3.5" />
+                    <span>Belém, PA</span>
+                  </div>
+                  <div className="flex items-center justify-between p-2.5 bg-muted rounded-lg">
+                    <div className="flex items-center gap-2 text-sm">
+                      <Truck className="w-4 h-4 text-muted-foreground" />
+                      <span>Entrega Local (Belém / Ananindeua)</span>
+                    </div>
+                    <span className="text-sm font-semibold">R$ 20,00</span>
+                  </div>
+                  <div className="flex items-center justify-between p-2.5 bg-muted rounded-lg">
+                    <div className="flex items-center gap-2 text-sm">
+                      <Zap className="w-4 h-4 text-muted-foreground" />
+                      <span>Uber Flash / 99 Entrega</span>
+                    </div>
+                    <span className="text-sm font-semibold text-accent">A combinar</span>
+                  </div>
+                  <div className="flex items-center justify-between p-2.5 bg-muted rounded-lg">
+                    <div className="flex items-center gap-2 text-sm">
+                      <Store className="w-4 h-4 text-muted-foreground" />
+                      <div>
+                        <span>Retirada na Loja</span>
+                        <p className="text-[10px] text-muted-foreground">Disponível imediatamente</p>
+                      </div>
+                    </div>
+                    <span className="text-sm font-semibold text-accent">Grátis</span>
+                  </div>
+                </motion.div>
+              )}
+            </div>
+          </motion.div>
         </div>
 
-        {product.ingredients && (
-          <div>
-            <p className="text-xs font-medium mb-1">Ingredientes-chave</p>
-            <p className="text-xs text-muted-foreground">{product.ingredients}</p>
-          </div>
-        )}
-
-        <div className="bg-primary/10 rounded-lg p-2.5 flex items-center justify-center gap-2">
-          <span className="text-xs font-semibold text-primary">🛵 Belém e Ananindeua: entrega em até 3 horas!</span>
+        {/* Tabs: Descrição / Como Usar / Ingredientes */}
+        <div className="mt-10">
+          <Tabs defaultValue="descricao">
+            <TabsList className="bg-transparent border-b border-border rounded-none w-full justify-start gap-0 h-auto p-0">
+              <TabsTrigger value="descricao" className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none px-4 py-3 text-sm font-medium">
+                Descrição
+              </TabsTrigger>
+              <TabsTrigger value="como-usar" className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none px-4 py-3 text-sm font-medium">
+                Como Usar
+              </TabsTrigger>
+              <TabsTrigger value="ingredientes" className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none px-4 py-3 text-sm font-medium">
+                Ingredientes
+              </TabsTrigger>
+            </TabsList>
+            <TabsContent value="descricao" className="pt-4">
+              <p className="text-sm text-foreground/80 leading-relaxed">{product.description || "Descrição não disponível."}</p>
+              {product.sensorial_description && (
+                <div className="bg-card rounded-xl p-4 border border-border mt-4">
+                  <p className="text-xs font-medium text-primary mb-1">✨ Experiência Sensorial</p>
+                  <p className="text-xs text-muted-foreground leading-relaxed">{product.sensorial_description}</p>
+                </div>
+              )}
+            </TabsContent>
+            <TabsContent value="como-usar" className="pt-4">
+              <p className="text-sm text-foreground/80 leading-relaxed">
+                Aplique o produto conforme indicação na embalagem. Para melhores resultados, siga a rotina completa de cuidados.
+              </p>
+            </TabsContent>
+            <TabsContent value="ingredientes" className="pt-4">
+              <p className="text-sm text-foreground/80 leading-relaxed">
+                {product.ingredients || "Consulte a embalagem do produto para a lista completa de ingredientes."}
+              </p>
+            </TabsContent>
+          </Tabs>
         </div>
 
-        <div className="flex items-center gap-3 pt-2">
-          <div className="flex items-center gap-2 bg-muted rounded-lg p-1">
-            <button onClick={() => setQty(Math.max(1, qty - 1))} className="w-9 h-9 flex items-center justify-center rounded-md hover:bg-background transition-colors">
-              <Minus className="w-4 h-4" />
-            </button>
-            <span className="w-8 text-center text-sm font-medium">{qty}</span>
-            <button onClick={() => setQty(qty + 1)} className="w-9 h-9 flex items-center justify-center rounded-md hover:bg-background transition-colors">
-              <Plus className="w-4 h-4" />
-            </button>
-          </div>
-          <Button onClick={handleAddToCart} disabled={addToCart.isPending || (swatches.length > 0 && !selectedSwatch)}
-            className="flex-1 bg-primary text-primary-foreground shadow-marsala hover:bg-primary/90 min-h-[44px] press-scale">
-            <ShoppingBag className="w-4 h-4 mr-2" />
-            {addToCart.isPending ? "Adicionando..." : "Adicionar"}
-          </Button>
+        {/* Reviews */}
+        <div className="mt-10">
+          <ReviewSection productId={product.id} />
         </div>
 
-        {/* Reviews Section */}
-        <ReviewSection productId={product.id} />
-      </motion.div>
+        {/* Trust Badges */}
+        <div className="mt-10 grid grid-cols-2 md:grid-cols-4 gap-4">
+          {trustBadges.map((badge, i) => (
+            <div key={i} className="flex flex-col items-center text-center gap-2 p-4 rounded-xl border border-border bg-card/50">
+              <badge.icon className="w-6 h-6 text-primary" />
+              <p className="text-xs font-bold text-foreground">{badge.text}</p>
+              <p className="text-[10px] text-muted-foreground">{badge.sub}</p>
+            </div>
+          ))}
+        </div>
+
+        {/* WhatsApp CTA */}
+        <div className="mt-10 bg-card rounded-2xl p-6 md:p-8 text-center border border-border">
+          <h3 className="text-lg font-bold text-foreground mb-1">Dúvidas sobre este produto?</h3>
+          <p className="text-sm text-muted-foreground mb-4">Fale com nossa consultora de beleza pelo WhatsApp</p>
+          <a
+            href={`https://wa.me/5591983045531?text=${encodeURIComponent(`Olá! Tenho dúvidas sobre: ${product.name}`)}`}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <Button className="bg-accent text-accent-foreground hover:bg-accent/90 min-h-[44px] px-6">
+              <WhatsAppIcon className="w-5 h-5 mr-2" />
+              WhatsApp (91) 98304-5531
+            </Button>
+          </a>
+        </div>
+      </div>
     </div>
   );
 };
