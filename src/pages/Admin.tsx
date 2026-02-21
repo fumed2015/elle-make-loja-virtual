@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { LayoutDashboard, Package, ShoppingCart, Plus, ArrowLeft, TrendingUp, Box, Tag, Star, Users, ImageIcon, Eye, EyeOff, Percent, Trash2, Search, AlertTriangle, CheckCircle, Info, FolderOpen, Pencil, Wand2, Sparkles, Loader2, RefreshCw, UserPlus, Cake, MessageCircle, Calendar, Gift, DollarSign, Target, Settings2, Megaphone } from "lucide-react";
+import { LayoutDashboard, Package, ShoppingCart, Plus, ArrowLeft, TrendingUp, Box, Tag, Star, Users, ImageIcon, Eye, EyeOff, Percent, Trash2, Search, AlertTriangle, CheckCircle, Info, FolderOpen, Pencil, Wand2, Sparkles, Loader2, RefreshCw, UserPlus, Cake, MessageCircle, Calendar, Gift, DollarSign, Target, Settings2, Megaphone, Code } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -22,8 +22,9 @@ import FinanceiroTab from "@/components/admin/FinanceiroTab";
 import ComercialTab from "@/components/admin/ComercialTab";
 import OperacionalTab from "@/components/admin/OperacionalTab";
 import MarketingTab from "@/components/admin/MarketingTab";
+import TrackingPixelsTab from "@/components/admin/TrackingPixelsTab";
 
-type Tab = "dashboard" | "products" | "orders" | "add-product" | "coupons" | "reviews" | "influencers" | "seo" | "categories" | "ai-content" | "leads" | "birthdays" | "financeiro" | "comercial" | "operacional" | "marketing";
+type Tab = "dashboard" | "products" | "orders" | "add-product" | "coupons" | "reviews" | "influencers" | "seo" | "categories" | "ai-content" | "leads" | "birthdays" | "financeiro" | "comercial" | "operacional" | "marketing" | "pixels";
 
 const statusLabels: Record<string, string> = {
   pending: "Pendente", confirmed: "Confirmado", preparing: "Preparando",
@@ -65,6 +66,7 @@ const Admin = () => {
     { id: "influencers" as Tab, label: "Influencers", icon: Users },
     { id: "leads" as Tab, label: "Leads", icon: UserPlus },
     { id: "birthdays" as Tab, label: "Aniversários", icon: Cake },
+    { id: "pixels" as Tab, label: "Pixels", icon: Code },
     { id: "seo" as Tab, label: "SEO", icon: Search },
     { id: "ai-content" as Tab, label: "IA Conteúdo", icon: Wand2 },
   ];
@@ -101,6 +103,7 @@ const Admin = () => {
       {tab === "leads" && <LeadsTab />}
       {tab === "birthdays" && <BirthdaysTab />}
       {tab === "seo" && <SEOTab />}
+      {tab === "pixels" && <TrackingPixelsTab />}
       {tab === "ai-content" && <AIContentTab />}
     </div>
   );
