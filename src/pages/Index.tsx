@@ -147,19 +147,19 @@ const Index = () => {
           playsInline
           autoPlay
           preload="auto"
-          className="w-full h-[320px] md:h-[480px] object-cover"
+          className="w-full h-[320px] md:h-[480px] object-cover object-right"
         />
-        {/* Gradient overlay — lateral + bottom */}
-        <div className="absolute inset-0 bg-gradient-to-l from-background/90 via-background/40 to-transparent" />
-        <div className="absolute inset-0 bg-gradient-to-t from-background/60 via-transparent to-transparent" />
+        {/* Gradient overlay — esquerda forte para legibilidade */}
+        <div className="absolute inset-0 bg-gradient-to-r from-background/95 via-background/60 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-t from-background/50 via-transparent to-transparent" />
 
         <motion.div
-          initial={{ opacity: 0, x: 40 }}
+          initial={{ opacity: 0, x: -40 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.8, delay: 0.2, ease: "easeOut" }}
-          className="absolute inset-0 flex items-center justify-end px-6 md:px-16"
+          className="absolute inset-0 flex items-center px-6 md:px-16"
         >
-          <div className="max-w-lg text-right">
+          <div className="max-w-lg text-left">
             <motion.h1
               initial={{ opacity: 0, y: 15 }}
               animate={{ opacity: 1, y: 0 }}
@@ -175,7 +175,7 @@ const Index = () => {
             </motion.h1>
 
             <motion.p
-              initial={{ opacity: 0, x: 20 }}
+              initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: 0.7 }}
               className="text-sm md:text-lg font-semibold text-foreground/90 mb-3"
@@ -199,7 +199,7 @@ const Index = () => {
               initial={{ opacity: 0, y: 15 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 1.1 }}
-              className="flex flex-wrap gap-3 justify-end"
+              className="flex flex-wrap gap-3"
             >
               <Button asChild className="bg-primary text-primary-foreground hover:bg-primary/90 min-h-[48px] px-8 rounded-full font-semibold shadow-lg relative overflow-hidden group">
                 <Link to="/explorar">
