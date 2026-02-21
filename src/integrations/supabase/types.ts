@@ -161,18 +161,136 @@ export type Database = {
           },
         ]
       }
+      influencer_commissions: {
+        Row: {
+          commission_percent: number
+          commission_value: number
+          created_at: string
+          id: string
+          influencer_id: string
+          order_id: string
+          order_total: number
+          status: string
+        }
+        Insert: {
+          commission_percent: number
+          commission_value: number
+          created_at?: string
+          id?: string
+          influencer_id: string
+          order_id: string
+          order_total: number
+          status?: string
+        }
+        Update: {
+          commission_percent?: number
+          commission_value?: number
+          created_at?: string
+          id?: string
+          influencer_id?: string
+          order_id?: string
+          order_total?: number
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "influencer_commissions_influencer_id_fkey"
+            columns: ["influencer_id"]
+            isOneToOne: false
+            referencedRelation: "influencers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "influencer_commissions_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      influencers: {
+        Row: {
+          commission_percent: number
+          created_at: string
+          id: string
+          instagram: string | null
+          is_active: boolean | null
+          name: string
+          total_commission: number | null
+          total_sales: number | null
+          user_id: string
+        }
+        Insert: {
+          commission_percent?: number
+          created_at?: string
+          id?: string
+          instagram?: string | null
+          is_active?: boolean | null
+          name: string
+          total_commission?: number | null
+          total_sales?: number | null
+          user_id: string
+        }
+        Update: {
+          commission_percent?: number
+          created_at?: string
+          id?: string
+          instagram?: string | null
+          is_active?: boolean | null
+          name?: string
+          total_commission?: number | null
+          total_sales?: number | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      loyalty_points: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          points: number
+          reference_id: string | null
+          source: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          points?: number
+          reference_id?: string | null
+          source: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          points?: number
+          reference_id?: string | null
+          source?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       orders: {
         Row: {
           coupon_code: string | null
           created_at: string
           discount: number | null
+          estimated_delivery: string | null
           id: string
+          influencer_id: string | null
           items: Json
           notes: string | null
           payment_method: string | null
           shipping_address: Json | null
           status: string
           total: number
+          tracking_code: string | null
+          tracking_url: string | null
           updated_at: string
           user_id: string
         }
@@ -180,13 +298,17 @@ export type Database = {
           coupon_code?: string | null
           created_at?: string
           discount?: number | null
+          estimated_delivery?: string | null
           id?: string
+          influencer_id?: string | null
           items?: Json
           notes?: string | null
           payment_method?: string | null
           shipping_address?: Json | null
           status?: string
           total: number
+          tracking_code?: string | null
+          tracking_url?: string | null
           updated_at?: string
           user_id: string
         }
@@ -194,17 +316,29 @@ export type Database = {
           coupon_code?: string | null
           created_at?: string
           discount?: number | null
+          estimated_delivery?: string | null
           id?: string
+          influencer_id?: string | null
           items?: Json
           notes?: string | null
           payment_method?: string | null
           shipping_address?: Json | null
           status?: string
           total?: number
+          tracking_code?: string | null
+          tracking_url?: string | null
           updated_at?: string
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "orders_influencer_id_fkey"
+            columns: ["influencer_id"]
+            isOneToOne: false
+            referencedRelation: "influencers"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       products: {
         Row: {
@@ -284,7 +418,9 @@ export type Database = {
           created_at: string
           full_name: string | null
           id: string
+          loyalty_tier: string | null
           phone: string | null
+          total_points: number | null
           updated_at: string
           user_id: string
         }
@@ -294,7 +430,9 @@ export type Database = {
           created_at?: string
           full_name?: string | null
           id?: string
+          loyalty_tier?: string | null
           phone?: string | null
+          total_points?: number | null
           updated_at?: string
           user_id: string
         }
@@ -304,7 +442,9 @@ export type Database = {
           created_at?: string
           full_name?: string | null
           id?: string
+          loyalty_tier?: string | null
           phone?: string | null
+          total_points?: number | null
           updated_at?: string
           user_id?: string
         }
@@ -350,6 +490,51 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      saved_addresses: {
+        Row: {
+          city: string
+          complement: string | null
+          created_at: string
+          id: string
+          is_default: boolean | null
+          label: string
+          neighborhood: string
+          number: string
+          state: string
+          street: string
+          user_id: string
+          zip: string
+        }
+        Insert: {
+          city?: string
+          complement?: string | null
+          created_at?: string
+          id?: string
+          is_default?: boolean | null
+          label?: string
+          neighborhood: string
+          number: string
+          state?: string
+          street: string
+          user_id: string
+          zip: string
+        }
+        Update: {
+          city?: string
+          complement?: string | null
+          created_at?: string
+          id?: string
+          is_default?: boolean | null
+          label?: string
+          neighborhood?: string
+          number?: string
+          state?: string
+          street?: string
+          user_id?: string
+          zip?: string
+        }
+        Relationships: []
       }
       ugc_posts: {
         Row: {
