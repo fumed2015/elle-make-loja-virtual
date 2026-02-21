@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Plus, Box, Search, Pencil, Trash2, Eye, EyeOff, Wand2, Loader2, Star, ChevronDown, ChevronUp, ImageIcon, X, Save, ArrowLeft } from "lucide-react";
+import { Plus, Box, Search, Pencil, Trash2, Eye, EyeOff, Wand2, Loader2, Star, ChevronDown, ChevronUp, ImageIcon, X, Save, ArrowLeft, MessageSquare } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -45,6 +45,7 @@ const AdminProductsPanel = () => {
   const [filterCategory, setFilterCategory] = useState("all");
   const [filterStatus, setFilterStatus] = useState("all");
   const [generatingId, setGeneratingId] = useState<string | null>(null);
+  const [generatingReviewsId, setGeneratingReviewsId] = useState<string | null>(null);
   const [expandedId, setExpandedId] = useState<string | null>(null);
 
   // Filter products
@@ -262,6 +263,21 @@ const AdminProductsPanel = () => {
       toast.error(e.message || "Erro ao gerar conteúdo IA");
     } finally {
       setGeneratingId(null);
+    }
+  };
+
+  const handleGenerateReviews = async (productId: string) => {
+    setGeneratingReviewsId(productId);
+    try {
+      const { data, error } = await supabase.functions.invoke("ai-content-generator", {
+        body: { action: "generate-reviews", product_id: productId },
+      });
+      if (error) throw error;
+      toast.success(data?.message || "Reviews geradas!");
+    } catch (e: any) {
+      toast.error(e.message || "Erro ao gerar reviews");
+    } finally {
+      setGeneratingReviewsId(null);
     }
   };
 
@@ -542,6 +558,9 @@ const AdminProductsPanel = () => {
                           </Button>
                           <Button size="sm" variant="outline" onClick={() => handleQuickAI(product.id)} disabled={generatingId === product.id} className="text-xs h-7 gap-1">
                             {generatingId === product.id ? <Loader2 className="w-3 h-3 animate-spin" /> : <Wand2 className="w-3 h-3" />}IA
+                          </Button>
+                          <Button size="sm" variant="outline" onClick={() => handleGenerateReviews(product.id)} disabled={generatingReviewsId === product.id} className="text-xs h-7 gap-1">
+                            {generatingReviewsId === product.id ? <Loader2 className="w-3 h-3 animate-spin" /> : <MessageSquare className="w-3 h-3" />}Reviews IA
                           </Button>
                           <Button size="sm" variant="outline" onClick={() => handleDelete(product.id, product.name)} className="text-xs h-7 gap-1 text-destructive hover:text-destructive">
                             <Trash2 className="w-3 h-3" />Excluir

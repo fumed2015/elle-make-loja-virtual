@@ -269,7 +269,131 @@ Gere: description (150-250 palavras, sensorial, SEO), sensorial_description (2-3
       });
     }
 
-    return new Response(JSON.stringify({ error: "Ação inválida. Use 'generate' ou 'bulk-seo'." }), {
+    // Action: generate-reviews - Generate realistic AI reviews for a product
+    if (action === "generate-reviews") {
+      const { data: product, error: pErr } = await supabase
+        .from("products")
+        .select("name, brand, price, description, tags, categories(name)")
+        .eq("id", product_id)
+        .single();
+
+      if (pErr || !product) {
+        return new Response(JSON.stringify({ error: "Produto não encontrado" }), {
+          status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      const reviewPrompt = `Você é uma geradora de avaliações realistas para um e-commerce brasileiro de maquiagem.
+
+Produto: ${product.name}
+Marca: ${product.brand || "N/A"}
+Categoria: ${(product.categories as any)?.name || "Maquiagem"}
+Preço: R$ ${Number(product.price).toFixed(2)}
+Descrição: ${product.description || "N/A"}
+
+Gere exatamente 5 avaliações REALISTAS de clientes brasileiras. Cada avaliação deve:
+- Ter um nome feminino brasileiro realista (primeiro nome + sobrenome)
+- Ter uma nota de 3 a 5 estrelas (maioria 4-5, mas varie)
+- Ter um comentário autêntico de 1-3 frases em português brasileiro coloquial
+- Parecer escrita por uma pessoa real (com gírias leves, emojis ocasionais, erros mínimos naturais)
+- Mencionar aspectos específicos do produto (textura, cor, duração, cobertura, etc.)
+- Variar entre experiências positivas e neutras (nunca extremamente negativas)`;
+
+      const aiResp = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${LOVABLE_API_KEY}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          model: "google/gemini-3-flash-preview",
+          messages: [
+            { role: "system", content: "Gere avaliações realistas de produtos de maquiagem." },
+            { role: "user", content: reviewPrompt },
+          ],
+          tools: [{
+            type: "function",
+            function: {
+              name: "save_reviews",
+              description: "Save generated reviews",
+              parameters: {
+                type: "object",
+                properties: {
+                  reviews: {
+                    type: "array",
+                    items: {
+                      type: "object",
+                      properties: {
+                        name: { type: "string", description: "Reviewer full name" },
+                        rating: { type: "number", description: "Rating 1-5" },
+                        comment: { type: "string", description: "Review comment" },
+                      },
+                      required: ["name", "rating", "comment"],
+                      additionalProperties: false,
+                    },
+                  },
+                },
+                required: ["reviews"],
+                additionalProperties: false,
+              },
+            },
+          }],
+          tool_choice: { type: "function", function: { name: "save_reviews" } },
+        }),
+      });
+
+      if (!aiResp.ok) {
+        const t = await aiResp.text();
+        console.error("AI reviews error:", aiResp.status, t);
+        if (aiResp.status === 429) {
+          return new Response(JSON.stringify({ error: "Limite de requisições atingido." }), {
+            status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" },
+          });
+        }
+        throw new Error("AI gateway error: " + aiResp.status);
+      }
+
+      const aiData = await aiResp.json();
+      const tc = aiData.choices?.[0]?.message?.tool_calls?.[0];
+      if (!tc) throw new Error("AI did not return reviews");
+
+      const { reviews: generatedReviews } = JSON.parse(tc.function.arguments);
+      const insertedReviews: any[] = [];
+
+      for (const rev of generatedReviews) {
+        const fakeUserId = crypto.randomUUID();
+
+        // Create a profile for the fake reviewer (service role bypasses RLS)
+        await supabase.from("profiles").insert({
+          user_id: fakeUserId,
+          full_name: rev.name,
+        });
+
+        // Insert the review (service role bypasses RLS)
+        const { error: revErr } = await supabase.from("reviews").insert({
+          user_id: fakeUserId,
+          product_id: product_id,
+          rating: Math.max(1, Math.min(5, Math.round(rev.rating))),
+          comment: rev.comment,
+          is_approved: true,
+        });
+
+        if (!revErr) {
+          insertedReviews.push({ name: rev.name, rating: rev.rating });
+        } else {
+          console.error("Review insert error:", revErr);
+        }
+      }
+
+      return new Response(JSON.stringify({
+        message: `${insertedReviews.length} avaliações geradas!`,
+        reviews: insertedReviews,
+      }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    return new Response(JSON.stringify({ error: "Ação inválida. Use 'generate', 'bulk-seo' ou 'generate-reviews'." }), {
       status: 400,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
