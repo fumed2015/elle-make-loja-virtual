@@ -131,26 +131,26 @@ const Produto = () => {
 
       {/* Main content — side by side on desktop */}
       <div className="max-w-5xl mx-auto px-4 pb-8">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-10">
+        <div className="grid grid-cols-1 md:grid-cols-[minmax(0,2fr)_minmax(0,3fr)] gap-6 md:gap-10">
           {/* Left: Image */}
-          <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} className="relative">
+          <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} className="relative md:max-w-[380px]">
             <div className="rounded-xl overflow-hidden bg-muted sticky top-24">
               {product.images?.[0] ? (
-                <OptimizedImage src={product.images[0]} alt={product.name} aspectRatio="1/1" />
+                <OptimizedImage src={product.images[0]} alt={product.name} aspectRatio="4/5" />
               ) : (
-                <div className="aspect-square bg-muted flex items-center justify-center text-muted-foreground">Sem imagem</div>
+                <div className="aspect-[4/5] bg-muted flex items-center justify-center text-muted-foreground">Sem imagem</div>
               )}
               {hasDiscount && (
-                <Badge className="absolute top-4 left-4 bg-destructive text-destructive-foreground text-sm px-3 py-1">
+                <Badge className="absolute top-3 left-3 bg-destructive text-destructive-foreground text-xs px-2.5 py-0.5">
                   -{discountPercent}%
                 </Badge>
               )}
               <motion.button
                 whileTap={{ scale: 0.85 }}
                 onClick={handleToggleFavorite}
-                className="absolute top-4 right-4 w-10 h-10 rounded-full bg-background/80 backdrop-blur flex items-center justify-center shadow-sm"
+                className="absolute top-3 right-3 w-9 h-9 rounded-full bg-background/80 backdrop-blur flex items-center justify-center shadow-sm"
               >
-                <Heart className={cn("w-5 h-5 transition-colors", favorited ? "fill-destructive text-destructive" : "")} />
+                <Heart className={cn("w-4 h-4 transition-colors", favorited ? "fill-destructive text-destructive" : "")} />
               </motion.button>
             </div>
           </motion.div>
