@@ -7,6 +7,7 @@ import { useProduct } from "@/hooks/useProducts";
 import { useCart } from "@/hooks/useCart";
 import { useAuth } from "@/hooks/useAuth";
 import { useFavorites } from "@/hooks/useFavorites";
+import ReviewSection from "@/components/product/ReviewSection";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 
@@ -132,6 +133,9 @@ const Produto = () => {
             {addToCart.isPending ? "Adicionando..." : "Adicionar"}
           </Button>
         </div>
+
+        {/* Reviews Section */}
+        <ReviewSection productId={product.id} />
       </motion.div>
     </div>
   );

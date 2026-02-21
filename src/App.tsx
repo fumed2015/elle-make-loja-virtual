@@ -13,6 +13,7 @@ import Perfil from "./pages/Perfil";
 import Pedidos from "./pages/Pedidos";
 import Favoritos from "./pages/Favoritos";
 import Admin from "./pages/Admin";
+import Consultora from "./pages/Consultora";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -34,6 +35,7 @@ const App = () => (
             <Route path="/pedidos" element={<Pedidos />} />
             <Route path="/favoritos" element={<Favoritos />} />
             <Route path="/admin" element={<Admin />} />
+            <Route path="/consultora" element={<Consultora />} />
           </Route>
           <Route path="*" element={<NotFound />} />
         </Routes>
