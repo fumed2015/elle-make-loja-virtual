@@ -98,6 +98,9 @@ const navLinks: NavItem[] = [
   },
 ];
 
+// Labels to show on mobile (reduced set to fit one line)
+const mobileNavLabels = new Set(["Novidades", "Marcas", "Rosto", "Olhos", "Lábios", "Ofertas"]);
+
 const Header = () => {
   const { cartCount } = useCart();
   const { user, signOut } = useAuth();
@@ -157,7 +160,7 @@ const Header = () => {
 
       {/* Main header */}
       <div className="bg-card border-b border-border px-3 md:px-4 py-2 md:py-3">
-        <div className="max-w-5xl mx-auto flex items-center gap-2 md:gap-3 min-w-0">
+        <div className="max-w-5xl mx-auto flex items-center gap-2 md:gap-3 min-w-0 justify-between">
           {/* Logo */}
           <Link to="/" className="flex-shrink-0">
             <motion.h1
@@ -179,17 +182,17 @@ const Header = () => {
               className="pl-9 h-10 bg-muted border-none rounded-full text-sm focus:ring-2 focus:ring-primary/30 w-full"
             />
           </form>
-          <button
-            type="button"
-            onClick={() => setMobileSearchOpen(v => !v)}
-            className="md:hidden w-9 h-9 flex items-center justify-center rounded-full hover:bg-muted transition-colors"
-            aria-label="Buscar"
-          >
-            <Search className="w-5 h-5 text-foreground" />
-          </button>
 
-          {/* Icons */}
-          <div className="flex items-center gap-0.5 md:gap-1 flex-shrink-0">
+          {/* Icons — pushed right on mobile via ml-auto */}
+          <div className="flex items-center gap-0.5 md:gap-1 flex-shrink-0 ml-auto">
+            <button
+              type="button"
+              onClick={() => setMobileSearchOpen(v => !v)}
+              className="md:hidden w-9 h-9 flex items-center justify-center rounded-full hover:bg-muted transition-colors"
+              aria-label="Buscar"
+            >
+              <Search className="w-5 h-5 text-foreground" />
+            </button>
             <a href="https://wa.me/5591983045531?text=Olá! Gostaria de saber mais sobre os produtos" target="_blank" rel="noopener noreferrer" className="w-9 h-9 md:w-10 md:h-10 flex items-center justify-center rounded-full hover:bg-muted transition-colors" aria-label="WhatsApp">
               <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
                 <WhatsAppIcon className="w-5 h-5 text-accent" />
@@ -290,7 +293,7 @@ const Header = () => {
           {navLinks.map((link) => (
             <div
               key={link.label}
-              className="relative flex-shrink-0"
+              className={`relative flex-shrink-0 ${!mobileNavLabels.has(link.label) ? "hidden md:block" : ""}`}
               onMouseEnter={() => handleMouseEnter(link.label)}
             >
               <Link
@@ -298,7 +301,7 @@ const Header = () => {
                 className="flex items-center justify-center gap-0.5 px-2 md:px-3 py-2.5 text-[10px] md:text-[11px] font-semibold text-primary-foreground/90 hover:text-primary-foreground hover:bg-primary-foreground/10 transition-all tracking-wide uppercase whitespace-nowrap relative group"
               >
                 {link.label}
-                {link.subs && <ChevronDown className="w-2.5 h-2.5 md:w-3 md:h-3" />}
+                {link.subs && <ChevronDown className="w-2.5 h-2.5 md:w-3 md:h-3 hidden md:block" />}
                 <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-0 h-0.5 bg-primary-foreground/50 group-hover:w-3/4 transition-all duration-300" />
               </Link>
             </div>
