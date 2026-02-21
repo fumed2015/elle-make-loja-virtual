@@ -1,92 +1,146 @@
-import { MessageCircle, Instagram, MapPin, Phone, Mail, Clock } from "lucide-react";
+import { MessageCircle, Instagram, MapPin, Phone, Mail, Clock, Truck, ShieldCheck, CreditCard, Gift } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 
 const Footer = () => {
   return (
     <>
-      {/* WhatsApp CTA Section */}
+      {/* Trust badges */}
+      <section className="border-t border-border bg-card px-4 py-6">
+        <div className="max-w-5xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-4">
+          {[
+            { icon: Truck, title: "Entrega Rápida", sub: "Motoboy express em Belém" },
+            { icon: ShieldCheck, title: "100% Original", sub: "Registro ANVISA" },
+            { icon: CreditCard, title: "Pix com 5% Off", sub: "Cartão até 3x s/ juros" },
+            { icon: Gift, title: "Brindes", sub: "Pedidos acima de R$200" },
+          ].map((b) => (
+            <div key={b.title} className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                <b.icon className="w-5 h-5 text-primary" />
+              </div>
+              <div>
+                <p className="text-xs font-bold text-foreground">{b.title}</p>
+                <p className="text-[10px] text-muted-foreground">{b.sub}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* WhatsApp CTA */}
       <section className="bg-gradient-whatsapp px-4 py-10 text-center">
         <div className="max-w-md mx-auto space-y-4">
-          <MessageCircle className="w-12 h-12 text-accent-foreground mx-auto" />
-          <h2 className="text-2xl font-bold text-accent-foreground">
-            Sua beleza perfeita está a uma mensagem de distância
+          <MessageCircle className="w-10 h-10 text-accent-foreground mx-auto" />
+          <h2 className="text-xl font-bold text-accent-foreground">
+            Precisa de ajuda? Fale com a gente!
           </h2>
           <p className="text-sm text-accent-foreground/80">
-            Atendimento personalizado com nossas consultoras
+            Atendimento personalizado via WhatsApp
           </p>
           <Button
             asChild
             className="bg-card text-accent hover:bg-card/90 font-bold px-8 min-h-[48px] rounded-full shadow-whatsapp"
           >
             <a href="https://wa.me/5591983045531?text=Olá! Gostaria de saber mais sobre os produtos" target="_blank" rel="noopener noreferrer">
-              Falar com Consultora Agora
+              <MessageCircle className="w-4 h-4 mr-2" />
+              Falar no WhatsApp
             </a>
           </Button>
         </div>
       </section>
 
-      {/* Institutional Footer */}
-      <footer className="bg-foreground text-background/80 px-4 py-10">
+      {/* Footer */}
+      <footer className="bg-foreground text-background/70 px-4 pt-10 pb-24 md:pb-10">
         <div className="max-w-5xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-8">
           {/* Brand */}
-          <div className="col-span-2 md:col-span-1">
-            <h3 className="text-lg font-bold text-background tracking-wider mb-3">ELLE MAKE</h3>
-            <p className="text-xs leading-relaxed text-background/60">
-              Maquiagem e cosméticos com entrega rápida em Belém do Pará. Qualidade e sofisticação para realçar sua beleza.
+          <div className="col-span-2 md:col-span-1 space-y-4">
+            <h3 className="text-lg font-bold text-background tracking-wider">ELLE MAKE</h3>
+            <p className="text-xs leading-relaxed text-background/50">
+              Maquiagem e cosméticos com entrega rápida em Belém do Pará.
             </p>
+            <div className="flex gap-3">
+              <a href="https://wa.me/5591983045531" target="_blank" rel="noopener noreferrer" className="w-9 h-9 rounded-full bg-background/10 flex items-center justify-center hover:bg-background/20 transition-colors" aria-label="WhatsApp">
+                <MessageCircle className="w-4 h-4" />
+              </a>
+              <a href="https://instagram.com/michelle_makestore" target="_blank" rel="noopener noreferrer" className="w-9 h-9 rounded-full bg-background/10 flex items-center justify-center hover:bg-background/20 transition-colors" aria-label="Instagram">
+                <Instagram className="w-4 h-4" />
+              </a>
+            </div>
           </div>
 
           {/* Institutional */}
           <div>
-            <h4 className="text-xs font-bold text-background uppercase tracking-wider mb-3">Institucional</h4>
-            <ul className="space-y-2">
-              <li><Link to="/" className="text-xs hover:text-background transition-colors">Sobre Nós</Link></li>
-              <li><Link to="/consultora" className="text-xs hover:text-background transition-colors">Contato</Link></li>
-              <li><Link to="/" className="text-xs hover:text-background transition-colors">Dúvidas Frequentes</Link></li>
-              <li><Link to="/" className="text-xs hover:text-background transition-colors">Programa de Fidelidade</Link></li>
-              <li><Link to="/" className="text-xs hover:text-background transition-colors">Formas de Pagamento</Link></li>
-              <li><Link to="/" className="text-xs hover:text-background transition-colors">Regulamento de Entrega</Link></li>
-              <li><Link to="/" className="text-xs hover:text-background transition-colors">Trocas e Devoluções</Link></li>
+            <h4 className="text-[11px] font-bold text-background uppercase tracking-wider mb-4">Institucional</h4>
+            <ul className="space-y-2.5">
+              {[
+                { label: "Sobre Nós", to: "/" },
+                { label: "Contato", to: "/consultora" },
+                { label: "Dúvidas Frequentes", to: "/" },
+                { label: "Programa de Fidelidade", to: "/" },
+                { label: "Formas de Pagamento", to: "/" },
+                { label: "Regulamento de Entrega", to: "/" },
+                { label: "Trocas e Devoluções", to: "/" },
+              ].map((link) => (
+                <li key={link.label}>
+                  <Link to={link.to} className="text-xs hover:text-background transition-colors">
+                    {link.label}
+                  </Link>
+                </li>
+              ))}
             </ul>
           </div>
 
-          {/* Help */}
+          {/* Minha Conta */}
           <div>
-            <h4 className="text-xs font-bold text-background uppercase tracking-wider mb-3">Ajuda</h4>
-            <ul className="space-y-2">
-              <li><Link to="/pedidos" className="text-xs hover:text-background transition-colors">Meus Pedidos</Link></li>
-              <li><Link to="/consultora" className="text-xs hover:text-background transition-colors">Fale Conosco</Link></li>
-              <li><Link to="/favoritos" className="text-xs hover:text-background transition-colors">Meus Favoritos</Link></li>
+            <h4 className="text-[11px] font-bold text-background uppercase tracking-wider mb-4">Minha Conta</h4>
+            <ul className="space-y-2.5">
+              {[
+                { label: "Meus Pedidos", to: "/pedidos" },
+                { label: "Meus Favoritos", to: "/favoritos" },
+                { label: "Meu Perfil", to: "/perfil" },
+                { label: "Meu Carrinho", to: "/carrinho" },
+              ].map((link) => (
+                <li key={link.label}>
+                  <Link to={link.to} className="text-xs hover:text-background transition-colors">
+                    {link.label}
+                  </Link>
+                </li>
+              ))}
             </ul>
           </div>
 
-          {/* Contact */}
+          {/* Contato */}
           <div>
-            <h4 className="text-xs font-bold text-background uppercase tracking-wider mb-3">Contato</h4>
-            <ul className="space-y-2">
-              <li className="flex items-center gap-2 text-xs"><MapPin className="w-3.5 h-3.5 flex-shrink-0" /> Belém, PA</li>
-              <li className="flex items-center gap-2 text-xs"><Phone className="w-3.5 h-3.5 flex-shrink-0" /><a href="tel:+5591983045531" className="hover:text-background transition-colors">(91) 98304-5531</a></li>
-              <li className="flex items-center gap-2 text-xs"><Mail className="w-3.5 h-3.5 flex-shrink-0" /> contato@ellemake.com</li>
-              <li className="flex items-start gap-2 text-xs mt-3">
-                <Clock className="w-3.5 h-3.5 flex-shrink-0 mt-0.5" />
-                <div>
-                  <p className="font-semibold text-background">Atendimento</p>
+            <h4 className="text-[11px] font-bold text-background uppercase tracking-wider mb-4">Contato</h4>
+            <ul className="space-y-3">
+              <li className="flex items-center gap-2.5 text-xs">
+                <MapPin className="w-3.5 h-3.5 flex-shrink-0 text-background/50" />
+                Belém, PA
+              </li>
+              <li className="flex items-center gap-2.5 text-xs">
+                <Phone className="w-3.5 h-3.5 flex-shrink-0 text-background/50" />
+                <a href="tel:+5591983045531" className="hover:text-background transition-colors">(91) 98304-5531</a>
+              </li>
+              <li className="flex items-center gap-2.5 text-xs">
+                <Mail className="w-3.5 h-3.5 flex-shrink-0 text-background/50" />
+                contato@ellemake.com
+              </li>
+              <li className="flex items-start gap-2.5 text-xs mt-2">
+                <Clock className="w-3.5 h-3.5 flex-shrink-0 mt-0.5 text-background/50" />
+                <div className="space-y-0.5">
+                  <p className="font-semibold text-background text-[11px]">Atendimento</p>
                   <p>Seg–Sex: 9h às 18h</p>
                   <p>Sáb: 9h às 13h</p>
                 </div>
               </li>
             </ul>
-            <div className="flex gap-3 mt-4">
-              <a href="https://instagram.com/michelle_makestore" target="_blank" rel="noopener noreferrer" className="w-8 h-8 rounded-full bg-background/10 flex items-center justify-center hover:bg-background/20 transition-colors">
-                <Instagram className="w-4 h-4" />
-              </a>
-            </div>
           </div>
         </div>
 
-        <div className="max-w-5xl mx-auto mt-8 pt-6 border-t border-background/10 text-center">
-          <p className="text-[10px] text-background/40">© 2026 Elle Make. Todos os direitos reservados. CNPJ: 00.000.000/0001-00</p>
+        {/* Bottom bar */}
+        <div className="max-w-5xl mx-auto mt-8 pt-5 border-t border-background/10 flex flex-col md:flex-row items-center justify-between gap-3">
+          <p className="text-[10px] text-background/40">© 2026 Elle Make. Todos os direitos reservados.</p>
+          <p className="text-[10px] text-background/30">🛵 Belém e Ananindeua: entrega em até 3 horas!</p>
         </div>
       </footer>
     </>
