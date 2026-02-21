@@ -100,6 +100,7 @@ export type Database = {
           discount_value: number
           expires_at: string | null
           id: string
+          influencer_id: string | null
           is_active: boolean | null
           max_uses: number | null
           min_order_value: number | null
@@ -113,6 +114,7 @@ export type Database = {
           discount_value: number
           expires_at?: string | null
           id?: string
+          influencer_id?: string | null
           is_active?: boolean | null
           max_uses?: number | null
           min_order_value?: number | null
@@ -126,11 +128,20 @@ export type Database = {
           discount_value?: number
           expires_at?: string | null
           id?: string
+          influencer_id?: string | null
           is_active?: boolean | null
           max_uses?: number | null
           min_order_value?: number | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "coupons_influencer_id_fkey"
+            columns: ["influencer_id"]
+            isOneToOne: false
+            referencedRelation: "influencers"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       favorites: {
         Row: {

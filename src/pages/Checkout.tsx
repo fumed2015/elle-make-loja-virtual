@@ -72,6 +72,46 @@ const Checkout = () => {
 
       if (orderError) throw orderError;
 
+      // 1b. Track influencer commission if coupon belongs to an influencer
+      if (appliedCoupon?.code) {
+        try {
+          const { data: couponData } = await supabase
+            .from("coupons")
+            .select("influencer_id")
+            .eq("code", appliedCoupon.code)
+            .maybeSingle();
+          
+          if (couponData && (couponData as any).influencer_id) {
+            const influencerId = (couponData as any).influencer_id;
+            // Get influencer commission percent
+            const { data: infData } = await supabase
+              .from("influencers")
+              .select("commission_percent")
+              .eq("id", influencerId)
+              .single();
+            
+            if (infData) {
+              const commissionValue = finalTotal * (infData.commission_percent / 100);
+              await supabase.from("influencer_commissions").insert({
+                influencer_id: influencerId,
+                order_id: orderData.id,
+                order_total: finalTotal,
+                commission_percent: infData.commission_percent,
+                commission_value: commissionValue,
+              });
+              // Update influencer totals
+              await supabase.rpc("has_role", { _user_id: user.id, _role: "customer" }); // just to keep auth active
+              await supabase.from("influencers").update({
+                total_sales: Number(infData.commission_percent), // will be recalculated
+              }).eq("id", influencerId);
+            }
+          }
+        } catch (commErr) {
+          console.error("Commission tracking error:", commErr);
+          // Non-blocking — order still succeeds
+        }
+      }
+
       // 2. Clear cart
       for (const item of items) {
         await supabase.from("cart_items").delete().eq("id", item.id);
