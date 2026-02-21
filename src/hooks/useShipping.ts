@@ -1,4 +1,5 @@
 import { useState, useCallback } from "react";
+import { supabase } from "@/integrations/supabase/client";
 
 export interface ShippingOption {
   id: string;
@@ -35,45 +36,31 @@ function formatCep(value: string): string {
   return `${digits.slice(0, 5)}-${digits.slice(5)}`;
 }
 
-export interface CorreiosResult {
+export interface MelhorEnvioResult {
+  id: string;
   name: string;
+  company: string;
   price: number;
-  days: string;
+  days: number;
 }
 
-async function fetchCorreios(cep: string): Promise<CorreiosResult[]> {
-  // Use ViaCEP to validate + publicly available estimate
+async function fetchMelhorEnvio(cep: string): Promise<MelhorEnvioResult[]> {
   const clean = sanitizeCep(cep);
-  const res = await fetch(`https://viacep.com.br/ws/${clean}/json/`);
-  if (!res.ok) throw new Error("CEP não encontrado");
-  const data = await res.json();
-  if (data.erro) throw new Error("CEP não encontrado");
 
-  // Simulated Correios pricing based on region
-  const state = (data.uf || "").toUpperCase();
-  const isNorth = ["PA", "AM", "AP", "AC", "RO", "RR", "TO"].includes(state);
-  const isNortheast = ["MA", "PI", "CE", "RN", "PB", "PE", "AL", "SE", "BA"].includes(state);
+  const { data, error } = await supabase.functions.invoke("melhor-envio-shipping", {
+    body: { cep_destino: clean },
+  });
 
-  const options: CorreiosResult[] = [];
-
-  if (isNorth) {
-    options.push(
-      { name: "PAC", price: 18.9, days: "5 a 8 dias úteis" },
-      { name: "SEDEX", price: 32.9, days: "2 a 4 dias úteis" }
-    );
-  } else if (isNortheast) {
-    options.push(
-      { name: "PAC", price: 24.9, days: "7 a 12 dias úteis" },
-      { name: "SEDEX", price: 42.9, days: "3 a 5 dias úteis" }
-    );
-  } else {
-    options.push(
-      { name: "PAC", price: 29.9, days: "10 a 15 dias úteis" },
-      { name: "SEDEX", price: 54.9, days: "4 a 7 dias úteis" }
-    );
+  if (error) {
+    console.error("Melhor Envio edge function error:", error);
+    throw new Error("Erro ao consultar frete. Tente novamente.");
   }
 
-  return options;
+  if (data?.error) {
+    throw new Error(data.error);
+  }
+
+  return (data?.options || []) as MelhorEnvioResult[];
 }
 
 export interface ShippingState {
@@ -143,13 +130,13 @@ export const useShipping = () => {
         ];
         setState((s) => ({ ...s, loading: false, options, isLocal: true, addressInfo, selectedOption: "express" }));
       } else {
-        const correios = await fetchCorreios(clean);
-        const options: ShippingOption[] = correios.map((c) => ({
-          id: c.name.toLowerCase(),
-          name: `📦 ${c.name}`,
-          description: `Correios • ${c.days}`,
-          price: c.price,
-          estimatedDays: c.days,
+        const results = await fetchMelhorEnvio(clean);
+        const options: ShippingOption[] = results.map((r) => ({
+          id: r.id,
+          name: `📦 ${r.company} - ${r.name}`,
+          description: `${r.days} dia(s) útil(eis)`,
+          price: r.price,
+          estimatedDays: `${r.days} dia(s) útil(eis)`,
         }));
         setState((s) => ({ ...s, loading: false, options, isLocal: false, addressInfo, selectedOption: options[0]?.id || null }));
       }
