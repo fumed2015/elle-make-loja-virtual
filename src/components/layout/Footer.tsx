@@ -1,4 +1,5 @@
-import { MessageCircle, Instagram, MapPin, Phone, Mail, Clock, Truck, ShieldCheck, CreditCard, Gift } from "lucide-react";
+import { Instagram, MapPin, Phone, Mail, Clock, Truck, ShieldCheck, CreditCard, Gift } from "lucide-react";
+import WhatsAppIcon from "@/components/icons/WhatsAppIcon";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 
@@ -30,7 +31,7 @@ const Footer = () => {
       {/* WhatsApp CTA */}
       <section className="bg-gradient-whatsapp px-4 py-10 text-center">
         <div className="max-w-md mx-auto space-y-4">
-          <MessageCircle className="w-10 h-10 text-accent-foreground mx-auto" />
+          <WhatsAppIcon className="w-10 h-10 text-accent-foreground mx-auto" />
           <h2 className="text-xl font-bold text-accent-foreground">
             Precisa de ajuda? Fale com a gente!
           </h2>
@@ -42,7 +43,7 @@ const Footer = () => {
             className="bg-card text-accent hover:bg-card/90 font-bold px-8 min-h-[48px] rounded-full shadow-whatsapp"
           >
             <a href="https://wa.me/5591983045531?text=Olá! Gostaria de saber mais sobre os produtos" target="_blank" rel="noopener noreferrer">
-              <MessageCircle className="w-4 h-4 mr-2" />
+              <WhatsAppIcon className="w-4 h-4 mr-2" />
               Falar no WhatsApp
             </a>
           </Button>
@@ -60,7 +61,7 @@ const Footer = () => {
             </p>
             <div className="flex gap-3">
               <a href="https://wa.me/5591983045531" target="_blank" rel="noopener noreferrer" className="w-9 h-9 rounded-full bg-background/10 flex items-center justify-center hover:bg-background/20 transition-colors" aria-label="WhatsApp">
-                <MessageCircle className="w-4 h-4" />
+                <WhatsAppIcon className="w-4 h-4" />
               </a>
               <a href="https://instagram.com/michelle_makestore" target="_blank" rel="noopener noreferrer" className="w-9 h-9 rounded-full bg-background/10 flex items-center justify-center hover:bg-background/20 transition-colors" aria-label="Instagram">
                 <Instagram className="w-4 h-4" />

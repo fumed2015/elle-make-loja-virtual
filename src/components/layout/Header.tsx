@@ -2,7 +2,6 @@ import { Search, User, ShoppingBag, MessageCircle, ChevronDown } from "lucide-re
 import { Link, useNavigate } from "react-router-dom";
 import { Input } from "@/components/ui/input";
 import { useCart } from "@/hooks/useCart";
-import { ThemeToggle } from "@/hooks/useTheme";
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -136,7 +135,6 @@ const Header = () => {
 
           {/* Icons */}
           <div className="flex items-center gap-1">
-            <ThemeToggle />
             <Link to="/consultora" className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-muted transition-colors" aria-label="Consultora">
               <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
                 <MessageCircle className="w-5 h-5 text-foreground" />
