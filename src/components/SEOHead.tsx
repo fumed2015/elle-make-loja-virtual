@@ -6,7 +6,8 @@ interface SEOHeadProps {
   image?: string;
   url?: string;
   type?: string;
-  jsonLd?: Record<string, any>;
+  jsonLd?: Record<string, any> | Record<string, any>[];
+  
 }
 
 const SITE_NAME = "Elle Make | Maquiagem em Belém";
@@ -61,20 +62,21 @@ const SEOHead = ({
       canonical.setAttribute("href", url);
     }
 
-    // JSON-LD
-    const existingLd = document.querySelector("script[data-seo-ld]");
-    if (existingLd) existingLd.remove();
+    // JSON-LD (supports single or array)
+    document.querySelectorAll("script[data-seo-ld]").forEach(el => el.remove());
     if (jsonLd) {
-      const script = document.createElement("script");
-      script.type = "application/ld+json";
-      script.setAttribute("data-seo-ld", "true");
-      script.textContent = JSON.stringify(jsonLd);
-      document.head.appendChild(script);
+      const items = Array.isArray(jsonLd) ? jsonLd : [jsonLd];
+      items.forEach((ld, i) => {
+        const script = document.createElement("script");
+        script.type = "application/ld+json";
+        script.setAttribute("data-seo-ld", `${i}`);
+        script.textContent = JSON.stringify(ld);
+        document.head.appendChild(script);
+      });
     }
 
     return () => {
-      const ld = document.querySelector("script[data-seo-ld]");
-      if (ld) ld.remove();
+      document.querySelectorAll("script[data-seo-ld]").forEach(el => el.remove());
     };
   }, [fullTitle, description, image, url, type, jsonLd]);
 
