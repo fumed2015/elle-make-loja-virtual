@@ -1,10 +1,19 @@
-import { Search, User, ShoppingBag, ChevronDown } from "lucide-react";
+import { Search, User, ShoppingBag, ChevronDown, LogIn, LogOut, Settings } from "lucide-react";
 import WhatsAppIcon from "@/components/icons/WhatsAppIcon";
 import { Link, useNavigate } from "react-router-dom";
 import { Input } from "@/components/ui/input";
 import { useCart } from "@/hooks/useCart";
+import { useAuth } from "@/hooks/useAuth";
 import { useState, useEffect, useRef, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { toast } from "sonner";
 
 interface SubItem {
   label: string;
@@ -91,6 +100,7 @@ const navLinks: NavItem[] = [
 
 const Header = () => {
   const { cartCount } = useCart();
+  const { user, signOut } = useAuth();
   const navigate = useNavigate();
   const [search, setSearch] = useState("");
   const [hoveredNav, setHoveredNav] = useState<string | null>(null);
@@ -176,11 +186,50 @@ const Header = () => {
                 <WhatsAppIcon className="w-5 h-5 text-accent" />
               </motion.div>
             </a>
-            <Link to="/perfil" className="w-9 h-9 md:w-10 md:h-10 flex items-center justify-center rounded-full hover:bg-muted transition-colors hidden md:flex" aria-label="Perfil">
-              <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
-                <User className="w-5 h-5 text-foreground" />
-              </motion.div>
-            </Link>
+
+            {/* User dropdown */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button className="w-9 h-9 md:w-10 md:h-10 flex items-center justify-center rounded-full hover:bg-muted transition-colors relative" aria-label="Conta">
+                  <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
+                    <User className="w-5 h-5 text-foreground" />
+                  </motion.div>
+                  {user && (
+                    <span className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-accent border-2 border-card" />
+                  )}
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-48">
+                {user ? (
+                  <>
+                    <div className="px-3 py-2">
+                      <p className="text-xs text-muted-foreground truncate">{user.email}</p>
+                    </div>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem onClick={() => navigate("/perfil")}>
+                      <User className="w-4 h-4 mr-2" /> Meu Perfil
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => navigate("/pedidos")}>
+                      <ShoppingBag className="w-4 h-4 mr-2" /> Meus Pedidos
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => navigate("/favoritos")}>
+                      <Settings className="w-4 h-4 mr-2" /> Favoritos
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem onClick={async () => { await signOut(); toast.success("Você saiu da conta"); }}>
+                      <LogOut className="w-4 h-4 mr-2" /> Sair
+                    </DropdownMenuItem>
+                  </>
+                ) : (
+                  <>
+                    <DropdownMenuItem onClick={() => navigate("/perfil")}>
+                      <LogIn className="w-4 h-4 mr-2" /> Entrar / Cadastrar
+                    </DropdownMenuItem>
+                  </>
+                )}
+              </DropdownMenuContent>
+            </DropdownMenu>
+
             <Link to="/carrinho" className="w-9 h-9 md:w-10 md:h-10 flex items-center justify-center rounded-full hover:bg-muted transition-colors relative" aria-label="Carrinho">
               <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
                 <ShoppingBag className="w-5 h-5 text-foreground" />
