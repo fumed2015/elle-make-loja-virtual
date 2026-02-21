@@ -26,7 +26,7 @@ const item = {
 };
 
 const benefits = [
-  { icon: Truck, text: "Entrega Rápida", sub: "Motoboy express em Belém" },
+  { icon: Truck, text: "Entrega em até 3h", sub: "Motoboy express em Belém" },
   { icon: ShieldCheck, text: "100% Original", sub: "Registro ANVISA" },
   { icon: CreditCard, text: "Pix com 5% Off", sub: "Cartão até 3x s/ juros" },
   { icon: Star, text: "Brindes", sub: "Pedidos acima de R$200" },
@@ -220,8 +220,8 @@ className="w-full h-[320px] md:h-[480px] object-cover object-right"
       </section>
 
       {/* Benefits bar */}
-      <section className="border-b border-border bg-card/50 backdrop-blur-sm px-4 py-6">
-        <div className="max-w-4xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-3">
+      <section className="border-b border-border bg-card/50 backdrop-blur-sm px-4 py-4">
+        <div className="max-w-5xl mx-auto flex justify-between gap-2 overflow-x-auto scrollbar-hide">
           {benefits.map((b, i) => (
             <motion.div
               key={i}
@@ -229,14 +229,15 @@ className="w-full h-[320px] md:h-[480px] object-cover object-right"
               whileInView={{ opacity: 1, y: 0, scale: 1 }}
               viewport={{ once: true }}
               transition={{ delay: i * 0.15, type: "spring", stiffness: 200 }}
-              whileHover={{ scale: 1.05, y: -3 }}
-              className="flex flex-col items-center text-center gap-2 p-4 rounded-xl bg-card/80 backdrop-blur-sm border border-border/50 shadow-sm hover:shadow-md hover:border-primary/30 transition-all duration-300"
+              className="flex items-center gap-2 px-3 py-2.5 rounded-lg min-w-fit flex-1"
             >
-              <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
-                <b.icon className="w-5 h-5 text-primary" />
+              <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+                <b.icon className="w-4 h-4 text-primary" />
               </div>
-              <p className="text-xs font-bold text-foreground">{b.text}</p>
-              <p className="text-[10px] text-muted-foreground leading-tight">{b.sub}</p>
+              <div className="text-left">
+                <p className="text-xs font-bold text-foreground whitespace-nowrap">{b.text}</p>
+                <p className="text-[10px] text-muted-foreground whitespace-nowrap">{b.sub}</p>
+              </div>
             </motion.div>
           ))}
         </div>
