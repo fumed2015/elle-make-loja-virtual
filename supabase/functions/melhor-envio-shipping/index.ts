@@ -71,7 +71,7 @@ serve(async (req) => {
 
     // Filter only available services and format response
     const options = (Array.isArray(data) ? data : [])
-      .filter((s: any) => !s.error && s.price)
+      .filter((s: any) => !s.error && s.price && s.company?.id === 1)
       .map((s: any) => ({
         id: String(s.id),
         name: s.name,
