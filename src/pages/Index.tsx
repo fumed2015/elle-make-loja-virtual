@@ -9,6 +9,7 @@ import { useProducts, useCategories } from "@/hooks/useProducts";
 import ProductCard from "@/components/product/ProductCard";
 import UGCSection from "@/components/social/UGCSection";
 import Footer from "@/components/layout/Footer";
+import InlineConsultant from "@/components/chat/InlineConsultant";
 import { useState } from "react";
 import { useCoupon } from "@/hooks/useCoupon";
 import { toast } from "sonner";
@@ -36,10 +37,14 @@ const testimonials = [
 ];
 
 const faqs = [
-  { q: "Qual o prazo de entrega em Belém?", a: "Oferecemos entrega flash em até 3 horas para a região metropolitana de Belém. Para bairros mais distantes, o prazo é de até 24h." },
-  { q: "Aceitam Pix?", a: "Sim! Aceitamos Pix, cartão de crédito (até 12x sem juros), cartão de débito e boleto bancário." },
-  { q: "Como funciona a troca?", a: "Você tem até 7 dias após o recebimento para solicitar troca ou devolução. Basta falar conosco pelo WhatsApp." },
+  { q: "Qual o prazo de entrega em Belém?", a: "Oferecemos entrega flash em até 3 horas para a região metropolitana de Belém (Belém e Ananindeua). Para bairros mais distantes, o prazo é de até 24h." },
+  { q: "Aceitam Pix?", a: "Sim! Aceitamos Pix com 5% de desconto, cartão de crédito (até 3x sem juros), cartão de débito e boleto bancário." },
+  { q: "Como funciona a troca ou devolução?", a: "Você tem até 7 dias após o recebimento para solicitar troca ou devolução. Basta falar conosco pelo WhatsApp." },
   { q: "Os produtos são originais?", a: "Sim! Todos os nossos produtos são 100% originais e adquiridos diretamente dos fabricantes ou distribuidores autorizados." },
+  { q: "Qual base ideal para pele oleosa?", a: "Para pele oleosa, recomendamos bases com acabamento matte como a Base Líquida Matte Ruby Rose. Use junto com o Primer Facial Hidratante e o Pó Compacto Velvet Phallebeauty para controlar a oleosidade o dia todo." },
+  { q: "Preciso de protetor solar com maquiagem?", a: "Sim! Mesmo usando base com FPS, é importante usar protetor solar antes. O Protetor Solar Facial FPS50 Max Love tem toque seco e acabamento matte, perfeito sob a maquiagem." },
+  { q: "Quais marcas vocês trabalham?", a: "Trabalhamos com as melhores marcas nacionais: Ruby Rose, Max Love, Sarah Beauty, Phallebeauty, Luisance e Macrilan. Todas com excelente custo-benefício." },
+  { q: "Como escolher o tom certo de base?", a: "O ideal é testar na mandíbula. Se não puder vir pessoalmente, envie uma foto pelo WhatsApp e nossa equipe ajuda a encontrar o tom perfeito!" },
 ];
 
 const Index = () => {
@@ -200,6 +205,9 @@ const Index = () => {
           </motion.div>
         )}
       </section>
+
+      {/* Glow – Consultora IA inline */}
+      <InlineConsultant />
 
       {/* Categories Sections */}
       {categories && categories.length > 0 && (
