@@ -8,16 +8,10 @@ const FREE_SHIPPING_MIN = 199;
 const FreeShippingBar = () => {
   const { cartTotal } = useCart();
   const [dismissed, setDismissed] = useState(false);
-  const [visible, setVisible] = useState(false);
 
   const progress = Math.min((cartTotal / FREE_SHIPPING_MIN) * 100, 100);
   const remaining = Math.max(FREE_SHIPPING_MIN - cartTotal, 0);
   const achieved = cartTotal >= FREE_SHIPPING_MIN;
-
-  useEffect(() => {
-    const timer = setTimeout(() => setVisible(true), 2500);
-    return () => clearTimeout(timer);
-  }, []);
 
   useEffect(() => {
     const wasDismissed = sessionStorage.getItem("freeShippingDismissed");
@@ -29,7 +23,7 @@ const FreeShippingBar = () => {
     sessionStorage.setItem("freeShippingDismissed", "1");
   };
 
-  if (dismissed || !visible) return null;
+  if (dismissed || cartTotal <= 0) return null;
 
   return (
     <AnimatePresence>
