@@ -351,9 +351,15 @@ const Produto = () => {
               )}
             </TabsContent>
             <TabsContent value="como-usar" className="pt-4">
-              <p className="text-sm text-foreground/80 leading-relaxed">
-                Aplique o produto conforme indicação na embalagem. Para melhores resultados, siga a rotina completa de cuidados.
-              </p>
+              {(product as any).how_to_use ? (
+                <div className="text-sm text-foreground/80 leading-relaxed whitespace-pre-line">
+                  {(product as any).how_to_use}
+                </div>
+              ) : (
+                <p className="text-sm text-foreground/80 leading-relaxed">
+                  Aplique o produto conforme indicação na embalagem. Para melhores resultados, siga a rotina completa de cuidados.
+                </p>
+              )}
             </TabsContent>
             <TabsContent value="ingredientes" className="pt-4">
               <p className="text-sm text-foreground/80 leading-relaxed">
