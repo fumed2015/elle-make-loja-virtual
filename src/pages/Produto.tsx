@@ -64,7 +64,6 @@ const Produto = () => {
   const pixPrice = (Number(product.price) * 0.95).toFixed(2).replace(".", ",");
 
   const handleAddToCart = () => {
-    if (!user) { navigate("/perfil"); return; }
     addToCart.mutate({ productId: product.id, quantity: qty, swatch: selectedSwatch });
   };
 
@@ -74,9 +73,11 @@ const Produto = () => {
   };
 
   const handleBuyNow = () => {
-    if (!user) { navigate("/perfil"); return; }
     addToCart.mutate({ productId: product.id, quantity: qty, swatch: selectedSwatch }, {
-      onSuccess: () => navigate("/checkout"),
+      onSuccess: () => {
+        if (!user) { navigate("/perfil"); return; }
+        navigate("/checkout");
+      },
     });
   };
 

@@ -31,7 +31,6 @@ const ProductCard = ({ product, index = 0 }: ProductCardProps) => {
   const handleQuickAdd = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    if (!user) { navigate("/perfil"); return; }
     // If product has swatches, navigate to product page instead
     const swatches = typeof product.swatches === 'string' ? JSON.parse(product.swatches) : (product.swatches || []);
     if (swatches.length > 0) {
