@@ -118,11 +118,10 @@
     font-weight: 700;
   }
 
-  /* Smooth theme transitions on all themed elements */
-  *,
-  *::before,
-  *::after {
-    transition-property: background-color, border-color, color, fill, stroke, box-shadow;
+  /* Smooth theme transitions — scoped to themed properties only on key elements */
+  [data-theme-transition],
+  [data-theme-transition] * {
+    transition-property: background-color, border-color, color;
     transition-duration: 0.3s;
     transition-timing-function: ease;
   }
