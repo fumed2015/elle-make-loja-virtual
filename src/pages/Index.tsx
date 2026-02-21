@@ -1,206 +1,133 @@
 import { motion } from "framer-motion";
-import { ArrowRight, Sparkles, TrendingUp, MessageCircle, Bell } from "lucide-react";
+import { ArrowRight, MessageCircle, Truck, CreditCard, ShieldCheck, Star, ChevronDown } from "lucide-react";
 import { Link } from "react-router-dom";
 import SEOHead from "@/components/SEOHead";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { useProducts, useCategories } from "@/hooks/useProducts";
 import ProductCard from "@/components/product/ProductCard";
 import UGCSection from "@/components/social/UGCSection";
-import { ThemeToggle } from "@/hooks/useTheme";
-import { useState, useEffect } from "react";
+import Footer from "@/components/layout/Footer";
+import { useState } from "react";
+import { useCoupon } from "@/hooks/useCoupon";
 import { toast } from "sonner";
 
 const container = {
   hidden: { opacity: 0 },
-  show: { opacity: 1, transition: { staggerChildren: 0.08 } },
+  show: { opacity: 1, transition: { staggerChildren: 0.06 } },
 };
 const item = {
-  hidden: { opacity: 0, y: 20 },
+  hidden: { opacity: 0, y: 16 },
   show: { opacity: 1, y: 0 },
 };
 
+const benefits = [
+  { icon: Truck, text: "Entrega Flash em Belém", sub: "Até 3h na região metropolitana" },
+  { icon: CreditCard, text: "Parcele sem juros", sub: "Em até 12x no cartão" },
+  { icon: ShieldCheck, text: "Compra Segura", sub: "100% protegida" },
+];
+
+const testimonials = [
+  { name: "Carla M.", text: "Chegou super rápido! Maquiagem de qualidade incrível, já virei cliente fiel.", rating: 5 },
+  { name: "Ana Beatriz", text: "Amei a paleta de olhos! As cores são lindas e a pigmentação é perfeita.", rating: 5 },
+  { name: "Juliana S.", text: "Melhor loja de Belém! O atendimento pelo WhatsApp é sensacional.", rating: 5 },
+];
+
+const faqs = [
+  { q: "Qual o prazo de entrega em Belém?", a: "Oferecemos entrega flash em até 3 horas para a região metropolitana de Belém. Para bairros mais distantes, o prazo é de até 24h." },
+  { q: "Aceitam Pix?", a: "Sim! Aceitamos Pix, cartão de crédito (até 12x sem juros), cartão de débito e boleto bancário." },
+  { q: "Como funciona a troca?", a: "Você tem até 7 dias após o recebimento para solicitar troca ou devolução. Basta falar conosco pelo WhatsApp." },
+  { q: "Os produtos são originais?", a: "Sim! Todos os nossos produtos são 100% originais e adquiridos diretamente dos fabricantes ou distribuidores autorizados." },
+];
+
 const Index = () => {
   const { data: featured, isLoading } = useProducts({ featured: true });
+  const { data: allProducts, isLoading: loadingAll } = useProducts({});
   const { data: categories } = useCategories();
-  const [showPushBanner, setShowPushBanner] = useState(false);
-
-  useEffect(() => {
-    if ("Notification" in window && Notification.permission === "default") {
-      const dismissed = localStorage.getItem("push-dismissed");
-      if (!dismissed) {
-        const timer = setTimeout(() => setShowPushBanner(true), 3000);
-        return () => clearTimeout(timer);
-      }
-    }
-  }, []);
-
-  const handlePushRequest = async () => {
-    try {
-      const permission = await Notification.requestPermission();
-      if (permission === "granted") {
-        toast.success("Notificações ativadas! 🔔");
-        new Notification("Beleza Phygital", {
-          body: "Você receberá novidades e promoções exclusivas! ✨",
-          icon: "/pwa-192x192.png",
-        });
-      }
-    } catch {
-      toast.error("Não foi possível ativar notificações");
-    }
-    setShowPushBanner(false);
-  };
-
-  const dismissPush = () => {
-    setShowPushBanner(false);
-    localStorage.setItem("push-dismissed", "true");
-  };
+  const [couponCode, setCouponCode] = useState("");
+  const [openFaq, setOpenFaq] = useState<number | null>(null);
 
   return (
     <div className="min-h-screen">
       <SEOHead
-        title="Maquiagem com Ativos Amazônicos"
-        description="Descubra maquiagens e skincare com ativos amazônicos. Ciência e natureza para uma pele radiante em Belém do Pará."
+        title="Maquiagem e Cosméticos em Belém"
+        description="Loja de maquiagem com delivery rápido em Belém do Pará. Frete grátis acima de R$ 199. Entrega em até 3h na região metropolitana."
         jsonLd={{
           "@context": "https://schema.org",
           "@type": "WebSite",
-          name: "Beleza Phygital Belém",
+          name: "Elle Make",
           url: window.location.origin,
           potentialAction: { "@type": "SearchAction", target: `${window.location.origin}/explorar?q={search_term_string}`, "query-input": "required name=search_term_string" },
         }}
       />
-      {/* Push Notification Banner */}
-      {showPushBanner && (
-        <motion.div
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -20 }}
-          className="fixed top-0 left-0 right-0 z-50 px-4 pt-3 pb-2"
-        >
-          <div className="max-w-lg mx-auto bg-gradient-gold rounded-xl p-3 flex items-center gap-3 shadow-gold">
-            <Bell className="w-5 h-5 text-primary-foreground flex-shrink-0" />
-            <div className="flex-1 min-w-0">
-              <p className="text-xs font-bold text-primary-foreground">Ative as notificações!</p>
-              <p className="text-[10px] text-primary-foreground/80">Receba promos exclusivas e rastreie pedidos</p>
-            </div>
-            <div className="flex gap-1.5 flex-shrink-0">
-              <Button size="sm" onClick={handlePushRequest} className="text-[10px] bg-primary-foreground text-primary hover:bg-primary-foreground/90 h-7 px-2.5">Ativar</Button>
-              <Button size="sm" variant="ghost" onClick={dismissPush} className="text-[10px] text-primary-foreground/60 hover:text-primary-foreground h-7 px-2">Depois</Button>
-            </div>
-          </div>
-        </motion.div>
-      )}
 
       {/* Hero */}
-      <section className="relative overflow-hidden px-4 pt-12 pb-8">
-        <div className="absolute inset-0 bg-gradient-to-b from-primary/5 via-transparent to-transparent" />
-        {/* Floating ambient shapes */}
-        <div className="absolute top-10 right-4 w-32 h-32 rounded-full bg-primary/5 blur-3xl animate-float" />
-        <div className="absolute bottom-0 left-0 w-40 h-40 rounded-full bg-secondary/5 blur-3xl animate-float" style={{ animationDelay: "1.5s" }} />
-
+      <section className="bg-cream px-4 py-10 md:py-16">
         <motion.div
-          initial={{ opacity: 0, y: 30 }}
+          initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
-          className="relative max-w-lg mx-auto"
+          transition={{ duration: 0.5 }}
+          className="max-w-3xl mx-auto text-center"
         >
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-2">
-              <Sparkles className="w-4 h-4 text-primary" />
-              <span className="text-xs font-medium tracking-widest uppercase text-primary">
-                Neuro Glow Collection
-              </span>
-            </div>
-            <ThemeToggle />
-          </div>
-          <h1 className="text-4xl md:text-5xl font-display font-bold leading-tight mb-3">
-            Beleza que{" "}
-            <span className="text-gradient-gold">transforma</span>
+          <h1 className="text-3xl md:text-5xl font-bold leading-tight text-foreground mb-3">
+            Maquiagem e Cosméticos em{" "}
+            <span className="font-serif-accent text-primary">Belém</span>
           </h1>
-          <p className="text-muted-foreground text-sm leading-relaxed mb-6 max-w-sm">
-            Descubra maquiagens com ativos amazônicos. Ciência e natureza para uma pele radiante.
+          <p className="text-muted-foreground text-sm md:text-base leading-relaxed mb-6 max-w-lg mx-auto">
+            Delivery rápido em até 3h para a região metropolitana.{" "}
+            <strong className="text-foreground">Frete grátis acima de R$ 199.</strong>
           </p>
-          <div className="flex gap-3">
-            <Button asChild className="bg-gradient-gold text-primary-foreground shadow-gold hover:opacity-90 min-h-[44px] px-6 animate-glow-pulse">
+          <div className="flex flex-wrap gap-3 justify-center">
+            <Button asChild className="bg-primary text-primary-foreground hover:bg-primary/90 min-h-[48px] px-8 rounded-full font-semibold shadow-marsala">
               <Link to="/explorar">
-                Explorar <ArrowRight className="w-4 h-4 ml-1" />
+                Ver Produtos <ArrowRight className="w-4 h-4 ml-1.5" />
               </Link>
             </Button>
-            <Button variant="outline" asChild className="min-h-[44px] border-border hover:border-primary/50 transition-colors">
-              <Link to="/consultora">
-                <MessageCircle className="w-4 h-4 mr-1" /> Consultora IA
-              </Link>
+            <Button variant="outline" asChild className="min-h-[48px] px-6 rounded-full border-accent text-accent hover:bg-accent hover:text-accent-foreground font-semibold">
+              <a href="https://wa.me/5591999999999?text=Olá! Gostaria de saber mais sobre os produtos" target="_blank" rel="noopener noreferrer">
+                <MessageCircle className="w-4 h-4 mr-1.5" /> Falar no WhatsApp
+              </a>
             </Button>
           </div>
         </motion.div>
       </section>
 
-      {/* Categories */}
-      <section className="px-4 py-6 max-w-lg mx-auto">
-        <motion.h2
-          initial={{ opacity: 0, x: -10 }}
-          whileInView={{ opacity: 1, x: 0 }}
-          viewport={{ once: true }}
-          className="text-lg font-display font-semibold mb-4"
-        >
-          Categorias
-        </motion.h2>
-        <motion.div variants={container} initial="hidden" whileInView="show" viewport={{ once: true }} className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
-          {categories?.map((cat) => (
-            <motion.div key={cat.id} variants={item}>
-              <Link
-                to={`/explorar?cat=${cat.slug}`}
-                className="flex-shrink-0 px-4 py-2.5 rounded-full bg-muted text-sm font-medium text-foreground hover:bg-primary hover:text-primary-foreground transition-all duration-300 min-h-[44px] flex items-center hover:shadow-gold hover:scale-105"
-              >
-                {cat.name}
-              </Link>
+      {/* Benefits bar */}
+      <section className="border-b border-border bg-card px-4 py-5">
+        <div className="max-w-4xl mx-auto grid grid-cols-3 gap-4">
+          {benefits.map((b, i) => (
+            <motion.div
+              key={i}
+              initial={{ opacity: 0, y: 10 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: i * 0.1 }}
+              className="flex flex-col items-center text-center gap-1.5"
+            >
+              <b.icon className="w-5 h-5 text-primary" />
+              <p className="text-xs font-semibold text-foreground">{b.text}</p>
+              <p className="text-[10px] text-muted-foreground">{b.sub}</p>
             </motion.div>
           ))}
-        </motion.div>
+        </div>
       </section>
 
-      {/* Coupon Banner */}
-      <section className="px-4 py-2 max-w-lg mx-auto">
-        <motion.div
-          initial={{ opacity: 0, scale: 0.95 }}
-          whileInView={{ opacity: 1, scale: 1 }}
-          viewport={{ once: true }}
-          whileHover={{ scale: 1.02 }}
-          className="bg-gradient-teal rounded-xl px-4 py-3 flex items-center justify-between shadow-teal cursor-pointer"
-        >
-          <div>
-            <p className="text-xs font-bold text-secondary-foreground">Use BELEM10 e ganhe 10% off! 🎉</p>
-            <p className="text-[10px] text-secondary-foreground/80">Na primeira compra • Mín. R$ 50</p>
-          </div>
-          <Button asChild size="sm" variant="secondary" className="text-xs bg-background/20 text-secondary-foreground hover:bg-background/30 border-0">
-            <Link to="/explorar">Comprar</Link>
-          </Button>
-        </motion.div>
-      </section>
-
-      {/* Featured */}
-      <section className="px-4 py-6 max-w-lg mx-auto">
-        <div className="flex items-center justify-between mb-4">
-          <motion.div
-            initial={{ opacity: 0, x: -10 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true }}
-            className="flex items-center gap-2"
-          >
-            <TrendingUp className="w-4 h-4 text-secondary" />
-            <h2 className="text-lg font-display font-semibold">Em Alta</h2>
-          </motion.div>
-          <Link to="/explorar" className="text-xs text-primary font-medium hover:underline">Ver tudo →</Link>
+      {/* Featured / Novidades */}
+      <section className="px-4 py-8 max-w-5xl mx-auto">
+        <div className="flex items-center justify-between mb-5">
+          <h2 className="text-xl font-bold text-foreground">Novidades</h2>
+          <Link to="/explorar" className="text-xs text-primary font-semibold hover:underline">Ver tudo →</Link>
         </div>
         {isLoading ? (
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
             {[...Array(4)].map((_, i) => (
-              <div key={i} className="aspect-[3/4] rounded-xl bg-muted overflow-hidden">
+              <div key={i} className="aspect-[3/4] rounded-lg bg-muted overflow-hidden">
                 <div className="w-full h-full bg-gradient-to-r from-muted via-muted-foreground/5 to-muted animate-shimmer bg-[length:200%_100%]" />
               </div>
             ))}
           </div>
         ) : (
-          <motion.div variants={container} initial="hidden" whileInView="show" viewport={{ once: true }} className="grid grid-cols-2 gap-3">
+          <motion.div variants={container} initial="hidden" whileInView="show" viewport={{ once: true }} className="grid grid-cols-2 md:grid-cols-4 gap-3">
             {featured?.slice(0, 4).map((product, i) => (
               <motion.div key={product.id} variants={item}>
                 <ProductCard product={product} index={i} />
@@ -210,8 +137,158 @@ const Index = () => {
         )}
       </section>
 
-      {/* UGC Section */}
+      {/* Super Ofertas */}
+      <section className="px-4 py-8 max-w-5xl mx-auto bg-cream/50">
+        <div className="flex items-center justify-between mb-5">
+          <h2 className="text-xl font-bold text-primary">🔥 Super Ofertas</h2>
+          <Link to="/explorar" className="text-xs text-primary font-semibold hover:underline">Ver tudo →</Link>
+        </div>
+        {loadingAll ? (
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            {[...Array(4)].map((_, i) => (
+              <div key={i} className="aspect-[3/4] rounded-lg bg-muted animate-shimmer" />
+            ))}
+          </div>
+        ) : (
+          <motion.div variants={container} initial="hidden" whileInView="show" viewport={{ once: true }} className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            {allProducts?.filter(p => p.compare_at_price && p.compare_at_price > p.price).slice(0, 4).map((product, i) => (
+              <motion.div key={product.id} variants={item}>
+                <ProductCard product={product} index={i} />
+              </motion.div>
+            ))}
+          </motion.div>
+        )}
+      </section>
+
+      {/* Categories Sections */}
+      {categories && categories.length > 0 && (
+        <section className="px-4 py-8 max-w-5xl mx-auto">
+          <h2 className="text-xl font-bold text-foreground mb-5">Categorias</h2>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            {categories.map((cat, i) => (
+              <motion.div
+                key={cat.id}
+                initial={{ opacity: 0, y: 10 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: i * 0.05 }}
+              >
+                <Link
+                  to={`/explorar?cat=${cat.slug}`}
+                  className="block bg-card border border-border rounded-lg p-5 text-center hover:border-primary hover:shadow-marsala transition-all group"
+                >
+                  {cat.image_url ? (
+                    <img src={cat.image_url} alt={cat.name} className="w-12 h-12 mx-auto mb-2 object-contain" />
+                  ) : (
+                    <div className="w-12 h-12 mx-auto mb-2 rounded-full bg-primary/10 flex items-center justify-center text-primary text-lg font-bold">
+                      {cat.name.charAt(0)}
+                    </div>
+                  )}
+                  <p className="text-sm font-semibold text-foreground group-hover:text-primary transition-colors">{cat.name}</p>
+                </Link>
+              </motion.div>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* Coupon Section */}
+      <section className="px-4 py-8 max-w-lg mx-auto">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.98 }}
+          whileInView={{ opacity: 1, scale: 1 }}
+          viewport={{ once: true }}
+          className="bg-card border-2 border-dashed border-primary/30 rounded-xl p-6 text-center"
+        >
+          <h2 className="text-lg font-bold text-foreground mb-1">🎟️ Tem um cupom de desconto?</h2>
+          <p className="text-xs text-muted-foreground mb-4">Aplique seu cupom e economize na sua compra</p>
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              if (couponCode.trim()) {
+                toast.success(`Cupom "${couponCode}" salvo! Aplique no checkout.`);
+                localStorage.setItem("saved-coupon", couponCode.trim().toUpperCase());
+              }
+            }}
+            className="flex gap-2 max-w-sm mx-auto"
+          >
+            <Input
+              placeholder="Digite seu cupom"
+              value={couponCode}
+              onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
+              className="rounded-full text-center font-semibold uppercase tracking-wider"
+            />
+            <Button type="submit" className="bg-primary text-primary-foreground rounded-full px-6 font-semibold hover:bg-primary/90">
+              Aplicar
+            </Button>
+          </form>
+        </motion.div>
+      </section>
+
+      {/* Testimonials */}
+      <section className="px-4 py-8 max-w-5xl mx-auto">
+        <h2 className="text-xl font-bold text-foreground mb-5 text-center">Veja a opinião de quem já comprou</h2>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {testimonials.map((t, i) => (
+            <motion.div
+              key={i}
+              initial={{ opacity: 0, y: 10 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: i * 0.1 }}
+              className="bg-card border border-border rounded-lg p-5"
+            >
+              <div className="flex gap-0.5 mb-2">
+                {[...Array(t.rating)].map((_, j) => (
+                  <Star key={j} className="w-4 h-4 fill-gold-star text-gold-star" />
+                ))}
+              </div>
+              <p className="text-sm text-foreground leading-relaxed mb-3">"{t.text}"</p>
+              <p className="text-xs font-semibold text-muted-foreground">— {t.name}</p>
+            </motion.div>
+          ))}
+        </div>
+      </section>
+
+      {/* FAQ */}
+      <section className="px-4 py-8 max-w-2xl mx-auto">
+        <h2 className="text-xl font-bold text-foreground mb-5 text-center">Perguntas Frequentes</h2>
+        <div className="space-y-2">
+          {faqs.map((faq, i) => (
+            <motion.div
+              key={i}
+              initial={{ opacity: 0 }}
+              whileInView={{ opacity: 1 }}
+              viewport={{ once: true }}
+              className="bg-card border border-border rounded-lg overflow-hidden"
+            >
+              <button
+                onClick={() => setOpenFaq(openFaq === i ? null : i)}
+                className="w-full flex items-center justify-between px-5 py-4 text-left"
+              >
+                <span className="text-sm font-semibold text-foreground">{faq.q}</span>
+                <ChevronDown className={`w-4 h-4 text-muted-foreground transition-transform ${openFaq === i ? "rotate-180" : ""}`} />
+              </button>
+              {openFaq === i && (
+                <motion.div
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: "auto" }}
+                  exit={{ opacity: 0, height: 0 }}
+                  className="px-5 pb-4"
+                >
+                  <p className="text-sm text-muted-foreground leading-relaxed">{faq.a}</p>
+                </motion.div>
+              )}
+            </motion.div>
+          ))}
+        </div>
+      </section>
+
+      {/* UGC */}
       <UGCSection />
+
+      {/* Footer */}
+      <Footer />
     </div>
   );
 };
