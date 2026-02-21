@@ -1,4 +1,5 @@
 import { motion } from "framer-motion";
+import { useRef, useEffect } from "react";
 import { ArrowRight, Truck, CreditCard, ShieldCheck, Star, ChevronDown } from "lucide-react";
 import WhatsAppIcon from "@/components/icons/WhatsAppIcon";
 import { Link } from "react-router-dom";
@@ -11,6 +12,7 @@ import UGCSection from "@/components/social/UGCSection";
 import Footer from "@/components/layout/Footer";
 import InlineConsultant from "@/components/chat/InlineConsultant";
 import { useState } from "react";
+import heroBanner from "@/assets/hero-banner.mp4";
 import { useCoupon } from "@/hooks/useCoupon";
 import { toast } from "sonner";
 
@@ -53,6 +55,14 @@ const Index = () => {
   const { data: categories } = useCategories();
   const [couponCode, setCouponCode] = useState("");
   const [openFaq, setOpenFaq] = useState<number | null>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
+
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video) return;
+    video.muted = true;
+    video.play().catch(() => {});
+  }, []);
 
   return (
     <div className="min-h-screen">
@@ -104,23 +114,34 @@ const Index = () => {
         ]}
       />
 
-      {/* Hero */}
-      <section className="bg-cream px-4 py-10 md:py-16">
+      {/* Hero with Video Banner */}
+      <section className="relative overflow-hidden bg-background">
+        <video
+          ref={videoRef}
+          src={heroBanner}
+          loop
+          muted
+          playsInline
+          autoPlay
+          preload="auto"
+          className="w-full h-[280px] md:h-[420px] object-cover"
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-background/90 via-background/40 to-transparent" />
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-          className="max-w-3xl mx-auto text-center"
+          transition={{ duration: 0.6, delay: 0.2 }}
+          className="absolute inset-0 flex flex-col items-center justify-end pb-8 md:pb-12 px-4 text-center"
         >
-          <h1 className="text-3xl md:text-5xl font-bold leading-tight text-foreground mb-3">
+          <h1 className="text-2xl md:text-5xl font-bold leading-tight text-foreground mb-2 drop-shadow-sm">
             Maquiagem e Cosméticos em{" "}
             <span className="font-serif-accent text-primary">Belém</span>
           </h1>
-          <p className="text-muted-foreground text-sm md:text-base leading-relaxed mb-2 max-w-lg mx-auto">
-            Delivery rápido em até 3h para a região metropolitana.{" "}
+          <p className="text-muted-foreground text-sm md:text-base leading-relaxed mb-1 max-w-lg mx-auto">
+            Delivery rápido em até 3h.{" "}
             <strong className="text-foreground">Frete grátis acima de R$ 199.</strong>
           </p>
-          <p className="text-xs font-semibold text-primary mb-6 animate-pulse">
+          <p className="text-xs font-semibold text-primary mb-5 animate-pulse">
             🛵 Belém e Ananindeua: entrega em até 3 horas!
           </p>
           <div className="flex flex-wrap gap-3 justify-center">
@@ -129,7 +150,7 @@ const Index = () => {
                 Ver Produtos <ArrowRight className="w-4 h-4 ml-1.5" />
               </Link>
             </Button>
-            <Button variant="outline" asChild className="min-h-[48px] px-6 rounded-full border-accent text-accent hover:bg-accent hover:text-accent-foreground font-semibold">
+            <Button variant="outline" asChild className="min-h-[48px] px-6 rounded-full border-accent text-accent hover:bg-accent hover:text-accent-foreground font-semibold bg-card/80 backdrop-blur-sm">
               <a href="https://wa.me/5591983045531?text=Olá! Gostaria de saber mais sobre os produtos" target="_blank" rel="noopener noreferrer">
                 <WhatsAppIcon className="w-4 h-4 mr-1.5" /> Falar no WhatsApp
               </a>
