@@ -50,6 +50,50 @@
     --teal: 174 55% 42%;
     --teal-glow: 174 65% 52%;
   }
+
+  .light {
+    --background: 40 20% 97%;
+    --foreground: 0 0% 10%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 0 0% 10%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 0 0% 10%;
+
+    --primary: 43 72% 45%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 174 55% 35%;
+    --secondary-foreground: 0 0% 100%;
+
+    --muted: 40 10% 92%;
+    --muted-foreground: 0 0% 40%;
+
+    --accent: 174 55% 35%;
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 98%;
+
+    --border: 40 10% 88%;
+    --input: 40 10% 88%;
+    --ring: 43 72% 45%;
+
+    --sidebar-background: 40 20% 97%;
+    --sidebar-foreground: 0 0% 10%;
+    --sidebar-primary: 43 72% 45%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 40 10% 92%;
+    --sidebar-accent-foreground: 0 0% 10%;
+    --sidebar-border: 40 10% 88%;
+    --sidebar-ring: 43 72% 45%;
+
+    --gold: 43 72% 45%;
+    --gold-glow: 43 80% 55%;
+    --teal: 174 55% 35%;
+    --teal-glow: 174 65% 45%;
+  }
 }
 
 @layer base {
@@ -87,5 +131,23 @@
 
   .shadow-teal {
     box-shadow: 0 8px 32px -8px hsl(var(--teal) / 0.3);
+  }
+
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+
+  .safe-area-bottom {
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+
+  .glass {
+    background: hsl(var(--card) / 0.6);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
   }
 }
