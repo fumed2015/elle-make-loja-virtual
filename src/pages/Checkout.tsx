@@ -29,6 +29,9 @@ const Checkout = () => {
   const [appliedCoupon, setAppliedCoupon] = useState<{ code: string; discount: number } | null>(null);
   const [couponLoading, setCouponLoading] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState<"yampi" | "whatsapp">("yampi");
+  const [customerInfo, setCustomerInfo] = useState({
+    phone: "", cpf: "",
+  });
   const [address, setAddress] = useState({
     street: "", number: "", complement: "", neighborhood: "",
     city: "Belém", state: "PA", zip: "",
@@ -145,7 +148,8 @@ const Checkout = () => {
               customer: {
                 name: user.user_metadata?.full_name || '',
                 email: user.email || '',
-                phone: user.phone || '',
+                phone: customerInfo.phone || '',
+                cpf: customerInfo.cpf || '',
               },
               address,
               total: finalTotal,
@@ -226,6 +230,16 @@ const Checkout = () => {
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-2"><Label>Cidade</Label><Input value={address.city} disabled className="bg-muted border-none min-h-[44px]" /></div>
               <div className="space-y-2"><Label>Estado</Label><Input value={address.state} disabled className="bg-muted border-none min-h-[44px]" /></div>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-2">
+                <Label>CPF</Label>
+                <Input value={customerInfo.cpf} onChange={(e) => setCustomerInfo({ ...customerInfo, cpf: e.target.value.replace(/\D/g, "").slice(0, 11) })} placeholder="000.000.000-00" className="bg-muted border-none min-h-[44px]" inputMode="numeric" />
+              </div>
+              <div className="space-y-2">
+                <Label>Telefone</Label>
+                <Input value={customerInfo.phone} onChange={(e) => setCustomerInfo({ ...customerInfo, phone: e.target.value.replace(/\D/g, "").slice(0, 11) })} placeholder="(91) 99999-9999" className="bg-muted border-none min-h-[44px]" inputMode="tel" />
+              </div>
             </div>
             <Button onClick={() => setStep("review")} disabled={!address.street || !address.number || !address.neighborhood || !address.zip} className="w-full bg-primary text-primary-foreground hover:bg-primary/90 min-h-[44px] mt-4">
               Continuar para Revisão

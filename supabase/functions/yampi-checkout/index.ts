@@ -9,6 +9,31 @@ const corsHeaders = {
 const YAMPI_API_BASE = 'https://api.dooki.com.br/v2';
 const YAMPI_ALIAS = 'elle-make';
 
+function buildCheckoutUrl(customer: any, address: any): string {
+  const base = `https://${YAMPI_ALIAS}.checkout.yampi.com.br`;
+  const params = new URLSearchParams();
+
+  if (customer?.name) {
+    const parts = customer.name.trim().split(' ');
+    params.set('first_name', parts[0] || '');
+    if (parts.length > 1) params.set('last_name', parts.slice(1).join(' '));
+  }
+  if (customer?.email) params.set('email', customer.email);
+  if (customer?.phone) params.set('phone', customer.phone.replace(/\D/g, ''));
+  if (customer?.cpf) params.set('cpf', customer.cpf.replace(/\D/g, ''));
+
+  if (address?.zip) params.set('zipcode', address.zip.replace(/\D/g, ''));
+  if (address?.street) params.set('street', address.street);
+  if (address?.number) params.set('number', address.number);
+  if (address?.complement) params.set('complement', address.complement);
+  if (address?.neighborhood) params.set('neighborhood', address.neighborhood);
+  if (address?.city) params.set('city', address.city);
+  if (address?.state) params.set('state', address.state);
+
+  const qs = params.toString();
+  return qs ? `${base}?${qs}` : base;
+}
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -34,13 +59,14 @@ serve(async (req) => {
     };
 
     if (action === 'create-order') {
-      // Create order in Yampi
       const { items, customer, address, total, discount, coupon_code, supabase_order_id } = payload;
 
-      // First, find or create customer in Yampi
+      // Build pre-filled checkout URL
+      const checkoutUrl = buildCheckoutUrl(customer, address);
+
+      // Find or create customer in Yampi
       let yampiCustomerId: number | null = null;
 
-      // Search for customer by email
       const searchRes = await fetch(
         `${YAMPI_API_BASE}/${YAMPI_ALIAS}/customers?q=${encodeURIComponent(customer.email)}&limit=1`,
         { headers: yampiHeaders }
@@ -50,7 +76,6 @@ serve(async (req) => {
       if (searchData.data && searchData.data.length > 0) {
         yampiCustomerId = searchData.data[0].id;
       } else {
-        // Create customer
         const createCustomerRes = await fetch(
           `${YAMPI_API_BASE}/${YAMPI_ALIAS}/customers`,
           {
@@ -60,17 +85,16 @@ serve(async (req) => {
               first_name: customer.name?.split(' ')[0] || 'Cliente',
               last_name: customer.name?.split(' ').slice(1).join(' ') || '',
               email: customer.email,
-              cpf: customer.cpf || '00000000000',
-              phone: { full_number: customer.phone || '91999999999' },
+              cpf: customer.cpf?.replace(/\D/g, '') || '00000000000',
+              phone: { full_number: customer.phone?.replace(/\D/g, '') || '91999999999' },
             }),
           }
         );
         const customerData = await createCustomerRes.json();
-        if (!createCustomerRes.ok) {
-          console.error('Failed to create customer:', JSON.stringify(customerData));
-          // If customer creation fails, try to proceed with email lookup
-        } else {
+        if (createCustomerRes.ok) {
           yampiCustomerId = customerData.data?.id;
+        } else {
+          console.error('Failed to create customer:', JSON.stringify(customerData));
         }
       }
 
@@ -121,8 +145,6 @@ serve(async (req) => {
 
       if (!orderRes.ok) {
         console.error('Yampi order creation failed:', JSON.stringify(orderData));
-        // Even if Yampi order fails, generate checkout URL
-        const checkoutUrl = `https://${YAMPI_ALIAS}.checkout.yampi.com.br`;
         return new Response(JSON.stringify({
           success: true,
           checkout_url: checkoutUrl,
@@ -135,7 +157,6 @@ serve(async (req) => {
       }
 
       const yampiOrderNumber = orderData.number || orderData.data?.number;
-      const checkoutUrl = `https://${YAMPI_ALIAS}.checkout.yampi.com.br`;
 
       return new Response(JSON.stringify({
         success: true,
@@ -148,17 +169,17 @@ serve(async (req) => {
     }
 
     if (action === 'get-checkout-url') {
-      // Simply return the checkout URL for redirect
+      const { customer, address } = payload;
+      const checkoutUrl = buildCheckoutUrl(customer, address);
       return new Response(JSON.stringify({
         success: true,
-        checkout_url: `https://${YAMPI_ALIAS}.checkout.yampi.com.br`,
+        checkout_url: checkoutUrl,
       }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
 
     if (action === 'webhook') {
-      // Handle Yampi webhook notifications
       const { event, resource } = payload;
       console.log('Yampi webhook received:', event, JSON.stringify(resource));
 
@@ -167,10 +188,8 @@ serve(async (req) => {
       const supabase = createClient(supabaseUrl, supabaseKey);
 
       if (event === 'order.paid') {
-        // Update order status to paid
         const yampiOrderId = resource?.id;
         if (yampiOrderId) {
-          // Find and update matching order by tracking the yampi reference
           console.log(`Order ${yampiOrderId} marked as paid in Yampi`);
         }
       }
