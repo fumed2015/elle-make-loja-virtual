@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { LayoutDashboard, Package, ShoppingCart, Plus, ArrowLeft, TrendingUp, Box, Tag, Star, Users, ImageIcon, Eye, EyeOff, Percent, Trash2, Search, AlertTriangle, CheckCircle, Info, FolderOpen, Pencil, Wand2, Sparkles, Loader2, RefreshCw } from "lucide-react";
+import { LayoutDashboard, Package, ShoppingCart, Plus, ArrowLeft, TrendingUp, Box, Tag, Star, Users, ImageIcon, Eye, EyeOff, Percent, Trash2, Search, AlertTriangle, CheckCircle, Info, FolderOpen, Pencil, Wand2, Sparkles, Loader2, RefreshCw, UserPlus, Cake, MessageCircle, Calendar, Gift } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -19,7 +19,7 @@ import { motion } from "framer-motion";
 
 import AdminProductsPanel from "@/components/admin/AdminProductsPanel";
 
-type Tab = "dashboard" | "products" | "orders" | "add-product" | "coupons" | "reviews" | "influencers" | "seo" | "categories" | "ai-content";
+type Tab = "dashboard" | "products" | "orders" | "add-product" | "coupons" | "reviews" | "influencers" | "seo" | "categories" | "ai-content" | "leads" | "birthdays";
 
 const statusLabels: Record<string, string> = {
   pending: "Pendente", confirmed: "Confirmado", preparing: "Preparando",
@@ -55,6 +55,8 @@ const Admin = () => {
     { id: "coupons" as Tab, label: "Cupons", icon: Tag },
     { id: "reviews" as Tab, label: "Reviews", icon: Star },
     { id: "influencers" as Tab, label: "Influencers", icon: Users },
+    { id: "leads" as Tab, label: "Leads", icon: UserPlus },
+    { id: "birthdays" as Tab, label: "Aniversários", icon: Cake },
     { id: "seo" as Tab, label: "SEO", icon: Search },
     { id: "ai-content" as Tab, label: "IA Conteúdo", icon: Wand2 },
   ];
@@ -84,6 +86,8 @@ const Admin = () => {
       {tab === "reviews" && <ReviewsTab />}
       {tab === "influencers" && <InfluencersTab />}
       {tab === "categories" && <CategoriesTab />}
+      {tab === "leads" && <LeadsTab />}
+      {tab === "birthdays" && <BirthdaysTab />}
       {tab === "seo" && <SEOTab />}
       {tab === "ai-content" && <AIContentTab />}
     </div>
@@ -1174,6 +1178,239 @@ const SEOTab = () => {
           )}
         </>
       )}
+    </div>
+  );
+};
+
+// ========== Leads ==========
+const LeadsTab = () => {
+  const [searchQuery, setSearchQuery] = useState("");
+  const [sortBy, setSortBy] = useState<"recent" | "name">("recent");
+
+  const { data: profiles, isLoading } = useQuery({
+    queryKey: ["admin-leads"],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("profiles").select("*");
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  const { data: orders } = useQuery({
+    queryKey: ["admin-orders-leads"],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("orders").select("user_id, total, status");
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  const getUserOrderStats = (userId: string) => {
+    const userOrders = orders?.filter(o => o.user_id === userId) || [];
+    const totalSpent = userOrders.reduce((s, o) => s + Number(o.total), 0);
+    return { count: userOrders.length, totalSpent };
+  };
+
+  const filtered = profiles?.filter(p => {
+    const q = searchQuery.toLowerCase();
+    return !q || (p.full_name || "").toLowerCase().includes(q) || (p.phone || "").includes(q);
+  }).sort((a, b) => {
+    if (sortBy === "name") return (a.full_name || "").localeCompare(b.full_name || "");
+    return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+  }) || [];
+
+  const getWhatsAppLink = (phone: string, name: string) => {
+    const cleanPhone = phone.replace(/\D/g, "");
+    const fullPhone = cleanPhone.startsWith("55") ? cleanPhone : `55${cleanPhone}`;
+    const msg = encodeURIComponent(`Olá ${name}! 😊 Tudo bem? Aqui é da Michelle Make Store. Vimos que você se cadastrou conosco e gostaríamos de te ajudar a encontrar os melhores produtos de beleza! 💄✨`);
+    return `https://wa.me/${fullPhone}?text=${msg}`;
+  };
+
+  return (
+    <div className="space-y-3">
+      <div className="flex items-center gap-2">
+        <Badge variant="secondary" className="text-[10px]">{filtered.length} leads</Badge>
+        <Select value={sortBy} onValueChange={(v: any) => setSortBy(v)}>
+          <SelectTrigger className="h-7 text-[10px] w-28"><SelectValue /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="recent">Recentes</SelectItem>
+            <SelectItem value="name">Nome</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+      <div className="relative">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
+        <Input value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} placeholder="Buscar por nome ou telefone..." className="pl-9 bg-muted border-none min-h-[36px] text-xs" />
+      </div>
+
+      {isLoading ? <div className="text-center py-4 text-xs text-muted-foreground">Carregando...</div> :
+        filtered.length === 0 ? <p className="text-center text-xs text-muted-foreground py-4">Nenhum lead encontrado</p> :
+        filtered.map(p => {
+          const stats = getUserOrderStats(p.user_id);
+          const hasPhone = !!p.phone;
+          const hasBirthday = !!(p as any).birthday;
+          return (
+            <div key={p.id} className="bg-card rounded-xl p-4 border border-border">
+              <div className="flex items-center justify-between mb-2">
+                <div>
+                  <p className="text-sm font-bold">{p.full_name || "Sem nome"}</p>
+                  <p className="text-[10px] text-muted-foreground">{p.phone || "Sem telefone"} • Cadastro: {new Date(p.created_at).toLocaleDateString("pt-BR")}</p>
+                </div>
+                <div className="flex gap-1">
+                  {hasPhone && (
+                    <a href={getWhatsAppLink(p.phone!, p.full_name || "Cliente")} target="_blank" rel="noopener noreferrer">
+                      <Button variant="outline" size="sm" className="text-[10px] h-7 gap-1 text-accent hover:text-accent"><MessageCircle className="w-3 h-3" />WhatsApp</Button>
+                    </a>
+                  )}
+                </div>
+              </div>
+              <div className="grid grid-cols-3 gap-2 mt-2">
+                <div className="bg-muted rounded-lg p-2 text-center">
+                  <p className="text-[9px] text-muted-foreground">Pedidos</p>
+                  <p className="text-xs font-bold">{stats.count}</p>
+                </div>
+                <div className="bg-muted rounded-lg p-2 text-center">
+                  <p className="text-[9px] text-muted-foreground">Total gasto</p>
+                  <p className="text-xs font-bold">R$ {stats.totalSpent.toFixed(0)}</p>
+                </div>
+                <div className="bg-muted rounded-lg p-2 text-center">
+                  <p className="text-[9px] text-muted-foreground">Aniversário</p>
+                  <p className="text-xs font-bold">{hasBirthday ? new Date((p as any).birthday + "T12:00:00").toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" }) : "—"}</p>
+                </div>
+              </div>
+              <div className="flex flex-wrap gap-1 mt-2">
+                {stats.count === 0 && <Badge variant="outline" className="text-[9px]">Nunca comprou</Badge>}
+                {stats.count > 0 && <Badge className="text-[9px] bg-accent text-accent-foreground">Cliente ativo</Badge>}
+                {hasBirthday && <Badge variant="secondary" className="text-[9px] gap-0.5"><Cake className="w-2.5 h-2.5" />Aniversário cadastrado</Badge>}
+                {!hasPhone && <Badge variant="destructive" className="text-[9px]">Sem telefone</Badge>}
+              </div>
+            </div>
+          );
+        })
+      }
+    </div>
+  );
+};
+
+// ========== Birthdays ==========
+const BirthdaysTab = () => {
+  const [filter, setFilter] = useState<"this-month" | "this-week" | "today" | "all">("this-month");
+
+  const { data: profiles, isLoading } = useQuery({
+    queryKey: ["admin-birthdays"],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("profiles").select("*").not("birthday" as any, "is", null);
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  const now = new Date();
+  const today = now.getDate();
+  const thisMonth = now.getMonth();
+  const thisYear = now.getFullYear();
+
+  const getNextBirthday = (bday: string) => {
+    const d = new Date(bday + "T12:00:00");
+    const next = new Date(thisYear, d.getMonth(), d.getDate());
+    if (next < now) next.setFullYear(thisYear + 1);
+    return next;
+  };
+
+  const daysUntil = (bday: string) => {
+    const next = getNextBirthday(bday);
+    return Math.ceil((next.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+  };
+
+  const filtered = profiles?.filter(p => {
+    const bday = (p as any).birthday;
+    if (!bday) return false;
+    const d = new Date(bday + "T12:00:00");
+    const bMonth = d.getMonth();
+    const bDay = d.getDate();
+    if (filter === "today") return bMonth === thisMonth && bDay === today;
+    if (filter === "this-week") return daysUntil(bday) <= 7;
+    if (filter === "this-month") return bMonth === thisMonth;
+    return true;
+  }).sort((a, b) => daysUntil((a as any).birthday) - daysUntil((b as any).birthday)) || [];
+
+  const getWhatsAppBirthdayLink = (phone: string, name: string) => {
+    const cleanPhone = phone.replace(/\D/g, "");
+    const fullPhone = cleanPhone.startsWith("55") ? cleanPhone : `55${cleanPhone}`;
+    const msg = encodeURIComponent(`🎂 Feliz Aniversário, ${name}! 🎉\n\nA Michelle Make Store preparou um presente especial pra você: 10% de desconto em qualquer compra + um BRINDE exclusivo! 🎁💄\n\nUse o cupom: ANIVER10\n\nVálido por 7 dias. Aproveite! ✨\n\nhttps://michellemakestore.com.br`);
+    return `https://wa.me/${fullPhone}?text=${msg}`;
+  };
+
+  const isToday = (bday: string) => {
+    const d = new Date(bday + "T12:00:00");
+    return d.getMonth() === thisMonth && d.getDate() === today;
+  };
+
+  return (
+    <div className="space-y-3">
+      <div className="flex gap-1.5 flex-wrap">
+        {[
+          { id: "today" as const, label: "Hoje" },
+          { id: "this-week" as const, label: "Esta semana" },
+          { id: "this-month" as const, label: "Este mês" },
+          { id: "all" as const, label: "Todos" },
+        ].map(f => (
+          <button key={f.id} onClick={() => setFilter(f.id)}
+            className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${filter === f.id ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"}`}>
+            {f.label}
+          </button>
+        ))}
+        <Badge variant="secondary" className="text-[10px]">{filtered.length} aniversariantes</Badge>
+      </div>
+
+      {/* Info card about the birthday coupon */}
+      <div className="bg-primary/5 rounded-xl p-3 border border-primary/20">
+        <div className="flex items-start gap-2">
+          <Gift className="w-4 h-4 text-primary mt-0.5" />
+          <div>
+            <p className="text-xs font-bold">Cupom de Aniversário</p>
+            <p className="text-[10px] text-muted-foreground">Ao clicar em "Enviar Parabéns", uma mensagem automática com cupom ANIVER10 (10% de desconto) + brinde será enviada pelo WhatsApp.</p>
+          </div>
+        </div>
+      </div>
+
+      {isLoading ? <div className="text-center py-4 text-xs text-muted-foreground">Carregando...</div> :
+        filtered.length === 0 ? (
+          <p className="text-center text-xs text-muted-foreground py-4">Nenhum aniversariante no período selecionado</p>
+        ) :
+        filtered.map(p => {
+          const bday = (p as any).birthday;
+          const d = new Date(bday + "T12:00:00");
+          const days = daysUntil(bday);
+          const isBdayToday = isToday(bday);
+          const hasPhone = !!p.phone;
+
+          return (
+            <div key={p.id} className={`bg-card rounded-xl p-4 border ${isBdayToday ? "border-primary/50 bg-primary/5" : "border-border"}`}>
+              <div className="flex items-center justify-between">
+                <div>
+                  <div className="flex items-center gap-2">
+                    <p className="text-sm font-bold">{p.full_name || "Sem nome"}</p>
+                    {isBdayToday && <Badge className="text-[9px] bg-primary text-primary-foreground gap-0.5"><Cake className="w-2.5 h-2.5" />Hoje!</Badge>}
+                  </div>
+                  <p className="text-[10px] text-muted-foreground">
+                    📅 {d.toLocaleDateString("pt-BR", { day: "2-digit", month: "long" })}
+                    {!isBdayToday && ` • em ${days} dia${days !== 1 ? "s" : ""}`}
+                  </p>
+                  <p className="text-[10px] text-muted-foreground">{p.phone || "Sem telefone"}</p>
+                </div>
+                {hasPhone && (
+                  <a href={getWhatsAppBirthdayLink(p.phone!, p.full_name || "Cliente")} target="_blank" rel="noopener noreferrer">
+                    <Button size="sm" className={`text-[10px] h-7 gap-1 ${isBdayToday ? "bg-primary text-primary-foreground" : ""}`}>
+                      <MessageCircle className="w-3 h-3" />{isBdayToday ? "🎂 Enviar Parabéns" : "Enviar Mensagem"}
+                    </Button>
+                  </a>
+                )}
+              </div>
+            </div>
+          );
+        })
+      }
     </div>
   );
 };

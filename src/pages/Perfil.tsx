@@ -23,11 +23,14 @@ const Perfil = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
+  const [phone, setPhone] = useState("");
+  const [birthday, setBirthday] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [showAddressForm, setShowAddressForm] = useState(false);
   const [showEditProfile, setShowEditProfile] = useState(false);
   const [editName, setEditName] = useState("");
   const [editPhone, setEditPhone] = useState("");
+  const [editBirthday, setEditBirthday] = useState("");
   const [newAddress, setNewAddress] = useState({
     label: "Casa", street: "", number: "", complement: "",
     neighborhood: "", city: "Belém", state: "PA", zip: "", is_default: false,
@@ -42,8 +45,17 @@ const Perfil = () => {
         if (error) throw error;
         toast.success("Bem-vinda de volta! 💄");
       } else {
-        const { error } = await signUp(email, password, fullName);
+        const { error, data } = await signUp(email, password, fullName);
         if (error) throw error;
+        // Save phone and birthday to profile after signup
+        if (data?.user) {
+          const updates: any = {};
+          if (phone) updates.phone = phone;
+          if (birthday) updates.birthday = birthday;
+          if (Object.keys(updates).length > 0) {
+            await supabase.from("profiles").update(updates).eq("user_id", data.user.id);
+          }
+        }
         toast.success("Conta criada! Verifique seu e-mail para confirmar.");
       }
     } catch (err: any) {
@@ -58,7 +70,8 @@ const Perfil = () => {
     const { error } = await supabase.from("profiles").update({
       full_name: editName || null,
       phone: editPhone || null,
-    }).eq("user_id", user.id);
+      birthday: editBirthday || null,
+    } as any).eq("user_id", user.id);
     if (error) toast.error("Erro ao salvar");
     else { toast.success("Perfil atualizado!"); setShowEditProfile(false); }
   };
@@ -94,10 +107,20 @@ const Perfil = () => {
           </div>
           <form onSubmit={handleSubmit} className="space-y-4">
             {!isLogin && (
+              <>
               <div className="space-y-2">
                 <Label htmlFor="name">Nome completo</Label>
                 <Input id="name" value={fullName} onChange={(e) => setFullName(e.target.value)} placeholder="Seu nome" className="bg-muted border-none min-h-[44px]" required />
               </div>
+              <div className="space-y-2">
+                <Label htmlFor="phone">Telefone (WhatsApp)</Label>
+                <Input id="phone" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="(91) 99999-9999" className="bg-muted border-none min-h-[44px]" />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="birthday">Data de Nascimento</Label>
+                <Input id="birthday" type="date" value={birthday} onChange={(e) => setBirthday(e.target.value)} className="bg-muted border-none min-h-[44px]" />
+              </div>
+              </>
             )}
             <div className="space-y-2">
               <Label htmlFor="email">E-mail</Label>
@@ -187,6 +210,10 @@ const Perfil = () => {
               <div className="space-y-2">
                 <Label>Telefone</Label>
                 <Input value={editPhone} onChange={(e) => setEditPhone(e.target.value)} placeholder="(91) 99999-9999" className="bg-muted border-none min-h-[44px]" />
+              </div>
+              <div className="space-y-2">
+                <Label>Data de Nascimento</Label>
+                <Input type="date" value={editBirthday} onChange={(e) => setEditBirthday(e.target.value)} className="bg-muted border-none min-h-[44px]" />
               </div>
               <Button onClick={handleSaveProfile} size="sm" className="bg-primary text-primary-foreground text-xs press-scale">Salvar</Button>
             </div>

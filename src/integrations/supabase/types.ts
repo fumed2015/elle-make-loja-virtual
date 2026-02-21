@@ -429,6 +429,7 @@ export type Database = {
         Row: {
           address: Json | null
           avatar_url: string | null
+          birthday: string | null
           created_at: string
           full_name: string | null
           id: string
@@ -441,6 +442,7 @@ export type Database = {
         Insert: {
           address?: Json | null
           avatar_url?: string | null
+          birthday?: string | null
           created_at?: string
           full_name?: string | null
           id?: string
@@ -453,6 +455,7 @@ export type Database = {
         Update: {
           address?: Json | null
           avatar_url?: string | null
+          birthday?: string | null
           created_at?: string
           full_name?: string | null
           id?: string
