@@ -1,4 +1,5 @@
-import { Search, User, ShoppingBag, MessageCircle, ChevronDown } from "lucide-react";
+import { Search, User, ShoppingBag, ChevronDown } from "lucide-react";
+import WhatsAppIcon from "@/components/icons/WhatsAppIcon";
 import { Link, useNavigate } from "react-router-dom";
 import { Input } from "@/components/ui/input";
 import { useCart } from "@/hooks/useCart";
@@ -135,11 +136,11 @@ const Header = () => {
 
           {/* Icons */}
           <div className="flex items-center gap-1">
-            <Link to="/consultora" className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-muted transition-colors" aria-label="Consultora">
+            <a href="https://wa.me/5591983045531?text=Olá! Gostaria de saber mais sobre os produtos" target="_blank" rel="noopener noreferrer" className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-muted transition-colors" aria-label="WhatsApp">
               <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
-                <MessageCircle className="w-5 h-5 text-foreground" />
+                <WhatsAppIcon className="w-5 h-5 text-accent" />
               </motion.div>
-            </Link>
+            </a>
             <Link to="/perfil" className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-muted transition-colors" aria-label="Perfil">
               <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
                 <User className="w-5 h-5 text-foreground" />
