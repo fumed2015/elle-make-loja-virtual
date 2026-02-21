@@ -103,6 +103,25 @@ const DashboardTab = () => {
   const [syncing, setSyncing] = useState(false);
   const [syncResult, setSyncResult] = useState<any>(null);
 
+  // User analytics queries
+  const { data: profiles } = useQuery({
+    queryKey: ["admin-profiles-dashboard"],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("profiles").select("*");
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  const { data: userRoles } = useQuery({
+    queryKey: ["admin-user-roles-dashboard"],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("user_roles").select("*");
+      if (error) throw error;
+      return data;
+    },
+  });
+
   useState(() => {
     supabase.functions.invoke('yampi-checkout', {
       body: { action: 'get-checkout-url' },
@@ -132,6 +151,28 @@ const DashboardTab = () => {
   const pendingOrders = orders?.filter((o) => o.status === "pending").length || 0;
   const activeInfluencers = influencers?.filter((i) => i.is_active).length || 0;
   const productsNoDesc = products?.filter(p => !p.description || p.description.length < 30).length || 0;
+
+  // User analytics
+  const totalUsers = profiles?.length || 0;
+  const roleCounts = userRoles?.reduce((acc, r) => {
+    acc[r.role] = (acc[r.role] || 0) + 1;
+    return acc;
+  }, {} as Record<string, number>) || {};
+
+  const now = new Date();
+  const last7Days = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+  const last30Days = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+  const recentSignups7d = profiles?.filter(p => new Date(p.created_at) >= last7Days).length || 0;
+  const recentSignups30d = profiles?.filter(p => new Date(p.created_at) >= last30Days).length || 0;
+
+  // Users who placed orders (active buyers)
+  const buyerIds = new Set(orders?.map(o => o.user_id) || []);
+  const activeBuyers = buyerIds.size;
+  const conversionRate = totalUsers > 0 ? ((activeBuyers / totalUsers) * 100).toFixed(1) : "0";
+
+  // Birthday stats
+  const usersWithBirthday = profiles?.filter(p => (p as any).birthday).length || 0;
+  const usersWithPhone = profiles?.filter(p => p.phone).length || 0;
 
   const stats = [
     { label: "Receita Total", value: `R$ ${totalRevenue.toFixed(2).replace(".", ",")}`, icon: TrendingUp },
@@ -213,6 +254,7 @@ const DashboardTab = () => {
         </div>
       </motion.div>
 
+      {/* Main Stats */}
       <div className="grid grid-cols-2 gap-3">
         {stats.map((stat, i) => (
           <motion.div key={stat.label} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.1 }}
@@ -223,6 +265,71 @@ const DashboardTab = () => {
           </motion.div>
         ))}
       </div>
+
+      {/* User Analytics Section */}
+      <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}
+        className="bg-card rounded-xl p-4 border border-border space-y-4">
+        <div className="flex items-center gap-2">
+          <Users className="w-4 h-4 text-primary" />
+          <h3 className="text-sm font-bold">Usuários & Atividade</h3>
+          <Badge variant="secondary" className="text-[10px]">{totalUsers} cadastrados</Badge>
+        </div>
+
+        {/* User stats grid */}
+        <div className="grid grid-cols-3 gap-2">
+          <div className="bg-muted rounded-lg p-3 text-center">
+            <p className="text-lg font-bold">{totalUsers}</p>
+            <p className="text-[9px] text-muted-foreground">Total Usuários</p>
+          </div>
+          <div className="bg-muted rounded-lg p-3 text-center">
+            <p className="text-lg font-bold text-accent">{activeBuyers}</p>
+            <p className="text-[9px] text-muted-foreground">Compradores</p>
+          </div>
+          <div className="bg-muted rounded-lg p-3 text-center">
+            <p className="text-lg font-bold text-primary">{conversionRate}%</p>
+            <p className="text-[9px] text-muted-foreground">Conversão</p>
+          </div>
+        </div>
+
+        {/* Signups */}
+        <div className="grid grid-cols-2 gap-2">
+          <div className="bg-muted rounded-lg p-3">
+            <p className="text-[9px] text-muted-foreground uppercase font-bold">Últimos 7 dias</p>
+            <p className="text-sm font-bold">{recentSignups7d} <span className="text-[10px] text-muted-foreground font-normal">novos cadastros</span></p>
+          </div>
+          <div className="bg-muted rounded-lg p-3">
+            <p className="text-[9px] text-muted-foreground uppercase font-bold">Últimos 30 dias</p>
+            <p className="text-sm font-bold">{recentSignups30d} <span className="text-[10px] text-muted-foreground font-normal">novos cadastros</span></p>
+          </div>
+        </div>
+
+        {/* Roles breakdown */}
+        <div className="space-y-2">
+          <p className="text-[10px] font-bold text-muted-foreground uppercase">Papéis</p>
+          <div className="flex flex-wrap gap-1.5">
+            {Object.entries(roleCounts).map(([role, count]) => (
+              <Badge key={role} variant="outline" className="text-[10px] gap-1">
+                {role === "admin" ? "👑" : role === "moderator" ? "🛡️" : role === "staff" ? "🏷️" : "👤"} {role}: {count}
+              </Badge>
+            ))}
+          </div>
+        </div>
+
+        {/* Data completeness */}
+        <div className="space-y-2">
+          <p className="text-[10px] font-bold text-muted-foreground uppercase">Completude dos Dados</p>
+          <div className="grid grid-cols-2 gap-2">
+            <div className="flex items-center justify-between bg-muted rounded-lg px-3 py-2">
+              <span className="text-[10px] text-muted-foreground">Com telefone</span>
+              <span className="text-xs font-bold">{usersWithPhone}/{totalUsers}</span>
+            </div>
+            <div className="flex items-center justify-between bg-muted rounded-lg px-3 py-2">
+              <span className="text-[10px] text-muted-foreground">Com aniversário</span>
+              <span className="text-xs font-bold">{usersWithBirthday}/{totalUsers}</span>
+            </div>
+          </div>
+        </div>
+      </motion.div>
     </div>
   );
 };
