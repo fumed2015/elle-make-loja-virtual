@@ -20,6 +20,8 @@ export const useProducts = (options?: { featured?: boolean; categorySlug?: strin
       if (error) throw error;
       return data;
     },
+    staleTime: 1000 * 60 * 5, // 5 min cache
+    gcTime: 1000 * 60 * 10,   // 10 min GC
   });
 };
 
@@ -36,6 +38,7 @@ export const useProduct = (slug: string) => {
       return data;
     },
     enabled: !!slug,
+    staleTime: 1000 * 60 * 5,
   });
 };
 
@@ -47,5 +50,25 @@ export const useCategories = () => {
       if (error) throw error;
       return data;
     },
+    staleTime: 1000 * 60 * 10, // 10 min cache — categories rarely change
+    gcTime: 1000 * 60 * 30,
+  });
+};
+
+// Unified query: fetches all products once, used by Index to derive featured + offers + more
+export const useAllProductsUnified = () => {
+  return useQuery({
+    queryKey: ["products-unified"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("products")
+        .select("*, categories(name, slug)")
+        .eq("is_active", true)
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return data || [];
+    },
+    staleTime: 1000 * 60 * 5,
+    gcTime: 1000 * 60 * 10,
   });
 };
