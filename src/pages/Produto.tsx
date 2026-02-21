@@ -168,6 +168,10 @@ const Produto = () => {
           </div>
         )}
 
+        <div className="bg-primary/10 rounded-lg p-2.5 flex items-center justify-center gap-2">
+          <span className="text-xs font-semibold text-primary">🛵 Belém e Ananindeua: entrega em até 3 horas!</span>
+        </div>
+
         <div className="flex items-center gap-3 pt-2">
           <div className="flex items-center gap-2 bg-muted rounded-lg p-1">
             <button onClick={() => setQty(Math.max(1, qty - 1))} className="w-9 h-9 flex items-center justify-center rounded-md hover:bg-background transition-colors">

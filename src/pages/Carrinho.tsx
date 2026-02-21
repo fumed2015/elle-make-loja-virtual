@@ -108,6 +108,9 @@ const Carrinho = () => {
             R$ {cartTotal.toFixed(2).replace(".", ",")}
           </span>
         </div>
+        <div className="bg-primary/10 rounded-lg p-2.5 text-center">
+          <p className="text-xs font-semibold text-primary">🛵 Belém e Ananindeua: entrega em até 3 horas!</p>
+        </div>
         <Button asChild className="w-full bg-primary text-primary-foreground shadow-marsala hover:bg-primary/90 min-h-[44px] press-scale">
           <Link to="/checkout">
             Finalizar Compra <ArrowRight className="w-4 h-4 ml-1" />
