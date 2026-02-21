@@ -52,26 +52,28 @@ const Explorar = () => {
 
       {/* Category filters */}
       <div className="flex gap-2 overflow-x-auto pb-3 scrollbar-hide mb-4">
-        <button
+        <motion.button
+          whileTap={{ scale: 0.9 }}
           onClick={() => handleCatFilter("")}
           className={cn(
-            "flex-shrink-0 px-3 py-1.5 rounded-full text-xs font-medium transition-colors min-h-[36px]",
+            "flex-shrink-0 px-3 py-1.5 rounded-full text-xs font-medium transition-colors min-h-[36px] press-scale",
             !activeCat ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"
           )}
         >
           Todos
-        </button>
+        </motion.button>
         {categories?.map((cat) => (
-          <button
+          <motion.button
             key={cat.id}
+            whileTap={{ scale: 0.9 }}
             onClick={() => handleCatFilter(cat.slug)}
             className={cn(
-              "flex-shrink-0 px-3 py-1.5 rounded-full text-xs font-medium transition-colors min-h-[36px]",
+              "flex-shrink-0 px-3 py-1.5 rounded-full text-xs font-medium transition-colors min-h-[36px] press-scale",
               activeCat === cat.slug ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"
             )}
           >
             {cat.name}
-          </button>
+          </motion.button>
         ))}
       </div>
 

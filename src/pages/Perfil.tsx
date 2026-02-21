@@ -107,7 +107,7 @@ const Perfil = () => {
               <Label htmlFor="password">Senha</Label>
               <Input id="password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="••••••••" className="bg-muted border-none min-h-[44px]" required />
             </div>
-            <Button type="submit" disabled={submitting} className="w-full bg-gradient-gold text-primary-foreground shadow-gold hover:opacity-90 min-h-[44px]">
+            <Button type="submit" disabled={submitting} className="w-full bg-primary text-primary-foreground shadow-marsala hover:bg-primary/90 min-h-[44px] press-scale">
               {submitting ? "Carregando..." : isLogin ? "Entrar" : "Criar conta"}
             </Button>
           </form>
@@ -128,7 +128,7 @@ const Perfil = () => {
     <div className="px-4 pt-8 pb-24 max-w-lg mx-auto">
       {/* Header */}
       <div className="flex items-center gap-4 mb-4">
-        <div className="w-14 h-14 rounded-full bg-gradient-gold flex items-center justify-center text-primary-foreground font-bold text-lg">
+        <div className="w-14 h-14 rounded-full bg-gradient-marsala flex items-center justify-center text-primary-foreground font-bold text-lg">
           {user.email?.charAt(0).toUpperCase()}
         </div>
         <div className="flex-1">
@@ -154,20 +154,20 @@ const Perfil = () => {
 
       {/* Menu */}
       <div className="space-y-2 mb-6">
-        <Link to="/pedidos" className="w-full flex items-center gap-3 p-4 rounded-xl bg-card border border-border hover:bg-muted transition-colors min-h-[44px]">
+        <Link to="/pedidos" className="w-full flex items-center gap-3 p-4 rounded-xl bg-card border border-border hover:bg-muted hover-lift min-h-[44px]">
           <Package className="w-5 h-5 text-muted-foreground" />
           <span className="text-sm font-medium">Meus Pedidos</span>
         </Link>
-        <Link to="/favoritos" className="w-full flex items-center gap-3 p-4 rounded-xl bg-card border border-border hover:bg-muted transition-colors min-h-[44px]">
+        <Link to="/favoritos" className="w-full flex items-center gap-3 p-4 rounded-xl bg-card border border-border hover:bg-muted hover-lift min-h-[44px]">
           <Heart className="w-5 h-5 text-muted-foreground" />
           <span className="text-sm font-medium">Favoritos</span>
         </Link>
-        <button onClick={() => { setEditName(user.user_metadata?.full_name || ""); setShowEditProfile(!showEditProfile); }} className="w-full flex items-center gap-3 p-4 rounded-xl bg-card border border-border hover:bg-muted transition-colors min-h-[44px]">
+        <button onClick={() => { setEditName(user.user_metadata?.full_name || ""); setShowEditProfile(!showEditProfile); }} className="w-full flex items-center gap-3 p-4 rounded-xl bg-card border border-border hover:bg-muted hover-lift min-h-[44px]">
           <User className="w-5 h-5 text-muted-foreground" />
           <span className="text-sm font-medium">Dados Pessoais</span>
         </button>
         {isAdmin && (
-          <Link to="/admin" className="w-full flex items-center gap-3 p-4 rounded-xl bg-card border border-primary/30 hover:bg-muted transition-colors min-h-[44px]">
+          <Link to="/admin" className="w-full flex items-center gap-3 p-4 rounded-xl bg-card border border-primary/30 hover:bg-muted hover-lift min-h-[44px]">
             <Shield className="w-5 h-5 text-primary" />
             <span className="text-sm font-medium text-primary">Painel Admin</span>
           </Link>
@@ -188,7 +188,7 @@ const Perfil = () => {
                 <Label>Telefone</Label>
                 <Input value={editPhone} onChange={(e) => setEditPhone(e.target.value)} placeholder="(91) 99999-9999" className="bg-muted border-none min-h-[44px]" />
               </div>
-              <Button onClick={handleSaveProfile} size="sm" className="bg-gradient-gold text-primary-foreground text-xs">Salvar</Button>
+              <Button onClick={handleSaveProfile} size="sm" className="bg-primary text-primary-foreground text-xs press-scale">Salvar</Button>
             </div>
           </motion.div>
         )}
@@ -224,7 +224,7 @@ const Perfil = () => {
                   <div className="space-y-1"><Label className="text-xs">Bairro</Label><Input value={newAddress.neighborhood} onChange={(e) => setNewAddress({ ...newAddress, neighborhood: e.target.value })} className="bg-muted border-none min-h-[36px] text-xs" /></div>
                   <div className="space-y-1"><Label className="text-xs">CEP</Label><Input value={newAddress.zip} onChange={(e) => setNewAddress({ ...newAddress, zip: e.target.value })} className="bg-muted border-none min-h-[36px] text-xs" /></div>
                 </div>
-                <Button onClick={handleSaveAddress} disabled={saveAddress.isPending} size="sm" className="bg-gradient-gold text-primary-foreground text-xs">
+                <Button onClick={handleSaveAddress} disabled={saveAddress.isPending} size="sm" className="bg-primary text-primary-foreground text-xs press-scale">
                   {saveAddress.isPending ? "Salvando..." : "Salvar Endereço"}
                 </Button>
               </div>
