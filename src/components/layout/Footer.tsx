@@ -51,9 +51,9 @@ const Footer = () => {
 
       {/* Footer */}
       <footer className="bg-foreground text-background/70 px-4 pt-10 pb-24 md:pb-10">
-        <div className="max-w-5xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-8">
+        <div className="max-w-5xl mx-auto grid grid-cols-4 gap-6 md:gap-8">
           {/* Brand */}
-          <div className="col-span-2 md:col-span-1 space-y-4">
+          <div className="space-y-3">
             <h3 className="text-lg font-bold text-background tracking-wider">ELLE MAKE</h3>
             <p className="text-xs leading-relaxed text-background/50">
               Maquiagem e cosméticos com entrega rápida em Belém do Pará.
