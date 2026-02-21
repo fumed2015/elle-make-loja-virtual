@@ -249,14 +249,16 @@ const Header = () => {
       </div>
 
       {/* Navigation */}
-      <nav className="bg-primary overflow-x-auto scrollbar-hide relative">
-        <div className="max-w-5xl mx-auto flex items-center px-1 md:px-2 md:justify-between">
+      <nav
+        className="bg-primary overflow-visible relative"
+        onMouseLeave={handleMouseLeave}
+      >
+        <div className="max-w-5xl mx-auto flex items-center px-1 md:px-2 md:justify-between overflow-x-auto scrollbar-hide">
           {navLinks.map((link) => (
             <div
               key={link.label}
               className="relative flex-shrink-0"
               onMouseEnter={() => handleMouseEnter(link.label)}
-              onMouseLeave={handleMouseLeave}
             >
               <Link
                 to={link.to}
@@ -266,39 +268,46 @@ const Header = () => {
                 {link.subs && <ChevronDown className="w-2.5 h-2.5 md:w-3 md:h-3" />}
                 <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-0 h-0.5 bg-primary-foreground/50 group-hover:w-3/4 transition-all duration-300" />
               </Link>
-
-              <AnimatePresence>
-                {link.subs && hoveredNav === link.label && (
-                  <motion.div
-                    initial={{ opacity: 0, y: -4 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -4 }}
-                    transition={{ duration: 0.15 }}
-                    className="absolute top-full left-0 z-50 min-w-[180px] bg-card border border-border rounded-lg shadow-lg py-1.5 mt-0"
-                  >
-                    {link.subs.map((sub) => (
-                      <Link
-                        key={sub.label}
-                        to={sub.to}
-                        className="block px-4 py-2 text-sm text-foreground hover:bg-muted transition-colors whitespace-nowrap"
-                      >
-                        {sub.label}
-                      </Link>
-                    ))}
-                    <div className="border-t border-border mt-1 pt-1">
-                      <Link
-                        to={link.to}
-                        className="block px-4 py-2 text-xs font-semibold text-primary hover:bg-muted transition-colors"
-                      >
-                        Ver tudo em {link.label}
-                      </Link>
-                    </div>
-                  </motion.div>
-                )}
-              </AnimatePresence>
             </div>
           ))}
         </div>
+
+        {/* Mega menu panel */}
+        <AnimatePresence>
+          {hoveredNav && navLinks.find(l => l.label === hoveredNav)?.subs && (
+            <motion.div
+              initial={{ opacity: 0, y: -4 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -4 }}
+              transition={{ duration: 0.15 }}
+              className="absolute top-full left-0 w-full z-50 bg-card border-b border-border shadow-lg"
+              onMouseEnter={() => handleMouseEnter(hoveredNav)}
+              onMouseLeave={handleMouseLeave}
+            >
+              <div className="max-w-5xl mx-auto px-6 py-5">
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-x-8 gap-y-3">
+                  {navLinks.find(l => l.label === hoveredNav)?.subs?.map((sub) => (
+                    <Link
+                      key={sub.label}
+                      to={sub.to}
+                      className="text-sm text-foreground hover:text-primary font-medium transition-colors whitespace-nowrap"
+                    >
+                      {sub.label}
+                    </Link>
+                  ))}
+                </div>
+                <div className="border-t border-border mt-4 pt-3">
+                  <Link
+                    to={navLinks.find(l => l.label === hoveredNav)?.to || "/explorar"}
+                    className="text-xs font-semibold text-primary hover:underline"
+                  >
+                    Ver tudo em {hoveredNav} →
+                  </Link>
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </nav>
     </header>
   );
