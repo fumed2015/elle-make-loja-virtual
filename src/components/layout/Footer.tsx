@@ -74,13 +74,12 @@ const Footer = () => {
             <h4 className="text-[11px] font-bold text-background uppercase tracking-wider mb-4">Institucional</h4>
             <ul className="space-y-2.5">
               {[
-                { label: "Sobre Nós", to: "/" },
+                { label: "Sobre Nós", to: "/sobre" },
+                { label: "Política de Privacidade", to: "/privacidade" },
+                { label: "Termos de Uso", to: "/termos" },
                 { label: "Contato", to: "/consultora" },
-                { label: "Dúvidas Frequentes", to: "/" },
-                { label: "Programa de Fidelidade", to: "/" },
-                { label: "Formas de Pagamento", to: "/" },
-                { label: "Regulamento de Entrega", to: "/" },
-                { label: "Trocas e Devoluções", to: "/" },
+                { label: "Programa de Fidelidade", to: "/perfil" },
+                { label: "Trocas e Devoluções", to: "/termos" },
               ].map((link) => (
                 <li key={link.label}>
                   <Link to={link.to} className="text-xs hover:text-background transition-colors">
@@ -141,7 +140,11 @@ const Footer = () => {
         {/* Bottom bar */}
         <div className="max-w-5xl mx-auto mt-8 pt-5 border-t border-background/10 flex flex-col md:flex-row items-center justify-between gap-3">
           <p className="text-[10px] text-background/40">© 2026 Elle Make. Todos os direitos reservados.</p>
-          <p className="text-[10px] text-background/30">🛵 Belém e Ananindeua: entrega em até 3 horas!</p>
+          <div className="flex gap-3 text-[10px] text-background/30">
+            <Link to="/privacidade" className="hover:text-background/50 transition-colors">Privacidade</Link>
+            <Link to="/termos" className="hover:text-background/50 transition-colors">Termos</Link>
+            <span>🛵 Belém e Ananindeua: entrega em até 3h</span>
+          </div>
         </div>
       </footer>
     </>
