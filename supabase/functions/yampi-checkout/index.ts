@@ -163,105 +163,57 @@ serve(async (req) => {
 
       const checkoutUrl = buildCheckoutUrl({ ...customer, coupon_code }, address);
 
-      // Find or create customer in Yampi
+      // Try to find or create customer in Yampi for tracking purposes
       let yampiCustomerId: number | null = null;
-
-      const searchRes = await fetch(
-        `${YAMPI_API_BASE}/${YAMPI_ALIAS}/customers?q=${encodeURIComponent(customer.email)}&limit=1`,
-        { headers: yampiHeaders }
-      );
-      const searchData = await searchRes.json();
-
-      if (searchData.data && searchData.data.length > 0) {
-        yampiCustomerId = searchData.data[0].id;
-      } else {
-        const createCustomerRes = await fetch(
-          `${YAMPI_API_BASE}/${YAMPI_ALIAS}/customers`,
-          {
-            method: 'POST',
-            headers: yampiHeaders,
-            body: JSON.stringify({
-              first_name: customer.name?.split(' ')[0] || 'Cliente',
-              last_name: customer.name?.split(' ').slice(1).join(' ') || '',
-              email: customer.email,
-              cpf: customer.cpf?.replace(/\D/g, '') || '00000000000',
-              phone: { full_number: customer.phone?.replace(/\D/g, '') || '91999999999' },
-            }),
-          }
+      try {
+        const searchRes = await fetch(
+          `${YAMPI_API_BASE}/${YAMPI_ALIAS}/customers?q=${encodeURIComponent(customer.email)}&limit=1`,
+          { headers: yampiHeaders }
         );
-        const customerData = await createCustomerRes.json();
-        if (createCustomerRes.ok) {
-          yampiCustomerId = customerData.data?.id;
+        const searchData = await searchRes.json();
+
+        if (searchData.data && searchData.data.length > 0) {
+          yampiCustomerId = searchData.data[0].id;
         } else {
-          console.error('Failed to create customer:', JSON.stringify(customerData));
+          const cleanPhone = (customer.phone || '').replace(/\D/g, '');
+          const fullPhone = cleanPhone.startsWith('55') ? cleanPhone : `55${cleanPhone}`;
+          const nameParts = (customer.name || 'Cliente').trim().split(' ');
+
+          const createRes = await fetch(
+            `${YAMPI_API_BASE}/${YAMPI_ALIAS}/customers`,
+            {
+              method: 'POST',
+              headers: yampiHeaders,
+              body: JSON.stringify({
+                first_name: nameParts[0],
+                last_name: nameParts.slice(1).join(' ') || nameParts[0],
+                name: customer.name || 'Cliente',
+                email: customer.email,
+                cpf: (customer.cpf || '').replace(/\D/g, ''),
+                type: 'f',
+                phone: { full_number: fullPhone },
+                homephone: { full_number: fullPhone },
+              }),
+            }
+          );
+          const createData = await createRes.json();
+          if (createRes.ok) {
+            yampiCustomerId = createData.data?.id;
+            console.log('Yampi customer created:', yampiCustomerId);
+          } else {
+            console.warn('Yampi customer creation skipped:', JSON.stringify(createData));
+          }
         }
+      } catch (custErr) {
+        console.warn('Yampi customer lookup skipped:', String(custErr));
       }
 
-      // Create the order
-      const orderPayload: Record<string, any> = {
-        status: 'waiting_payment',
-        customer_id: yampiCustomerId || 1,
-        value_total: total,
-        value_products: total + (discount || 0),
-        value_discount: discount || 0,
-        value_shipment: 0,
-        shipment_service: 'Entrega Local',
-        days_delivery: 1,
-        ip: '0.0.0.0',
-        items: items.map((item: any, index: number) => ({
-          product_id: index + 1,
-          sku_id: index + 1,
-          sku: item.product_id,
-          quantity: item.quantity,
-          price: item.price,
-          gift: false,
-          gift_value: 0,
-          has_recomm: false,
-        })),
-        address: [
-          {
-            receiver: customer.name || 'Cliente',
-            zipcode: address.zip?.replace(/\D/g, '') || '66000000',
-            street: address.street || '',
-            number: address.number || 'S/N',
-            neighborhood: address.neighborhood || '',
-            city: address.city || 'Belém',
-            uf: address.state || 'PA',
-          },
-        ],
-      };
-
-      const orderRes = await fetch(
-        `${YAMPI_API_BASE}/${YAMPI_ALIAS}/orders`,
-        {
-          method: 'POST',
-          headers: yampiHeaders,
-          body: JSON.stringify(orderPayload),
-        }
-      );
-
-      const orderData = await orderRes.json();
-
-      if (!orderRes.ok) {
-        console.error('Yampi order creation failed:', JSON.stringify(orderData));
-        return new Response(JSON.stringify({
-          success: true,
-          checkout_url: checkoutUrl,
-          yampi_order: null,
-          fallback: true,
-          message: 'Redirecionando ao checkout Yampi',
-        }), {
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        });
-      }
-
-      const yampiOrderNumber = orderData.number || orderData.data?.number;
-
+      // Redirect to Yampi checkout with pre-filled data
+      // Order is already saved in our database; Yampi checkout handles payment
       return new Response(JSON.stringify({
         success: true,
         checkout_url: checkoutUrl,
-        yampi_order_number: yampiOrderNumber,
-        yampi_order_id: orderData.data?.id || orderData.id,
+        yampi_customer_id: yampiCustomerId,
       }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
