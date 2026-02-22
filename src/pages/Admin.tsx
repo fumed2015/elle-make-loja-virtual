@@ -157,7 +157,8 @@ const DashboardTab = () => {
     },
   });
 
-  const totalRevenue = orders?.reduce((sum, o) => sum + Number(o.total), 0) || 0;
+  const activeOrders = orders?.filter(o => o.status !== "cancelled" && o.status !== "refunded") || [];
+  const totalRevenue = activeOrders.reduce((sum, o) => sum + Number(o.total), 0);
   const totalOrders = orders?.length || 0;
   const totalProducts = products?.length || 0;
   const pendingOrders = orders?.filter((o) => o.status === "pending").length || 0;
