@@ -102,20 +102,26 @@ const OrdersManagementTab = () => {
     let today = 0;
     let todayRevenue = 0;
     const todayStr = new Date().toDateString();
+    let activeCount = 0;
 
     for (const o of orders) {
       byStatus[o.status] = (byStatus[o.status] || 0) + 1;
-      revenue += Number(o.total);
+      if (o.status !== "cancelled" && o.status !== "refunded") {
+        revenue += Number(o.total);
+        activeCount++;
+      }
       if (new Date(o.created_at).toDateString() === todayStr) {
         today++;
-        todayRevenue += Number(o.total);
+        if (o.status !== "cancelled" && o.status !== "refunded") {
+          todayRevenue += Number(o.total);
+        }
       }
     }
 
     return {
       total: orders.length,
       revenue,
-      avgTicket: orders.length > 0 ? revenue / orders.length : 0,
+      avgTicket: activeCount > 0 ? revenue / activeCount : 0,
       byStatus,
       today,
       todayRevenue,
