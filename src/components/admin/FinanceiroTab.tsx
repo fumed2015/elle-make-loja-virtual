@@ -6,12 +6,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
+import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { motion } from "framer-motion";
 import {
   DollarSign, Package, TrendingUp, Calculator, Save, Loader2,
-  Percent, Truck, ShoppingCart, Settings2,
+  Truck, ShoppingCart, Settings2, Pencil,
   AlertTriangle, CheckCircle, Search
 } from "lucide-react";
 import { toast } from "sonner";
@@ -20,9 +21,17 @@ import { toast } from "sonner";
 interface FinancialPremises {
   id: string;
   fixed_cost_platform: number;
+  fixed_cost_platform_label: string;
   fixed_cost_whatsgw: number;
+  fixed_cost_whatsgw_label: string;
   fixed_cost_other: number;
   fixed_cost_other_label: string;
+  fixed_cost_extra1: number;
+  fixed_cost_extra1_label: string;
+  fixed_cost_extra2: number;
+  fixed_cost_extra2_label: string;
+  fixed_cost_extra3: number;
+  fixed_cost_extra3_label: string;
   marketing_budget: number;
   order_target: number;
   packaging_cost: number;
@@ -47,9 +56,17 @@ interface ProductCost {
 
 const DEFAULT_PREMISES: Omit<FinancialPremises, "id"> = {
   fixed_cost_platform: 69,
+  fixed_cost_platform_label: "Nuvemshop",
   fixed_cost_whatsgw: 99,
+  fixed_cost_whatsgw_label: "WhatsGW",
   fixed_cost_other: 0,
   fixed_cost_other_label: "",
+  fixed_cost_extra1: 0,
+  fixed_cost_extra1_label: "",
+  fixed_cost_extra2: 0,
+  fixed_cost_extra2_label: "",
+  fixed_cost_extra3: 0,
+  fixed_cost_extra3_label: "",
   marketing_budget: 0,
   order_target: 100,
   packaging_cost: 2.5,
@@ -67,7 +84,6 @@ const DEFAULT_PREMISES: Omit<FinancialPremises, "id"> = {
 const fmt = (v: number) => `R$ ${v.toFixed(2).replace(".", ",")}`;
 const fmtPct = (v: number) => `${v.toFixed(1)}%`;
 
-/** Returns the gateway % rate for a given payment method */
 const getGatewayRate = (premises: FinancialPremises, method: string | null): { pct: number; fixed: number } => {
   switch (method) {
     case "pix": return { pct: Number(premises.gateway_rate_pix), fixed: 0 };
@@ -80,15 +96,59 @@ const getGatewayRate = (premises: FinancialPremises, method: string | null): { p
   }
 };
 
+/** Editable label+value row for fixed costs */
+const EditableCostRow = ({ label, labelField, valueField, premises, onUpdate }: {
+  label: string;
+  labelField: keyof FinancialPremises;
+  valueField: keyof FinancialPremises;
+  premises: Partial<FinancialPremises> | undefined;
+  onUpdate: (field: keyof FinancialPremises, value: string) => void;
+}) => {
+  const [editingLabel, setEditingLabel] = useState(false);
+  const currentLabel = String(premises?.[labelField] ?? label);
+  const currentValue = premises?.[valueField] ?? 0;
+
+  return (
+    <div className="space-y-1">
+      <div className="flex items-center gap-1">
+        {editingLabel ? (
+          <Input
+            value={currentLabel}
+            onChange={e => onUpdate(labelField, e.target.value)}
+            onBlur={() => setEditingLabel(false)}
+            onKeyDown={e => e.key === "Enter" && setEditingLabel(false)}
+            autoFocus
+            className="h-5 text-[10px] px-1 py-0 border-primary"
+          />
+        ) : (
+          <button
+            onClick={() => setEditingLabel(true)}
+            className="flex items-center gap-1 text-[10px] text-muted-foreground hover:text-foreground transition-colors group"
+          >
+            <span>{currentLabel || "Sem nome (clique para editar)"}</span>
+            <Pencil className="w-2.5 h-2.5 opacity-0 group-hover:opacity-100 transition-opacity" />
+          </button>
+        )}
+      </div>
+      <Input
+        type="number"
+        step="0.01"
+        value={currentValue as number}
+        onChange={e => onUpdate(valueField, e.target.value)}
+        className="h-9 text-xs"
+      />
+    </div>
+  );
+};
+
 const FinanceiroTab = () => {
   const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState("cmv");
   const [productSearch, setProductSearch] = useState("");
-  const [editingCosts, setEditingCosts] = useState<Record<string, { cost_base: string; freight_per_unit: string }>>({});
+  const [editingCosts, setEditingCosts] = useState<Record<string, { cost_base: string; freight_per_unit: string; notes: string }>>({});
   const [savingProduct, setSavingProduct] = useState<string | null>(null);
 
   // ── Queries ──
-  // Fetch only active products for financial calculations
   const { data: products } = useQuery({
     queryKey: ["products-active-financial"],
     queryFn: async () => {
@@ -111,7 +171,6 @@ const FinanceiroTab = () => {
       const { data, error } = await supabase.from("financial_premises").select("*").limit(1).maybeSingle();
       if (error) throw error;
       if (!data) {
-        // Auto-seed default row
         const { data: inserted, error: insertErr } = await supabase
           .from("financial_premises")
           .insert(DEFAULT_PREMISES as any)
@@ -147,7 +206,8 @@ const FinanceiroTab = () => {
   const activePremises = premisesForm || premises;
 
   const updatePremisesField = (field: keyof FinancialPremises, value: string) => {
-    const numVal = field === "fixed_cost_other_label" ? value : parseFloat(value) || 0;
+    const isLabel = field.endsWith("_label");
+    const numVal = isLabel ? value : parseFloat(value) || 0;
     setPremisesForm(prev => ({
       ...(prev || premises || {}),
       [field]: numVal,
@@ -170,13 +230,14 @@ const FinanceiroTab = () => {
     onError: (err: Error) => toast.error(err.message),
   });
 
-  const saveProductCost = useCallback(async (productId: string, costBase: number, freightPerUnit: number) => {
+  const saveProductCost = useCallback(async (productId: string, costBase: number, freightPerUnit: number, notes: string) => {
     setSavingProduct(productId);
     try {
       const { error } = await supabase.from("product_costs").upsert({
         product_id: productId,
         cost_base: costBase,
         freight_per_unit: freightPerUnit,
+        notes: notes || null,
       } as any, { onConflict: "product_id" });
       if (error) throw error;
       queryClient.invalidateQueries({ queryKey: ["product-costs"] });
@@ -191,9 +252,12 @@ const FinanceiroTab = () => {
 
   // ── Computed values ──
   const p = activePremises;
+
   const totalFixedCosts = useMemo(() => {
     if (!p) return 0;
-    return Number(p.fixed_cost_platform) + Number(p.fixed_cost_whatsgw) + Number(p.fixed_cost_other);
+    return Number(p.fixed_cost_platform || 0) + Number(p.fixed_cost_whatsgw || 0) +
+      Number(p.fixed_cost_other || 0) + Number(p.fixed_cost_extra1 || 0) +
+      Number(p.fixed_cost_extra2 || 0) + Number(p.fixed_cost_extra3 || 0);
   }, [p]);
 
   const cacUnitario = useMemo(() => {
@@ -206,7 +270,6 @@ const FinanceiroTab = () => {
     return Number(p.freight_batch_total) / Number(p.freight_batch_items);
   }, [p]);
 
-  // Filtered products
   const filteredProducts = useMemo(() => {
     if (!products) return [];
     const search = productSearch.toLowerCase();
@@ -216,14 +279,12 @@ const FinanceiroTab = () => {
     );
   }, [products, productSearch]);
 
-  // Product cost map
   const costMap = useMemo(() => {
     const map: Record<string, ProductCost> = {};
     productCosts?.forEach(c => { map[c.product_id] = c; });
     return map;
   }, [productCosts]);
 
-  // ── Revenue overview (last 30 days) ──
   const revenueStats = useMemo(() => {
     if (!orders || !p) return { revenue: 0, netRevenue: 0, orderCount: 0, avgTicket: 0, discounts: 0, commissionsTotal: 0 };
     const now = new Date();
@@ -233,8 +294,6 @@ const FinanceiroTab = () => {
     const discounts = filtered.reduce((s, o) => s + Number(o.discount || 0), 0);
     const commissionsTotal = commissions?.filter(c => new Date(c.created_at) >= cutoff)
       .reduce((s, c) => s + Number(c.commission_value), 0) || 0;
-
-    // Gateway fees differentiated by payment method
     const gatewayTotal = filtered.reduce((s, o) => {
       const { pct, fixed } = getGatewayRate(p as FinancialPremises, o.payment_method);
       return s + (Number(o.total) * pct / 100) + fixed;
@@ -250,35 +309,25 @@ const FinanceiroTab = () => {
     };
   }, [orders, commissions, p]);
 
-  // ── Markup calculator (Markup Divisor formula) ──
-  // Price = (CMV + Embalagem + CAC + Taxa Fixa) / (1 - (Taxa% + Comissão% + Margem%))
   const calcMarkup = useCallback((costBase: number, freightUnit: number) => {
     if (!p) return { suggestedPrice: 0, totalCost: 0, margin: 0, profit: 0, marginPct: 0, contributionMargin: 0, cmvTotal: 0, variableCosts: 0 };
-
     const cmvTotal = costBase + freightUnit;
     const packaging = Number(p.packaging_cost);
     const fixedUnit = cacUnitario;
     const creditFixed = Number(p.gateway_rate_credit_fixed);
-
-    // Markup Divisor: numerator includes ALL fixed-per-unit costs
     const gatewayRate = Number(p.gateway_rate_credit) / 100;
     const commissionRate = Number(p.influencer_commission_rate) / 100;
     const desiredMargin = Number(p.desired_margin) / 100;
     const divisor = 1 - (gatewayRate + commissionRate + desiredMargin);
-
     const suggestedPrice = divisor > 0 ? (cmvTotal + packaging + fixedUnit + creditFixed) / divisor : 0;
-
-    // Actual costs at suggested price
     const variableCosts = packaging + (suggestedPrice * gatewayRate) + creditFixed + (suggestedPrice * commissionRate);
     const totalCost = cmvTotal + variableCosts + fixedUnit;
     const profit = suggestedPrice - totalCost;
     const marginPct = suggestedPrice > 0 ? (profit / suggestedPrice) * 100 : 0;
     const contributionMargin = suggestedPrice - (cmvTotal + variableCosts);
-
     return { suggestedPrice, totalCost, profit, marginPct, contributionMargin, cmvTotal, variableCosts };
   }, [p, cacUnitario]);
 
-  // Calculate at a specific selling price
   const calcAtPrice = useCallback((sellingPrice: number, costBase: number, freightUnit: number) => {
     if (!p || sellingPrice <= 0) return { totalCost: 0, profit: 0, marginPct: 0, contributionMargin: 0 };
     const cmvTotal = costBase + freightUnit;
@@ -286,13 +335,11 @@ const FinanceiroTab = () => {
     const gatewayRate = Number(p.gateway_rate_credit) / 100;
     const creditFixed = Number(p.gateway_rate_credit_fixed);
     const commissionRate = Number(p.influencer_commission_rate) / 100;
-
     const variableCosts = packaging + (sellingPrice * gatewayRate) + creditFixed + (sellingPrice * commissionRate);
     const totalCost = cmvTotal + variableCosts + cacUnitario;
     const profit = sellingPrice - totalCost;
     const marginPct = (profit / sellingPrice) * 100;
     const contributionMargin = sellingPrice - (cmvTotal + variableCosts);
-
     return { totalCost, profit, marginPct, contributionMargin };
   }, [p, cacUnitario]);
 
@@ -338,7 +385,6 @@ const FinanceiroTab = () => {
 
         {/* ══════════════════ CMV TAB ══════════════════ */}
         <TabsContent value="cmv" className="space-y-4 mt-4">
-          {/* Freight batch config */}
           <div className="bg-card rounded-xl p-4 border border-border space-y-3">
             <div className="flex items-center gap-2">
               <Truck className="w-4 h-4 text-primary" />
@@ -347,21 +393,17 @@ const FinanceiroTab = () => {
             <div className="grid grid-cols-3 gap-3">
               <div className="space-y-1">
                 <Label className="text-[10px]">Custo Total Frete</Label>
-                <Input
-                  type="number" step="0.01"
+                <Input type="number" step="0.01"
                   value={activePremises?.freight_batch_total ?? 0}
                   onChange={e => updatePremisesField("freight_batch_total", e.target.value)}
-                  className="h-9 text-xs"
-                />
+                  className="h-9 text-xs" />
               </div>
               <div className="space-y-1">
                 <Label className="text-[10px]">Qtd Itens no Lote</Label>
-                <Input
-                  type="number" step="1" min="1"
+                <Input type="number" step="1" min="1"
                   value={activePremises?.freight_batch_items ?? 1}
                   onChange={e => updatePremisesField("freight_batch_items", e.target.value)}
-                  className="h-9 text-xs"
-                />
+                  className="h-9 text-xs" />
               </div>
               <div className="space-y-1">
                 <Label className="text-[10px]">Frete/Unidade</Label>
@@ -386,12 +428,8 @@ const FinanceiroTab = () => {
             </div>
             <div className="relative">
               <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
-              <Input
-                placeholder="Buscar produto..."
-                value={productSearch}
-                onChange={e => setProductSearch(e.target.value)}
-                className="h-8 text-xs pl-9"
-              />
+              <Input placeholder="Buscar produto..." value={productSearch}
+                onChange={e => setProductSearch(e.target.value)} className="h-8 text-xs pl-9" />
             </div>
             <div className="space-y-2 max-h-[400px] overflow-y-auto">
               {filteredProducts.map(prod => {
@@ -401,6 +439,7 @@ const FinanceiroTab = () => {
                 const freightU = editing ? parseFloat(editing.freight_per_unit) || 0 : Number(existing?.freight_per_unit || freightPerUnit);
                 const cmvTotal = costBase + freightU;
                 const hasCost = existing && Number(existing.cost_base) > 0;
+                const notes = editing?.notes ?? existing?.notes ?? "";
 
                 return (
                   <div key={prod.id} className="bg-muted rounded-lg p-3 space-y-2">
@@ -418,28 +457,32 @@ const FinanceiroTab = () => {
                     <div className="grid grid-cols-3 gap-2">
                       <div className="space-y-0.5">
                         <Label className="text-[9px] text-muted-foreground">Custo Base</Label>
-                        <Input
-                          type="number" step="0.01"
+                        <Input type="number" step="0.01"
                           value={editing?.cost_base ?? existing?.cost_base ?? ""}
                           placeholder="0.00"
                           onChange={e => setEditingCosts(prev => ({
                             ...prev,
-                            [prod.id]: { cost_base: e.target.value, freight_per_unit: prev[prod.id]?.freight_per_unit ?? String(existing?.freight_per_unit ?? freightPerUnit) },
+                            [prod.id]: {
+                              cost_base: e.target.value,
+                              freight_per_unit: prev[prod.id]?.freight_per_unit ?? String(existing?.freight_per_unit ?? freightPerUnit),
+                              notes: prev[prod.id]?.notes ?? existing?.notes ?? "",
+                            },
                           }))}
-                          className="h-8 text-[11px]"
-                        />
+                          className="h-8 text-[11px]" />
                       </div>
                       <div className="space-y-0.5">
                         <Label className="text-[9px] text-muted-foreground">Frete/Unid</Label>
-                        <Input
-                          type="number" step="0.01"
+                        <Input type="number" step="0.01"
                           value={editing?.freight_per_unit ?? existing?.freight_per_unit ?? freightPerUnit}
                           onChange={e => setEditingCosts(prev => ({
                             ...prev,
-                            [prod.id]: { cost_base: prev[prod.id]?.cost_base ?? String(existing?.cost_base ?? ""), freight_per_unit: e.target.value },
+                            [prod.id]: {
+                              cost_base: prev[prod.id]?.cost_base ?? String(existing?.cost_base ?? ""),
+                              freight_per_unit: e.target.value,
+                              notes: prev[prod.id]?.notes ?? existing?.notes ?? "",
+                            },
                           }))}
-                          className="h-8 text-[11px]"
-                        />
+                          className="h-8 text-[11px]" />
                       </div>
                       <div className="space-y-0.5">
                         <Label className="text-[9px] text-muted-foreground">CMV Total</Label>
@@ -448,8 +491,26 @@ const FinanceiroTab = () => {
                         </div>
                       </div>
                     </div>
+                    {/* Notes field */}
+                    <div className="space-y-0.5">
+                      <Label className="text-[9px] text-muted-foreground">Observações (fornecedor, lote, etc.)</Label>
+                      <Textarea
+                        value={notes}
+                        placeholder="Ex: Fornecedor XYZ, lote #123, validade 06/2026"
+                        onChange={e => setEditingCosts(prev => ({
+                          ...prev,
+                          [prod.id]: {
+                            cost_base: prev[prod.id]?.cost_base ?? String(existing?.cost_base ?? ""),
+                            freight_per_unit: prev[prod.id]?.freight_per_unit ?? String(existing?.freight_per_unit ?? freightPerUnit),
+                            notes: e.target.value,
+                          },
+                        }))}
+                        className="text-[11px] min-h-[36px] resize-none"
+                        rows={1}
+                      />
+                    </div>
                     {editing && (
-                      <Button size="sm" onClick={() => saveProductCost(prod.id, costBase, freightU)}
+                      <Button size="sm" onClick={() => saveProductCost(prod.id, costBase, freightU, notes)}
                         disabled={savingProduct === prod.id} className="text-[10px] h-7 gap-1">
                         {savingProduct === prod.id ? <Loader2 className="w-3 h-3 animate-spin" /> : <Save className="w-3 h-3" />}
                         Salvar
@@ -464,42 +525,56 @@ const FinanceiroTab = () => {
 
         {/* ══════════════════ PREMISES TAB ══════════════════ */}
         <TabsContent value="premises" className="space-y-4 mt-4">
-          {/* Fixed Costs */}
+          {/* Fixed Costs - All editable labels */}
           <div className="bg-card rounded-xl p-4 border border-border space-y-3">
             <div className="flex items-center gap-2">
               <Settings2 className="w-4 h-4 text-primary" />
               <h3 className="text-xs font-bold">Custos Fixos Mensais</h3>
+              <Badge variant="outline" className="text-[8px]">Clique no nome para editar</Badge>
             </div>
             <div className="grid grid-cols-2 gap-3">
-              <div className="space-y-1">
-                <Label className="text-[10px]">Plataforma (Nuvemshop)</Label>
-                <Input type="number" step="0.01"
-                  value={activePremises?.fixed_cost_platform ?? 69}
-                  onChange={e => updatePremisesField("fixed_cost_platform", e.target.value)}
-                  className="h-9 text-xs" />
-              </div>
-              <div className="space-y-1">
-                <Label className="text-[10px]">WhatsGW</Label>
-                <Input type="number" step="0.01"
-                  value={activePremises?.fixed_cost_whatsgw ?? 99}
-                  onChange={e => updatePremisesField("fixed_cost_whatsgw", e.target.value)}
-                  className="h-9 text-xs" />
-              </div>
-              <div className="space-y-1">
-                <Label className="text-[10px]">Outros</Label>
-                <Input type="number" step="0.01"
-                  value={activePremises?.fixed_cost_other ?? 0}
-                  onChange={e => updatePremisesField("fixed_cost_other", e.target.value)}
-                  className="h-9 text-xs" />
-              </div>
-              <div className="space-y-1">
-                <Label className="text-[10px]">Descrição Outros</Label>
-                <Input
-                  value={activePremises?.fixed_cost_other_label ?? ""}
-                  onChange={e => updatePremisesField("fixed_cost_other_label", e.target.value)}
-                  placeholder="Ex: Domínio"
-                  className="h-9 text-xs" />
-              </div>
+              <EditableCostRow
+                label="Nuvemshop"
+                labelField="fixed_cost_platform_label"
+                valueField="fixed_cost_platform"
+                premises={activePremises}
+                onUpdate={updatePremisesField}
+              />
+              <EditableCostRow
+                label="WhatsGW"
+                labelField="fixed_cost_whatsgw_label"
+                valueField="fixed_cost_whatsgw"
+                premises={activePremises}
+                onUpdate={updatePremisesField}
+              />
+              <EditableCostRow
+                label="Outros"
+                labelField="fixed_cost_other_label"
+                valueField="fixed_cost_other"
+                premises={activePremises}
+                onUpdate={updatePremisesField}
+              />
+              <EditableCostRow
+                label="Despesa Extra 1"
+                labelField="fixed_cost_extra1_label"
+                valueField="fixed_cost_extra1"
+                premises={activePremises}
+                onUpdate={updatePremisesField}
+              />
+              <EditableCostRow
+                label="Despesa Extra 2"
+                labelField="fixed_cost_extra2_label"
+                valueField="fixed_cost_extra2"
+                premises={activePremises}
+                onUpdate={updatePremisesField}
+              />
+              <EditableCostRow
+                label="Despesa Extra 3"
+                labelField="fixed_cost_extra3_label"
+                valueField="fixed_cost_extra3"
+                premises={activePremises}
+                onUpdate={updatePremisesField}
+              />
             </div>
             <div className="bg-muted rounded-lg p-3 flex justify-between items-center">
               <span className="text-xs text-muted-foreground">Total Custos Fixos</span>
@@ -581,7 +656,14 @@ const FinanceiroTab = () => {
                   className="h-9 text-xs" />
               </div>
               <div className="space-y-1">
-                <Label className="text-[10px]">Débito/Crédito Físico (%)</Label>
+                <Label className="text-[10px]">Débito Físico (%)</Label>
+                <Input type="number" step="0.01"
+                  value={activePremises?.gateway_rate_debit ?? 0.74}
+                  onChange={e => updatePremisesField("gateway_rate_debit", e.target.value)}
+                  className="h-9 text-xs" />
+              </div>
+              <div className="space-y-1">
+                <Label className="text-[10px]">Crédito Físico (%)</Label>
                 <Input type="number" step="0.01"
                   value={activePremises?.gateway_rate_physical ?? 0.74}
                   onChange={e => updatePremisesField("gateway_rate_physical", e.target.value)}
@@ -605,7 +687,6 @@ const FinanceiroTab = () => {
             </p>
           </div>
 
-          {/* Save button */}
           {premisesForm && (
             <Button onClick={() => savePremises.mutate()} disabled={savePremises.isPending}
               className="w-full min-h-[44px] gap-2 font-semibold">
@@ -629,12 +710,8 @@ const FinanceiroTab = () => {
 
           <div className="relative">
             <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
-            <Input
-              placeholder="Buscar produto..."
-              value={productSearch}
-              onChange={e => setProductSearch(e.target.value)}
-              className="h-8 text-xs pl-9"
-            />
+            <Input placeholder="Buscar produto..." value={productSearch}
+              onChange={e => setProductSearch(e.target.value)} className="h-8 text-xs pl-9" />
           </div>
 
           <div className="space-y-3 max-h-[500px] overflow-y-auto">
@@ -675,7 +752,6 @@ const FinanceiroTab = () => {
                     </Badge>
                   </div>
 
-                  {/* Cost breakdown */}
                   <div className="bg-muted rounded-lg p-3 space-y-1.5 text-[11px]">
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">CMV (Base + Frete)</span>
@@ -703,7 +779,6 @@ const FinanceiroTab = () => {
                     </div>
                   </div>
 
-                  {/* Results */}
                   <div className="grid grid-cols-2 gap-2">
                     <div className="bg-muted rounded-lg p-2.5 text-center">
                       <p className="text-[9px] text-muted-foreground">Preço Atual</p>
@@ -745,7 +820,7 @@ const FinanceiroTab = () => {
 
         {/* ══════════════════ DRE TAB ══════════════════ */}
         <TabsContent value="dre" className="space-y-4 mt-4">
-          <DRESection orders={orders} commissions={commissions} premises={p} products={products} costMap={costMap} cacUnitario={cacUnitario} />
+          <DRESection orders={orders} commissions={commissions} premises={p} products={products} costMap={costMap} cacUnitario={cacUnitario} totalFixedCosts={totalFixedCosts} />
         </TabsContent>
       </Tabs>
     </div>
@@ -753,13 +828,14 @@ const FinanceiroTab = () => {
 };
 
 // ── DRE Mini Component ──
-const DRESection = ({ orders, commissions, premises, products, costMap, cacUnitario }: {
+const DRESection = ({ orders, commissions, premises, products, costMap, cacUnitario, totalFixedCosts }: {
   orders: any[] | undefined;
   commissions: any[] | undefined;
   premises: any;
   products: any[] | undefined;
   costMap: Record<string, ProductCost>;
   cacUnitario: number;
+  totalFixedCosts: number;
 }) => {
   const [drePeriod, setDrePeriod] = useState<"30d" | "90d" | "all">("30d");
 
@@ -776,7 +852,6 @@ const DRESection = ({ orders, commissions, premises, products, costMap, cacUnita
     const commissionsTotal = commissions?.filter(c => new Date(c.created_at) >= cutoff)
       .reduce((s, c) => s + Number(c.commission_value), 0) || 0;
 
-    // CMV total from order items
     let cmvTotal = 0;
     filtered.forEach(order => {
       const items = (order.items as any[]) || [];
@@ -789,8 +864,6 @@ const DRESection = ({ orders, commissions, premises, products, costMap, cacUnita
     });
 
     const packagingTotal = filtered.length * Number(premises.packaging_cost || 0);
-
-    // Gateway fees differentiated by payment method per order
     const gatewayTotal = filtered.reduce((s, o) => {
       const { pct, fixed } = getGatewayRate(premises as FinancialPremises, o.payment_method);
       return s + (Number(o.total) * pct / 100) + fixed;
@@ -798,7 +871,7 @@ const DRESection = ({ orders, commissions, premises, products, costMap, cacUnita
 
     const months = periodMs === Infinity ? Math.max(1, Math.ceil((now.getTime() - new Date(orders[orders.length - 1]?.created_at || now).getTime()) / (30 * 86400000))) :
       drePeriod === "30d" ? 1 : 3;
-    const fixedTotal = (Number(premises.fixed_cost_platform || 0) + Number(premises.fixed_cost_whatsgw || 0) + Number(premises.fixed_cost_other || 0)) * months;
+    const fixedTotal = totalFixedCosts * months;
     const marketingTotal = Number(premises.marketing_budget || 0) * months;
 
     const grossProfit = revenue - cmvTotal;
@@ -811,7 +884,7 @@ const DRESection = ({ orders, commissions, premises, products, costMap, cacUnita
       fixedTotal, marketingTotal, grossProfit, contributionMargin, netProfit, netMargin,
       orderCount: filtered.length,
     };
-  }, [orders, commissions, premises, costMap, drePeriod]);
+  }, [orders, commissions, premises, costMap, drePeriod, totalFixedCosts]);
 
   if (!stats) return null;
 
@@ -860,7 +933,6 @@ const DRESection = ({ orders, commissions, premises, products, costMap, cacUnita
         ))}
       </div>
 
-      {/* Summary cards */}
       <div className="grid grid-cols-3 gap-2">
         <div className="bg-card rounded-xl p-3 border border-border text-center">
           <p className="text-[9px] text-muted-foreground">Margem Líquida</p>
