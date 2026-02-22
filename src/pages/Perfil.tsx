@@ -45,6 +45,17 @@ const Perfil = () => {
   const [editName, setEditName] = useState("");
   const [editPhone, setEditPhone] = useState("");
   const [editBirthday, setEditBirthday] = useState("");
+  const [profileData, setProfileData] = useState<{ full_name: string | null; phone: string | null; birthday: string | null } | null>(null);
+
+  // Fetch profile data from database
+  useEffect(() => {
+    if (!user) return;
+    const fetchProfile = async () => {
+      const { data } = await supabase.from("profiles").select("full_name, phone, birthday").eq("user_id", user.id).single();
+      if (data) setProfileData(data);
+    };
+    fetchProfile();
+  }, [user]);
   const [newAddress, setNewAddress] = useState({
     label: "Casa", street: "", number: "", complement: "",
     neighborhood: "", city: "Belém", state: "PA", zip: "", is_default: false,
@@ -74,13 +85,18 @@ const Perfil = () => {
 
   const handleSaveProfile = async () => {
     if (!user) return;
-    const { error } = await supabase.from("profiles").update({
+    const updates = {
       full_name: editName || null,
       phone: editPhone || null,
       birthday: editBirthday || null,
-    } as any).eq("user_id", user.id);
+    };
+    const { error } = await supabase.from("profiles").update(updates as any).eq("user_id", user.id);
     if (error) toast.error("Erro ao salvar");
-    else { toast.success("Perfil atualizado!"); setShowEditProfile(false); }
+    else {
+      setProfileData(prev => ({ ...prev, ...updates }));
+      toast.success("Perfil atualizado!");
+      setShowEditProfile(false);
+    }
   };
 
   const handleSaveAddress = () => {
@@ -184,8 +200,9 @@ const Perfil = () => {
           {user.email?.charAt(0).toUpperCase()}
         </div>
         <div className="flex-1">
-          <h1 className="text-xl font-display font-bold">{user.user_metadata?.full_name || "Minha conta"}</h1>
+          <h1 className="text-xl font-display font-bold">{profileData?.full_name || user.user_metadata?.full_name || "Minha conta"}</h1>
           <p className="text-xs text-muted-foreground">{user.email}</p>
+          {profileData?.phone && <p className="text-xs text-muted-foreground">{profileData.phone}</p>}
         </div>
       </div>
 
@@ -214,7 +231,7 @@ const Perfil = () => {
           <Heart className="w-5 h-5 text-muted-foreground" />
           <span className="text-sm font-medium">Favoritos</span>
         </Link>
-        <button onClick={() => { setEditName(user.user_metadata?.full_name || ""); setShowEditProfile(!showEditProfile); }} className="w-full flex items-center gap-3 p-4 rounded-xl bg-card border border-border hover:bg-muted hover-lift min-h-[44px]">
+        <button onClick={() => { setEditName(profileData?.full_name || ""); setEditPhone(profileData?.phone || ""); setEditBirthday(profileData?.birthday || ""); setShowEditProfile(!showEditProfile); }} className="w-full flex items-center gap-3 p-4 rounded-xl bg-card border border-border hover:bg-muted hover-lift min-h-[44px]">
           <User className="w-5 h-5 text-muted-foreground" />
           <span className="text-sm font-medium">Dados Pessoais</span>
         </button>
