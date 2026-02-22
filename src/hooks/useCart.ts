@@ -111,13 +111,29 @@ export const useCart = () => {
         saveGuestCart(items);
         return;
       }
-      const { error } = await supabase.from("cart_items").upsert({
-        user_id: user.id,
-        product_id: productId,
-        quantity,
-        selected_swatch: swatch || null,
-      }, { onConflict: "user_id,product_id,selected_swatch" });
-      if (error) throw error;
+      // Check if item already exists to increment quantity
+      const { data: existing } = await supabase
+        .from("cart_items")
+        .select("id, quantity")
+        .eq("user_id", user.id)
+        .eq("product_id", productId)
+        .maybeSingle();
+
+      if (existing) {
+        const { error } = await supabase
+          .from("cart_items")
+          .update({ quantity: existing.quantity + quantity })
+          .eq("id", existing.id);
+        if (error) throw error;
+      } else {
+        const { error } = await supabase.from("cart_items").insert({
+          user_id: user.id,
+          product_id: productId,
+          quantity,
+          selected_swatch: swatch || null,
+        });
+        if (error) throw error;
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["cart"] });
