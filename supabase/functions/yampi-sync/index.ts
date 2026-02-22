@@ -244,14 +244,126 @@ serve(async (req) => {
     const updated = results.filter(r => r.status === 'updated').length;
     const errors = results.filter(r => r.status === 'error').length;
 
-    console.log(`Yampi sync complete: ${created} created, ${updated} updated, ${errors} errors`);
+    console.log(`Yampi product sync complete: ${created} created, ${updated} updated, ${errors} errors`);
+
+    // ===== COUPON SYNC =====
+    const couponResults: Array<{ code: string; status: string; yampi_id?: number; error?: string }> = [];
+
+    const { data: coupons, error: couponDbError } = await supabase
+      .from('coupons')
+      .select('*')
+      .eq('is_active', true);
+
+    if (couponDbError) {
+      console.error('Error fetching coupons:', couponDbError.message);
+    }
+
+    if (coupons && coupons.length > 0) {
+      // Fetch existing Yampi coupons
+      const existingYampiCoupons: Record<string, any> = {};
+      try {
+        let page = 1;
+        let hasMore = true;
+        while (hasMore) {
+          const res = await fetch(
+            `${YAMPI_API_BASE}/${YAMPI_ALIAS}/pricing/coupons?limit=50&page=${page}`,
+            { headers: yampiHeaders }
+          );
+          const data = await res.json();
+          if (data.data && data.data.length > 0) {
+            for (const c of data.data) {
+              existingYampiCoupons[c.code?.toUpperCase()] = c;
+            }
+            page++;
+            if (!data.meta?.pagination?.links?.next) hasMore = false;
+          } else {
+            hasMore = false;
+          }
+        }
+      } catch (e) {
+        console.error('Error fetching existing Yampi coupons:', e);
+      }
+
+      for (const coupon of coupons) {
+        try {
+          const existing = existingYampiCoupons[coupon.code.toUpperCase()];
+
+          const yampiCouponPayload: Record<string, any> = {
+            code: coupon.code.toUpperCase(),
+            active: true,
+            type: coupon.discount_type === 'percentage' ? 'percentage' : 'fixed',
+            value: Number(coupon.discount_value),
+            min_value: Number(coupon.min_order_value || 0),
+            quantity: coupon.max_uses || 99999,
+            used: coupon.current_uses || 0,
+            cumulative: false,
+            first_buy: false,
+          };
+
+          if (coupon.expires_at) {
+            yampiCouponPayload.date_start = new Date().toISOString().split('T')[0];
+            yampiCouponPayload.date_end = new Date(coupon.expires_at).toISOString().split('T')[0];
+          }
+
+          if (existing) {
+            const updateRes = await fetch(
+              `${YAMPI_API_BASE}/${YAMPI_ALIAS}/pricing/coupons/${existing.id}`,
+              {
+                method: 'PUT',
+                headers: yampiHeaders,
+                body: JSON.stringify(yampiCouponPayload),
+              }
+            );
+            const updateData = await updateRes.json();
+            if (updateRes.ok) {
+              couponResults.push({ code: coupon.code, status: 'updated', yampi_id: existing.id });
+            } else {
+              couponResults.push({ code: coupon.code, status: 'error', error: updateData.message || 'Update failed' });
+            }
+          } else {
+            const createRes = await fetch(
+              `${YAMPI_API_BASE}/${YAMPI_ALIAS}/pricing/coupons`,
+              {
+                method: 'POST',
+                headers: yampiHeaders,
+                body: JSON.stringify(yampiCouponPayload),
+              }
+            );
+            const createData = await createRes.json();
+            if (createRes.ok) {
+              couponResults.push({ code: coupon.code, status: 'created', yampi_id: createData.data?.id });
+            } else {
+              const errDetail = createData.errors
+                ? Object.entries(createData.errors).map(([k, v]) => `${k}: ${v}`).join('; ')
+                : createData.message || 'Create failed';
+              couponResults.push({ code: coupon.code, status: 'error', error: errDetail });
+            }
+          }
+
+          await new Promise(r => setTimeout(r, 300));
+        } catch (couponErr: any) {
+          console.error(`Error syncing coupon ${coupon.code}:`, couponErr);
+          couponResults.push({ code: coupon.code, status: 'error', error: couponErr.message });
+        }
+      }
+    }
+
+    const couponsCreated = couponResults.filter(r => r.status === 'created').length;
+    const couponsUpdated = couponResults.filter(r => r.status === 'updated').length;
+    const couponsErrors = couponResults.filter(r => r.status === 'error').length;
+
+    console.log(`Yampi coupon sync: ${couponsCreated} created, ${couponsUpdated} updated, ${couponsErrors} errors`);
 
     return new Response(JSON.stringify({
       success: true,
-      total: products.length,
-      created,
-      updated,
-      errors,
+      products: { total: products.length, created, updated, errors },
+      coupons: {
+        total: coupons?.length || 0,
+        created: couponsCreated,
+        updated: couponsUpdated,
+        errors: couponsErrors,
+        results: couponResults,
+      },
       results,
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
