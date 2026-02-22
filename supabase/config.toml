@@ -20,3 +20,6 @@ verify_jwt = false
 
 [functions.melhor-envio-shipping]
 verify_jwt = false
+
+[functions.mercadopago-payment]
+verify_jwt = false
