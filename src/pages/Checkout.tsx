@@ -69,6 +69,23 @@ const formatPhone = (v: string) => {
   return `(${d.slice(0, 2)}) ${d.slice(2, 7)}-${d.slice(7)}`;
 };
 
+// CPF algorithmic validation
+const isValidCpf = (cpf: string): boolean => {
+  const digits = cpf.replace(/\D/g, "");
+  if (digits.length !== 11) return false;
+  if (/^(\d)\1{10}$/.test(digits)) return false; // all same digits
+  let sum = 0;
+  for (let i = 0; i < 9; i++) sum += parseInt(digits[i]) * (10 - i);
+  let remainder = (sum * 10) % 11;
+  if (remainder === 10) remainder = 0;
+  if (remainder !== parseInt(digits[9])) return false;
+  sum = 0;
+  for (let i = 0; i < 10; i++) sum += parseInt(digits[i]) * (11 - i);
+  remainder = (sum * 10) % 11;
+  if (remainder === 10) remainder = 0;
+  return remainder === parseInt(digits[10]);
+};
+
 const Checkout = () => {
   const navigate = useNavigate();
   const { user, loading: authLoading } = useAuth();
@@ -342,6 +359,10 @@ const Checkout = () => {
   const handlePlaceOrder = async () => {
     if (!customerInfo.cpf || customerInfo.cpf.length < 11) {
       toast.error("CPF é obrigatório para pagamento");
+      return;
+    }
+    if (!isValidCpf(customerInfo.cpf)) {
+      toast.error("CPF inválido. Verifique os dígitos.");
       return;
     }
     setSubmitting(true);
@@ -626,25 +647,35 @@ const Checkout = () => {
               </div>
               <div className="space-y-2">
                 {([
-                  { method: "pix" as PaymentMethod, icon: QrCode, label: "PIX", desc: "Aprovação instantânea • 5% de desconto", color: "primary" },
-                  { method: "card" as PaymentMethod, icon: CreditCard, label: "Cartão de Crédito", desc: "Até 12x • Visa, Master, Elo, Amex", color: "primary" },
-                  { method: "boleto" as PaymentMethod, icon: Barcode, label: "Boleto Bancário", desc: "Prazo de 1-3 dias úteis para compensar", color: "primary" },
-                  { method: "whatsapp" as PaymentMethod, icon: WhatsAppIcon, label: "WhatsApp", desc: "Combine o pagamento com a loja", color: "accent" },
-                ] as { method: PaymentMethod; icon: any; label: string; desc: string; color: string }[]).map(({ method, icon: Icon, label, desc, color }) => (
-                  <button key={method} onClick={() => setPaymentMethod(method)}
-                    className={`w-full flex items-center gap-3 p-3 rounded-lg border-2 transition-colors ${
-                      paymentMethod === method ? `border-${color} bg-${color}/5` : "border-border"
-                    }`}>
-                    <Icon className={`w-5 h-5 text-${color}`} />
-                    <div className="text-left flex-1">
-                      <p className="text-xs font-semibold">{label}</p>
-                      <p className="text-[10px] text-muted-foreground">{desc}</p>
-                    </div>
-                    <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${paymentMethod === method ? `border-${color}` : "border-muted-foreground"}`}>
-                      {paymentMethod === method && <div className={`w-2 h-2 rounded-full bg-${color}`} />}
-                    </div>
-                  </button>
-                ))}
+                  { method: "pix" as PaymentMethod, icon: QrCode, label: "PIX", desc: "Aprovação instantânea • 5% de desconto" },
+                  { method: "card" as PaymentMethod, icon: CreditCard, label: "Cartão de Crédito", desc: "Até 12x • Visa, Master, Elo, Amex" },
+                  { method: "boleto" as PaymentMethod, icon: Barcode, label: "Boleto Bancário", desc: "Prazo de 1-3 dias úteis para compensar" },
+                  { method: "whatsapp" as PaymentMethod, icon: WhatsAppIcon, label: "WhatsApp", desc: "Combine o pagamento com a loja" },
+                ] as { method: PaymentMethod; icon: any; label: string; desc: string }[]).map(({ method, icon: Icon, label, desc }) => {
+                  const isWhatsApp = method === "whatsapp";
+                  const colorClass = isWhatsApp ? "accent" : "primary";
+                  return (
+                    <button key={method} onClick={() => setPaymentMethod(method)}
+                      className={`w-full flex items-center gap-3 p-3 rounded-lg border-2 transition-colors ${
+                        paymentMethod === method
+                          ? isWhatsApp ? "border-accent bg-accent/5" : "border-primary bg-primary/5"
+                          : "border-border"
+                      }`}>
+                      <Icon className={isWhatsApp ? "w-5 h-5 text-accent" : "w-5 h-5 text-primary"} />
+                      <div className="text-left flex-1">
+                        <p className="text-xs font-semibold">{label}</p>
+                        <p className="text-[10px] text-muted-foreground">{desc}</p>
+                      </div>
+                      <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${
+                        paymentMethod === method
+                          ? isWhatsApp ? "border-accent" : "border-primary"
+                          : "border-muted-foreground"
+                      }`}>
+                        {paymentMethod === method && <div className={`w-2 h-2 rounded-full ${isWhatsApp ? "bg-accent" : "bg-primary"}`} />}
+                      </div>
+                    </button>
+                  );
+                })}
               </div>
             </div>
 
