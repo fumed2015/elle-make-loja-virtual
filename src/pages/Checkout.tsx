@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, MapPin, CreditCard, CheckCircle, Tag, X, ExternalLink, Loader2 } from "lucide-react";
+import { ArrowLeft, MapPin, CreditCard, CheckCircle, Tag, X, ExternalLink, Loader2, ShoppingBag, AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -16,6 +16,11 @@ import WhatsAppIcon from "@/components/icons/WhatsAppIcon";
 
 type Step = "address" | "review" | "processing" | "success";
 
+const STEP_LABELS = [
+  { key: "address", label: "Endereço", icon: MapPin },
+  { key: "review", label: "Revisão", icon: ShoppingBag },
+];
+
 const Checkout = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -29,13 +34,37 @@ const Checkout = () => {
   const [appliedCoupon, setAppliedCoupon] = useState<{ code: string; discount: number } | null>(null);
   const [couponLoading, setCouponLoading] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState<"yampi" | "whatsapp">("yampi");
-  const [customerInfo, setCustomerInfo] = useState({
-    phone: "", cpf: "",
-  });
+  const [cepLoading, setCepLoading] = useState(false);
+  const [customerInfo, setCustomerInfo] = useState({ phone: "", cpf: "" });
   const [address, setAddress] = useState({
     street: "", number: "", complement: "", neighborhood: "",
     city: "Belém", state: "PA", zip: "",
   });
+
+  // Auto-fill address from CEP via ViaCEP
+  useEffect(() => {
+    const clean = address.zip.replace(/\D/g, "");
+    if (clean.length !== 8) return;
+
+    let cancelled = false;
+    setCepLoading(true);
+    fetch(`https://viacep.com.br/ws/${clean}/json/`)
+      .then(r => r.json())
+      .then(data => {
+        if (cancelled || data.erro) return;
+        setAddress(prev => ({
+          ...prev,
+          street: data.logradouro || prev.street,
+          neighborhood: data.bairro || prev.neighborhood,
+          city: data.localidade || prev.city,
+          state: data.uf || prev.state,
+        }));
+      })
+      .catch(() => {})
+      .finally(() => { if (!cancelled) setCepLoading(false); });
+
+    return () => { cancelled = true; };
+  }, [address.zip]);
 
   if (!user) { navigate("/perfil?redirect=/checkout"); return null; }
   if (items.length === 0 && step !== "success" && step !== "processing") { navigate("/carrinho"); return null; }
@@ -61,6 +90,25 @@ const Checkout = () => {
   const handlePlaceOrder = async () => {
     setSubmitting(true);
     try {
+      // Stock validation
+      const productIds = items.map((item: any) => (item.products as any)?.id).filter(Boolean);
+      const { data: stockData } = await supabase
+        .from("products")
+        .select("id, name, stock")
+        .in("id", productIds);
+
+      if (stockData) {
+        for (const item of items) {
+          const product = item.products as any;
+          const dbProduct = stockData.find((p) => p.id === product?.id);
+          if (dbProduct && dbProduct.stock < item.quantity) {
+            toast.error(`"${dbProduct.name}" tem apenas ${dbProduct.stock} unid. em estoque`);
+            setSubmitting(false);
+            return;
+          }
+        }
+      }
+
       const orderItems = items.map((item) => {
         const product = item.products as any;
         return {
@@ -70,7 +118,6 @@ const Checkout = () => {
         };
       });
 
-      // 1. Create order in our database
       const { data: orderData, error: orderError } = await supabase.from("orders").insert({
         user_id: user.id, total: finalTotal,
         shipping_address: address, payment_method: paymentMethod,
@@ -80,7 +127,7 @@ const Checkout = () => {
 
       if (orderError) throw orderError;
 
-      // 1b. Track influencer commission if coupon belongs to an influencer
+      // Track influencer commission if coupon belongs to an influencer
       if (appliedCoupon?.code) {
         try {
           const { data: couponData } = await supabase
@@ -91,7 +138,6 @@ const Checkout = () => {
           
           if (couponData && (couponData as any).influencer_id) {
             const influencerId = (couponData as any).influencer_id;
-            // Get influencer commission percent
             const { data: infData } = await supabase
               .from("influencers")
               .select("commission_percent")
@@ -107,20 +153,14 @@ const Checkout = () => {
                 commission_percent: infData.commission_percent,
                 commission_value: commissionValue,
               });
-              // Update influencer totals
-              await supabase.rpc("has_role", { _user_id: user.id, _role: "customer" }); // just to keep auth active
-              await supabase.from("influencers").update({
-                total_sales: Number(infData.commission_percent), // will be recalculated
-              }).eq("id", influencerId);
             }
           }
         } catch (commErr) {
           console.error("Commission tracking error:", commErr);
-          // Non-blocking — order still succeeds
         }
       }
 
-      // 2. Clear cart
+      // Clear cart
       for (const item of items) {
         await supabase.from("cart_items").delete().eq("id", item.id);
       }
@@ -128,7 +168,6 @@ const Checkout = () => {
       setOrderId(orderData.id);
 
       if (paymentMethod === "whatsapp") {
-        // WhatsApp checkout — redirect to WhatsApp with order details
         const itemsList = orderItems.map(i => `• ${i.name} (${i.quantity}x) - R$ ${(i.price * i.quantity).toFixed(2).replace(".", ",")}`).join('\n');
         const msg = encodeURIComponent(
           `🛒 *Novo Pedido #${orderData.id.slice(0, 8)}*\n\n${itemsList}\n\n💰 Total: R$ ${finalTotal.toFixed(2).replace(".", ",")}\n📍 ${address.street}, ${address.number} - ${address.neighborhood}, ${address.city}\n\nForma de pagamento: Combinar pelo WhatsApp`
@@ -137,9 +176,7 @@ const Checkout = () => {
         setStep("success");
         toast.success("Pedido enviado pelo WhatsApp! 🎉");
       } else {
-        // Yampi checkout — call edge function to create order and get checkout URL
         setStep("processing");
-        
         try {
           const { data: yampiData, error: yampiError } = await supabase.functions.invoke('yampi-checkout', {
             body: {
@@ -158,18 +195,12 @@ const Checkout = () => {
               supabase_order_id: orderData.id,
             },
           });
-
           if (yampiError) throw yampiError;
-
-          if (yampiData?.checkout_url) {
-            window.open(yampiData.checkout_url, '_blank');
-          }
-
+          if (yampiData?.checkout_url) window.open(yampiData.checkout_url, '_blank');
           setStep("success");
           toast.success("Pedido criado! Complete o pagamento no checkout Yampi 🎉");
         } catch (yampiErr: any) {
           console.error('Yampi error:', yampiErr);
-          // Fallback — redirect to Yampi checkout directly
           window.open('https://elle-make.checkout.yampi.com.br', '_blank');
           setStep("success");
           toast.success("Pedido registrado! Complete o pagamento no checkout Yampi 🎉");
@@ -183,6 +214,8 @@ const Checkout = () => {
     }
   };
 
+  const stepIndex = step === "address" ? 0 : 1;
+
   return (
     <div className="min-h-screen max-w-lg mx-auto px-4 pt-6 pb-4">
       <div className="flex items-center gap-3 mb-6">
@@ -194,11 +227,50 @@ const Checkout = () => {
         </h1>
       </div>
 
+      {/* Progress indicator */}
       {step !== "success" && step !== "processing" && (
-        <div className="flex gap-2 mb-6">
-          {["address", "review"].map((s) => (
-            <div key={s} className={`flex-1 h-1 rounded-full ${step === s || (s === "address" && step === "review") ? "bg-primary" : "bg-muted"}`} />
+        <div className="flex items-center gap-2 mb-6">
+          {STEP_LABELS.map((s, i) => (
+            <div key={s.key} className="flex items-center flex-1">
+              <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold transition-colors ${
+                i <= stepIndex ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"
+              }`}>
+                <s.icon className="w-3.5 h-3.5" />
+                {s.label}
+              </div>
+              {i < STEP_LABELS.length - 1 && (
+                <div className={`flex-1 h-0.5 mx-2 rounded-full ${i < stepIndex ? "bg-primary" : "bg-muted"}`} />
+              )}
+            </div>
           ))}
+        </div>
+      )}
+
+      {/* Mini order summary — always visible in address step */}
+      {step === "address" && (
+        <div className="bg-card rounded-xl p-3 border border-border mb-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <ShoppingBag className="w-4 h-4 text-primary" />
+              <span className="text-xs font-medium">{cartCount} {cartCount === 1 ? "item" : "itens"}</span>
+            </div>
+            <span className="text-sm font-bold text-primary">R$ {cartTotal.toFixed(2).replace(".", ",")}</span>
+          </div>
+          <div className="flex gap-2 mt-2 overflow-x-auto scrollbar-hide">
+            {items.slice(0, 4).map((item) => {
+              const product = item.products as any;
+              return (
+                <div key={item.id} className="w-10 h-10 rounded-md bg-muted overflow-hidden flex-shrink-0">
+                  {product?.images?.[0] && <img src={product.images[0]} alt="" className="w-full h-full object-cover" />}
+                </div>
+              );
+            })}
+            {items.length > 4 && (
+              <div className="w-10 h-10 rounded-md bg-muted flex items-center justify-center flex-shrink-0">
+                <span className="text-[10px] text-muted-foreground font-bold">+{items.length - 4}</span>
+              </div>
+            )}
+          </div>
         </div>
       )}
 
@@ -209,6 +281,26 @@ const Checkout = () => {
               <MapPin className="w-5 h-5 text-primary" />
               <h2 className="text-lg font-display font-semibold">Endereço de Entrega</h2>
             </div>
+
+            {/* CEP first — triggers auto-fill */}
+            <div className="space-y-2">
+              <Label>CEP</Label>
+              <div className="relative">
+                <Input
+                  value={address.zip}
+                  onChange={(e) => setAddress({ ...address, zip: e.target.value.replace(/\D/g, "").slice(0, 8) })}
+                  placeholder="66000-000"
+                  className="bg-muted border-none min-h-[44px]"
+                  inputMode="numeric"
+                  required
+                />
+                {cepLoading && (
+                  <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 animate-spin text-primary" />
+                )}
+              </div>
+              <p className="text-[10px] text-muted-foreground">Digite o CEP para preencher o endereço automaticamente</p>
+            </div>
+
             <div className="grid grid-cols-3 gap-3">
               <div className="col-span-2 space-y-2">
                 <Label>Rua</Label>
@@ -225,11 +317,10 @@ const Checkout = () => {
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-2"><Label>Bairro</Label><Input value={address.neighborhood} onChange={(e) => setAddress({ ...address, neighborhood: e.target.value })} placeholder="Bairro" className="bg-muted border-none min-h-[44px]" required /></div>
-              <div className="space-y-2"><Label>CEP</Label><Input value={address.zip} onChange={(e) => setAddress({ ...address, zip: e.target.value })} placeholder="66000-000" className="bg-muted border-none min-h-[44px]" required /></div>
-            </div>
-            <div className="grid grid-cols-2 gap-3">
-              <div className="space-y-2"><Label>Cidade</Label><Input value={address.city} disabled className="bg-muted border-none min-h-[44px]" /></div>
-              <div className="space-y-2"><Label>Estado</Label><Input value={address.state} disabled className="bg-muted border-none min-h-[44px]" /></div>
+              <div className="grid grid-cols-2 gap-2">
+                <div className="space-y-2"><Label>Cidade</Label><Input value={address.city} disabled className="bg-muted border-none min-h-[44px]" /></div>
+                <div className="space-y-2"><Label>UF</Label><Input value={address.state} disabled className="bg-muted border-none min-h-[44px]" /></div>
+              </div>
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-2">
@@ -371,6 +462,9 @@ const Checkout = () => {
                 <span className="font-display font-bold">Total</span>
                 <span className="font-bold text-lg text-primary">R$ {finalTotal.toFixed(2).replace(".", ",")}</span>
               </div>
+              <p className="text-[10px] text-accent font-semibold text-center">
+                💰 No Pix: R$ {(finalTotal * 0.95).toFixed(2).replace(".", ",")} (5% off)
+              </p>
             </div>
 
             <Button onClick={handlePlaceOrder} disabled={submitting} className="w-full bg-primary text-primary-foreground hover:bg-primary/90 min-h-[48px] font-semibold shadow-marsala">

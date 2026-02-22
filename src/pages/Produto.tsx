@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import OptimizedImage from "@/components/ui/optimized-image";
+import ProductImageGallery from "@/components/product/ProductImageGallery";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { Heart, Minus, Plus, ShoppingBag, Truck, CreditCard, ShieldCheck, MessageCircle, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -144,24 +144,21 @@ const Produto = () => {
         <div className="grid grid-cols-1 md:grid-cols-[minmax(0,2fr)_minmax(0,3fr)] gap-6 md:gap-10">
           {/* Left: Image */}
           <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} className="relative md:max-w-[380px]">
-            <div className="rounded-xl overflow-hidden bg-muted sticky top-24">
-              {product.images?.[0] ? (
-                <OptimizedImage src={product.images[0]} alt={product.name} aspectRatio="4/5" />
-              ) : (
-                <div className="aspect-[4/5] bg-muted flex items-center justify-center text-muted-foreground">Sem imagem</div>
-              )}
-              {hasDiscount && (
-                <Badge className="absolute top-3 left-3 bg-destructive text-destructive-foreground text-xs px-2.5 py-0.5">
-                  -{discountPercent}%
-                </Badge>
-              )}
-              <motion.button
-                whileTap={{ scale: 0.85 }}
-                onClick={handleToggleFavorite}
-                className="absolute top-3 right-3 w-9 h-9 rounded-full bg-background/80 backdrop-blur flex items-center justify-center shadow-sm"
-              >
-                <Heart className={cn("w-4 h-4 transition-colors", favorited ? "fill-destructive text-destructive" : "")} />
-              </motion.button>
+            <div className="sticky top-24">
+              <ProductImageGallery images={product.images || []} alt={product.name}>
+                {hasDiscount && (
+                  <Badge className="absolute top-3 left-3 bg-destructive text-destructive-foreground text-xs px-2.5 py-0.5 z-10">
+                    -{discountPercent}%
+                  </Badge>
+                )}
+                <motion.button
+                  whileTap={{ scale: 0.85 }}
+                  onClick={handleToggleFavorite}
+                  className="absolute top-3 right-3 w-9 h-9 rounded-full bg-background/80 backdrop-blur flex items-center justify-center shadow-sm z-10"
+                >
+                  <Heart className={cn("w-4 h-4 transition-colors", favorited ? "fill-destructive text-destructive" : "")} />
+                </motion.button>
+              </ProductImageGallery>
             </div>
           </motion.div>
 

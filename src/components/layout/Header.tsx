@@ -246,13 +246,21 @@ const Header = () => {
             
 
             <Link to="/carrinho" className="w-9 h-9 md:w-10 md:h-10 flex items-center justify-center rounded-full hover:bg-muted transition-colors relative" aria-label="Carrinho">
-              <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
+              <motion.div
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.9 }}
+                key={cartCount}
+                animate={cartCount > 0 ? { scale: [1, 1.3, 1], rotate: [0, -10, 10, 0] } : {}}
+                transition={{ duration: 0.4 }}
+              >
                 <ShoppingBag className="w-5 h-5 text-foreground" />
               </motion.div>
               {cartCount > 0 && (
                 <motion.span
+                  key={`badge-${cartCount}`}
                   initial={{ scale: 0 }}
                   animate={{ scale: 1 }}
+                  transition={{ type: "spring", stiffness: 500, damping: 15 }}
                   className="absolute -top-0.5 -right-0.5 w-5 h-5 rounded-full bg-primary text-primary-foreground text-[10px] font-bold flex items-center justify-center"
                 >
                   {cartCount}
