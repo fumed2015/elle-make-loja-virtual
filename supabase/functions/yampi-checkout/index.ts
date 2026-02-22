@@ -20,11 +20,20 @@ async function sendWhatsApp(phone: string, message: string): Promise<any> {
     return { error: 'Z-API not configured' };
   }
 
+  // Debug: log credential metadata (safe, no full secrets)
+  console.log('Z-API debug:', {
+    instanceId_length: instanceId.length,
+    instanceId_prefix: instanceId.substring(0, 6),
+    token_length: token.length,
+    token_prefix: token.substring(0, 6),
+  });
+
   // Normalize phone: ensure 55 prefix, remove non-digits
   let cleanPhone = phone.replace(/\D/g, '');
   if (!cleanPhone.startsWith('55')) cleanPhone = '55' + cleanPhone;
 
   const url = `https://api.z-api.io/instances/${instanceId}/token/${token}/send-text`;
+  console.log('Z-API URL:', url);
 
   try {
     const res = await fetch(url, {
