@@ -88,32 +88,87 @@ function getNotificationUrl(): string {
   return `https://${projectId}.supabase.co/functions/v1/mercadopago-payment`;
 }
 
+/** Verify Mercado Pago webhook HMAC signature */
+async function verifyWebhookSignature(req: Request, body: string): Promise<boolean> {
+  const secret = Deno.env.get("MERCADO_PAGO_WEBHOOK_SECRET");
+  if (!secret) {
+    console.warn("MERCADO_PAGO_WEBHOOK_SECRET not set, skipping signature verification");
+    return true; // Allow if secret not configured (backwards compat)
+  }
+
+  const xSignature = req.headers.get("x-signature");
+  const xRequestId = req.headers.get("x-request-id");
+
+  if (!xSignature || !xRequestId) {
+    console.warn("Missing x-signature or x-request-id headers");
+    return false;
+  }
+
+  // Parse x-signature: "ts=...,v1=..."
+  const parts: Record<string, string> = {};
+  for (const part of xSignature.split(",")) {
+    const [key, val] = part.split("=", 2);
+    if (key && val) parts[key.trim()] = val.trim();
+  }
+
+  const ts = parts["ts"];
+  const v1 = parts["v1"];
+  if (!ts || !v1) {
+    console.warn("Invalid x-signature format");
+    return false;
+  }
+
+  // Extract data.id from query params
+  const url = new URL(req.url);
+  const dataId = url.searchParams.get("data.id") || "";
+
+  // Build the manifest string as per MP docs
+  const manifest = `id:${dataId};request-id:${xRequestId};ts:${ts};`;
+
+  // HMAC-SHA256
+  const encoder = new TextEncoder();
+  const key = await crypto.subtle.importKey(
+    "raw",
+    encoder.encode(secret),
+    { name: "HMAC", hash: "SHA-256" },
+    false,
+    ["sign"]
+  );
+  const signature = await crypto.subtle.sign("HMAC", key, encoder.encode(manifest));
+  const hex = Array.from(new Uint8Array(signature))
+    .map((b) => b.toString(16).padStart(2, "0"))
+    .join("");
+
+  if (hex !== v1) {
+    console.error("Webhook signature mismatch");
+    return false;
+  }
+
+  console.log("Webhook signature verified successfully");
+  return true;
+}
+
 /** Handle Mercado Pago webhook/IPN notifications */
-async function handleWebhook(req: Request, accessToken: string) {
+async function handleWebhook(req: Request, rawBody: string, accessToken: string) {
   const url = new URL(req.url);
   const topic = url.searchParams.get("topic") || url.searchParams.get("type");
   
   let paymentId: string | null = null;
+  let parsedBody: any = null;
+
+  try {
+    parsedBody = JSON.parse(rawBody);
+  } catch { /* no body */ }
 
   if (topic === "payment" || topic === "payment.updated" || topic === "payment.created") {
-    // IPN style: ?topic=payment&id=xxx
     paymentId = url.searchParams.get("id") || url.searchParams.get("data.id");
-    
-    // Webhook v2 style: body contains { data: { id }, type, action }
-    if (!paymentId) {
-      try {
-        const body = await req.json();
-        paymentId = body?.data?.id ? String(body.data.id) : null;
-      } catch { /* no body */ }
+    if (!paymentId && parsedBody?.data?.id) {
+      paymentId = String(parsedBody.data.id);
     }
   } else {
-    // Try parsing body for webhook v2 format
-    try {
-      const body = await req.json();
-      if (body?.type === "payment" && body?.data?.id) {
-        paymentId = String(body.data.id);
-      }
-    } catch { /* no body */ }
+    if (parsedBody?.type === "payment" && parsedBody?.data?.id) {
+      paymentId = String(parsedBody.data.id);
+    }
   }
 
   if (!paymentId) {
@@ -215,9 +270,17 @@ serve(async (req) => {
   const authHeader = req.headers.get("Authorization");
   const isWebhook = hasWebhookParams || (req.method === "POST" && !authHeader);
 
-  // If it looks like a webhook (no auth header + has MP params), handle it
   if (isWebhook && !authHeader) {
-    return await handleWebhook(req, ACCESS_TOKEN);
+    const rawBody = await req.text();
+    
+    // Verify webhook signature
+    const isValid = await verifyWebhookSignature(req, rawBody);
+    if (!isValid) {
+      console.error("Webhook signature verification failed");
+      return jsonResponse({ error: "Invalid signature" }, 403);
+    }
+    
+    return await handleWebhook(req, rawBody, ACCESS_TOKEN);
   }
 
   try {
@@ -226,7 +289,12 @@ serve(async (req) => {
 
     // Check if body looks like a webhook payload (has type + data.id)
     if (!action && body?.type && body?.data?.id) {
-      return await handleWebhook(new Request(req.url, { method: "POST", body: JSON.stringify(body) }), ACCESS_TOKEN);
+      const rawBody = JSON.stringify(body);
+      const isValid = await verifyWebhookSignature(req, rawBody);
+      if (!isValid) {
+        return jsonResponse({ error: "Invalid signature" }, 403);
+      }
+      return await handleWebhook(req, rawBody, ACCESS_TOKEN);
     }
 
     // Public key doesn't need auth
