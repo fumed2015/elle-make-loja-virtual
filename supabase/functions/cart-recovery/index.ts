@@ -17,6 +17,37 @@ function jsonResponse(data: any, status = 200) {
 const SITE_URL = "https://ellemake2.lovable.app";
 const MERCHANT_NAME = "Elle Make";
 
+// ── Fallback templates ──
+const FALLBACK_TEMPLATES: Record<string, string> = {
+  "cart.recovery.first":
+    `💄 Oi {first_name}! Notamos que você deixou {items_count} {items_label} no carrinho da *{merchant}*!\n\n💰 Total: R$ {total}\n\n🛒 Finalize sua compra: {recovery_link}\n\nEstamos aqui se precisar de ajuda! 💕`,
+  "cart.recovery.second":
+    `✨ {first_name}, seus produtos ainda estão esperando por você na *{merchant}*! 💖\n\n🛒 {items_count} {items_label} · R$ {total}\n\nAproveite antes que acabe: {recovery_link}\n\nDúvidas? Fale conosco! 😊`,
+  "pix.reminder":
+    `⏳ Oi {first_name}! Seu PIX de *R$ {total}* na *{merchant}* ainda está pendente!\n\n{products_list}\n\n💡 Acesse o app para copiar o código PIX novamente:\n{link}\n\nO PIX expira em breve. Não perca! 💕`,
+};
+
+// ── Load template from DB with fallback ──
+async function loadTemplate(supabase: any, eventType: string): Promise<string> {
+  const { data } = await supabase
+    .from("message_templates")
+    .select("template, is_active")
+    .eq("event_type", eventType)
+    .maybeSingle();
+
+  if (data?.is_active && data?.template) return data.template;
+  return FALLBACK_TEMPLATES[eventType] || "";
+}
+
+// ── Replace variables in template ──
+function fillTemplate(template: string, vars: Record<string, string>): string {
+  let result = template;
+  for (const [key, value] of Object.entries(vars)) {
+    result = result.replaceAll(`{${key}}`, value);
+  }
+  return result;
+}
+
 // ── Z-API helper ──
 async function sendWhatsApp(phone: string, message: string): Promise<any> {
   const instanceId = Deno.env.get("ZAPI_INSTANCE_ID");
@@ -54,14 +85,12 @@ serve(async (req) => {
     const { action } = body;
 
     // ══════════════════════════════════════════════════════════
-    // ACTION: process-abandonments (called by cron every 30min)
-    // Finds carts abandoned 30+ min ago, sends WhatsApp recovery
+    // ACTION: process-abandonments
     // ══════════════════════════════════════════════════════════
     if (action === "process-abandonments") {
-      const cutoff = new Date(Date.now() - 30 * 60 * 1000).toISOString(); // 30 min ago
-      const maxAge = new Date(Date.now() - 48 * 60 * 60 * 1000).toISOString(); // max 48h
+      const cutoff = new Date(Date.now() - 30 * 60 * 1000).toISOString();
+      const maxAge = new Date(Date.now() - 48 * 60 * 60 * 1000).toISOString();
 
-      // Find unrecovered carts, not yet notified (or notified < 2 times)
       const { data: events, error } = await supabase
         .from("cart_abandonment_events")
         .select("*")
@@ -72,28 +101,21 @@ serve(async (req) => {
         .order("created_at", { ascending: true })
         .limit(20);
 
-      if (error) {
-        console.error("Fetch abandoned carts error:", error);
-        return jsonResponse({ error: error.message }, 500);
-      }
+      if (error) return jsonResponse({ error: error.message }, 500);
+      if (!events || events.length === 0) return jsonResponse({ processed: 0, message: "No carts to recover" });
 
-      if (!events || events.length === 0) {
-        return jsonResponse({ processed: 0, message: "No carts to recover" });
-      }
+      // Pre-load both templates
+      const tmplFirst = await loadTemplate(supabase, "cart.recovery.first");
+      const tmplSecond = await loadTemplate(supabase, "cart.recovery.second");
 
       let sent = 0;
       for (const event of events) {
-        // Generate recovery token if none
         let token = event.recovery_token;
         if (!token) {
           token = crypto.randomUUID().replace(/-/g, "").slice(0, 16);
-          await supabase
-            .from("cart_abandonment_events")
-            .update({ recovery_token: token })
-            .eq("id", event.id);
+          await supabase.from("cart_abandonment_events").update({ recovery_token: token }).eq("id", event.id);
         }
 
-        // Get user profile for phone + name
         const { data: profile } = await supabase
           .from("profiles")
           .select("full_name, phone")
@@ -101,46 +123,29 @@ serve(async (req) => {
           .maybeSingle();
 
         if (!profile?.phone) {
-          // Mark as notified so we don't keep retrying
-          await supabase
-            .from("cart_abandonment_events")
-            .update({ notification_count: 99 })
-            .eq("id", event.id);
+          await supabase.from("cart_abandonment_events").update({ notification_count: 99 }).eq("id", event.id);
           continue;
         }
 
-        const firstName = profile.full_name?.split(" ")[0] || "Cliente";
-        const recoveryLink = `${SITE_URL}/recuperar-carrinho?token=${token}`;
-        const total = Number(event.cart_total || 0).toFixed(2).replace(".", ",");
+        const vars = {
+          first_name: profile.full_name?.split(" ")[0] || "Cliente",
+          merchant: MERCHANT_NAME,
+          items_count: String(event.items_count),
+          items_label: event.items_count === 1 ? "item" : "itens",
+          total: Number(event.cart_total || 0).toFixed(2).replace(".", ","),
+          recovery_link: `${SITE_URL}/recuperar-carrinho?token=${token}`,
+        };
 
-        // Choose message based on notification count
-        let message: string;
-        if (event.notification_count === 0) {
-          message =
-            `💄 Oi ${firstName}! Notamos que você deixou ${event.items_count} ${event.items_count === 1 ? "item" : "itens"} no carrinho da *${MERCHANT_NAME}*!\n\n` +
-            `💰 Total: R$ ${total}\n\n` +
-            `🛒 Finalize sua compra: ${recoveryLink}\n\n` +
-            `Estamos aqui se precisar de ajuda! 💕`;
-        } else {
-          message =
-            `✨ ${firstName}, seus produtos ainda estão esperando por você na *${MERCHANT_NAME}*! 💖\n\n` +
-            `🛒 ${event.items_count} ${event.items_count === 1 ? "item" : "itens"} · R$ ${total}\n\n` +
-            `Aproveite antes que acabe: ${recoveryLink}\n\n` +
-            `Dúvidas? Fale conosco! 😊`;
-        }
+        const template = event.notification_count === 0 ? tmplFirst : tmplSecond;
+        const message = fillTemplate(template, vars);
 
         const result = await sendWhatsApp(profile.phone, message);
 
-        // Update event
-        await supabase
-          .from("cart_abandonment_events")
-          .update({
-            notified_at: new Date().toISOString(),
-            notification_count: (event.notification_count || 0) + 1,
-          })
-          .eq("id", event.id);
+        await supabase.from("cart_abandonment_events").update({
+          notified_at: new Date().toISOString(),
+          notification_count: (event.notification_count || 0) + 1,
+        }).eq("id", event.id);
 
-        // Log notification
         await supabase.from("notifications").insert({
           event_type: "cart.abandoned",
           phone: profile.phone,
@@ -157,14 +162,12 @@ serve(async (req) => {
     }
 
     // ══════════════════════════════════════════════════════════
-    // ACTION: process-pix-reminders (called by cron)
-    // Finds orders with PIX pending for 15+ min, sends reminder
+    // ACTION: process-pix-reminders
     // ══════════════════════════════════════════════════════════
     if (action === "process-pix-reminders") {
       const cutoff15 = new Date(Date.now() - 15 * 60 * 1000).toISOString();
       const cutoff24h = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
 
-      // Find pending PIX orders
       const { data: orders, error } = await supabase
         .from("orders")
         .select("*")
@@ -175,11 +178,8 @@ serve(async (req) => {
         .order("created_at", { ascending: true })
         .limit(20);
 
-      if (error || !orders || orders.length === 0) {
-        return jsonResponse({ processed: 0 });
-      }
+      if (error || !orders || orders.length === 0) return jsonResponse({ processed: 0 });
 
-      // Check which ones already got a reminder
       const orderIds = orders.map((o) => o.id);
       const { data: existingNotifs } = await supabase
         .from("notifications")
@@ -189,6 +189,8 @@ serve(async (req) => {
 
       const alreadyNotified = new Set(existingNotifs?.map((n) => n.order_id) || []);
       const toNotify = orders.filter((o) => !alreadyNotified.has(o.id));
+
+      const tmplPix = await loadTemplate(supabase, "pix.reminder");
 
       let sent = 0;
       for (const order of toNotify) {
@@ -200,17 +202,18 @@ serve(async (req) => {
 
         if (!profile?.phone) continue;
 
-        const firstName = profile.full_name?.split(" ")[0] || "Cliente";
-        const total = Number(order.total).toFixed(2).replace(".", ",");
         const items = (order.items as any[]) || [];
-        const itemsList = items.map((i: any) => `• ${i.name || "Produto"} (${i.quantity || 1}x)`).join("\n");
+        const productsList = items.map((i: any) => `• ${i.name || "Produto"} (${i.quantity || 1}x)`).join("\n");
 
-        const message =
-          `⏳ Oi ${firstName}! Seu PIX de *R$ ${total}* na *${MERCHANT_NAME}* ainda está pendente!\n\n` +
-          `${itemsList}\n\n` +
-          `💡 Acesse o app para copiar o código PIX novamente:\n${SITE_URL}/pedidos\n\n` +
-          `O PIX expira em breve. Não perca! 💕`;
+        const vars = {
+          first_name: profile.full_name?.split(" ")[0] || "Cliente",
+          merchant: MERCHANT_NAME,
+          total: Number(order.total).toFixed(2).replace(".", ","),
+          products_list: productsList,
+          link: `${SITE_URL}/pedidos`,
+        };
 
+        const message = fillTemplate(tmplPix, vars);
         const result = await sendWhatsApp(profile.phone, message);
 
         await supabase.from("notifications").insert({
@@ -230,7 +233,7 @@ serve(async (req) => {
     }
 
     // ══════════════════════════════════════════════════════════
-    // ACTION: resolve-recovery (mark cart as recovered)
+    // ACTION: resolve-recovery
     // ══════════════════════════════════════════════════════════
     if (action === "resolve-recovery") {
       const { token } = body;
@@ -245,23 +248,17 @@ serve(async (req) => {
 
       if (error || !event) return jsonResponse({ error: "Invalid or expired token" }, 404);
 
-      // Get user's cart items
       const { data: cartItems } = await supabase
         .from("cart_items")
         .select("*, products(id, name, slug, price, images)")
         .eq("user_id", event.user_id);
 
-      // Mark as recovered
       await supabase
         .from("cart_abandonment_events")
         .update({ recovered_at: new Date().toISOString() })
         .eq("id", event.id);
 
-      return jsonResponse({
-        recovered: true,
-        user_id: event.user_id,
-        items: cartItems || [],
-      });
+      return jsonResponse({ recovered: true, user_id: event.user_id, items: cartItems || [] });
     }
 
     return jsonResponse({ error: "Unknown action" }, 400);
