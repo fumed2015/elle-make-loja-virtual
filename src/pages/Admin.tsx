@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { LayoutDashboard, Package, ShoppingCart, Plus, ArrowLeft, TrendingUp, Box, Tag, Star, Users, ImageIcon, Eye, EyeOff, Percent, Trash2, Search, AlertTriangle, CheckCircle, Info, FolderOpen, Pencil, Wand2, Sparkles, Loader2, RefreshCw, UserPlus, Cake, MessageCircle, Calendar, Gift, DollarSign, Target, Settings2, Megaphone, Code, BarChart3, Heart } from "lucide-react";
+import { LayoutDashboard, Package, ShoppingCart, Plus, ArrowLeft, TrendingUp, Box, Tag, Star, Users, ImageIcon, Eye, EyeOff, Percent, Trash2, Search, AlertTriangle, CheckCircle, Info, FolderOpen, Pencil, Wand2, Sparkles, Loader2, RefreshCw, UserPlus, Cake, MessageCircle, Calendar, Gift, DollarSign, Target, Settings2, Megaphone, Code, BarChart3, Heart, Truck, Globe2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -28,8 +28,11 @@ import WhatsAppTemplatesTab from "@/components/admin/WhatsAppTemplatesTab";
 import StockManagementTab from "@/components/admin/StockManagementTab";
 import SalesIntelligenceTab from "@/components/admin/SalesIntelligenceTab";
 import CRMTab from "@/components/admin/CRMTab";
+import LogisticsTab from "@/components/admin/LogisticsTab";
+import MarketingConversionTab from "@/components/admin/MarketingConversionTab";
+import SEOContentTab from "@/components/admin/SEOContentTab";
 
-type Tab = "dashboard" | "products" | "orders" | "add-product" | "coupons" | "reviews" | "influencers" | "seo" | "categories" | "ai-content" | "leads" | "birthdays" | "financeiro" | "comercial" | "operacional" | "marketing" | "pixels" | "whatsapp" | "stock" | "sales-intelligence" | "crm";
+type Tab = "dashboard" | "products" | "orders" | "add-product" | "coupons" | "reviews" | "influencers" | "seo" | "categories" | "ai-content" | "leads" | "birthdays" | "financeiro" | "comercial" | "operacional" | "marketing" | "pixels" | "whatsapp" | "stock" | "sales-intelligence" | "crm" | "logistics" | "marketing-conversion" | "seo-content";
 
 const statusLabels: Record<string, string> = {
   pending: "Pendente", confirmed: "Confirmado", preparing: "Preparando",
@@ -65,6 +68,9 @@ const Admin = () => {
     { id: "marketing" as Tab, label: "Marketing", icon: Megaphone },
     { id: "sales-intelligence" as Tab, label: "Inteligência", icon: BarChart3 },
     { id: "crm" as Tab, label: "CRM", icon: Heart },
+    { id: "logistics" as Tab, label: "Logística", icon: Truck },
+    { id: "marketing-conversion" as Tab, label: "Promoções", icon: Gift },
+    { id: "seo-content" as Tab, label: "SEO & Blog", icon: Globe2 },
     { id: "products" as Tab, label: "Produtos", icon: Box },
     { id: "stock" as Tab, label: "Estoque", icon: Package },
     { id: "categories" as Tab, label: "Categorias", icon: FolderOpen },
@@ -107,6 +113,9 @@ const Admin = () => {
       {tab === "stock" && <StockManagementTab />}
       {tab === "sales-intelligence" && <SalesIntelligenceTab />}
       {tab === "crm" && <CRMTab />}
+      {tab === "logistics" && <LogisticsTab />}
+      {tab === "marketing-conversion" && <MarketingConversionTab />}
+      {tab === "seo-content" && <SEOContentTab />}
       {tab === "orders" && <OrdersManagementTab />}
       {tab === "coupons" && <CouponsTab />}
       {tab === "reviews" && <ReviewsTab />}
