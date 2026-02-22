@@ -257,10 +257,18 @@ export type Database = {
         Row: {
           created_at: string
           desired_margin: number
+          fixed_cost_extra1: number
+          fixed_cost_extra1_label: string
+          fixed_cost_extra2: number
+          fixed_cost_extra2_label: string
+          fixed_cost_extra3: number
+          fixed_cost_extra3_label: string
           fixed_cost_other: number
           fixed_cost_other_label: string | null
           fixed_cost_platform: number
+          fixed_cost_platform_label: string
           fixed_cost_whatsgw: number
+          fixed_cost_whatsgw_label: string
           freight_batch_items: number
           freight_batch_total: number
           gateway_rate_credit: number
@@ -278,10 +286,18 @@ export type Database = {
         Insert: {
           created_at?: string
           desired_margin?: number
+          fixed_cost_extra1?: number
+          fixed_cost_extra1_label?: string
+          fixed_cost_extra2?: number
+          fixed_cost_extra2_label?: string
+          fixed_cost_extra3?: number
+          fixed_cost_extra3_label?: string
           fixed_cost_other?: number
           fixed_cost_other_label?: string | null
           fixed_cost_platform?: number
+          fixed_cost_platform_label?: string
           fixed_cost_whatsgw?: number
+          fixed_cost_whatsgw_label?: string
           freight_batch_items?: number
           freight_batch_total?: number
           gateway_rate_credit?: number
@@ -299,10 +315,18 @@ export type Database = {
         Update: {
           created_at?: string
           desired_margin?: number
+          fixed_cost_extra1?: number
+          fixed_cost_extra1_label?: string
+          fixed_cost_extra2?: number
+          fixed_cost_extra2_label?: string
+          fixed_cost_extra3?: number
+          fixed_cost_extra3_label?: string
           fixed_cost_other?: number
           fixed_cost_other_label?: string | null
           fixed_cost_platform?: number
+          fixed_cost_platform_label?: string
           fixed_cost_whatsgw?: number
+          fixed_cost_whatsgw_label?: string
           freight_batch_items?: number
           freight_batch_total?: number
           gateway_rate_credit?: number
