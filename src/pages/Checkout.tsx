@@ -45,7 +45,8 @@ const Checkout = () => {
     };
   });
 
-  // Auto-fill address from CEP via ViaCEP
+  // Auto-fill address from CEP via ViaCEP + auto-calculate shipping
+  const [shippingAutoCalculated, setShippingAutoCalculated] = useState(false);
   useEffect(() => {
     const clean = address.zip.replace(/\D/g, "");
     if (clean.length !== 8) return;
@@ -66,6 +67,13 @@ const Checkout = () => {
       })
       .catch(() => {})
       .finally(() => { if (!cancelled) setCepLoading(false); });
+
+    // Auto-calculate shipping if CEP came from localStorage and not yet calculated
+    if (!shippingAutoCalculated && shipping.options.length === 0) {
+      shipping.setCep(clean);
+      setTimeout(() => shipping.calculateShipping(), 100);
+      setShippingAutoCalculated(true);
+    }
 
     return () => { cancelled = true; };
   }, [address.zip]);
