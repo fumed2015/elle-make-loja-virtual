@@ -84,20 +84,20 @@ const Checkout = () => {
     if (!authLoading && !user) navigate("/perfil?redirect=/checkout", { replace: true });
   }, [user, authLoading, navigate]);
 
-  // Redirect if cart is empty — use a small delay to let queries settle after auth transitions
+  // Redirect if cart is empty — use a generous delay to let guest→auth cart sync complete
   const [cartChecked, setCartChecked] = useState(false);
   useEffect(() => {
     if (authLoading || cartLoading) { setCartChecked(false); return; }
-    // Wait a tick for React Query to refetch after auth changes
-    const t = setTimeout(() => setCartChecked(true), 500);
+    // Wait longer for React Query refetch after auth + guest cart sync
+    const t = setTimeout(() => setCartChecked(true), 1500);
     return () => clearTimeout(t);
   }, [authLoading, cartLoading]);
 
   useEffect(() => {
-    if (cartChecked && items.length === 0 && step !== "success" && step !== "processing") {
+    if (cartChecked && !cartFetching && items.length === 0 && step !== "success" && step !== "processing") {
       navigate("/carrinho", { replace: true });
     }
-  }, [cartChecked, items.length, step, navigate]);
+  }, [cartChecked, cartFetching, items.length, step, navigate]);
 
   // Pre-fill customer info from profile
   useEffect(() => {
@@ -251,7 +251,12 @@ const Checkout = () => {
           if (yampiError) throw yampiError;
           if (yampiData?.checkout_url) {
             toast.success("Redirecionando ao checkout Yampi... 🎉");
-            window.location.href = yampiData.checkout_url;
+            // Use window.open as fallback for iframe environments
+            const opened = window.open(yampiData.checkout_url, '_blank');
+            if (!opened) {
+              window.location.href = yampiData.checkout_url;
+            }
+            setStep("success");
             return;
           }
           setStep("success");
@@ -259,7 +264,10 @@ const Checkout = () => {
         } catch (yampiErr: any) {
           console.error('Yampi error:', yampiErr);
           toast.success("Pedido registrado! Redirecionando ao checkout... 🎉");
-          window.location.href = 'https://elle-make.checkout.yampi.com.br';
+          const fallbackUrl = 'https://elle-make.checkout.yampi.com.br';
+          const opened = window.open(fallbackUrl, '_blank');
+          if (!opened) window.location.href = fallbackUrl;
+          setStep("success");
           return;
         }
       }
