@@ -18,6 +18,7 @@ import { toast } from "sonner";
 import { motion } from "framer-motion";
 
 import AdminProductsPanel from "@/components/admin/AdminProductsPanel";
+import OrdersManagementTab from "@/components/admin/OrdersManagementTab";
 import FinanceiroTab from "@/components/admin/FinanceiroTab";
 import ComercialTab from "@/components/admin/ComercialTab";
 import OperacionalTab from "@/components/admin/OperacionalTab";
@@ -97,7 +98,7 @@ const Admin = () => {
       {tab === "operacional" && <OperacionalTab />}
       {tab === "marketing" && <MarketingTab />}
       {tab === "products" && <AdminProductsPanel />}
-      {tab === "orders" && <OrdersTab />}
+      {tab === "orders" && <OrdersManagementTab />}
       {tab === "coupons" && <CouponsTab />}
       {tab === "reviews" && <ReviewsTab />}
       {tab === "influencers" && <InfluencersTab />}
@@ -566,43 +567,7 @@ const AIContentTab = () => {
   );
 };
 
-// ========== Orders ==========
-const OrdersTab = () => {
-  const { data: orders, isLoading, refetch } = useAllOrders();
-  const handleUpdateStatus = async (orderId: string, newStatus: string) => {
-    const updateData: any = { status: newStatus };
-    const { error } = await supabase.from("orders").update(updateData).eq("id", orderId);
-    if (error) toast.error("Erro ao atualizar status");
-    else { toast.success("Status atualizado"); refetch(); }
-  };
-  if (isLoading) return <div className="text-center py-8 text-muted-foreground text-sm">Carregando...</div>;
-  if (!orders?.length) return <div className="text-center py-8 text-muted-foreground text-sm">Nenhum pedido</div>;
-  return (
-    <div className="space-y-3">
-      {orders.map((order) => (
-        <div key={order.id} className="bg-card rounded-xl p-4 border border-border space-y-3">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-xs font-medium">#{order.id.slice(0, 8)}</p>
-              <p className="text-[10px] text-muted-foreground">{new Date(order.created_at).toLocaleDateString("pt-BR")}</p>
-            </div>
-            <p className="text-sm font-bold text-primary">R$ {Number(order.total).toFixed(2).replace(".", ",")}</p>
-          </div>
-          <div className="flex gap-2">
-            <Select defaultValue={order.status} onValueChange={(val) => handleUpdateStatus(order.id, val)}>
-              <SelectTrigger className="bg-muted border-none min-h-[36px] text-xs flex-1"><SelectValue /></SelectTrigger>
-              <SelectContent>
-                {Object.entries(statusLabels).map(([value, label]) => (<SelectItem key={value} value={value}>{label}</SelectItem>))}
-              </SelectContent>
-            </Select>
-          </div>
-          {order.coupon_code && <Badge variant="secondary" className="text-[10px]"><Tag className="w-3 h-3 mr-1" />{order.coupon_code} (-R$ {Number(order.discount || 0).toFixed(2).replace(".", ",")})</Badge>}
-        </div>
-      ))}
-    </div>
-  );
-};
-
+// OrdersTab moved to OrdersManagementTab component
 // ========== Coupons ==========
 const CouponsTab = () => {
   const queryClient = useQueryClient();
