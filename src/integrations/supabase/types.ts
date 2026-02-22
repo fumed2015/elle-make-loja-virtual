@@ -74,6 +74,10 @@ export type Database = {
           created_at: string
           id: string
           items_count: number
+          notification_count: number
+          notified_at: string | null
+          recovered_at: string | null
+          recovery_token: string | null
           step: string
           user_id: string
         }
@@ -82,6 +86,10 @@ export type Database = {
           created_at?: string
           id?: string
           items_count?: number
+          notification_count?: number
+          notified_at?: string | null
+          recovered_at?: string | null
+          recovery_token?: string | null
           step?: string
           user_id: string
         }
@@ -90,6 +98,10 @@ export type Database = {
           created_at?: string
           id?: string
           items_count?: number
+          notification_count?: number
+          notified_at?: string | null
+          recovered_at?: string | null
+          recovery_token?: string | null
           step?: string
           user_id?: string
         }
