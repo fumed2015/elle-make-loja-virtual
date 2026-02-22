@@ -66,8 +66,28 @@ const Checkout = () => {
     return () => { cancelled = true; };
   }, [address.zip]);
 
-  if (!user) { navigate("/perfil?redirect=/checkout"); return null; }
-  if (items.length === 0 && step !== "success" && step !== "processing") { navigate("/carrinho"); return null; }
+  // Redirect unauthenticated users (must be in useEffect, not during render)
+  useEffect(() => {
+    if (!user) navigate("/perfil?redirect=/checkout", { replace: true });
+  }, [user, navigate]);
+
+  // Redirect if cart is empty
+  useEffect(() => {
+    if (items.length === 0 && step !== "success" && step !== "processing") {
+      navigate("/carrinho", { replace: true });
+    }
+  }, [items.length, step, navigate]);
+
+  // Pre-fill customer info from profile
+  useEffect(() => {
+    if (!user) return;
+    supabase.from("profiles").select("phone, full_name").eq("user_id", user.id).maybeSingle().then(({ data }) => {
+      if (data?.phone) setCustomerInfo(prev => ({ ...prev, phone: prev.phone || data.phone }));
+    });
+  }, [user]);
+
+  if (!user) return null;
+  if (items.length === 0 && step !== "success" && step !== "processing") return null;
 
   const shippingCost = shipping.selectedShipping?.price ?? 0;
   const freeShipping = cartTotal >= 199 && shipping.isLocal;
@@ -160,9 +180,10 @@ const Checkout = () => {
         }
       }
 
-      // Clear cart
-      for (const item of items) {
-        await supabase.from("cart_items").delete().eq("id", item.id);
+      // Clear cart (batch delete)
+      const cartIds = items.map((i: any) => i.id).filter(Boolean);
+      if (cartIds.length > 0) {
+        await supabase.from("cart_items").delete().in("id", cartIds);
       }
 
       setOrderId(orderData.id);
