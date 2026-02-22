@@ -15,6 +15,9 @@ const EVENT_LABELS: Record<string, { label: string; emoji: string; description: 
   "order.shipped": { label: "Pedido Enviado", emoji: "📦", description: "Enviado quando o pedido sai para entrega" },
   "order.delivered": { label: "Pedido Entregue", emoji: "🎉", description: "Enviado quando o pedido é entregue" },
   "checkout.abandoned": { label: "Carrinho Abandonado", emoji: "💄", description: "Enviado para recuperar carrinhos abandonados" },
+  "cart.recovery.first": { label: "Recuperação 1ª Msg", emoji: "🔄", description: "1ª mensagem automática de recuperação de carrinho (30min)" },
+  "cart.recovery.second": { label: "Recuperação 2ª Msg", emoji: "🔁", description: "2ª mensagem de recuperação (follow-up)" },
+  "pix.reminder": { label: "Lembrete PIX", emoji: "⏳", description: "Lembrete quando PIX está pendente há 15+ min" },
 };
 
 const AVAILABLE_VARS: Record<string, string[]> = {
@@ -23,6 +26,9 @@ const AVAILABLE_VARS: Record<string, string[]> = {
   "order.shipped": ["{first_name}", "{merchant}", "{products_list}", "{tracking_code}", "{tracking_url}"],
   "order.delivered": ["{first_name}", "{merchant}", "{products_list}"],
   "checkout.abandoned": ["{first_name}", "{merchant}", "{products_list}", "{link}"],
+  "cart.recovery.first": ["{first_name}", "{merchant}", "{items_count}", "{items_label}", "{total}", "{recovery_link}"],
+  "cart.recovery.second": ["{first_name}", "{merchant}", "{items_count}", "{items_label}", "{total}", "{recovery_link}"],
+  "pix.reminder": ["{first_name}", "{merchant}", "{total}", "{products_list}", "{link}"],
 };
 
 const WhatsAppTemplatesTab = () => {
@@ -89,7 +95,10 @@ const WhatsAppTemplatesTab = () => {
       .replace(/{total}/g, "135,80")
       .replace(/{tracking_code}/g, "BR123456789XX")
       .replace(/{tracking_url}/g, "https://rastreamento.correios.com.br")
-      .replace(/{link}/g, "https://ellemake2.lovable.app/pedidos");
+      .replace(/{link}/g, "https://ellemake2.lovable.app/pedidos")
+      .replace(/{items_count}/g, "2")
+      .replace(/{items_label}/g, "itens")
+      .replace(/{recovery_link}/g, "https://ellemake2.lovable.app/recuperar-carrinho?token=abc123");
   };
 
   if (isLoading) {
