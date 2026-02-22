@@ -27,7 +27,7 @@ const CrossSellSection = ({ cartProductIds }: { cartProductIds: string[] }) => {
         (cartBrands.has(p.brand) || cartCategories.has(p.category_id))
       )
       .sort(() => Math.random() - 0.5)
-      .slice(0, 4);
+      .slice(0, 2);
   }, [allProducts, cartProductIds]);
 
   if (suggestions.length === 0) return null;
@@ -40,46 +40,38 @@ const CrossSellSection = ({ cartProductIds }: { cartProductIds: string[] }) => {
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 10 }}
+      initial={{ opacity: 0, y: 6 }}
       animate={{ opacity: 1, y: 0 }}
-      className="bg-card rounded-xl p-4 border border-border space-y-3"
+      className="bg-card rounded-lg p-3 border border-border space-y-2"
     >
-      <div className="flex items-center gap-2">
-        <Sparkles className="w-4 h-4 text-primary" />
-        <p className="text-sm font-semibold">Complemente seu look ✨</p>
+      <div className="flex items-center gap-1.5">
+        <Sparkles className="w-3 h-3 text-primary" />
+        <p className="text-xs font-semibold">Complemente seu look ✨</p>
       </div>
-      <div className="grid grid-cols-2 gap-2">
+      <div className="flex gap-2">
         {suggestions.map(p => {
           const hasDiscount = p.compare_at_price && Number(p.compare_at_price) > Number(p.price);
           return (
-            <div key={p.id} className="bg-muted rounded-lg p-2.5 space-y-2">
-              <div className="aspect-square rounded-md overflow-hidden bg-background">
+            <div key={p.id} className="flex-1 bg-muted rounded-md p-2 flex items-center gap-2">
+              <div className="w-12 h-12 rounded-md overflow-hidden bg-background flex-shrink-0">
                 {p.images?.[0] && (
                   <img src={p.images[0]} alt={p.name} className="w-full h-full object-cover" loading="lazy" />
                 )}
               </div>
-              <div>
-                <p className="text-[10px] text-muted-foreground uppercase">{p.brand}</p>
-                <p className="text-xs font-medium line-clamp-2 leading-tight">{p.name}</p>
-                <div className="flex items-center gap-1.5 mt-1">
-                  <span className="text-xs font-bold text-primary">
-                    R$ {Number(p.price).toFixed(2).replace(".", ",")}
-                  </span>
-                  {hasDiscount && (
-                    <span className="text-[9px] text-muted-foreground line-through">
-                      R$ {Number(p.compare_at_price).toFixed(2).replace(".", ",")}
-                    </span>
-                  )}
-                </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-[10px] font-medium line-clamp-1 leading-tight">{p.name}</p>
+                <span className="text-[10px] font-bold text-primary">
+                  R$ {Number(p.price).toFixed(2).replace(".", ",")}
+                </span>
               </div>
               <Button
                 size="sm"
                 variant="outline"
-                className="w-full h-7 text-[10px] gap-1"
+                className="h-6 w-6 p-0 flex-shrink-0"
                 onClick={() => handleAdd(p.id)}
                 disabled={addToCart.isPending}
               >
-                <Plus className="w-3 h-3" /> Adicionar
+                <Plus className="w-3 h-3" />
               </Button>
             </div>
           );
