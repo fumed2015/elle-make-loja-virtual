@@ -23,9 +23,10 @@ interface CardPaymentFormProps {
   }) => void;
   onCancel: () => void;
   loading?: boolean;
+  inline?: boolean;
 }
 
-const CardPaymentForm = ({ amount, cpf, onTokenized, onCancel, loading }: CardPaymentFormProps) => {
+const CardPaymentForm = ({ amount, cpf, onTokenized, onCancel, loading, inline = false }: CardPaymentFormProps) => {
   const [sdkReady, setSdkReady] = useState(false);
   const [publicKey, setPublicKey] = useState<string | null>(null);
   const [cardNumber, setCardNumber] = useState("");
@@ -252,8 +253,8 @@ const CardPaymentForm = ({ amount, cpf, onTokenized, onCancel, loading }: CardPa
               {installmentOptions.map((opt: any) => (
                 <option key={opt.installments} value={opt.installments}>
                   {opt.installments}x de R$ {opt.installment_amount.toFixed(2).replace(".", ",")}
-                  {opt.installments > 1 && opt.installment_rate === 0 ? " sem juros" : ""}
-                  {opt.installments > 1 && opt.installment_rate > 0 ? ` (${opt.installment_rate}%)` : ""}
+                  {opt.installments <= 3 ? " sem juros" : ""}
+                  {opt.installments > 3 ? ` (com juros)` : ""}
                 </option>
               ))}
             </select>
@@ -266,19 +267,21 @@ const CardPaymentForm = ({ amount, cpf, onTokenized, onCancel, loading }: CardPa
         <span>Seus dados são criptografados e processados com segurança pelo Mercado Pago</span>
       </div>
 
-      <div className="flex gap-3">
-        <Button variant="outline" onClick={onCancel} className="flex-1 min-h-[44px]" disabled={tokenizing || loading}>
-          Voltar
-        </Button>
+      <div className={inline ? "" : "flex gap-3"}>
+        {!inline && (
+          <Button variant="outline" onClick={onCancel} className="flex-1 min-h-[44px]" disabled={tokenizing || loading}>
+            Voltar
+          </Button>
+        )}
         <Button
           onClick={handleSubmit}
           disabled={tokenizing || loading || !paymentMethodId}
-          className="flex-1 bg-primary text-primary-foreground hover:bg-primary/90 min-h-[44px] font-semibold"
+          className={`bg-primary text-primary-foreground hover:bg-primary/90 min-h-[48px] font-semibold ${inline ? "w-full" : "flex-1"}`}
         >
           {tokenizing || loading ? (
             <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Processando...</>
           ) : (
-            <>Pagar R$ {amount.toFixed(2).replace(".", ",")}</>
+            <>🔒 Pagar R$ {amount.toFixed(2).replace(".", ",")} com Cartão</>
           )}
         </Button>
       </div>
