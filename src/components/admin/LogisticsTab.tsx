@@ -16,9 +16,9 @@ const LogisticsTab = () => {
   const { data: orders } = useAllOrders();
   const { data: products } = useProducts({});
   const queryClient = useQueryClient();
-  const [showReturnForm, setShowReturnForm] = useState(false);
   const [statusFilter, setStatusFilter] = useState("all");
   const [updatingId, setUpdatingId] = useState<string | null>(null);
+  const [editingNotes, setEditingNotes] = useState<Record<string, string>>({});
 
   const { data: returns, refetch: refetchReturns } = useQuery({
     queryKey: ["admin-returns"],
@@ -29,13 +29,12 @@ const LogisticsTab = () => {
     },
   });
 
-  const now = new Date();
-
   // ===== SMART RESTOCK ALERTS =====
   const restockAlerts = useMemo(() => {
     if (!products || !orders) return [];
-    const last30 = new Date(now.getTime() - 30 * 86400000);
-    const recentOrders = orders.filter(o => new Date(o.created_at) >= last30);
+    const now = Date.now();
+    const last30 = now - 30 * 86400000;
+    const recentOrders = orders.filter(o => new Date(o.created_at).getTime() >= last30);
 
     return products
       .filter(p => p.is_active)
@@ -49,13 +48,13 @@ const LogisticsTab = () => {
         });
         const dailyVelocity = totalSold / 30;
         const daysUntilStockout = dailyVelocity > 0 ? Math.floor(p.stock / dailyVelocity) : Infinity;
-        const suggestedReorder = Math.ceil(dailyVelocity * 30); // 30 days supply
+        const suggestedReorder = Math.ceil(dailyVelocity * 30);
 
         return { ...p, totalSold, dailyVelocity, daysUntilStockout, suggestedReorder };
       })
       .filter(p => p.daysUntilStockout <= 30 || p.stock <= 5)
       .sort((a, b) => a.daysUntilStockout - b.daysUntilStockout);
-  }, [products, orders, now]);
+  }, [products, orders]);
 
   // ===== SHIPPING OVERVIEW =====
   const shippingStats = useMemo(() => {
@@ -240,6 +239,19 @@ const LogisticsTab = () => {
                       </SelectContent>
                     </Select>
                     {updatingId === r.id && <Loader2 className="w-3 h-3 animate-spin" />}
+                  </div>
+                  {/* Admin notes */}
+                  <div className="flex items-center gap-2 pt-1">
+                    <Textarea
+                      placeholder="Notas internas..."
+                      className="bg-card border-border text-[10px] min-h-[40px] flex-1"
+                      value={editingNotes[r.id] ?? r.admin_notes ?? ""}
+                      onChange={e => setEditingNotes(prev => ({ ...prev, [r.id]: e.target.value }))}
+                    />
+                    <Button size="sm" variant="outline" className="h-7 text-[9px]"
+                      onClick={() => handleUpdateAdminNotes(r.id, editingNotes[r.id] ?? r.admin_notes ?? "")}>
+                      Salvar
+                    </Button>
                   </div>
                 </div>
               );
