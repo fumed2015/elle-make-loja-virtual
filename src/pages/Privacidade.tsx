@@ -36,7 +36,7 @@ const Privacidade = () => (
         <p>Seus dados podem ser compartilhados com:</p>
         <ul className="list-disc pl-5 space-y-1">
           <li>Transportadoras para entrega (Melhor Envio)</li>
-          <li>Processadores de pagamento (Yampi)</li>
+          <li>Processadores de pagamento (Mercado Pago)</li>
           <li>Ferramentas de análise (Google Analytics)</li>
         </ul>
         <p>Não vendemos nem compartilhamos seus dados pessoais com terceiros para fins de marketing.</p>

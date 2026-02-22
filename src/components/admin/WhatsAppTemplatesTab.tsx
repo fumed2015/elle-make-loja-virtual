@@ -89,7 +89,7 @@ const WhatsAppTemplatesTab = () => {
       .replace(/{total}/g, "135,80")
       .replace(/{tracking_code}/g, "BR123456789XX")
       .replace(/{tracking_url}/g, "https://rastreamento.correios.com.br")
-      .replace(/{link}/g, "https://elle-make.pay.yampi.com.br/cart/abc123");
+      .replace(/{link}/g, "https://ellemake2.lovable.app/pedidos");
   };
 
   if (isLoading) {
