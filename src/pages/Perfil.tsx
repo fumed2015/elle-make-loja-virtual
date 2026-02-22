@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import { LogOut, Package, Settings, User, Heart, Shield, MapPin, Star, Trash2, Plus, Award } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -17,6 +17,15 @@ const Perfil = () => {
   const [searchParams] = useSearchParams();
   const redirectTo = searchParams.get("redirect");
   const { user, loading, signIn, signUp, signOut } = useAuth();
+  const hasRedirected = useRef(false);
+
+  // Auto-redirect when user logs in and redirect param exists
+  useEffect(() => {
+    if (user && redirectTo && !hasRedirected.current) {
+      hasRedirected.current = true;
+      navigate(redirectTo);
+    }
+  }, [user, redirectTo, navigate]);
   const { isAdmin } = useAdmin();
   const { data: addresses } = useAddresses();
   const { totalPoints, tier } = useLoyalty();
