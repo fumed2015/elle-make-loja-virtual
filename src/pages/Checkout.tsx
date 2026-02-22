@@ -321,6 +321,16 @@ const Checkout = () => {
       const newOrderId = await createOrder();
       setOrderId(newOrderId);
 
+      // Auto-save CPF and phone to profile for future checkouts
+      if (user) {
+        const updates: Record<string, string> = {};
+        if (customerInfo.cpf) updates.cpf = customerInfo.cpf;
+        if (customerInfo.phone) updates.phone = customerInfo.phone;
+        if (Object.keys(updates).length > 0) {
+          supabase.from("profiles").update(updates).eq("user_id", user.id).then(() => {});
+        }
+      }
+
       if (paymentMethod === "whatsapp") {
         const orderItems = items.map((item) => {
           const product = item.products as any;
