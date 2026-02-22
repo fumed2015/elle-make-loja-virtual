@@ -138,6 +138,7 @@ const Index = () => {
         title="Maquiagem e Cosméticos em Belém"
         description="Loja de maquiagem com delivery rápido em Belém do Pará. Frete grátis acima de R$ 199. Entrega em até 3h na região metropolitana."
         url={window.location.origin}
+        image={`${window.location.origin}/og-image.jpg`}
         jsonLd={[
           {
             "@context": "https://schema.org",
@@ -178,6 +179,15 @@ const Index = () => {
               addressCountry: "BR",
             },
             priceRange: "$$",
+          },
+          {
+            "@context": "https://schema.org",
+            "@type": "FAQPage",
+            mainEntity: faqs.map(f => ({
+              "@type": "Question",
+              name: f.q,
+              acceptedAnswer: { "@type": "Answer", text: f.a },
+            })),
           },
         ]}
       />
