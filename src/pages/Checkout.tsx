@@ -393,7 +393,7 @@ const Checkout = () => {
               </div>
               <div className="space-y-2">
                 <Label>Telefone</Label>
-                <Input value={customerInfo.phone} onChange={(e) => setCustomerInfo({ ...customerInfo, phone: e.target.value.replace(/\D/g, "").slice(0, 11) })} placeholder="(91) 99999-9999" className="bg-muted border-none min-h-[44px]" inputMode="tel" />
+                <Input value={customerInfo.phone} onChange={(e) => setCustomerInfo({ ...customerInfo, phone: e.target.value })} placeholder="(91) 99999-9999" className="bg-muted border-none min-h-[44px]" inputMode="tel" />
               </div>
             </div>
             <Button onClick={() => setStep("review")} disabled={!address.street || !address.number || !address.neighborhood || !address.zip} className="w-full bg-primary text-primary-foreground hover:bg-primary/90 min-h-[44px] mt-4">
