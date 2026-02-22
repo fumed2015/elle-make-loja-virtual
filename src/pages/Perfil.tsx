@@ -60,17 +60,8 @@ const Perfil = () => {
         toast.success("Bem-vinda de volta! 💄");
         if (redirectTo) navigate(redirectTo);
       } else {
-        const { error, data } = await signUp(email, password, fullName);
+        const { error } = await signUp(email, password, fullName, phone, birthday);
         if (error) throw error;
-        // Save phone and birthday to profile after signup
-        if (data?.user) {
-          const updates: any = {};
-          if (phone) updates.phone = phone;
-          if (birthday) updates.birthday = birthday;
-          if (Object.keys(updates).length > 0) {
-            await supabase.from("profiles").update(updates).eq("user_id", data.user.id);
-          }
-        }
         toast.success("Conta criada com sucesso! 🎉");
         if (redirectTo) navigate(redirectTo);
       }
