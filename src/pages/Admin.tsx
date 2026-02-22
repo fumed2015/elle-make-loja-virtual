@@ -25,8 +25,9 @@ import OperacionalTab from "@/components/admin/OperacionalTab";
 import MarketingTab from "@/components/admin/MarketingTab";
 import TrackingPixelsTab from "@/components/admin/TrackingPixelsTab";
 import WhatsAppTemplatesTab from "@/components/admin/WhatsAppTemplatesTab";
+import StockManagementTab from "@/components/admin/StockManagementTab";
 
-type Tab = "dashboard" | "products" | "orders" | "add-product" | "coupons" | "reviews" | "influencers" | "seo" | "categories" | "ai-content" | "leads" | "birthdays" | "financeiro" | "comercial" | "operacional" | "marketing" | "pixels" | "whatsapp";
+type Tab = "dashboard" | "products" | "orders" | "add-product" | "coupons" | "reviews" | "influencers" | "seo" | "categories" | "ai-content" | "leads" | "birthdays" | "financeiro" | "comercial" | "operacional" | "marketing" | "pixels" | "whatsapp" | "stock";
 
 const statusLabels: Record<string, string> = {
   pending: "Pendente", confirmed: "Confirmado", preparing: "Preparando",
@@ -61,6 +62,7 @@ const Admin = () => {
     { id: "operacional" as Tab, label: "Operacional", icon: Settings2 },
     { id: "marketing" as Tab, label: "Marketing", icon: Megaphone },
     { id: "products" as Tab, label: "Produtos", icon: Box },
+    { id: "stock" as Tab, label: "Estoque", icon: Package },
     { id: "categories" as Tab, label: "Categorias", icon: FolderOpen },
     { id: "orders" as Tab, label: "Pedidos", icon: ShoppingCart },
     { id: "coupons" as Tab, label: "Cupons", icon: Tag },
@@ -98,6 +100,7 @@ const Admin = () => {
       {tab === "operacional" && <OperacionalTab />}
       {tab === "marketing" && <MarketingTab />}
       {tab === "products" && <AdminProductsPanel />}
+      {tab === "stock" && <StockManagementTab />}
       {tab === "orders" && <OrdersManagementTab />}
       {tab === "coupons" && <CouponsTab />}
       {tab === "reviews" && <ReviewsTab />}
