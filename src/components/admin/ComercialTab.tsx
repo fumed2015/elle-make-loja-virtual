@@ -182,7 +182,7 @@ const ComercialTab = () => {
               <div className="flex items-center gap-2">
                 <span className="text-xs font-bold">R$ {c.totalSpent.toFixed(0)}</span>
                 {c.phone && (
-                  <a href={getWhatsAppLink(c.phone, c.full_name || "Cliente", `Olá ${c.full_name || ""}! 😊 Aqui é da Michelle Make Store. Temos novidades incríveis pra você! 💄✨`)} target="_blank" rel="noopener noreferrer">
+                  <a href={getWhatsAppLink(c.phone, c.full_name || "Cliente", `Olá ${c.full_name || ""}! 😊 Aqui é da Elle Make. Temos novidades incríveis pra você! 💄✨`)} target="_blank" rel="noopener noreferrer">
                     <MessageCircle className="w-3.5 h-3.5 text-accent hover:text-accent/80" />
                   </a>
                 )}

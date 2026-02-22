@@ -1252,7 +1252,7 @@ const LeadsTab = () => {
   const getWhatsAppLink = (phone: string, name: string) => {
     const cleanPhone = phone.replace(/\D/g, "");
     const fullPhone = cleanPhone.startsWith("55") ? cleanPhone : `55${cleanPhone}`;
-    const msg = encodeURIComponent(`Olá ${name}! 😊 Tudo bem? Aqui é da Michelle Make Store. Vimos que você se cadastrou conosco e gostaríamos de te ajudar a encontrar os melhores produtos de beleza! 💄✨`);
+    const msg = encodeURIComponent(`Olá ${name}! 😊 Tudo bem? Aqui é da Elle Make. Vimos que você se cadastrou conosco e gostaríamos de te ajudar a encontrar os melhores produtos de beleza! 💄✨`);
     return `https://wa.me/${fullPhone}?text=${msg}`;
   };
 
@@ -1367,7 +1367,7 @@ const BirthdaysTab = () => {
   const getWhatsAppBirthdayLink = (phone: string, name: string) => {
     const cleanPhone = phone.replace(/\D/g, "");
     const fullPhone = cleanPhone.startsWith("55") ? cleanPhone : `55${cleanPhone}`;
-    const msg = encodeURIComponent(`🎂 Feliz Aniversário, ${name}! 🎉\n\nA Michelle Make Store preparou um presente especial pra você: 10% de desconto em qualquer compra + um BRINDE exclusivo! 🎁💄\n\nUse o cupom: ANIVER10\n\nVálido por 7 dias. Aproveite! ✨\n\nhttps://michellemakestore.com.br`);
+    const msg = encodeURIComponent(`🎂 Feliz Aniversário, ${name}! 🎉\n\nA Elle Make preparou um presente especial pra você: 10% de desconto em qualquer compra + um BRINDE exclusivo! 🎁💄\n\nUse o cupom: ANIVER10\n\nVálido por 7 dias. Aproveite! ✨\n\nhttps://ellemake2.lovable.app`);
     return `https://wa.me/${fullPhone}?text=${msg}`;
   };
 
