@@ -7,6 +7,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useShipping } from "@/hooks/useShipping";
 import ShippingCalculator from "@/components/shipping/ShippingCalculator";
 import FreeShippingBar from "@/components/layout/FreeShippingBar";
+import CrossSellSection from "@/components/checkout/CrossSellSection";
+import UrgencyBadge from "@/components/product/UrgencyBadge";
 
 const Carrinho = () => {
   const { items, isLoading, removeFromCart, updateQuantity, cartTotal, cartCount } = useCart();
@@ -85,10 +87,14 @@ const Carrinho = () => {
                     >
                       <Plus className="w-3 h-3" />
                     </button>
-                  </div>
+                    </div>
                   <p className="text-sm font-bold text-primary mt-1">
                     R$ {(Number(product?.price || 0) * item.quantity).toFixed(2).replace(".", ",")}
                   </p>
+                  {/* Urgency badge */}
+                  {product?.stock && product.stock <= 10 && product.stock > 0 && (
+                    <UrgencyBadge stock={product.stock} compact />
+                  )}
                 </div>
                 <motion.button
                   whileTap={{ scale: 0.8, rotate: -10 }}
@@ -102,6 +108,11 @@ const Carrinho = () => {
           })}
         </div>
       </AnimatePresence>
+
+      {/* Cross-sell suggestions */}
+      <div className="mb-4">
+        <CrossSellSection cartProductIds={items.map((item) => (item.products as any)?.id).filter(Boolean)} />
+      </div>
 
       {/* Free shipping progress */}
       <div className="mb-4">
@@ -165,7 +176,7 @@ const Carrinho = () => {
         </div>
         <Button asChild className="w-full bg-primary text-primary-foreground shadow-marsala hover:bg-primary/90 min-h-[44px] press-scale">
           <Link to={needsLogin ? "/perfil?redirect=/checkout" : "/checkout"}>
-            {needsLogin ? "Entrar para finalizar" : "Finalizar Compra"} <ArrowRight className="w-4 h-4 ml-1" />
+            {needsLogin ? "Entrar para finalizar" : "Garantir Meu Look ✨"} <ArrowRight className="w-4 h-4 ml-1" />
           </Link>
         </Button>
       </div>

@@ -17,6 +17,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
 import WhatsAppIcon from "@/components/icons/WhatsAppIcon";
 import CardPaymentForm from "@/components/payment/CardPaymentForm";
+import OrderBump from "@/components/checkout/OrderBump";
+import TrustBadges from "@/components/checkout/TrustBadges";
 
 type Step = "address" | "review" | "payment" | "processing" | "success";
 
@@ -705,13 +707,21 @@ const Checkout = () => {
               )}
             </div>
 
+            {/* Order Bump */}
+            <OrderBump cartProductIds={items.map((item: any) => (item.products as any)?.id).filter(Boolean)} />
+
+            {/* Trust Badges */}
+            <TrustBadges />
+
             <Button onClick={handlePlaceOrder} disabled={submitting} className="w-full bg-primary text-primary-foreground hover:bg-primary/90 min-h-[48px] font-semibold shadow-marsala">
               {submitting ? (
                 <><Loader2 className="w-5 h-5 mr-2 animate-spin" /> Processando...</>
               ) : paymentMethod === "whatsapp" ? (
                 <><WhatsAppIcon className="w-5 h-5 mr-2" /> Enviar Pedido pelo WhatsApp</>
+              ) : paymentMethod === "pix" ? (
+                <>💰 Pagar com PIX (5% OFF)</>
               ) : (
-                <><CreditCard className="w-5 h-5 mr-2" /> Confirmar e Pagar</>
+                <><CreditCard className="w-5 h-5 mr-2" /> Finalizar Compra Segura 🔒</>
               )}
             </Button>
           </motion.div>

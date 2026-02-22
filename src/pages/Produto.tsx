@@ -16,6 +16,7 @@ import WhatsAppIcon from "@/components/icons/WhatsAppIcon";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 import SEOHead from "@/components/SEOHead";
+import UrgencyBadge from "@/components/product/UrgencyBadge";
 
 const trustBadges = [
   { icon: ShieldCheck, text: "Entrega Segura", sub: "Embalagem protegida" },
@@ -239,6 +240,9 @@ const Produto = () => {
               </div>
               <span className="text-sm text-muted-foreground">{product.stock} em estoque</span>
             </div>
+
+            {/* Urgency alert */}
+            <UrgencyBadge stock={product.stock} />
 
             {/* Action Buttons */}
             <div className="space-y-2.5">
