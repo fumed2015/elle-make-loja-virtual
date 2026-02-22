@@ -291,6 +291,7 @@ export type Database = {
           id: string
           influencer_commission_rate: number
           marketing_budget: number
+          monthly_revenue_goal: number
           order_target: number
           packaging_cost: number
           updated_at: string
@@ -320,6 +321,7 @@ export type Database = {
           id?: string
           influencer_commission_rate?: number
           marketing_budget?: number
+          monthly_revenue_goal?: number
           order_target?: number
           packaging_cost?: number
           updated_at?: string
@@ -349,6 +351,7 @@ export type Database = {
           id?: string
           influencer_commission_rate?: number
           marketing_budget?: number
+          monthly_revenue_goal?: number
           order_target?: number
           packaging_cost?: number
           updated_at?: string
@@ -504,6 +507,36 @@ export type Database = {
           reference_id?: string | null
           source?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      marketing_campaigns: {
+        Row: {
+          coupon_code: string | null
+          created_at: string
+          date: string | null
+          description: string | null
+          id: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          coupon_code?: string | null
+          created_at?: string
+          date?: string | null
+          description?: string | null
+          id?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          coupon_code?: string | null
+          created_at?: string
+          date?: string | null
+          description?: string | null
+          id?: string
+          title?: string
+          updated_at?: string
         }
         Relationships: []
       }
