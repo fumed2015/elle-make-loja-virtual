@@ -1,7 +1,7 @@
 import { useState, useMemo, useCallback } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { useAllOrders } from "@/hooks/useOrders";
+import { useAllOrders, useFinancialTransactionsRealtime } from "@/hooks/useOrders";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -144,6 +144,7 @@ const EditableCostRow = ({ label, labelField, valueField, premises, onUpdate }: 
 
 const FinanceiroTab = () => {
   const queryClient = useQueryClient();
+  useFinancialTransactionsRealtime();
   const [activeTab, setActiveTab] = useState("audit");
   const [productSearch, setProductSearch] = useState("");
   const [editingCosts, setEditingCosts] = useState<Record<string, { cost_base: string; freight_per_unit: string; notes: string }>>({});

@@ -1,6 +1,7 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "./useAuth";
+import { useEffect } from "react";
 
 export const useOrders = () => {
   const { user } = useAuth();
@@ -22,6 +23,25 @@ export const useOrders = () => {
 };
 
 export const useAllOrders = () => {
+  const queryClient = useQueryClient();
+
+  useEffect(() => {
+    const channel = supabase
+      .channel("admin-orders-realtime")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "orders" },
+        () => {
+          queryClient.invalidateQueries({ queryKey: ["admin-orders"] });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [queryClient]);
+
   return useQuery({
     queryKey: ["admin-orders"],
     queryFn: async () => {
@@ -33,4 +53,28 @@ export const useAllOrders = () => {
       return data;
     },
   });
+};
+
+/** Hook for realtime financial_transactions */
+export const useFinancialTransactionsRealtime = () => {
+  const queryClient = useQueryClient();
+
+  useEffect(() => {
+    const channel = supabase
+      .channel("admin-financial-realtime")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "financial_transactions" },
+        () => {
+          queryClient.invalidateQueries({ queryKey: ["financial-premises"] });
+          queryClient.invalidateQueries({ queryKey: ["admin-commissions-fin"] });
+          queryClient.invalidateQueries({ queryKey: ["products-active-financial"] });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [queryClient]);
 };
