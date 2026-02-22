@@ -30,14 +30,15 @@ const ComercialTab = () => {
   const goalPercent = Math.min(100, (monthRevenue / goal) * 100);
 
   // ===== Funil de Vendas =====
+  const activeOrders = orders?.filter(o => o.status !== "cancelled" && o.status !== "refunded") || [];
   const totalUsers = profiles?.length || 0;
   const usersWithPhone = profiles?.filter(p => p.phone).length || 0;
-  const buyerIds = new Set(orders?.map(o => o.user_id) || []);
+  const buyerIds = new Set(activeOrders.map(o => o.user_id));
   const firstTimeBuyers = buyerIds.size;
 
-  // Recurrent buyers (2+ orders)
+  // Recurrent buyers (2+ active orders)
   const orderCountByUser: Record<string, number> = {};
-  orders?.forEach(o => { orderCountByUser[o.user_id] = (orderCountByUser[o.user_id] || 0) + 1; });
+  activeOrders.forEach(o => { orderCountByUser[o.user_id] = (orderCountByUser[o.user_id] || 0) + 1; });
   const recurrentBuyers = Object.values(orderCountByUser).filter(c => c >= 2).length;
 
   const funnelSteps = [
@@ -49,7 +50,7 @@ const ComercialTab = () => {
 
   // ===== Segmentação =====
   const segments = profiles?.map(p => {
-    const userOrders = orders?.filter(o => o.user_id === p.user_id) || [];
+    const userOrders = activeOrders.filter(o => o.user_id === p.user_id);
     const totalSpent = userOrders.reduce((s, o) => s + Number(o.total), 0);
     const orderCount = userOrders.length;
     const lastOrder = userOrders.length > 0 ? new Date(Math.max(...userOrders.map(o => new Date(o.created_at).getTime()))) : null;
