@@ -249,14 +249,18 @@ const Checkout = () => {
             },
           });
           if (yampiError) throw yampiError;
-          if (yampiData?.checkout_url) window.open(yampiData.checkout_url, '_blank');
+          if (yampiData?.checkout_url) {
+            toast.success("Redirecionando ao checkout Yampi... 🎉");
+            window.location.href = yampiData.checkout_url;
+            return;
+          }
           setStep("success");
           toast.success("Pedido criado! Complete o pagamento no checkout Yampi 🎉");
         } catch (yampiErr: any) {
           console.error('Yampi error:', yampiErr);
-          window.open('https://elle-make.checkout.yampi.com.br', '_blank');
-          setStep("success");
-          toast.success("Pedido registrado! Complete o pagamento no checkout Yampi 🎉");
+          toast.success("Pedido registrado! Redirecionando ao checkout... 🎉");
+          window.location.href = 'https://elle-make.checkout.yampi.com.br';
+          return;
         }
       }
     } catch (err: any) {
