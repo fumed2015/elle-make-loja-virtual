@@ -9,7 +9,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useCoupon } from "@/hooks/useCoupon";
 import { useShipping } from "@/hooks/useShipping";
 import { useAddresses } from "@/hooks/useAddresses";
-import { usePayment, type PaymentMethod } from "@/hooks/usePayment";
+import { usePayment, usePaymentStatusPolling, type PaymentMethod, type PaymentStatus } from "@/hooks/usePayment";
 import ShippingCalculator from "@/components/shipping/ShippingCalculator";
 import FreeShippingBar from "@/components/layout/FreeShippingBar";
 import { supabase } from "@/integrations/supabase/client";
@@ -25,6 +25,38 @@ const STEP_LABELS = [
   { key: "review", label: "Revisão", icon: ShoppingBag },
   { key: "payment", label: "Pagamento", icon: CreditCard },
 ];
+
+const STATUS_CONFIG: Record<string, { label: string; color: string; icon: string }> = {
+  pending: { label: "Aguardando pagamento", color: "bg-amber-100 text-amber-800 border-amber-200", icon: "⏳" },
+  approved: { label: "Pagamento aprovado", color: "bg-emerald-100 text-emerald-800 border-emerald-200", icon: "✅" },
+  in_process: { label: "Em análise", color: "bg-blue-100 text-blue-800 border-blue-200", icon: "🔍" },
+  rejected: { label: "Pagamento recusado", color: "bg-red-100 text-red-800 border-red-200", icon: "❌" },
+  cancelled: { label: "Cancelado", color: "bg-muted text-muted-foreground border-border", icon: "🚫" },
+  refunded: { label: "Reembolsado", color: "bg-muted text-muted-foreground border-border", icon: "💸" },
+};
+
+const PaymentStatusBadge = ({ status, polling, detail }: { status: PaymentStatus; polling: boolean; detail: string }) => {
+  if (!status) return null;
+  const config = STATUS_CONFIG[status] || STATUS_CONFIG.pending;
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: -10 }}
+      animate={{ opacity: 1, y: 0 }}
+      className={`flex items-center justify-between rounded-xl px-4 py-3 border ${config.color}`}
+    >
+      <div className="flex items-center gap-2">
+        <span className="text-base">{config.icon}</span>
+        <div>
+          <p className="text-xs font-semibold">{config.label}</p>
+          {detail && <p className="text-[10px] opacity-75">{detail}</p>}
+        </div>
+      </div>
+      {polling && (
+        <Loader2 className="w-4 h-4 animate-spin opacity-50" />
+      )}
+    </motion.div>
+  );
+};
 
 const Checkout = () => {
   const navigate = useNavigate();
@@ -53,6 +85,22 @@ const Checkout = () => {
   const [boletoData, setBoletoData] = useState<{ barcode: string; boleto_url: string } | null>(null);
   const [copied, setCopied] = useState(false);
   const [paymentId, setPaymentId] = useState<string | null>(null);
+
+  // Real-time payment status polling
+  const { status: paymentStatus, statusDetail: paymentStatusDetail, polling: isPolling } = usePaymentStatusPolling(
+    step === "payment" && paymentId ? paymentId : null,
+    5000
+  );
+
+  // Auto-transition to success when payment is approved
+  useEffect(() => {
+    if (paymentStatus === "approved") {
+      toast.success("Pagamento aprovado! 🎉");
+      setStep("success");
+    } else if (paymentStatus === "rejected" || paymentStatus === "cancelled") {
+      toast.error("Pagamento recusado. Tente novamente.");
+    }
+  }, [paymentStatus]);
 
   const [address, setAddress] = useState(() => {
     const savedCep = (() => { try { return localStorage.getItem("ellemake_shipping_cep") || ""; } catch { return ""; } })();
@@ -600,6 +648,11 @@ const Checkout = () => {
         {/* ── PAYMENT STEP (PIX / Boleto result) ── */}
         {step === "payment" && (
           <motion.div key="payment" initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="space-y-4">
+            {/* Payment status indicator */}
+            {paymentId && (
+              <PaymentStatusBadge status={paymentStatus} polling={isPolling} detail={paymentStatusDetail} />
+            )}
+
             {pixData && (
               <div className="bg-card rounded-xl p-6 border border-border text-center space-y-4">
                 <QrCode className="w-10 h-10 text-primary mx-auto" />
@@ -622,7 +675,15 @@ const Checkout = () => {
                   </div>
                 )}
                 <div className="pt-2">
-                  <p className="text-[10px] text-muted-foreground">Após o pagamento, o pedido será confirmado automaticamente.</p>
+                  <p className="text-[10px] text-muted-foreground">
+                    {isPolling ? "Aguardando confirmação do pagamento..." : "Após o pagamento, o pedido será confirmado automaticamente."}
+                  </p>
+                  {isPolling && (
+                    <div className="flex items-center justify-center gap-2 mt-2">
+                      <div className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
+                      <span className="text-[10px] text-amber-600 font-medium">Verificando pagamento a cada 5s</span>
+                    </div>
+                  )}
                   <Button onClick={() => setStep("success")} variant="ghost" className="mt-3 text-xs">
                     Já realizei o pagamento →
                   </Button>
