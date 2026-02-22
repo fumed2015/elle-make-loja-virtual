@@ -20,7 +20,3 @@ verify_jwt = false
 
 [functions.mercadopago-payment]
 verify_jwt = false
-verify_jwt = false
-
-[functions.mercadopago-payment]
-verify_jwt = false
