@@ -8,6 +8,77 @@ const corsHeaders = {
 
 const YAMPI_API_BASE = 'https://api.dooki.com.br/v2';
 const YAMPI_ALIAS = 'elle-make';
+const MERCHANT_NAME = 'Elle Make';
+
+// ===== Z-API WhatsApp Helper =====
+async function sendWhatsApp(phone: string, message: string): Promise<any> {
+  const instanceId = Deno.env.get('ZAPI_INSTANCE_ID');
+  const token = Deno.env.get('ZAPI_TOKEN');
+
+  if (!instanceId || !token) {
+    console.error('Z-API credentials not configured');
+    return { error: 'Z-API not configured' };
+  }
+
+  // Normalize phone: ensure 55 prefix, remove non-digits
+  let cleanPhone = phone.replace(/\D/g, '');
+  if (!cleanPhone.startsWith('55')) cleanPhone = '55' + cleanPhone;
+
+  const url = `https://api.z-api.io/instances/${instanceId}/token/${token}/send-text`;
+
+  try {
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        phone: cleanPhone,
+        message,
+      }),
+    });
+    const data = await res.json();
+    console.log(`Z-API response for ${cleanPhone}:`, JSON.stringify(data));
+    return data;
+  } catch (err) {
+    console.error('Z-API send error:', err);
+    return { error: String(err) };
+  }
+}
+
+// ===== Message Templates =====
+function buildMessage(eventType: string, data: Record<string, any>): string {
+  const firstName = data.first_name || 'Cliente';
+  const productsList = data.products_list || '';
+
+  switch (eventType) {
+    case 'order.created':
+      return `🛒 Oi ${firstName}! Seu pedido na *${MERCHANT_NAME}* foi recebido com sucesso! 🎉\n\n${productsList}\n\n💰 Total: R$ ${data.total || '0,00'}\n\nVamos te avisar assim que houver atualização! 💕`;
+
+    case 'order.paid':
+      return `✅ ${firstName}, seu pagamento foi *confirmado*! 🎉\n\n${productsList}\n\nEstamos preparando seu pedido com muito carinho! 💖\nEm breve ele sai para entrega. Fique de olho! 👀`;
+
+    case 'order.shipped':
+      return `📦 ${firstName}, seus produtos estão *a caminho*! 🚚✨\n\n${productsList}\n\n🔎 Rastreie sua entrega:\nCódigo: *${data.tracking_code || 'N/A'}*\n${data.tracking_url ? `Link: ${data.tracking_url}` : ''}\n\nQualquer dúvida, estamos aqui! 💕`;
+
+    case 'order.delivered':
+      return `🎉 ${firstName}, seu pedido foi *entregue*! 💖\n\n${productsList}\n\nEsperamos que você ame tudo! 😍\nConta pra gente o que achou? Sua opinião é super importante! ⭐\n\nObrigada por comprar na *${MERCHANT_NAME}*! 🌸`;
+
+    case 'checkout.abandoned':
+      return `💄 Oi ${firstName}, tudo bem? Vi que você passou na *${MERCHANT_NAME}* e acabou esquecendo seus produtos:\n\n${productsList}\n\nEles ainda estão te esperando! 😊\n${data.link ? `👉 ${data.link}` : ''}\n\nPrecisa de ajuda? Estamos aqui! 💕`;
+
+    default:
+      return `Oi ${firstName}! Atualização do seu pedido na *${MERCHANT_NAME}*: ${eventType}`;
+  }
+}
+
+function formatProductsList(items: any[]): string {
+  if (!items || items.length === 0) return '';
+  return items.map((item: any) => {
+    const name = item.name || item.product_name || 'Produto';
+    const qty = item.quantity || 1;
+    const price = item.price || item.price_sale || 0;
+    return `• ${name} (${qty}x) — R$ ${Number(price).toFixed(2).replace('.', ',')}`;
+  }).join('\n');
+}
 
 function buildCheckoutUrl(customer: any, address: any): string {
   const base = `https://${YAMPI_ALIAS}.checkout.yampi.com.br`;
@@ -60,10 +131,10 @@ serve(async (req) => {
       'User-Secret-Key': YAMPI_USER_SECRET_KEY,
     };
 
+    // ===== CREATE ORDER =====
     if (action === 'create-order') {
       const { items, customer, address, total, discount, coupon_code, supabase_order_id } = payload;
 
-      // Build pre-filled checkout URL (include coupon if provided)
       const checkoutUrl = buildCheckoutUrl({ ...customer, coupon_code }, address);
 
       // Find or create customer in Yampi
@@ -170,6 +241,7 @@ serve(async (req) => {
       });
     }
 
+    // ===== GET CHECKOUT URL =====
     if (action === 'get-checkout-url') {
       const { customer, address } = payload;
       const checkoutUrl = buildCheckoutUrl(customer, address);
@@ -181,6 +253,7 @@ serve(async (req) => {
       });
     }
 
+    // ===== WEBHOOK RECEIVER =====
     if (action === 'webhook') {
       const { event, resource } = payload;
       console.log('Yampi webhook received:', event, JSON.stringify(resource));
@@ -189,14 +262,111 @@ serve(async (req) => {
       const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
       const supabase = createClient(supabaseUrl, supabaseKey);
 
-      if (event === 'order.paid') {
-        const yampiOrderId = resource?.id;
-        if (yampiOrderId) {
-          console.log(`Order ${yampiOrderId} marked as paid in Yampi`);
+      // Extract customer info from webhook resource
+      const customerData = resource?.customer?.data || resource?.customer || {};
+      const phone = customerData?.phone?.full_number || customerData?.phone || '';
+      const firstName = customerData?.first_name || customerData?.name?.split(' ')[0] || 'Cliente';
+
+      // Extract items
+      const rawItems = resource?.items?.data || resource?.items || [];
+      const productsList = formatProductsList(rawItems);
+      const total = resource?.value_total || resource?.total || 0;
+      const totalFormatted = Number(total).toFixed(2).replace('.', ',');
+
+      // Tracking info
+      const trackingCode = resource?.tracking?.code || resource?.tracking_code || '';
+      const trackingUrl = resource?.tracking?.url || resource?.tracking_url || '';
+
+      // Build message data
+      const messageData: Record<string, any> = {
+        first_name: firstName,
+        products_list: productsList,
+        total: totalFormatted,
+        tracking_code: trackingCode,
+        tracking_url: trackingUrl,
+        link: resource?.checkout_url || resource?.link || '',
+      };
+
+      // Map Yampi events to our event types
+      const eventMap: Record<string, string> = {
+        'order.created': 'order.created',
+        'order.paid': 'order.paid',
+        'order.shipped': 'order.shipped',
+        'order.delivered': 'order.delivered',
+        'order.status.updated': resource?.status === 'shipped' ? 'order.shipped' : 
+                                 resource?.status === 'delivered' ? 'order.delivered' : '',
+        'checkout.abandoned': 'checkout.abandoned',
+        'abandoned_cart': 'checkout.abandoned',
+      };
+
+      const mappedEvent = eventMap[event] || event;
+
+      // Update order status in our DB if we can match it
+      const yampiOrderId = resource?.id || resource?.order_id;
+      if (yampiOrderId && ['order.paid', 'order.shipped', 'order.delivered'].includes(mappedEvent)) {
+        const statusMap: Record<string, string> = {
+          'order.paid': 'paid',
+          'order.shipped': 'shipped',
+          'order.delivered': 'delivered',
+        };
+
+        // Try to find and update the order by matching yampi data
+        const updateData: Record<string, any> = {
+          status: statusMap[mappedEvent] || 'processing',
+        };
+
+        if (trackingCode) updateData.tracking_code = trackingCode;
+        if (trackingUrl) updateData.tracking_url = trackingUrl;
+
+        // Update orders that match the customer email
+        if (customerData?.email) {
+          // Find user by email -> get their orders
+          const { data: authUsers } = await supabase.auth.admin.listUsers();
+          const matchedUser = authUsers?.users?.find(
+            (u: any) => u.email === customerData.email
+          );
+
+          if (matchedUser) {
+            const { data: orders } = await supabase
+              .from('orders')
+              .select('id')
+              .eq('user_id', matchedUser.id)
+              .eq('status', mappedEvent === 'order.paid' ? 'pending' : 
+                   mappedEvent === 'order.shipped' ? 'paid' : 'shipped')
+              .order('created_at', { ascending: false })
+              .limit(1);
+
+            if (orders && orders.length > 0) {
+              await supabase
+                .from('orders')
+                .update(updateData)
+                .eq('id', orders[0].id);
+              console.log(`Order ${orders[0].id} updated to ${updateData.status}`);
+            }
+          }
         }
       }
 
-      return new Response(JSON.stringify({ received: true }), {
+      // Send WhatsApp notification if we have a phone number
+      if (phone && mappedEvent) {
+        const message = buildMessage(mappedEvent, messageData);
+        const zapiResponse = await sendWhatsApp(phone, message);
+
+        // Log notification
+        await supabase.from('notifications').insert({
+          event_type: mappedEvent,
+          phone,
+          message,
+          status: zapiResponse?.error ? 'failed' : 'sent',
+          zapi_response: zapiResponse,
+        });
+
+        console.log(`WhatsApp sent for ${mappedEvent} to ${phone}`);
+      } else {
+        console.log(`Skipped WhatsApp: no phone for event ${event}`);
+      }
+
+      return new Response(JSON.stringify({ received: true, event: mappedEvent }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }

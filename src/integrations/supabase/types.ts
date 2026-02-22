@@ -286,6 +286,50 @@ export type Database = {
         }
         Relationships: []
       }
+      notifications: {
+        Row: {
+          created_at: string
+          event_type: string
+          id: string
+          message: string
+          order_id: string | null
+          phone: string
+          status: string
+          user_id: string | null
+          zapi_response: Json | null
+        }
+        Insert: {
+          created_at?: string
+          event_type: string
+          id?: string
+          message: string
+          order_id?: string | null
+          phone: string
+          status?: string
+          user_id?: string | null
+          zapi_response?: Json | null
+        }
+        Update: {
+          created_at?: string
+          event_type?: string
+          id?: string
+          message?: string
+          order_id?: string | null
+          phone?: string
+          status?: string
+          user_id?: string | null
+          zapi_response?: Json | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notifications_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       orders: {
         Row: {
           coupon_code: string | null
