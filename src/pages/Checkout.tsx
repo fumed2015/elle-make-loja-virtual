@@ -16,6 +16,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
 import WhatsAppIcon from "@/components/icons/WhatsAppIcon";
+import CardPaymentForm from "@/components/payment/CardPaymentForm";
 
 type Step = "address" | "review" | "payment" | "processing" | "success";
 
@@ -310,10 +311,8 @@ const Checkout = () => {
           throw new Error(payment.error || "Erro ao gerar boleto");
         }
       } else if (paymentMethod === "card") {
-        // Card requires MercadoPago.js SDK tokenization on client
-        // For now, show a message to use PIX or boleto
-        toast.error("Pagamento com cartão em breve! Use PIX ou boleto por enquanto.");
-        setStep("review");
+        // For card, we need to show the card form first for tokenization
+        setStep("payment");
       }
     } catch (err: any) {
       toast.error(err.message || "Erro ao finalizar pedido");
@@ -542,12 +541,12 @@ const Checkout = () => {
               <div className="space-y-2">
                 {([
                   { method: "pix" as PaymentMethod, icon: QrCode, label: "PIX", desc: "Aprovação instantânea • 5% de desconto", color: "primary" },
-                  { method: "card" as PaymentMethod, icon: CreditCard, label: "Cartão de Crédito", desc: "Até 12x sem juros (em breve)", color: "primary", disabled: true },
+                  { method: "card" as PaymentMethod, icon: CreditCard, label: "Cartão de Crédito", desc: "Até 12x • Visa, Master, Elo, Amex", color: "primary" },
                   { method: "boleto" as PaymentMethod, icon: Barcode, label: "Boleto Bancário", desc: "Prazo de 1-3 dias úteis para compensar", color: "primary" },
                   { method: "whatsapp" as PaymentMethod, icon: WhatsAppIcon, label: "WhatsApp", desc: "Combine o pagamento com a loja", color: "accent" },
-                ]).map(({ method, icon: Icon, label, desc, color, disabled }) => (
-                  <button key={method} onClick={() => !disabled && setPaymentMethod(method)} disabled={disabled}
-                    className={`w-full flex items-center gap-3 p-3 rounded-lg border-2 transition-colors ${disabled ? "opacity-50 cursor-not-allowed" : ""} ${
+                ] as { method: PaymentMethod; icon: any; label: string; desc: string; color: string }[]).map(({ method, icon: Icon, label, desc, color }) => (
+                  <button key={method} onClick={() => setPaymentMethod(method)}
+                    className={`w-full flex items-center gap-3 p-3 rounded-lg border-2 transition-colors ${
                       paymentMethod === method ? `border-${color} bg-${color}/5` : "border-border"
                     }`}>
                     <Icon className={`w-5 h-5 text-${color}`} />
@@ -657,6 +656,42 @@ const Checkout = () => {
                   Já realizei o pagamento →
                 </Button>
               </div>
+            )}
+
+            {/* Card form */}
+            {paymentMethod === "card" && !pixData && !boletoData && (
+              <CardPaymentForm
+                amount={finalTotal}
+                onCancel={() => setStep("review")}
+                loading={payment.loading}
+                onTokenized={async ({ token, paymentMethodId: pmId, installments: inst, issuerId: issId }) => {
+                  setStep("processing");
+                  try {
+                    const payer = getPayer();
+                    const result = await payment.createCardPayment(
+                      finalTotal, token, inst, pmId, payer, orderId, issId
+                    );
+                    if (result) {
+                      setPaymentId(String(result.id));
+                      if (result.status === "approved") {
+                        toast.success("Pagamento aprovado! 🎉");
+                        setStep("success");
+                      } else if (result.status === "in_process" || result.status === "pending") {
+                        toast.info("Pagamento em análise. Você será notificado.");
+                        setStep("success");
+                      } else {
+                        toast.error(`Pagamento recusado: ${result.status_detail || result.status}`);
+                        setStep("payment");
+                      }
+                    } else {
+                      throw new Error(payment.error || "Erro ao processar cartão");
+                    }
+                  } catch (err: any) {
+                    toast.error(err.message || "Erro ao processar pagamento");
+                    setStep("payment");
+                  }
+                }}
+              />
             )}
           </motion.div>
         )}
