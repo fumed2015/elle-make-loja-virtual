@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, MapPin, CreditCard, CheckCircle, Tag, X, ExternalLink, Loader2, ShoppingBag, AlertTriangle } from "lucide-react";
+import { ArrowLeft, MapPin, CreditCard, CheckCircle, Tag, X, ExternalLink, Loader2, ShoppingBag, AlertTriangle, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -8,6 +8,7 @@ import { useCart } from "@/hooks/useCart";
 import { useAuth } from "@/hooks/useAuth";
 import { useCoupon } from "@/hooks/useCoupon";
 import { useShipping } from "@/hooks/useShipping";
+import { useAddresses } from "@/hooks/useAddresses";
 import ShippingCalculator from "@/components/shipping/ShippingCalculator";
 import FreeShippingBar from "@/components/layout/FreeShippingBar";
 import { supabase } from "@/integrations/supabase/client";
@@ -28,6 +29,7 @@ const Checkout = () => {
   const { items, cartTotal, cartCount, isLoading: cartLoading, isFetching: cartFetching } = useCart();
   const { validateCoupon } = useCoupon();
   const shipping = useShipping();
+  const { data: savedAddresses } = useAddresses();
   const [step, setStep] = useState<Step>("address");
   const [submitting, setSubmitting] = useState(false);
   const [orderId, setOrderId] = useState("");
@@ -37,14 +39,62 @@ const Checkout = () => {
   const [paymentMethod, setPaymentMethod] = useState<"yampi" | "whatsapp">("yampi");
   const [cepLoading, setCepLoading] = useState(false);
   const [customerInfo, setCustomerInfo] = useState({ phone: "", cpf: "" });
+  const [profileLoaded, setProfileLoaded] = useState(false);
+  const [addressLoaded, setAddressLoaded] = useState(false);
+  const [showAddressPicker, setShowAddressPicker] = useState(false);
   const [address, setAddress] = useState(() => {
-    // Pre-fill CEP from shipping calculator (persisted in localStorage)
     const savedCep = (() => { try { return localStorage.getItem("ellemake_shipping_cep") || ""; } catch { return ""; } })();
     return {
-      street: "", number: "", complement: "", neighborhood: shipping.addressInfo?.neighborhood || "",
-      city: shipping.addressInfo?.city || "Belém", state: shipping.addressInfo?.state || "PA", zip: savedCep,
+      street: "", number: "", complement: "", neighborhood: "",
+      city: "Belém", state: "PA", zip: savedCep,
     };
   });
+
+  // Pre-fill from profile (phone, cpf, name)
+  useEffect(() => {
+    if (!user || profileLoaded) return;
+    supabase.from("profiles").select("phone, full_name, cpf").eq("user_id", user.id).maybeSingle().then(({ data }) => {
+      if (data) {
+        setCustomerInfo(prev => ({
+          phone: prev.phone || data.phone || "",
+          cpf: prev.cpf || (data as any).cpf || "",
+        }));
+      }
+      setProfileLoaded(true);
+    });
+  }, [user, profileLoaded]);
+
+  // Pre-fill from default saved address
+  useEffect(() => {
+    if (addressLoaded || !savedAddresses || savedAddresses.length === 0) return;
+    const defaultAddr = savedAddresses.find(a => a.is_default) || savedAddresses[0];
+    if (defaultAddr) {
+      setAddress({
+        street: defaultAddr.street,
+        number: defaultAddr.number,
+        complement: defaultAddr.complement || "",
+        neighborhood: defaultAddr.neighborhood,
+        city: defaultAddr.city,
+        state: defaultAddr.state,
+        zip: defaultAddr.zip,
+      });
+    }
+    setAddressLoaded(true);
+  }, [savedAddresses, addressLoaded]);
+
+  // Select a saved address
+  const selectSavedAddress = (addr: any) => {
+    setAddress({
+      street: addr.street,
+      number: addr.number,
+      complement: addr.complement || "",
+      neighborhood: addr.neighborhood,
+      city: addr.city,
+      state: addr.state,
+      zip: addr.zip,
+    });
+    setShowAddressPicker(false);
+  };
 
   // Auto-fill address from CEP via ViaCEP + auto-calculate shipping
   const [shippingAutoCalculated, setShippingAutoCalculated] = useState(false);
@@ -69,7 +119,6 @@ const Checkout = () => {
       .catch(() => {})
       .finally(() => { if (!cancelled) setCepLoading(false); });
 
-    // Auto-calculate shipping if CEP came from localStorage and not yet calculated
     if (!shippingAutoCalculated && shipping.options.length === 0) {
       shipping.setCep(clean);
       setTimeout(() => shipping.calculateShipping(), 100);
@@ -79,16 +128,15 @@ const Checkout = () => {
     return () => { cancelled = true; };
   }, [address.zip]);
 
-  // Redirect unauthenticated users (only after auth finishes loading)
+  // Redirect unauthenticated users
   useEffect(() => {
     if (!authLoading && !user) navigate("/perfil?redirect=/checkout", { replace: true });
   }, [user, authLoading, navigate]);
 
-  // Redirect if cart is empty — use a generous delay to let guest→auth cart sync complete
+  // Redirect if cart is empty
   const [cartChecked, setCartChecked] = useState(false);
   useEffect(() => {
     if (authLoading || cartLoading) { setCartChecked(false); return; }
-    // Wait longer for React Query refetch after auth + guest cart sync
     const t = setTimeout(() => setCartChecked(true), 1500);
     return () => clearTimeout(t);
   }, [authLoading, cartLoading]);
@@ -98,14 +146,6 @@ const Checkout = () => {
       navigate("/carrinho", { replace: true });
     }
   }, [cartChecked, cartFetching, items.length, step, navigate]);
-
-  // Pre-fill customer info from profile
-  useEffect(() => {
-    if (!user) return;
-    supabase.from("profiles").select("phone, full_name").eq("user_id", user.id).maybeSingle().then(({ data }) => {
-      if (data?.phone) setCustomerInfo(prev => ({ ...prev, phone: prev.phone || data.phone }));
-    });
-  }, [user]);
 
   if (authLoading || !user) return (
     <div className="min-h-screen flex items-center justify-center">
@@ -136,6 +176,42 @@ const Checkout = () => {
       toast.error(err.message);
     } finally {
       setCouponLoading(false);
+    }
+  };
+
+  // Auto-save address and CPF after order
+  const saveDataAfterOrder = async () => {
+    try {
+      // Save CPF to profile if provided
+      if (customerInfo.cpf) {
+        await supabase.from("profiles").update({ cpf: customerInfo.cpf } as any).eq("user_id", user.id);
+      }
+      // Save phone if updated
+      if (customerInfo.phone) {
+        await supabase.from("profiles").update({ phone: customerInfo.phone }).eq("user_id", user.id);
+      }
+      // Auto-save address if it's new
+      if (address.street && address.number && address.zip) {
+        const existing = savedAddresses?.find(a =>
+          a.street === address.street && a.number === address.number && a.zip === address.zip
+        );
+        if (!existing) {
+          await supabase.from("saved_addresses").insert({
+            user_id: user.id,
+            label: "Casa",
+            street: address.street,
+            number: address.number,
+            complement: address.complement || null,
+            neighborhood: address.neighborhood,
+            city: address.city,
+            state: address.state,
+            zip: address.zip,
+            is_default: !savedAddresses || savedAddresses.length === 0,
+          });
+        }
+      }
+    } catch (e) {
+      console.error("Auto-save data error:", e);
     }
   };
 
@@ -179,7 +255,7 @@ const Checkout = () => {
 
       if (orderError) throw orderError;
 
-      // Track influencer commission if coupon belongs to an influencer
+      // Track influencer commission
       if (appliedCoupon?.code) {
         try {
           const { data: couponData } = await supabase
@@ -212,11 +288,14 @@ const Checkout = () => {
         }
       }
 
-      // Clear cart (batch delete)
+      // Clear cart
       const cartIds = items.map((i: any) => i.id).filter(Boolean);
       if (cartIds.length > 0) {
         await supabase.from("cart_items").delete().in("id", cartIds);
       }
+
+      // Auto-save address, CPF, phone for next time
+      await saveDataAfterOrder();
 
       setOrderId(orderData.id);
 
@@ -251,7 +330,6 @@ const Checkout = () => {
           if (yampiError) throw yampiError;
           if (yampiData?.checkout_url) {
             toast.success("Redirecionando ao checkout Yampi... 🎉");
-            // Use window.open as fallback for iframe environments
             const opened = window.open(yampiData.checkout_url, '_blank');
             if (!opened) {
               window.location.href = yampiData.checkout_url;
@@ -318,7 +396,7 @@ const Checkout = () => {
         </div>
       )}
 
-      {/* Mini order summary — always visible in address step */}
+      {/* Mini order summary */}
       {step === "address" && (
         <div className="bg-card rounded-xl p-3 border border-border mb-4">
           <div className="flex items-center justify-between">
@@ -349,12 +427,47 @@ const Checkout = () => {
       <AnimatePresence mode="wait">
         {step === "address" && (
           <motion.div key="address" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-4">
-            <div className="flex items-center gap-2 mb-4">
-              <MapPin className="w-5 h-5 text-primary" />
-              <h2 className="text-lg font-display font-semibold">Endereço de Entrega</h2>
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-2">
+                <MapPin className="w-5 h-5 text-primary" />
+                <h2 className="text-lg font-display font-semibold">Endereço de Entrega</h2>
+              </div>
+              {savedAddresses && savedAddresses.length > 0 && (
+                <button
+                  onClick={() => setShowAddressPicker(!showAddressPicker)}
+                  className="text-xs text-primary font-medium flex items-center gap-1"
+                >
+                  Endereços salvos
+                  <ChevronDown className={`w-3 h-3 transition-transform ${showAddressPicker ? "rotate-180" : ""}`} />
+                </button>
+              )}
             </div>
 
-            {/* CEP first — triggers auto-fill */}
+            {/* Saved address picker */}
+            <AnimatePresence>
+              {showAddressPicker && savedAddresses && savedAddresses.length > 0 && (
+                <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }} className="overflow-hidden">
+                  <div className="space-y-2 mb-4">
+                    {savedAddresses.map((addr) => (
+                      <button
+                        key={addr.id}
+                        onClick={() => selectSavedAddress(addr)}
+                        className={`w-full text-left p-3 rounded-lg border-2 transition-colors ${
+                          address.street === addr.street && address.number === addr.number && address.zip === addr.zip
+                            ? "border-primary bg-primary/5"
+                            : "border-border hover:border-primary/30"
+                        }`}
+                      >
+                        <p className="text-xs font-semibold">{addr.label} {addr.is_default && <span className="text-primary">(padrão)</span>}</p>
+                        <p className="text-[10px] text-muted-foreground">{addr.street}, {addr.number} - {addr.neighborhood}, {addr.city}/{addr.state}</p>
+                      </button>
+                    ))}
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            {/* CEP */}
             <div className="space-y-2">
               <Label>CEP</Label>
               <div className="relative">
