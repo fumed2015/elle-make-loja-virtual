@@ -13,8 +13,9 @@ import { motion } from "framer-motion";
 import {
   DollarSign, Package, TrendingUp, Calculator, Save, Loader2,
   Truck, ShoppingCart, Settings2, Pencil,
-  AlertTriangle, CheckCircle, Search
+  AlertTriangle, CheckCircle, Search, BarChart3, PieChart, ArrowUpRight, ArrowDownRight
 } from "lucide-react";
+import { Progress } from "@/components/ui/progress";
 import { toast } from "sonner";
 
 // ── Types ──
@@ -143,7 +144,7 @@ const EditableCostRow = ({ label, labelField, valueField, premises, onUpdate }: 
 
 const FinanceiroTab = () => {
   const queryClient = useQueryClient();
-  const [activeTab, setActiveTab] = useState("cmv");
+  const [activeTab, setActiveTab] = useState("audit");
   const [productSearch, setProductSearch] = useState("");
   const [editingCosts, setEditingCosts] = useState<Record<string, { cost_base: string; freight_per_unit: string; notes: string }>>({});
   const [savingProduct, setSavingProduct] = useState<string | null>(null);
@@ -376,12 +377,18 @@ const FinanceiroTab = () => {
 
       {/* Main Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="w-full grid grid-cols-4 h-9">
+        <TabsList className="w-full grid grid-cols-5 h-9">
+          <TabsTrigger value="audit" className="text-[10px] gap-1"><TrendingUp className="w-3 h-3" />Auditoria</TabsTrigger>
           <TabsTrigger value="cmv" className="text-[10px] gap-1"><Package className="w-3 h-3" />CMV</TabsTrigger>
           <TabsTrigger value="premises" className="text-[10px] gap-1"><Settings2 className="w-3 h-3" />Premissas</TabsTrigger>
           <TabsTrigger value="pricing" className="text-[10px] gap-1"><Calculator className="w-3 h-3" />Preços</TabsTrigger>
-          <TabsTrigger value="dre" className="text-[10px] gap-1"><TrendingUp className="w-3 h-3" />DRE</TabsTrigger>
+          <TabsTrigger value="dre" className="text-[10px] gap-1"><DollarSign className="w-3 h-3" />DRE</TabsTrigger>
         </TabsList>
+
+        {/* ══════════════════ AUDIT DASHBOARD TAB ══════════════════ */}
+        <TabsContent value="audit" className="space-y-4 mt-4">
+          <AuditDashboard products={products} costMap={costMap} premises={p as FinancialPremises} orders={orders} commissions={commissions} freightPerUnit={freightPerUnit} cacUnitario={cacUnitario} totalFixedCosts={totalFixedCosts} calcAtPrice={calcAtPrice} />
+        </TabsContent>
 
         {/* ══════════════════ CMV TAB ══════════════════ */}
         <TabsContent value="cmv" className="space-y-4 mt-4">
@@ -827,7 +834,250 @@ const FinanceiroTab = () => {
   );
 };
 
-// ── DRE Mini Component ──
+// ── Audit Dashboard Component ──
+const AuditDashboard = ({ products, costMap, premises, orders, commissions, freightPerUnit, cacUnitario, totalFixedCosts, calcAtPrice }: {
+  products: any[] | undefined;
+  costMap: Record<string, ProductCost>;
+  premises: FinancialPremises;
+  orders: any[] | undefined;
+  commissions: any[] | undefined;
+  freightPerUnit: number;
+  cacUnitario: number;
+  totalFixedCosts: number;
+  calcAtPrice: (price: number, costBase: number, freight: number) => { totalCost: number; profit: number; marginPct: number; contributionMargin: number };
+}) => {
+  const audit = useMemo(() => {
+    if (!products || !premises) return null;
+
+    const withCosts = products.filter(p => costMap[p.id] && Number(costMap[p.id].cost_base) > 0);
+    const withoutCosts = products.filter(p => !costMap[p.id] || Number(costMap[p.id].cost_base) <= 0);
+    const coverage = products.length > 0 ? (withCosts.length / products.length) * 100 : 0;
+
+    // CMV aggregates
+    let totalCmv = 0;
+    let totalSuggestedRevenue = 0;
+    let totalActualRevenue = 0;
+    const productBreakdown: Array<{
+      name: string; brand: string; price: number; cmv: number;
+      profit: number; marginPct: number; status: string;
+    }> = [];
+
+    withCosts.forEach(prod => {
+      const cost = costMap[prod.id];
+      const costBase = Number(cost.cost_base);
+      const freight = Number(cost.freight_per_unit);
+      const cmv = costBase + freight;
+      totalCmv += cmv;
+      totalActualRevenue += Number(prod.price);
+
+      const actual = calcAtPrice(Number(prod.price), costBase, freight);
+      const status = actual.marginPct < 0 ? "negative" : actual.marginPct < 15 ? "low" : actual.marginPct < 30 ? "ok" : "high";
+
+      productBreakdown.push({
+        name: prod.name,
+        brand: prod.brand || "—",
+        price: Number(prod.price),
+        cmv,
+        profit: actual.profit,
+        marginPct: actual.marginPct,
+        status,
+      });
+    });
+
+    productBreakdown.sort((a, b) => a.marginPct - b.marginPct);
+
+    const negativeMargin = productBreakdown.filter(p => p.status === "negative");
+    const lowMargin = productBreakdown.filter(p => p.status === "low");
+    const avgMargin = productBreakdown.length > 0 ? productBreakdown.reduce((s, p) => s + p.marginPct, 0) / productBreakdown.length : 0;
+    const avgCmv = withCosts.length > 0 ? totalCmv / withCosts.length : 0;
+
+    // Order-based stats (30d)
+    const now = new Date();
+    const cutoff = new Date(now.getTime() - 30 * 86400000);
+    const recentOrders = (orders || []).filter(o => new Date(o.created_at) >= cutoff && o.status !== "cancelled");
+
+    let orderCmvTotal = 0;
+    recentOrders.forEach(order => {
+      ((order.items as any[]) || []).forEach((item: any) => {
+        const cost = costMap[item.product_id];
+        if (cost) orderCmvTotal += (Number(cost.cost_base) + Number(cost.freight_per_unit)) * (item.quantity || 1);
+      });
+    });
+
+    const orderRevenue = recentOrders.reduce((s, o) => s + Number(o.total), 0);
+    const grossProfit = orderRevenue - orderCmvTotal;
+    const grossMargin = orderRevenue > 0 ? (grossProfit / orderRevenue) * 100 : 0;
+
+    const commTotal = (commissions || []).filter(c => new Date(c.created_at) >= cutoff)
+      .reduce((s, c) => s + Number(c.commission_value), 0);
+    const packagingTotal = recentOrders.length * Number(premises.packaging_cost || 0);
+    const gatewayTotal = recentOrders.reduce((s, o) => {
+      const { pct, fixed } = getGatewayRate(premises, o.payment_method);
+      return s + (Number(o.total) * pct / 100) + fixed;
+    }, 0);
+    const netProfit = grossProfit - packagingTotal - gatewayTotal - commTotal - totalFixedCosts - Number(premises.marketing_budget || 0);
+    const netMargin = orderRevenue > 0 ? (netProfit / orderRevenue) * 100 : 0;
+
+    return {
+      coverage, withCosts: withCosts.length, withoutCosts: withoutCosts.length, total: products.length,
+      totalCmv, avgCmv, avgMargin, negativeMargin, lowMargin, productBreakdown,
+      orderRevenue, orderCmvTotal, grossProfit, grossMargin, netProfit, netMargin,
+      orderCount: recentOrders.length, packagingTotal, gatewayTotal, commTotal,
+      missingProducts: withoutCosts.map(p => p.name),
+    };
+  }, [products, costMap, premises, orders, commissions, freightPerUnit, cacUnitario, totalFixedCosts, calcAtPrice]);
+
+  if (!audit) return <div className="text-xs text-muted-foreground py-8 text-center">Carregando auditoria...</div>;
+
+  return (
+    <div className="space-y-4">
+      {/* Health Score */}
+      <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
+        className="bg-card rounded-xl p-4 border border-border space-y-3">
+        <div className="flex items-center gap-2">
+          <BarChart3 className="w-4 h-4 text-primary" />
+          <h3 className="text-xs font-bold">Saúde Financeira</h3>
+        </div>
+        <div className="grid grid-cols-2 gap-3">
+          <div className="bg-muted rounded-lg p-3 text-center">
+            <p className="text-[9px] text-muted-foreground">Cobertura CMV</p>
+            <p className="text-xl font-bold text-primary">{fmtPct(audit.coverage)}</p>
+            <Progress value={audit.coverage} className="h-1.5 mt-1" />
+            <p className="text-[8px] text-muted-foreground mt-1">{audit.withCosts}/{audit.total} produtos</p>
+          </div>
+          <div className="bg-muted rounded-lg p-3 text-center">
+            <p className="text-[9px] text-muted-foreground">CMV Médio</p>
+            <p className="text-xl font-bold">{fmt(audit.avgCmv)}</p>
+            <p className="text-[8px] text-muted-foreground mt-1">por produto cadastrado</p>
+          </div>
+        </div>
+      </motion.div>
+
+      {/* Real-time P&L 30d */}
+      <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }}
+        className="bg-card rounded-xl p-4 border border-border space-y-3">
+        <div className="flex items-center gap-2">
+          <PieChart className="w-4 h-4 text-primary" />
+          <h3 className="text-xs font-bold">Rentabilidade em Tempo Real (30d)</h3>
+          <Badge variant="outline" className="text-[8px]">{audit.orderCount} pedidos</Badge>
+        </div>
+
+        <div className="grid grid-cols-3 gap-2">
+          <div className="bg-muted rounded-lg p-3 text-center">
+            <p className="text-[8px] text-muted-foreground">Receita</p>
+            <p className="text-sm font-bold">{fmt(audit.orderRevenue)}</p>
+          </div>
+          <div className="bg-muted rounded-lg p-3 text-center">
+            <p className="text-[8px] text-muted-foreground">CMV Total</p>
+            <p className="text-sm font-bold text-destructive">{fmt(audit.orderCmvTotal)}</p>
+          </div>
+          <div className="bg-muted rounded-lg p-3 text-center">
+            <p className="text-[8px] text-muted-foreground">Lucro Bruto</p>
+            <p className={`text-sm font-bold ${audit.grossProfit >= 0 ? "text-accent" : "text-destructive"}`}>
+              {fmt(audit.grossProfit)}
+            </p>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-2 gap-3">
+          <div className={`rounded-xl p-4 text-center border ${audit.grossMargin >= 30 ? "bg-accent/5 border-accent/20" : audit.grossMargin >= 15 ? "bg-amber-50 dark:bg-amber-900/10 border-amber-200 dark:border-amber-800" : "bg-destructive/5 border-destructive/20"}`}>
+            <div className="flex items-center justify-center gap-1 mb-1">
+              {audit.grossMargin >= 0 ? <ArrowUpRight className="w-3.5 h-3.5 text-accent" /> : <ArrowDownRight className="w-3.5 h-3.5 text-destructive" />}
+              <p className="text-[9px] text-muted-foreground">Margem Bruta</p>
+            </div>
+            <p className={`text-2xl font-bold ${audit.grossMargin >= 30 ? "text-accent" : audit.grossMargin >= 15 ? "text-amber-600" : "text-destructive"}`}>
+              {fmtPct(audit.grossMargin)}
+            </p>
+          </div>
+          <div className={`rounded-xl p-4 text-center border ${audit.netMargin >= 15 ? "bg-accent/5 border-accent/20" : audit.netMargin >= 0 ? "bg-amber-50 dark:bg-amber-900/10 border-amber-200 dark:border-amber-800" : "bg-destructive/5 border-destructive/20"}`}>
+            <div className="flex items-center justify-center gap-1 mb-1">
+              {audit.netMargin >= 0 ? <ArrowUpRight className="w-3.5 h-3.5 text-accent" /> : <ArrowDownRight className="w-3.5 h-3.5 text-destructive" />}
+              <p className="text-[9px] text-muted-foreground">Margem Líquida</p>
+            </div>
+            <p className={`text-2xl font-bold ${audit.netMargin >= 15 ? "text-accent" : audit.netMargin >= 0 ? "text-amber-600" : "text-destructive"}`}>
+              {fmtPct(audit.netMargin)}
+            </p>
+          </div>
+        </div>
+
+        <div className="bg-muted rounded-lg p-3 space-y-1.5 text-[11px]">
+          <div className="flex justify-between"><span className="text-muted-foreground">Embalagens</span><span>{fmt(audit.packagingTotal)}</span></div>
+          <div className="flex justify-between"><span className="text-muted-foreground">Taxas Gateway</span><span>{fmt(audit.gatewayTotal)}</span></div>
+          <div className="flex justify-between"><span className="text-muted-foreground">Comissões</span><span>{fmt(audit.commTotal)}</span></div>
+          <div className="flex justify-between"><span className="text-muted-foreground">Custos Fixos</span><span>{fmt(totalFixedCosts)}</span></div>
+          <div className="flex justify-between"><span className="text-muted-foreground">Marketing</span><span>{fmt(Number(premises.marketing_budget || 0))}</span></div>
+          <div className="flex justify-between border-t border-border pt-1.5 font-bold">
+            <span>Lucro Líquido</span>
+            <span className={audit.netProfit >= 0 ? "text-accent" : "text-destructive"}>{fmt(audit.netProfit)}</span>
+          </div>
+        </div>
+      </motion.div>
+
+      {/* Alerts */}
+      {(audit.negativeMargin.length > 0 || audit.lowMargin.length > 0 || audit.withoutCosts > 0) && (
+        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}
+          className="bg-card rounded-xl p-4 border border-border space-y-3">
+          <h3 className="text-xs font-bold flex items-center gap-2">
+            <AlertTriangle className="w-4 h-4 text-amber-500" />Alertas de Auditoria
+          </h3>
+
+          {audit.negativeMargin.length > 0 && (
+            <div className="bg-destructive/5 rounded-lg p-3 border border-destructive/20 space-y-1">
+              <p className="text-[10px] font-bold text-destructive">⚠️ {audit.negativeMargin.length} produto(s) com margem negativa</p>
+              {audit.negativeMargin.slice(0, 5).map((p, i) => (
+                <p key={i} className="text-[9px] text-muted-foreground">• {p.name} — margem {fmtPct(p.marginPct)}, lucro {fmt(p.profit)}</p>
+              ))}
+            </div>
+          )}
+
+          {audit.lowMargin.length > 0 && (
+            <div className="bg-amber-50 dark:bg-amber-900/10 rounded-lg p-3 border border-amber-200 dark:border-amber-800 space-y-1">
+              <p className="text-[10px] font-bold text-amber-700 dark:text-amber-300">⚡ {audit.lowMargin.length} produto(s) com margem baixa (&lt;15%)</p>
+              {audit.lowMargin.slice(0, 5).map((p, i) => (
+                <p key={i} className="text-[9px] text-muted-foreground">• {p.name} — margem {fmtPct(p.marginPct)}</p>
+              ))}
+            </div>
+          )}
+
+          {audit.withoutCosts > 0 && (
+            <div className="bg-muted rounded-lg p-3 space-y-1">
+              <p className="text-[10px] font-bold">📋 {audit.withoutCosts} produto(s) sem custo cadastrado</p>
+              {audit.missingProducts.slice(0, 5).map((name, i) => (
+                <p key={i} className="text-[9px] text-muted-foreground">• {name}</p>
+              ))}
+              {audit.missingProducts.length > 5 && <p className="text-[9px] text-muted-foreground">... e mais {audit.missingProducts.length - 5}</p>}
+            </div>
+          )}
+        </motion.div>
+      )}
+
+      {/* Product ranking by margin */}
+      <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}
+        className="bg-card rounded-xl p-4 border border-border space-y-3">
+        <h3 className="text-xs font-bold">📊 Ranking de Margem por Produto</h3>
+        <div className="space-y-1.5 max-h-[300px] overflow-y-auto">
+          {audit.productBreakdown.map((prod, i) => (
+            <div key={i} className="flex items-center gap-2 bg-muted rounded-lg px-3 py-2">
+              <span className="text-[9px] text-muted-foreground w-4">{i + 1}</span>
+              <div className="flex-1 min-w-0">
+                <p className="text-[10px] font-medium truncate">{prod.name}</p>
+                <p className="text-[8px] text-muted-foreground">{prod.brand} • CMV: {fmt(prod.cmv)}</p>
+              </div>
+              <div className="text-right flex-shrink-0">
+                <p className={`text-[10px] font-bold ${prod.marginPct >= 15 ? "text-accent" : prod.marginPct >= 0 ? "text-amber-600" : "text-destructive"}`}>
+                  {fmtPct(prod.marginPct)}
+                </p>
+                <p className="text-[8px] text-muted-foreground">{fmt(prod.profit)}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </motion.div>
+    </div>
+  );
+};
+
+
 const DRESection = ({ orders, commissions, premises, products, costMap, cacUnitario, totalFixedCosts }: {
   orders: any[] | undefined;
   commissions: any[] | undefined;
