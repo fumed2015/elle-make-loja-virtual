@@ -14,31 +14,28 @@ const MERCHANT_NAME = 'Elle Make';
 async function sendWhatsApp(phone: string, message: string): Promise<any> {
   const instanceId = Deno.env.get('ZAPI_INSTANCE_ID');
   const token = Deno.env.get('ZAPI_TOKEN');
+  const clientToken = Deno.env.get('ZAPI_CLIENT_TOKEN');
 
   if (!instanceId || !token) {
     console.error('Z-API credentials not configured');
     return { error: 'Z-API not configured' };
   }
 
-  // Debug: log credential metadata (safe, no full secrets)
-  console.log('Z-API debug:', {
-    instanceId_length: instanceId.length,
-    instanceId_prefix: instanceId.substring(0, 6),
-    token_length: token.length,
-    token_prefix: token.substring(0, 6),
-  });
-
   // Normalize phone: ensure 55 prefix, remove non-digits
   let cleanPhone = phone.replace(/\D/g, '');
   if (!cleanPhone.startsWith('55')) cleanPhone = '55' + cleanPhone;
 
   const url = `https://api.z-api.io/instances/${instanceId}/token/${token}/send-text`;
-  console.log('Z-API URL:', url);
+
+  const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+  if (clientToken) {
+    headers['Client-Token'] = clientToken;
+  }
 
   try {
     const res = await fetch(url, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers,
       body: JSON.stringify({
         phone: cleanPhone,
         message,
