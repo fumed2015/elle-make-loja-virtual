@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import OptimizedImage from "@/components/ui/optimized-image";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { Heart, Minus, Plus, ShoppingBag, Truck, CreditCard, ShieldCheck, MessageCircle, Sparkles } from "lucide-react";
@@ -35,6 +35,15 @@ const Produto = () => {
   const [qty, setQty] = useState(1);
   const shipping = useShipping();
 
+  // Auto-select first swatch when product loads (hook must be before early returns)
+  useEffect(() => {
+    if (!product) return;
+    const sw = typeof product.swatches === 'string' ? JSON.parse(product.swatches) : (product.swatches || []);
+    if (sw.length > 0) {
+      setSelectedSwatch(sw[0]);
+    }
+  }, [product?.id]); // eslint-disable-line react-hooks/exhaustive-deps
+
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -52,11 +61,6 @@ const Produto = () => {
   }
 
   const swatches = typeof product.swatches === 'string' ? JSON.parse(product.swatches) : (product.swatches || []);
-
-  // Auto-select first swatch if available
-  if (swatches.length > 0 && !selectedSwatch) {
-    setSelectedSwatch(swatches[0]);
-  }
   const hasDiscount = product.compare_at_price && Number(product.compare_at_price) > Number(product.price);
   const tags = product.tags || [];
   const favorited = isFavorited(product.id);
@@ -249,7 +253,7 @@ const Produto = () => {
               <Button
                 onClick={handleBuyNow}
                 variant="outline"
-                disabled={false}
+                disabled={addToCart.isPending || product.stock <= 0}
                 className="w-full min-h-[48px] text-base font-semibold border-2"
               >
                 <CreditCard className="w-5 h-5 mr-2 text-accent" />
