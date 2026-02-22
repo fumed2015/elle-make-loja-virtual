@@ -1,7 +1,6 @@
 import { useState, useMemo, useCallback } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { useProducts } from "@/hooks/useProducts";
 import { useAllOrders } from "@/hooks/useOrders";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,7 +11,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { motion } from "framer-motion";
 import {
   DollarSign, Package, TrendingUp, Calculator, Save, Loader2,
-  ArrowUpRight, ArrowDownRight, Percent, Truck, ShoppingCart, Settings2,
+  Percent, Truck, ShoppingCart, Settings2,
   AlertTriangle, CheckCircle, Search
 } from "lucide-react";
 import { toast } from "sonner";
@@ -46,24 +45,81 @@ interface ProductCost {
   notes: string | null;
 }
 
+const DEFAULT_PREMISES: Omit<FinancialPremises, "id"> = {
+  fixed_cost_platform: 69,
+  fixed_cost_whatsgw: 99,
+  fixed_cost_other: 0,
+  fixed_cost_other_label: "",
+  marketing_budget: 0,
+  order_target: 100,
+  packaging_cost: 2.5,
+  gateway_rate_credit: 4.19,
+  gateway_rate_credit_fixed: 0.35,
+  gateway_rate_pix: 0.99,
+  gateway_rate_debit: 0.74,
+  gateway_rate_physical: 0.74,
+  influencer_commission_rate: 10,
+  desired_margin: 30,
+  freight_batch_total: 0,
+  freight_batch_items: 1,
+};
+
 const fmt = (v: number) => `R$ ${v.toFixed(2).replace(".", ",")}`;
 const fmtPct = (v: number) => `${v.toFixed(1)}%`;
 
+/** Returns the gateway % rate for a given payment method */
+const getGatewayRate = (premises: FinancialPremises, method: string | null): { pct: number; fixed: number } => {
+  switch (method) {
+    case "pix": return { pct: Number(premises.gateway_rate_pix), fixed: 0 };
+    case "debit": return { pct: Number(premises.gateway_rate_debit), fixed: 0 };
+    case "physical":
+    case "presencial": return { pct: Number(premises.gateway_rate_physical), fixed: 0 };
+    case "credit":
+    case "card":
+    default: return { pct: Number(premises.gateway_rate_credit), fixed: Number(premises.gateway_rate_credit_fixed) };
+  }
+};
+
 const FinanceiroTab = () => {
   const queryClient = useQueryClient();
-  const { data: products } = useProducts({});
-  const { data: orders } = useAllOrders();
   const [activeTab, setActiveTab] = useState("cmv");
   const [productSearch, setProductSearch] = useState("");
   const [editingCosts, setEditingCosts] = useState<Record<string, { cost_base: string; freight_per_unit: string }>>({});
   const [savingProduct, setSavingProduct] = useState<string | null>(null);
 
   // ── Queries ──
+  // Fetch only active products for financial calculations
+  const { data: products } = useQuery({
+    queryKey: ["products-active-financial"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("products")
+        .select("*, categories(name, slug)")
+        .eq("is_active", true)
+        .order("name");
+      if (error) throw error;
+      return data;
+    },
+    staleTime: 1000 * 60 * 5,
+  });
+
+  const { data: orders } = useAllOrders();
+
   const { data: premises, isLoading: premisesLoading } = useQuery({
     queryKey: ["financial-premises"],
     queryFn: async () => {
-      const { data, error } = await supabase.from("financial_premises").select("*").limit(1).single();
+      const { data, error } = await supabase.from("financial_premises").select("*").limit(1).maybeSingle();
       if (error) throw error;
+      if (!data) {
+        // Auto-seed default row
+        const { data: inserted, error: insertErr } = await supabase
+          .from("financial_premises")
+          .insert(DEFAULT_PREMISES as any)
+          .select()
+          .single();
+        if (insertErr) throw insertErr;
+        return inserted as unknown as FinancialPremises;
+      }
       return data as unknown as FinancialPremises;
     },
   });
@@ -169,7 +225,7 @@ const FinanceiroTab = () => {
 
   // ── Revenue overview (last 30 days) ──
   const revenueStats = useMemo(() => {
-    if (!orders) return { revenue: 0, netRevenue: 0, orderCount: 0, avgTicket: 0, discounts: 0, commissionsTotal: 0 };
+    if (!orders || !p) return { revenue: 0, netRevenue: 0, orderCount: 0, avgTicket: 0, discounts: 0, commissionsTotal: 0 };
     const now = new Date();
     const cutoff = new Date(now.getTime() - 30 * 86400000);
     const filtered = orders.filter(o => new Date(o.created_at) >= cutoff && o.status !== "cancelled");
@@ -177,35 +233,43 @@ const FinanceiroTab = () => {
     const discounts = filtered.reduce((s, o) => s + Number(o.discount || 0), 0);
     const commissionsTotal = commissions?.filter(c => new Date(c.created_at) >= cutoff)
       .reduce((s, c) => s + Number(c.commission_value), 0) || 0;
+
+    // Gateway fees differentiated by payment method
+    const gatewayTotal = filtered.reduce((s, o) => {
+      const { pct, fixed } = getGatewayRate(p as FinancialPremises, o.payment_method);
+      return s + (Number(o.total) * pct / 100) + fixed;
+    }, 0);
+
     return {
       revenue,
-      netRevenue: revenue - discounts - commissionsTotal,
+      netRevenue: revenue - discounts - commissionsTotal - gatewayTotal,
       orderCount: filtered.length,
       avgTicket: filtered.length > 0 ? revenue / filtered.length : 0,
       discounts,
       commissionsTotal,
     };
-  }, [orders, commissions]);
+  }, [orders, commissions, p]);
 
-  // ── Markup calculator for a given product ──
+  // ── Markup calculator (Markup Divisor formula) ──
+  // Price = (CMV + Embalagem + CAC + Taxa Fixa) / (1 - (Taxa% + Comissão% + Margem%))
   const calcMarkup = useCallback((costBase: number, freightUnit: number) => {
-    if (!p) return { suggestedPrice: 0, totalCost: 0, margin: 0, profit: 0, marginPct: 0 };
+    if (!p) return { suggestedPrice: 0, totalCost: 0, margin: 0, profit: 0, marginPct: 0, contributionMargin: 0, cmvTotal: 0, variableCosts: 0 };
 
     const cmvTotal = costBase + freightUnit;
     const packaging = Number(p.packaging_cost);
     const fixedUnit = cacUnitario;
+    const creditFixed = Number(p.gateway_rate_credit_fixed);
 
-    // Markup Divisor formula:
-    // Price = (CMV + Packaging + FixedUnit) / (1 - (gatewayRate% + commission% + desiredMargin%))
+    // Markup Divisor: numerator includes ALL fixed-per-unit costs
     const gatewayRate = Number(p.gateway_rate_credit) / 100;
     const commissionRate = Number(p.influencer_commission_rate) / 100;
     const desiredMargin = Number(p.desired_margin) / 100;
     const divisor = 1 - (gatewayRate + commissionRate + desiredMargin);
 
-    const suggestedPrice = divisor > 0 ? (cmvTotal + packaging + fixedUnit) / divisor : 0;
+    const suggestedPrice = divisor > 0 ? (cmvTotal + packaging + fixedUnit + creditFixed) / divisor : 0;
 
-    // Actual calculations at selling price
-    const variableCosts = packaging + (suggestedPrice * gatewayRate) + Number(p.gateway_rate_credit_fixed) + (suggestedPrice * commissionRate);
+    // Actual costs at suggested price
+    const variableCosts = packaging + (suggestedPrice * gatewayRate) + creditFixed + (suggestedPrice * commissionRate);
     const totalCost = cmvTotal + variableCosts + fixedUnit;
     const profit = suggestedPrice - totalCost;
     const marginPct = suggestedPrice > 0 ? (profit / suggestedPrice) * 100 : 0;
@@ -214,15 +278,16 @@ const FinanceiroTab = () => {
     return { suggestedPrice, totalCost, profit, marginPct, contributionMargin, cmvTotal, variableCosts };
   }, [p, cacUnitario]);
 
-  // Calculate markup for a product at its ACTUAL selling price
+  // Calculate at a specific selling price
   const calcAtPrice = useCallback((sellingPrice: number, costBase: number, freightUnit: number) => {
     if (!p || sellingPrice <= 0) return { totalCost: 0, profit: 0, marginPct: 0, contributionMargin: 0 };
     const cmvTotal = costBase + freightUnit;
     const packaging = Number(p.packaging_cost);
     const gatewayRate = Number(p.gateway_rate_credit) / 100;
+    const creditFixed = Number(p.gateway_rate_credit_fixed);
     const commissionRate = Number(p.influencer_commission_rate) / 100;
 
-    const variableCosts = packaging + (sellingPrice * gatewayRate) + Number(p.gateway_rate_credit_fixed) + (sellingPrice * commissionRate);
+    const variableCosts = packaging + (sellingPrice * gatewayRate) + creditFixed + (sellingPrice * commissionRate);
     const totalCost = cmvTotal + variableCosts + cacUnitario;
     const profit = sellingPrice - totalCost;
     const marginPct = (profit / sellingPrice) * 100;
@@ -558,7 +623,7 @@ const FinanceiroTab = () => {
               <h3 className="text-xs font-bold">Precificação por Markup Divisor</h3>
             </div>
             <p className="text-[9px] text-muted-foreground">
-              Preço = (CMV + Embalagem + CAC) ÷ (1 - Taxa% - Comissão% - Margem%)
+              Preço = (CMV + Embalagem + CAC + Taxa Fixa) ÷ (1 - Taxa% - Comissão% - Margem%)
             </p>
           </div>
 
@@ -623,6 +688,10 @@ const FinanceiroTab = () => {
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">CAC Unitário</span>
                       <span>{fmt(cacUnitario)}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Taxa Fixa Gateway</span>
+                      <span>{fmt(Number(p?.gateway_rate_credit_fixed || 0))}</span>
                     </div>
                     <div className="flex justify-between border-t border-border pt-1.5">
                       <span className="text-muted-foreground">Taxa Gateway ({p?.gateway_rate_credit}%)</span>
@@ -720,7 +789,12 @@ const DRESection = ({ orders, commissions, premises, products, costMap, cacUnita
     });
 
     const packagingTotal = filtered.length * Number(premises.packaging_cost || 0);
-    const gatewayTotal = revenue * (Number(premises.gateway_rate_credit || 0) / 100) + filtered.length * Number(premises.gateway_rate_credit_fixed || 0);
+
+    // Gateway fees differentiated by payment method per order
+    const gatewayTotal = filtered.reduce((s, o) => {
+      const { pct, fixed } = getGatewayRate(premises as FinancialPremises, o.payment_method);
+      return s + (Number(o.total) * pct / 100) + fixed;
+    }, 0);
 
     const months = periodMs === Infinity ? Math.max(1, Math.ceil((now.getTime() - new Date(orders[orders.length - 1]?.created_at || now).getTime()) / (30 * 86400000))) :
       drePeriod === "30d" ? 1 : 3;
@@ -773,11 +847,11 @@ const DRESection = ({ orders, commissions, premises, products, costMap, cacUnita
         {lines.map((line, i) => (
           <div key={i} className={`flex justify-between items-center px-4 py-2.5 text-xs ${
             line.bold ? "bg-muted/50 font-bold" : ""
-          } ${line.final ? "bg-primary/5 border-t-2 border-primary/20" : i > 0 ? "border-t border-border/50" : ""}`}>
+          } ${(line as any).final ? "bg-primary/5 border-t-2 border-primary/20" : i > 0 ? "border-t border-border/50" : ""}`}>
             <span className={line.bold ? "" : "text-muted-foreground"}>{line.label}</span>
             <span className={
-              line.final ? (line.value >= 0 ? "text-accent text-sm" : "text-destructive text-sm") :
-              line.accent ? (line.value >= 0 ? "text-accent" : "text-destructive") :
+              (line as any).final ? (line.value >= 0 ? "text-accent text-sm" : "text-destructive text-sm") :
+              (line as any).accent ? (line.value >= 0 ? "text-accent" : "text-destructive") :
               line.negative ? "text-destructive" : ""
             }>
               {line.negative ? `-${fmt(Math.abs(line.value))}` : fmt(line.value)}
