@@ -264,7 +264,7 @@ const Checkout = () => {
         } catch (yampiErr: any) {
           console.error('Yampi error:', yampiErr);
           toast.success("Pedido registrado! Redirecionando ao checkout... 🎉");
-          const fallbackUrl = 'https://elle-make.checkout.yampi.com.br';
+          const fallbackUrl = 'https://elle-make.pay.yampi.com.br';
           const opened = window.open(fallbackUrl, '_blank');
           if (!opened) window.location.href = fallbackUrl;
           setStep("success");
@@ -572,7 +572,7 @@ const Checkout = () => {
             {paymentMethod === "yampi" && (
               <Button
                 variant="outline"
-                onClick={() => window.open('https://elle-make.checkout.yampi.com.br', '_blank')}
+                onClick={() => window.open('https://elle-make.pay.yampi.com.br', '_blank')}
                 className="text-xs gap-1.5"
               >
                 <ExternalLink className="w-3.5 h-3.5" />

@@ -101,7 +101,7 @@ function formatProductsList(items: any[]): string {
 }
 
 function buildCheckoutUrl(customer: any, address: any): string {
-  const base = `https://${YAMPI_ALIAS}.checkout.yampi.com.br`;
+  const base = `https://${YAMPI_ALIAS}.pay.yampi.com.br`;
   const params = new URLSearchParams();
 
   if (customer?.name) {
