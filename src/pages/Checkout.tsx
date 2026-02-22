@@ -440,8 +440,8 @@ const Checkout = () => {
           throw new Error(payment.error || "Erro ao gerar boleto");
         }
       } else if (paymentMethod === "card") {
-        // For card, we need to show the card form first for tokenization
-        setStep("payment");
+        // Card is handled inline via CardPaymentForm in the review step
+        return;
       }
     } catch (err: any) {
       toast.error(err.message || "Erro ao finalizar pedido");
@@ -670,12 +670,11 @@ const Checkout = () => {
               <div className="space-y-2">
                 {([
                   { method: "pix" as PaymentMethod, icon: QrCode, label: "PIX", desc: "Aprovação instantânea • 5% de desconto" },
-                  { method: "card" as PaymentMethod, icon: CreditCard, label: "Cartão de Crédito", desc: "Até 12x • Visa, Master, Elo, Amex" },
+                  { method: "card" as PaymentMethod, icon: CreditCard, label: "Cartão de Crédito", desc: "Até 3x sem juros • Acima com juros" },
                   { method: "boleto" as PaymentMethod, icon: Barcode, label: "Boleto Bancário", desc: "Prazo de 1-3 dias úteis para compensar" },
                   { method: "whatsapp" as PaymentMethod, icon: WhatsAppIcon, label: "WhatsApp", desc: "Combine o pagamento com a loja" },
                 ] as { method: PaymentMethod; icon: any; label: string; desc: string }[]).map(({ method, icon: Icon, label, desc }) => {
                   const isWhatsApp = method === "whatsapp";
-                  const colorClass = isWhatsApp ? "accent" : "primary";
                   return (
                     <button key={method} onClick={() => setPaymentMethod(method)}
                       className={`w-full flex items-center gap-3 p-3 rounded-lg border-2 transition-colors ${
@@ -699,6 +698,60 @@ const Checkout = () => {
                   );
                 })}
               </div>
+
+              {/* Inline Card Form */}
+              <AnimatePresence>
+                {paymentMethod === "card" && (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: "auto" }}
+                    exit={{ opacity: 0, height: 0 }}
+                    className="overflow-hidden"
+                  >
+                    <CardPaymentForm
+                      amount={finalTotal}
+                      cpf={customerInfo.cpf.replace(/\D/g, "")}
+                      onCancel={() => setPaymentMethod("pix")}
+                      loading={payment.loading || submitting}
+                      inline
+                      onTokenized={async ({ token, paymentMethodId: pmId, installments: inst, issuerId: issId }) => {
+                        setSubmitting(true);
+                        try {
+                          const newOrderId = await createOrder();
+                          setOrderId(newOrderId);
+                          setStep("processing");
+
+                          const payer = getPayer();
+                          const result = await payment.createCardPayment(
+                            finalTotal, token, inst, pmId, payer, newOrderId, issId
+                          );
+                          if (result) {
+                            setPaymentId(String(result.id));
+                            if (result.status === "approved") {
+                              toast.success("Pagamento aprovado! 🎉");
+                              await clearCart();
+                              setStep("success");
+                            } else if (result.status === "in_process" || result.status === "pending") {
+                              toast.info("Pagamento em análise. Você será notificado.");
+                              setStep("success");
+                            } else {
+                              toast.error(`Pagamento recusado: ${result.status_detail || result.status}`);
+                              setStep("review");
+                            }
+                          } else {
+                            throw new Error(payment.error || "Erro ao processar cartão");
+                          }
+                        } catch (err: any) {
+                          toast.error(err.message || "Erro ao processar pagamento");
+                          setStep("review");
+                        } finally {
+                          setSubmitting(false);
+                        }
+                      }}
+                    />
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
 
             {/* Totals */}
@@ -733,17 +786,19 @@ const Checkout = () => {
             {/* Trust Badges */}
             <TrustBadges />
 
-            <Button onClick={handlePlaceOrder} disabled={submitting} className="w-full bg-primary text-primary-foreground hover:bg-primary/90 min-h-[48px] font-semibold shadow-marsala">
-              {submitting ? (
-                <><Loader2 className="w-5 h-5 mr-2 animate-spin" /> Processando...</>
-              ) : paymentMethod === "whatsapp" ? (
-                <><WhatsAppIcon className="w-5 h-5 mr-2" /> Enviar Pedido pelo WhatsApp</>
-              ) : paymentMethod === "pix" ? (
-                <>💰 Pagar com PIX (5% OFF)</>
-              ) : (
-                <><CreditCard className="w-5 h-5 mr-2" /> Finalizar Compra Segura 🔒</>
-              )}
-            </Button>
+            {paymentMethod !== "card" && (
+              <Button onClick={handlePlaceOrder} disabled={submitting} className="w-full bg-primary text-primary-foreground hover:bg-primary/90 min-h-[48px] font-semibold shadow-marsala">
+                {submitting ? (
+                  <><Loader2 className="w-5 h-5 mr-2 animate-spin" /> Processando...</>
+                ) : paymentMethod === "whatsapp" ? (
+                  <><WhatsAppIcon className="w-5 h-5 mr-2" /> Enviar Pedido pelo WhatsApp</>
+                ) : paymentMethod === "pix" ? (
+                  <>💰 Pagar com PIX (5% OFF)</>
+                ) : (
+                  <><Barcode className="w-5 h-5 mr-2" /> Gerar Boleto</>
+                )}
+              </Button>
+            )}
           </motion.div>
         )}
 
@@ -821,43 +876,7 @@ const Checkout = () => {
               </div>
             )}
 
-            {/* Card form */}
-            {paymentMethod === "card" && !pixData && !boletoData && (
-              <CardPaymentForm
-                amount={finalTotal}
-                cpf={customerInfo.cpf.replace(/\D/g, "")}
-                onCancel={() => setStep("review")}
-                loading={payment.loading}
-                onTokenized={async ({ token, paymentMethodId: pmId, installments: inst, issuerId: issId }) => {
-                  setStep("processing");
-                  try {
-                    const payer = getPayer();
-                    const result = await payment.createCardPayment(
-                      finalTotal, token, inst, pmId, payer, orderId, issId
-                    );
-                    if (result) {
-                      setPaymentId(String(result.id));
-                      if (result.status === "approved") {
-                        toast.success("Pagamento aprovado! 🎉");
-                        await clearCart();
-                        setStep("success");
-                      } else if (result.status === "in_process" || result.status === "pending") {
-                        toast.info("Pagamento em análise. Você será notificado.");
-                        setStep("success");
-                      } else {
-                        toast.error(`Pagamento recusado: ${result.status_detail || result.status}`);
-                        setStep("payment");
-                      }
-                    } else {
-                      throw new Error(payment.error || "Erro ao processar cartão");
-                    }
-                  } catch (err: any) {
-                    toast.error(err.message || "Erro ao processar pagamento");
-                    setStep("payment");
-                  }
-                }}
-              />
-            )}
+            {/* Card form removed - now inline in review step */}
           </motion.div>
         )}
 
