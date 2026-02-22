@@ -20,8 +20,8 @@ import {
 const STATUS_CONFIG: Record<string, { label: string; icon: any; color: string; bg: string }> = {
   pending: { label: "Pendente", icon: Clock, color: "text-yellow-500", bg: "bg-yellow-500/10" },
   confirmed: { label: "Confirmado", icon: CheckCircle, color: "text-blue-500", bg: "bg-blue-500/10" },
-  paid: { label: "Pago", icon: DollarSign, color: "text-emerald-500", bg: "bg-emerald-500/10" },
-  preparing: { label: "Preparando", icon: Package, color: "text-indigo-500", bg: "bg-indigo-500/10" },
+  approved: { label: "Pago", icon: DollarSign, color: "text-emerald-500", bg: "bg-emerald-500/10" },
+  processing: { label: "Preparando", icon: Package, color: "text-indigo-500", bg: "bg-indigo-500/10" },
   shipped: { label: "Enviado", icon: Truck, color: "text-purple-500", bg: "bg-purple-500/10" },
   delivered: { label: "Entregue", icon: CheckCircle, color: "text-green-600", bg: "bg-green-600/10" },
   cancelled: { label: "Cancelado", icon: XCircle, color: "text-destructive", bg: "bg-destructive/10" },
