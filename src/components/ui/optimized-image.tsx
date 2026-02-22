@@ -57,18 +57,26 @@ const OptimizedImage = ({
 
       {/* Actual image - only render src when in viewport */}
       {inView && (
-        <img
-          src={src}
-          alt={alt}
-          loading="lazy"
-          decoding="async"
-          onLoad={() => setLoaded(true)}
-          className={cn(
-            "w-full h-full object-cover transition-opacity duration-500",
-            loaded ? "opacity-100" : "opacity-0"
+        <picture>
+          {src.match(/\.(jpe?g|png)$/i) && (
+            <source
+              srcSet={src.replace(/\.(jpe?g|png)$/i, '.webp')}
+              type="image/webp"
+            />
           )}
-          {...props}
-        />
+          <img
+            src={src}
+            alt={alt}
+            loading="lazy"
+            decoding="async"
+            onLoad={() => setLoaded(true)}
+            className={cn(
+              "w-full h-full object-cover transition-opacity duration-500",
+              loaded ? "opacity-100" : "opacity-0"
+            )}
+            {...props}
+          />
+        </picture>
       )}
     </div>
   );

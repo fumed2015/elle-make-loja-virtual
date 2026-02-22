@@ -1,17 +1,16 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
-const SITE_URL = Deno.env.get("SITE_URL") || "https://id-preview--c0b8ed42-b9c9-4e15-a93b-150bf43bc611.lovable.app";
+const SITE_URL = Deno.env.get("SITE_URL") || "https://ellemake2.lovable.app";
 
 const staticPages = [
   { loc: "/", changefreq: "daily", priority: "1.0" },
   { loc: "/explorar", changefreq: "daily", priority: "0.9" },
-  { loc: "/carrinho", changefreq: "weekly", priority: "0.4" },
-  { loc: "/perfil", changefreq: "monthly", priority: "0.3" },
-  { loc: "/pedidos", changefreq: "weekly", priority: "0.3" },
-  { loc: "/favoritos", changefreq: "weekly", priority: "0.5" },
+  { loc: "/sobre", changefreq: "monthly", priority: "0.6" },
   { loc: "/consultora", changefreq: "weekly", priority: "0.7" },
-  { loc: "/checkout", changefreq: "monthly", priority: "0.3" },
+  { loc: "/favoritos", changefreq: "weekly", priority: "0.5" },
+  { loc: "/privacidade", changefreq: "monthly", priority: "0.3" },
+  { loc: "/termos", changefreq: "monthly", priority: "0.3" },
 ];
 
 serve(async () => {
