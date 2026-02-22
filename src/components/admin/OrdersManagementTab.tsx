@@ -135,6 +135,26 @@ const OrdersManagementTab = () => {
     } else {
       toast.success(`Status atualizado para ${STATUS_CONFIG[newStatus]?.label || newStatus}`);
       refetch();
+
+      // Auto WhatsApp notification for status changes
+      const statusEventMap: Record<string, string> = {
+        confirmed: "order.paid",
+        approved: "order.paid",
+        shipped: "order.shipped",
+        delivered: "order.delivered",
+        cancelled: "order.cancelled",
+      };
+      const eventType = statusEventMap[newStatus];
+      if (eventType) {
+        try {
+          await supabase.functions.invoke("whatsapp-notifications", {
+            body: { action: "notify-order", order_id: orderId, event_type: eventType },
+          });
+          toast.success("📱 Notificação WhatsApp enviada!");
+        } catch (notifErr) {
+          console.error("WhatsApp notification error:", notifErr);
+        }
+      }
     }
   };
 

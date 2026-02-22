@@ -63,7 +63,7 @@ const FALLBACK_TEMPLATES: Record<string, string> = {
   "order.shipped":
     "📦 {first_name}, produtos *a caminho*! 🚚\n\n{products_list}\n\nRastreio: *{tracking_code}*\n{tracking_url}",
   "order.delivered":
-    "🎉 {first_name}, pedido *entregue*! 💖\n\n{products_list}\n\nConta o que achou! ⭐",
+    "🎉 {first_name}, pedido *entregue*! 💖\n\n{products_list}\n\nConta o que achou! ⭐\n📸 Marca a gente no Insta: *@ellemake* 🤳\n🔗 Avalie: {link}",
   "order.cancelled":
     "❌ {first_name}, seu pedido na *{merchant}* foi cancelado.\n\nSe tiver dúvidas, fale conosco! 💬",
 };

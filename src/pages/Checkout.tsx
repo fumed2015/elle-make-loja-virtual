@@ -356,6 +356,15 @@ const Checkout = () => {
       }
     }
 
+    // Auto WhatsApp notification: order.created
+    try {
+      await supabase.functions.invoke("whatsapp-notifications", {
+        body: { action: "notify-order", order_id: orderData.id, event_type: "order.created" },
+      });
+    } catch (notifErr) {
+      console.error("WhatsApp order.created notification error:", notifErr);
+    }
+
     await saveDataAfterOrder();
     return orderData.id;
   };
