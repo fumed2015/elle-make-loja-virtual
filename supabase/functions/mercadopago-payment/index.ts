@@ -164,6 +164,38 @@ async function handleWebhook(req: Request, accessToken: string) {
   }
 
   console.log(`Order ${externalReference} updated to ${orderStatus}`);
+
+  // Trigger WhatsApp notification via whatsapp-notifications function
+  const eventMap: Record<string, string> = {
+    approved: "order.paid",
+    rejected: "order.cancelled",
+    cancelled: "order.cancelled",
+    refunded: "order.cancelled",
+  };
+  const notifEvent = eventMap[mpStatus];
+  if (notifEvent) {
+    try {
+      const notifRes = await fetch(
+        `${supabaseUrl}/functions/v1/whatsapp-notifications`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${supabaseServiceKey}`,
+          },
+          body: JSON.stringify({
+            action: "notify-order",
+            order_id: externalReference,
+            event_type: notifEvent,
+          }),
+        }
+      );
+      console.log("WhatsApp notification triggered:", notifRes.status);
+    } catch (notifErr) {
+      console.error("WhatsApp notification error:", notifErr);
+    }
+  }
+
   return jsonResponse({ received: true, order_status: orderStatus });
 }
 

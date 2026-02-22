@@ -12,13 +12,14 @@ verify_jwt = false
 [functions.sitemap]
 verify_jwt = false
 
-[functions.yampi-checkout]
-verify_jwt = false
-
-[functions.yampi-sync]
+[functions.whatsapp-notifications]
 verify_jwt = false
 
 [functions.melhor-envio-shipping]
+verify_jwt = false
+
+[functions.mercadopago-payment]
+verify_jwt = false
 verify_jwt = false
 
 [functions.mercadopago-payment]

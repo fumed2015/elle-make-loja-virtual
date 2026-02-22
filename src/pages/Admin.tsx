@@ -136,9 +136,7 @@ const DashboardTab = () => {
   const { data: products } = useProducts({});
   const { data: orders } = useAllOrders();
   const { data: influencers } = useInfluencers();
-  const [yampiStatus, setYampiStatus] = useState<"checking" | "connected" | "error">("checking");
-  const [syncing, setSyncing] = useState(false);
-  const [syncResult, setSyncResult] = useState<any>(null);
+
 
   // User analytics queries
   const { data: profiles } = useQuery({
@@ -158,29 +156,6 @@ const DashboardTab = () => {
       return data;
     },
   });
-
-  useState(() => {
-    supabase.functions.invoke('yampi-checkout', {
-      body: { action: 'get-checkout-url' },
-    }).then(({ data, error }) => {
-      setYampiStatus(error || !data?.success ? "error" : "connected");
-    }).catch(() => setYampiStatus("error"));
-  });
-
-  const handleSyncProducts = async () => {
-    setSyncing(true);
-    setSyncResult(null);
-    try {
-      const { data, error } = await supabase.functions.invoke('yampi-sync');
-      if (error) throw error;
-      setSyncResult(data);
-      toast.success(`Sincronizado! ${data?.created || 0} criados, ${data?.updated || 0} atualizados`);
-    } catch (e: any) {
-      toast.error(e.message || 'Erro ao sincronizar');
-    } finally {
-      setSyncing(false);
-    }
-  };
 
   const totalRevenue = orders?.reduce((sum, o) => sum + Number(o.total), 0) || 0;
   const totalOrders = orders?.length || 0;
@@ -202,12 +177,10 @@ const DashboardTab = () => {
   const recentSignups7d = profiles?.filter(p => new Date(p.created_at) >= last7Days).length || 0;
   const recentSignups30d = profiles?.filter(p => new Date(p.created_at) >= last30Days).length || 0;
 
-  // Users who placed orders (active buyers)
   const buyerIds = new Set(orders?.map(o => o.user_id) || []);
   const activeBuyers = buyerIds.size;
   const conversionRate = totalUsers > 0 ? ((activeBuyers / totalUsers) * 100).toFixed(1) : "0";
 
-  // Birthday stats
   const usersWithBirthday = profiles?.filter(p => (p as any).birthday).length || 0;
   const usersWithPhone = profiles?.filter(p => p.phone).length || 0;
 
@@ -222,72 +195,20 @@ const DashboardTab = () => {
 
   return (
     <div className="space-y-4">
-      {/* Yampi Integration Status */}
+      {/* Mercado Pago Integration Status */}
       <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
-        className={`rounded-xl p-4 border ${
-          yampiStatus === "connected" ? "bg-accent/5 border-accent/30" :
-          yampiStatus === "error" ? "bg-destructive/5 border-destructive/30" :
-          "bg-muted border-border"
-        }`}>
+        className="rounded-xl p-4 border bg-accent/5 border-accent/30">
         <div className="flex items-center gap-3">
-          <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
-            yampiStatus === "connected" ? "bg-accent/15" :
-            yampiStatus === "error" ? "bg-destructive/15" :
-            "bg-muted"
-          }`}>
-            {yampiStatus === "checking" ? <Loader2 className="w-5 h-5 text-muted-foreground animate-spin" /> :
-             yampiStatus === "connected" ? <CheckCircle className="w-5 h-5 text-accent" /> :
-             <AlertTriangle className="w-5 h-5 text-destructive" />}
+          <div className="w-10 h-10 rounded-full flex items-center justify-center bg-accent/15">
+            <CheckCircle className="w-5 h-5 text-accent" />
           </div>
           <div className="flex-1">
             <div className="flex items-center gap-2">
-              <p className="text-sm font-semibold">Yampi Checkout</p>
-              <Badge variant="secondary" className={`text-[9px] ${
-                yampiStatus === "connected" ? "bg-accent/15 text-accent" :
-                yampiStatus === "error" ? "bg-destructive/15 text-destructive" :
-                ""
-              }`}>
-                {yampiStatus === "checking" ? "Verificando..." :
-                 yampiStatus === "connected" ? "✓ Conectado" : "✗ Erro"}
-              </Badge>
+              <p className="text-sm font-semibold">Mercado Pago</p>
+              <Badge variant="secondary" className="text-[9px] bg-accent/15 text-accent">✓ Ativo</Badge>
             </div>
-            <p className="text-[10px] text-muted-foreground">
-              {yampiStatus === "connected" ? "Credenciais configuradas • Checkout seguro ativo" :
-               yampiStatus === "error" ? "Verifique as credenciais no painel de secrets" :
-               "Verificando conexão com a API Yampi..."}
-            </p>
+            <p className="text-[10px] text-muted-foreground">Checkout transparente • PIX, Cartão e Boleto</p>
           </div>
-        </div>
-
-        {/* Sync button */}
-        <div className="mt-3 pt-3 border-t border-border/50">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-xs font-semibold">Sincronizar Produtos</p>
-              <p className="text-[10px] text-muted-foreground">Exportar catálogo para a Yampi</p>
-            </div>
-            <Button
-              size="sm"
-              onClick={handleSyncProducts}
-              disabled={syncing || yampiStatus !== "connected"}
-              className="text-xs gap-1.5 h-8"
-            >
-              {syncing ? <><Loader2 className="w-3.5 h-3.5 animate-spin" />Sincronizando...</> :
-               <><RefreshCw className="w-3.5 h-3.5" />Sincronizar</>}
-            </Button>
-          </div>
-          {syncResult && (
-            <div className="mt-2 bg-muted rounded-lg p-2.5 space-y-1">
-              <div className="flex gap-3 text-[10px]">
-                <span className="text-accent font-bold">✓ {syncResult.created} criados</span>
-                <span className="text-primary font-bold">↻ {syncResult.updated} atualizados</span>
-                {syncResult.errors > 0 && <span className="text-destructive font-bold">✗ {syncResult.errors} erros</span>}
-              </div>
-              {syncResult.results?.filter((r: any) => r.status === 'error').slice(0, 3).map((r: any, i: number) => (
-                <p key={i} className="text-[9px] text-destructive truncate">• {r.name}: {r.error}</p>
-              ))}
-            </div>
-          )}
         </div>
       </motion.div>
 
