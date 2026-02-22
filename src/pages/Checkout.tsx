@@ -139,7 +139,8 @@ const Checkout = () => {
   // Real-time payment status polling
   const { status: paymentStatus, statusDetail: paymentStatusDetail, polling: isPolling } = usePaymentStatusPolling(
     step === "payment" && paymentId ? paymentId : null,
-    5000
+    5000,
+    orderId || null
   );
 
   // Auto-transition to success when payment is approved + clear cart

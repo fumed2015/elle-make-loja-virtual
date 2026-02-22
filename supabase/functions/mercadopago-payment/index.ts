@@ -16,6 +16,17 @@ function jsonResponse(data: any, status = 200) {
   });
 }
 
+/** Map Mercado Pago status to our order status */
+function mapMpStatusToOrderStatus(mpStatus: string): string {
+  switch (mpStatus) {
+    case "approved": return "confirmed";
+    case "in_process": case "pending": case "authorized": return "pending";
+    case "rejected": case "cancelled": return "cancelled";
+    case "refunded": case "charged_back": return "cancelled";
+    default: return "pending";
+  }
+}
+
 /** Validate the declared total against real product prices in DB */
 async function validateOrderTotal(
   supabaseAdmin: any,
@@ -53,15 +64,11 @@ async function validateOrderTotal(
   const discount = Number(order.discount) || 0;
   const afterDiscount = Math.max(0, calculatedSubtotal - discount);
 
-  // Apply PIX discount if payment method is pix
   const isPix = order.payment_method === "pix";
   const afterPix = isPix ? afterDiscount * 0.95 : afterDiscount;
 
-  // Allow 1 cent tolerance for rounding + shipping is added on top
-  // We validate that declared amount >= afterPix (shouldn't be less than products cost minus discounts)
-  // and shouldn't be wildly higher than expected (allow up to +500 for shipping)
   const minExpected = Math.floor(afterPix * 100) / 100 - 0.01;
-  const maxExpected = afterPix + 500; // generous shipping allowance
+  const maxExpected = afterPix + 500;
 
   if (declaredAmount < minExpected) {
     console.error(`Total mismatch: declared=${declaredAmount}, min=${minExpected}`);
@@ -75,6 +82,91 @@ async function validateOrderTotal(
   return { valid: true };
 }
 
+/** Build the webhook notification URL for this edge function */
+function getNotificationUrl(): string {
+  const projectId = Deno.env.get("SUPABASE_URL")?.match(/https:\/\/([^.]+)/)?.[1] || "";
+  return `https://${projectId}.supabase.co/functions/v1/mercadopago-payment`;
+}
+
+/** Handle Mercado Pago webhook/IPN notifications */
+async function handleWebhook(req: Request, accessToken: string) {
+  const url = new URL(req.url);
+  const topic = url.searchParams.get("topic") || url.searchParams.get("type");
+  
+  let paymentId: string | null = null;
+
+  if (topic === "payment" || topic === "payment.updated" || topic === "payment.created") {
+    // IPN style: ?topic=payment&id=xxx
+    paymentId = url.searchParams.get("id") || url.searchParams.get("data.id");
+    
+    // Webhook v2 style: body contains { data: { id }, type, action }
+    if (!paymentId) {
+      try {
+        const body = await req.json();
+        paymentId = body?.data?.id ? String(body.data.id) : null;
+      } catch { /* no body */ }
+    }
+  } else {
+    // Try parsing body for webhook v2 format
+    try {
+      const body = await req.json();
+      if (body?.type === "payment" && body?.data?.id) {
+        paymentId = String(body.data.id);
+      }
+    } catch { /* no body */ }
+  }
+
+  if (!paymentId) {
+    console.log("Webhook received but no payment ID found. Topic:", topic);
+    return jsonResponse({ received: true });
+  }
+
+  console.log(`Webhook: processing payment ${paymentId}`);
+
+  // Fetch payment details from MP
+  const res = await fetch(`${MP_API}/v1/payments/${paymentId}`, {
+    headers: { Authorization: `Bearer ${accessToken}` },
+  });
+  
+  if (!res.ok) {
+    console.error(`Failed to fetch payment ${paymentId}: ${res.status}`);
+    return jsonResponse({ error: "Failed to fetch payment" }, 500);
+  }
+
+  const paymentData = await res.json();
+  const mpStatus = paymentData.status;
+  const externalReference = paymentData.external_reference;
+  const orderStatus = mapMpStatusToOrderStatus(mpStatus);
+
+  console.log(`Payment ${paymentId}: MP status=${mpStatus}, order status=${orderStatus}, order=${externalReference}`);
+
+  if (!externalReference) {
+    console.log("No external_reference, skipping order update");
+    return jsonResponse({ received: true, status: mpStatus });
+  }
+
+  // Update order status using service role
+  const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+  const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+  const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey);
+
+  const { error: updateError } = await supabaseAdmin
+    .from("orders")
+    .update({
+      status: orderStatus,
+      notes: `MP Payment #${paymentId} - ${mpStatus} (${paymentData.status_detail || ""})`,
+    })
+    .eq("id", externalReference);
+
+  if (updateError) {
+    console.error("Order update error:", updateError);
+    return jsonResponse({ error: "Failed to update order" }, 500);
+  }
+
+  console.log(`Order ${externalReference} updated to ${orderStatus}`);
+  return jsonResponse({ received: true, order_status: orderStatus });
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -85,9 +177,25 @@ serve(async (req) => {
     return jsonResponse({ error: "MERCADO_PAGO_ACCESS_TOKEN not configured" }, 500);
   }
 
+  // Handle webhook notifications (POST from MP without auth header, or GET with query params)
+  const url = new URL(req.url);
+  const hasWebhookParams = url.searchParams.has("topic") || url.searchParams.has("type") || url.searchParams.has("data.id");
+  const authHeader = req.headers.get("Authorization");
+  const isWebhook = hasWebhookParams || (req.method === "POST" && !authHeader);
+
+  // If it looks like a webhook (no auth header + has MP params), handle it
+  if (isWebhook && !authHeader) {
+    return await handleWebhook(req, ACCESS_TOKEN);
+  }
+
   try {
     const body = await req.json();
     const { action } = body;
+
+    // Check if body looks like a webhook payload (has type + data.id)
+    if (!action && body?.type && body?.data?.id) {
+      return await handleWebhook(new Request(req.url, { method: "POST", body: JSON.stringify(body) }), ACCESS_TOKEN);
+    }
 
     // Public key doesn't need auth
     if (action === "get-public-key") {
@@ -102,7 +210,6 @@ serve(async (req) => {
     }
 
     // Payment creation requires authentication
-    const authHeader = req.headers.get("Authorization");
     if (!authHeader?.startsWith("Bearer ")) {
       return jsonResponse({ error: "Não autenticado" }, 401);
     }
@@ -131,12 +238,14 @@ serve(async (req) => {
       }
     }
 
+    const notificationUrl = getNotificationUrl();
+
     if (action === "create-pix") {
-      return await createPixPayment(body, ACCESS_TOKEN);
+      return await createPixPayment(body, ACCESS_TOKEN, notificationUrl);
     } else if (action === "create-card") {
-      return await createCardPayment(body, ACCESS_TOKEN);
+      return await createCardPayment(body, ACCESS_TOKEN, notificationUrl);
     } else if (action === "create-boleto") {
-      return await createBoletoPayment(body, ACCESS_TOKEN);
+      return await createBoletoPayment(body, ACCESS_TOKEN, notificationUrl);
     } else {
       return jsonResponse({ error: "Invalid action" }, 400);
     }
@@ -146,7 +255,7 @@ serve(async (req) => {
   }
 });
 
-async function createPixPayment(body: any, token: string) {
+async function createPixPayment(body: any, token: string, notificationUrl: string) {
   const { amount, description, payer_email, payer_cpf, payer_first_name, payer_last_name, external_reference } = body;
   const parsedAmount = Math.round(Number(amount) * 100) / 100;
   if (!parsedAmount || parsedAmount <= 0 || isNaN(parsedAmount)) {
@@ -156,6 +265,7 @@ async function createPixPayment(body: any, token: string) {
     transaction_amount: parsedAmount,
     description: description || "Pedido Elle Make",
     payment_method_id: "pix",
+    notification_url: notificationUrl,
     payer: {
       email: payer_email,
       first_name: payer_first_name || "Cliente",
@@ -190,7 +300,7 @@ async function createPixPayment(body: any, token: string) {
   });
 }
 
-async function createCardPayment(body: any, token: string) {
+async function createCardPayment(body: any, token: string, notificationUrl: string) {
   const {
     amount, description, token: cardToken, installments, payment_method_id,
     payer_email, payer_cpf, payer_first_name, payer_last_name, external_reference,
@@ -208,6 +318,7 @@ async function createCardPayment(body: any, token: string) {
     installments: Number(installments) || 1,
     payment_method_id,
     issuer_id: issuer_id || undefined,
+    notification_url: notificationUrl,
     payer: {
       email: payer_email,
       first_name: payer_first_name || "Cliente",
@@ -240,7 +351,7 @@ async function createCardPayment(body: any, token: string) {
   });
 }
 
-async function createBoletoPayment(body: any, token: string) {
+async function createBoletoPayment(body: any, token: string, notificationUrl: string) {
   const { amount, description, payer_email, payer_cpf, payer_first_name, payer_last_name, external_reference } = body;
   const parsedAmount = Math.round(Number(amount) * 100) / 100;
   if (!parsedAmount || parsedAmount <= 0 || isNaN(parsedAmount)) {
@@ -250,6 +361,7 @@ async function createBoletoPayment(body: any, token: string) {
     transaction_amount: parsedAmount,
     description: description || "Pedido Elle Make",
     payment_method_id: "bolbradesco",
+    notification_url: notificationUrl,
     payer: {
       email: payer_email,
       first_name: payer_first_name || "Cliente",

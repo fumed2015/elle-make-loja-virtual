@@ -114,13 +114,33 @@ export const usePayment = () => {
     }
   };
 
-  const checkPaymentStatus = async (paymentId: string) => {
+  const checkPaymentStatus = async (paymentId: string, orderId?: string) => {
     try {
       const { data, error: fnError } = await supabase.functions.invoke("mercadopago-payment", {
         body: { action: "get-status", payment_id: paymentId },
       });
       if (fnError) throw fnError;
-      return data as { id: string; status: PaymentStatus; status_detail: string } | null;
+      const result = data as { id: string; status: PaymentStatus; status_detail: string } | null;
+
+      // Also update local order status based on payment status
+      if (result?.status && orderId) {
+        const statusMap: Record<string, string> = {
+          approved: "confirmed",
+          in_process: "pending",
+          pending: "pending",
+          rejected: "cancelled",
+          cancelled: "cancelled",
+        };
+        const orderStatus = statusMap[result.status];
+        if (orderStatus) {
+          await supabase
+            .from("orders")
+            .update({ status: orderStatus })
+            .eq("id", orderId);
+        }
+      }
+
+      return result;
     } catch {
       return null;
     }
@@ -135,7 +155,8 @@ export const usePayment = () => {
  */
 export const usePaymentStatusPolling = (
   paymentId: string | null,
-  intervalMs = 5000
+  intervalMs = 5000,
+  orderId?: string | null
 ) => {
   const [status, setStatus] = useState<PaymentStatus>(null);
   const [statusDetail, setStatusDetail] = useState<string>("");
@@ -156,21 +177,19 @@ export const usePaymentStatusPolling = (
 
   const poll = useCallback(async () => {
     if (!paymentId) return;
-    const result = await checkPaymentStatus(paymentId);
+    const result = await checkPaymentStatus(paymentId, orderId || undefined);
     if (!result) return;
 
-    // Deduplicate: only update if status actually changed
     if (result.status !== lastStatusRef.current) {
       lastStatusRef.current = result.status;
       setStatus(result.status);
       setStatusDetail(result.status_detail || "");
     }
 
-    // Stop polling on terminal status
     if (result.status && TERMINAL_STATUSES.includes(result.status)) {
       stopPolling();
     }
-  }, [paymentId, checkPaymentStatus, stopPolling]);
+  }, [paymentId, orderId, checkPaymentStatus, stopPolling]);
 
   useEffect(() => {
     if (!paymentId) {
@@ -181,10 +200,7 @@ export const usePaymentStatusPolling = (
     setPolling(true);
     lastStatusRef.current = null;
 
-    // Immediate first check
     poll();
-
-    // Then poll at interval
     timerRef.current = setInterval(poll, intervalMs);
 
     return () => stopPolling();
