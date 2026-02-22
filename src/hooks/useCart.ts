@@ -126,6 +126,35 @@ export const useCart = () => {
     onError: (err: Error) => toast.error(err.message),
   });
 
+  // ── Update quantity ──
+  const updateQuantity = useMutation({
+    mutationFn: async ({ itemId, quantity }: { itemId: string; quantity: number }) => {
+      if (quantity <= 0) {
+        // Remove item
+        if (!user) {
+          const items = getGuestCart().filter((i) => i.id !== itemId);
+          saveGuestCart(items);
+          return;
+        }
+        const { error } = await supabase.from("cart_items").delete().eq("id", itemId);
+        if (error) throw error;
+        return;
+      }
+      if (!user) {
+        const items = getGuestCart();
+        const item = items.find((i) => i.id === itemId);
+        if (item) item.quantity = quantity;
+        saveGuestCart(items);
+        return;
+      }
+      const { error } = await supabase.from("cart_items").update({ quantity }).eq("id", itemId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["cart"] });
+    },
+  });
+
   // ── Remove from cart ──
   const removeFromCart = useMutation({
     mutationFn: async (itemId: string) => {
@@ -150,5 +179,5 @@ export const useCart = () => {
 
   const cartCount = cartQuery.data?.reduce((sum, item: any) => sum + item.quantity, 0) || 0;
 
-  return { items: cartQuery.data || [], isLoading: cartQuery.isLoading, addToCart, removeFromCart, cartTotal, cartCount };
+  return { items: cartQuery.data || [], isLoading: cartQuery.isLoading, addToCart, updateQuantity, removeFromCart, cartTotal, cartCount };
 };

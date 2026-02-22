@@ -1,4 +1,4 @@
-import { ShoppingBag, Trash2, ArrowRight } from "lucide-react";
+import { ShoppingBag, Trash2, ArrowRight, Minus, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useCart } from "@/hooks/useCart";
 import { useAuth } from "@/hooks/useAuth";
@@ -6,20 +6,14 @@ import { Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { useShipping } from "@/hooks/useShipping";
 import ShippingCalculator from "@/components/shipping/ShippingCalculator";
+
 const Carrinho = () => {
-  const { items, isLoading, removeFromCart, cartTotal, cartCount } = useCart();
+  const { items, isLoading, removeFromCart, updateQuantity, cartTotal, cartCount } = useCart();
   const { user } = useAuth();
   const shipping = useShipping();
   const shippingCost = shipping.selectedShipping?.price ?? 0;
   const total = cartTotal + shippingCost;
-
   const needsLogin = !user;
-
-  const handleCheckout = () => {
-    if (needsLogin) {
-      // Will redirect to login; after login cart syncs automatically
-    }
-  };
 
   if (isLoading) {
     return (
@@ -60,20 +54,37 @@ const Carrinho = () => {
                 exit={{ opacity: 0, x: -100 }}
                 className="flex gap-3 bg-card rounded-xl p-3 border border-border"
               >
-                <div className="w-20 h-20 rounded-lg overflow-hidden bg-muted flex-shrink-0">
+                <Link to={`/produto/${product?.slug}`} className="w-20 h-20 rounded-lg overflow-hidden bg-muted flex-shrink-0">
                   {product?.images?.[0] && (
                     <img src={product.images[0]} alt={product.name} className="w-full h-full object-cover" />
                   )}
-                </div>
+                </Link>
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium line-clamp-1">{product?.name}</p>
+                  <Link to={`/produto/${product?.slug}`}>
+                    <p className="text-sm font-medium line-clamp-1 hover:text-primary transition-colors">{product?.name}</p>
+                  </Link>
                   {swatch?.name && (
                     <div className="flex items-center gap-1 mt-0.5">
                       <div className="w-3 h-3 rounded-full border border-border" style={{ backgroundColor: swatch.color }} />
                       <span className="text-[10px] text-muted-foreground">{swatch.name}</span>
                     </div>
                   )}
-                  <p className="text-xs text-muted-foreground mt-1">Qtd: {item.quantity}</p>
+                  {/* Quantity controls */}
+                  <div className="flex items-center gap-1 mt-1.5">
+                    <button
+                      onClick={() => updateQuantity.mutate({ itemId: item.id, quantity: item.quantity - 1 })}
+                      className="w-7 h-7 rounded-md bg-muted flex items-center justify-center hover:bg-muted-foreground/10 transition-colors"
+                    >
+                      <Minus className="w-3 h-3" />
+                    </button>
+                    <span className="w-8 text-center text-sm font-semibold">{item.quantity}</span>
+                    <button
+                      onClick={() => updateQuantity.mutate({ itemId: item.id, quantity: item.quantity + 1 })}
+                      className="w-7 h-7 rounded-md bg-muted flex items-center justify-center hover:bg-muted-foreground/10 transition-colors"
+                    >
+                      <Plus className="w-3 h-3" />
+                    </button>
+                  </div>
                   <p className="text-sm font-bold text-primary mt-1">
                     R$ {(Number(product?.price || 0) * item.quantity).toFixed(2).replace(".", ",")}
                   </p>
@@ -137,6 +148,11 @@ const Carrinho = () => {
           <span className="font-bold text-lg text-primary">
             R$ {(cartTotal >= 199 && shipping.isLocal ? cartTotal : total).toFixed(2).replace(".", ",")}
           </span>
+        </div>
+        <div className="text-center space-y-1">
+          <p className="text-xs font-semibold text-accent">
+            💰 No Pix: R$ {((cartTotal >= 199 && shipping.isLocal ? cartTotal : total) * 0.95).toFixed(2).replace(".", ",")} (5% off)
+          </p>
         </div>
         <div className="bg-primary/10 rounded-lg p-2.5 text-center">
           <p className="text-xs font-semibold text-primary">🛵 Belém e Ananindeua: entrega em até 3 horas!</p>
