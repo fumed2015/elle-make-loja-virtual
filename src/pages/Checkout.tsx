@@ -24,7 +24,7 @@ const STEP_LABELS = [
 const Checkout = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { items, cartTotal, cartCount } = useCart();
+  const { items, cartTotal, cartCount, isLoading: cartLoading } = useCart();
   const { validateCoupon } = useCoupon();
   const shipping = useShipping();
   const [step, setStep] = useState<Step>("address");
@@ -71,12 +71,12 @@ const Checkout = () => {
     if (!user) navigate("/perfil?redirect=/checkout", { replace: true });
   }, [user, navigate]);
 
-  // Redirect if cart is empty
+  // Redirect if cart is empty (only after loading finishes)
   useEffect(() => {
-    if (items.length === 0 && step !== "success" && step !== "processing") {
+    if (!cartLoading && items.length === 0 && step !== "success" && step !== "processing") {
       navigate("/carrinho", { replace: true });
     }
-  }, [items.length, step, navigate]);
+  }, [items.length, step, navigate, cartLoading]);
 
   // Pre-fill customer info from profile
   useEffect(() => {
@@ -87,6 +87,13 @@ const Checkout = () => {
   }, [user]);
 
   if (!user) return null;
+  if (cartLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
+  }
   if (items.length === 0 && step !== "success" && step !== "processing") return null;
 
   const shippingCost = shipping.selectedShipping?.price ?? 0;
