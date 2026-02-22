@@ -44,30 +44,44 @@ async function sendWhatsApp(phone: string, message: string): Promise<any> {
   }
 }
 
-// ===== Message Templates =====
-function buildMessage(eventType: string, data: Record<string, any>): string {
-  const firstName = data.first_name || 'Cliente';
-  const productsList = data.products_list || '';
+// ===== Message Templates (fallback) =====
+function buildMessageFromTemplate(template: string, data: Record<string, any>): string {
+  return template
+    .replace(/{first_name}/g, data.first_name || 'Cliente')
+    .replace(/{merchant}/g, MERCHANT_NAME)
+    .replace(/{products_list}/g, data.products_list || '')
+    .replace(/{total}/g, data.total || '0,00')
+    .replace(/{tracking_code}/g, data.tracking_code || 'N/A')
+    .replace(/{tracking_url}/g, data.tracking_url || '')
+    .replace(/{link}/g, data.link || '');
+}
 
-  switch (eventType) {
-    case 'order.created':
-      return `🛒 Oi ${firstName}! Seu pedido na *${MERCHANT_NAME}* foi recebido com sucesso! 🎉\n\n${productsList}\n\n💰 Total: R$ ${data.total || '0,00'}\n\nVamos te avisar assim que houver atualização! 💕`;
+const FALLBACK_TEMPLATES: Record<string, string> = {
+  'order.created': '🛒 Oi {first_name}! Seu pedido na *{merchant}* foi recebido! 🎉\n\n{products_list}\n\n💰 Total: R$ {total}\n\nVamos te avisar! 💕',
+  'order.paid': '✅ {first_name}, pagamento *confirmado*! 🎉\n\n{products_list}\n\nPreparando com carinho! 💖',
+  'order.shipped': '📦 {first_name}, produtos *a caminho*! 🚚\n\n{products_list}\n\nRastreio: *{tracking_code}*\n{tracking_url}',
+  'order.delivered': '🎉 {first_name}, pedido *entregue*! 💖\n\n{products_list}\n\nConta o que achou! ⭐',
+  'checkout.abandoned': '💄 Oi {first_name}! Esqueceu seus produtos na *{merchant}*:\n\n{products_list}\n\n👉 {link}',
+};
 
-    case 'order.paid':
-      return `✅ ${firstName}, seu pagamento foi *confirmado*! 🎉\n\n${productsList}\n\nEstamos preparando seu pedido com muito carinho! 💖\nEm breve ele sai para entrega. Fique de olho! 👀`;
+async function buildMessage(eventType: string, data: Record<string, any>, supabase: any): Promise<string> {
+  try {
+    const { data: tmpl } = await supabase
+      .from('message_templates')
+      .select('template, is_active')
+      .eq('event_type', eventType)
+      .eq('is_active', true)
+      .maybeSingle();
 
-    case 'order.shipped':
-      return `📦 ${firstName}, seus produtos estão *a caminho*! 🚚✨\n\n${productsList}\n\n🔎 Rastreie sua entrega:\nCódigo: *${data.tracking_code || 'N/A'}*\n${data.tracking_url ? `Link: ${data.tracking_url}` : ''}\n\nQualquer dúvida, estamos aqui! 💕`;
-
-    case 'order.delivered':
-      return `🎉 ${firstName}, seu pedido foi *entregue*! 💖\n\n${productsList}\n\nEsperamos que você ame tudo! 😍\nConta pra gente o que achou? Sua opinião é super importante! ⭐\n\nObrigada por comprar na *${MERCHANT_NAME}*! 🌸`;
-
-    case 'checkout.abandoned':
-      return `💄 Oi ${firstName}, tudo bem? Vi que você passou na *${MERCHANT_NAME}* e acabou esquecendo seus produtos:\n\n${productsList}\n\nEles ainda estão te esperando! 😊\n${data.link ? `👉 ${data.link}` : ''}\n\nPrecisa de ajuda? Estamos aqui! 💕`;
-
-    default:
-      return `Oi ${firstName}! Atualização do seu pedido na *${MERCHANT_NAME}*: ${eventType}`;
+    if (tmpl?.template) {
+      return buildMessageFromTemplate(tmpl.template, data);
+    }
+  } catch (e) {
+    console.error('Error fetching template:', e);
   }
+
+  const fallback = FALLBACK_TEMPLATES[eventType] || `Oi {first_name}! Atualização do pedido na *{merchant}*: ${eventType}`;
+  return buildMessageFromTemplate(fallback, data);
 }
 
 function formatProductsList(items: any[]): string {
@@ -355,7 +369,7 @@ serve(async (req) => {
 
       // Send WhatsApp notification if we have a phone number
       if (phone && mappedEvent) {
-        const message = buildMessage(mappedEvent, messageData);
+        const message = await buildMessage(mappedEvent, messageData, supabase);
         const zapiResponse = await sendWhatsApp(phone, message);
 
         // Log notification

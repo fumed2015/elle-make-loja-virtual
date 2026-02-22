@@ -23,8 +23,9 @@ import ComercialTab from "@/components/admin/ComercialTab";
 import OperacionalTab from "@/components/admin/OperacionalTab";
 import MarketingTab from "@/components/admin/MarketingTab";
 import TrackingPixelsTab from "@/components/admin/TrackingPixelsTab";
+import WhatsAppTemplatesTab from "@/components/admin/WhatsAppTemplatesTab";
 
-type Tab = "dashboard" | "products" | "orders" | "add-product" | "coupons" | "reviews" | "influencers" | "seo" | "categories" | "ai-content" | "leads" | "birthdays" | "financeiro" | "comercial" | "operacional" | "marketing" | "pixels";
+type Tab = "dashboard" | "products" | "orders" | "add-product" | "coupons" | "reviews" | "influencers" | "seo" | "categories" | "ai-content" | "leads" | "birthdays" | "financeiro" | "comercial" | "operacional" | "marketing" | "pixels" | "whatsapp";
 
 const statusLabels: Record<string, string> = {
   pending: "Pendente", confirmed: "Confirmado", preparing: "Preparando",
@@ -67,6 +68,7 @@ const Admin = () => {
     { id: "leads" as Tab, label: "Leads", icon: UserPlus },
     { id: "birthdays" as Tab, label: "Aniversários", icon: Cake },
     { id: "pixels" as Tab, label: "Pixels", icon: Code },
+    { id: "whatsapp" as Tab, label: "WhatsApp", icon: MessageCircle },
     { id: "seo" as Tab, label: "SEO", icon: Search },
     { id: "ai-content" as Tab, label: "IA Conteúdo", icon: Wand2 },
   ];
@@ -104,6 +106,7 @@ const Admin = () => {
       {tab === "birthdays" && <BirthdaysTab />}
       {tab === "seo" && <SEOTab />}
       {tab === "pixels" && <TrackingPixelsTab />}
+      {tab === "whatsapp" && <WhatsAppTemplatesTab />}
       {tab === "ai-content" && <AIContentTab />}
     </div>
   );
