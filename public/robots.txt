@@ -12,5 +12,8 @@ Allow: /
 
 User-agent: *
 Allow: /
+Disallow: /admin
+Disallow: /checkout
+Disallow: /reset-password
 
-Sitemap: https://belezaphygital.lovable.app/sitemap.xml
+Sitemap: https://ellemake2.lovable.app/sitemap.xml
