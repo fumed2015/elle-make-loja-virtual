@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useRef } from "react";
 import { useAllOrders } from "@/hooks/useOrders";
 import { useProducts, useCategories } from "@/hooks/useProducts";
 import { Badge } from "@/components/ui/badge";
@@ -12,10 +12,13 @@ const SalesIntelligenceTab = () => {
   const { data: products } = useProducts({});
   const { data: categories } = useCategories();
 
-  const now = new Date();
   const periodMs = period === "7d" ? 7 * 86400000 : period === "30d" ? 30 * 86400000 : period === "90d" ? 90 * 86400000 : Infinity;
-  const cutoff = periodMs === Infinity ? new Date(0) : new Date(now.getTime() - periodMs);
-  const filteredOrders = useMemo(() => orders?.filter(o => new Date(o.created_at) >= cutoff) || [], [orders, cutoff]);
+
+  const filteredOrders = useMemo(() => {
+    const now = Date.now();
+    const cutoff = periodMs === Infinity ? 0 : now - periodMs;
+    return orders?.filter(o => o.status !== "cancelled" && new Date(o.created_at).getTime() >= cutoff) || [];
+  }, [orders, periodMs]);
 
   // ===== TOP SELLING PRODUCTS =====
   const productSales = useMemo(() => {

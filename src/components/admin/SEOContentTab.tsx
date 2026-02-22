@@ -59,8 +59,10 @@ const SEOContentTab = () => {
   const productsNoImages = products?.filter(p => !p.images || p.images.length === 0).length || 0;
   const productsNoTags = products?.filter(p => !p.tags || p.tags.length === 0).length || 0;
   const totalProducts = products?.length || 0;
-  const seoScore = totalProducts > 0
-    ? Math.round(((totalProducts - productsNoDesc - productsNoImages - productsNoTags) / (totalProducts * 3)) * 100)
+  const totalChecks = totalProducts * 3;
+  const issuesCount = productsNoDesc + productsNoImages + productsNoTags;
+  const seoScore = totalChecks > 0
+    ? Math.round(((totalChecks - issuesCount) / totalChecks) * 100)
     : 0;
 
   // ===== REVIEW MODERATION =====
@@ -75,6 +77,7 @@ const SEOContentTab = () => {
   };
 
   const handleDeleteReview = async (id: string) => {
+    if (!window.confirm("Tem certeza que deseja remover esta review?")) return;
     const { error } = await supabase.from("reviews").delete().eq("id", id);
     if (error) toast.error(error.message);
     else { toast.success("Review removida!"); refetchReviews(); }
@@ -123,6 +126,7 @@ const SEOContentTab = () => {
   };
 
   const handleDeletePost = async (id: string) => {
+    if (!window.confirm("Tem certeza que deseja remover este post?")) return;
     const { error } = await supabase.from("blog_posts").delete().eq("id", id);
     if (error) toast.error(error.message);
     else { toast.success("Post removido!"); refetchPosts(); }
@@ -260,7 +264,8 @@ const SEOContentTab = () => {
                 <div>
                   <Label className="text-[10px]">Título</Label>
                   <Input value={form.title} onChange={e => {
-                    setForm({ ...form, title: e.target.value, slug: form.slug || generateSlug(e.target.value) });
+                    const newTitle = e.target.value;
+                    setForm(prev => ({ ...prev, title: newTitle, slug: !editingId ? generateSlug(newTitle) : prev.slug }));
                   }} className="bg-muted border-none h-8 text-xs" placeholder="10 Dicas de Maquiagem para Iniciantes" />
                 </div>
                 <div>

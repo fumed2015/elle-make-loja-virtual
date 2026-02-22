@@ -21,7 +21,7 @@ const CRMTab = () => {
   const { data: profiles } = useQuery({
     queryKey: ["admin-profiles-crm"],
     queryFn: async () => {
-      const { data, error } = await supabase.from("profiles").select("*");
+      const { data, error } = await supabase.from("profiles").select("*").limit(500);
       if (error) throw error;
       return data;
     },
@@ -39,7 +39,7 @@ const CRMTab = () => {
   const { data: favorites } = useQuery({
     queryKey: ["admin-favorites-crm"],
     queryFn: async () => {
-      const { data, error } = await supabase.from("favorites").select("*");
+      const { data, error } = await supabase.from("favorites").select("*").limit(1000);
       if (error) throw error;
       return data;
     },
@@ -48,27 +48,26 @@ const CRMTab = () => {
   const { data: reviews } = useQuery({
     queryKey: ["admin-reviews-crm"],
     queryFn: async () => {
-      const { data, error } = await supabase.from("reviews").select("*");
+      const { data, error } = await supabase.from("reviews").select("*").limit(1000);
       if (error) throw error;
       return data;
     },
   });
 
-  const now = new Date();
-
   // ===== CUSTOMER PROFILES WITH ENRICHMENT =====
   const enrichedCustomers = useMemo(() => {
     if (!profiles) return [];
+    const now = Date.now();
     return profiles.map(p => {
       const userOrders = orders?.filter(o => o.user_id === p.user_id) || [];
       const totalSpent = userOrders.reduce((s, o) => s + Number(o.total), 0);
       const orderCount = userOrders.length;
       const lastOrder = userOrders.length > 0 ? new Date(Math.max(...userOrders.map(o => new Date(o.created_at).getTime()))) : null;
-      const daysSinceLastOrder = lastOrder ? Math.floor((now.getTime() - lastOrder.getTime()) / 86400000) : Infinity;
+      const daysSinceLastOrder = lastOrder ? Math.floor((now - lastOrder.getTime()) / 86400000) : Infinity;
       const userFavorites = favorites?.filter(f => f.user_id === p.user_id).length || 0;
       const userReviews = reviews?.filter(r => r.user_id === p.user_id).length || 0;
       const avgRating = reviews?.filter(r => r.user_id === p.user_id).reduce((s, r) => s + r.rating, 0) / (userReviews || 1);
-      const daysSinceSignup = Math.floor((now.getTime() - new Date(p.created_at).getTime()) / 86400000);
+      const daysSinceSignup = Math.floor((now - new Date(p.created_at).getTime()) / 86400000);
 
       let segment: "vip" | "active" | "at-risk" | "dormant" | "new";
       if (totalSpent >= 500 && orderCount >= 3) segment = "vip";
@@ -83,7 +82,7 @@ const CRMTab = () => {
         (userFavorites * 5) +
         (userReviews * 10) +
         (p.phone ? 10 : 0) +
-        ((p as any).birthday ? 5 : 0) +
+        (p.birthday ? 5 : 0) +
         (daysSinceLastOrder < 30 ? 20 : daysSinceLastOrder < 60 ? 10 : 0)
       ));
 
@@ -93,7 +92,7 @@ const CRMTab = () => {
         userFavorites, userReviews, avgRating, segment, engagementScore, daysSinceSignup,
       };
     }).sort((a, b) => b.engagementScore - a.engagementScore);
-  }, [profiles, orders, favorites, reviews, now]);
+  }, [profiles, orders, favorites, reviews]);
 
   const filteredCustomers = useMemo(() => {
     return enrichedCustomers.filter(c => {

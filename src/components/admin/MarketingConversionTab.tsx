@@ -39,10 +39,8 @@ const MarketingConversionTab = () => {
   const now = new Date();
   const activePromos = promotions?.filter(p => p.is_active) || [];
   const scheduledPromos = promotions?.filter(p => !p.is_active && p.starts_at && new Date(p.starts_at) > now) || [];
-  const expiredPromos = promotions?.filter(p => p.ends_at && new Date(p.ends_at) < now) || [];
 
   const flashSales = promotions?.filter(p => p.type === "flash_sale" && p.is_active) || [];
-  const banners = promotions?.filter(p => p.type === "banner") || [];
   const kits = promotions?.filter(p => p.type === "kit") || [];
 
   const resetForm = () => { setForm(emptyForm); setEditingId(null); setShowForm(false); };
@@ -86,6 +84,7 @@ const MarketingConversionTab = () => {
   };
 
   const handleDelete = async (id: string) => {
+    if (!window.confirm("Tem certeza que deseja remover esta promoção?")) return;
     const { error } = await supabase.from("promotions").delete().eq("id", id);
     if (error) toast.error(error.message);
     else { toast.success("Removida!"); refetch(); }
