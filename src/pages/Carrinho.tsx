@@ -6,6 +6,7 @@ import { Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { useShipping } from "@/hooks/useShipping";
 import ShippingCalculator from "@/components/shipping/ShippingCalculator";
+import FreeShippingBar from "@/components/layout/FreeShippingBar";
 
 const Carrinho = () => {
   const { items, isLoading, removeFromCart, updateQuantity, cartTotal, cartCount } = useCart();
@@ -101,6 +102,11 @@ const Carrinho = () => {
           })}
         </div>
       </AnimatePresence>
+
+      {/* Free shipping progress */}
+      <div className="mb-4">
+        <FreeShippingBar />
+      </div>
 
       {/* Shipping Calculator */}
       <div className="mb-4">
