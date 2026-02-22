@@ -3,7 +3,6 @@ import { AnimatePresence, motion } from "framer-motion";
 import Header from "./Header";
 import BottomNav from "./BottomNav";
 import FloatingWhatsApp from "./FloatingWhatsApp";
-import FreeShippingBar from "./FreeShippingBar";
 
 const AppLayout = () => {
   const location = useLocation();
@@ -25,7 +24,6 @@ const AppLayout = () => {
       </AnimatePresence>
       <BottomNav />
       <FloatingWhatsApp />
-      <FreeShippingBar />
     </div>
   );
 };

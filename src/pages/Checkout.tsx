@@ -9,6 +9,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useCoupon } from "@/hooks/useCoupon";
 import { useShipping } from "@/hooks/useShipping";
 import ShippingCalculator from "@/components/shipping/ShippingCalculator";
+import FreeShippingBar from "@/components/layout/FreeShippingBar";
 import { supabase } from "@/integrations/supabase/client";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
@@ -295,6 +296,13 @@ const Checkout = () => {
               )}
             </div>
           ))}
+        </div>
+      )}
+
+      {/* Free shipping bar */}
+      {step === "address" && (
+        <div className="mb-4">
+          <FreeShippingBar />
         </div>
       )}
 
