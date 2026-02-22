@@ -57,6 +57,17 @@ const PaymentStatusBadge = ({ status, polling, detail }: { status: PaymentStatus
     </motion.div>
   );
 };
+// Input masks
+const formatCpf = (v: string) => {
+  const d = v.replace(/\D/g, "").slice(0, 11);
+  return d.replace(/(\d{3})(\d)/, "$1.$2").replace(/(\d{3})(\d)/, "$1.$2").replace(/(\d{3})(\d{1,2})$/, "$1-$2");
+};
+const formatPhone = (v: string) => {
+  const d = v.replace(/\D/g, "").slice(0, 11);
+  if (d.length <= 2) return d;
+  if (d.length <= 7) return `(${d.slice(0, 2)}) ${d.slice(2)}`;
+  return `(${d.slice(0, 2)}) ${d.slice(2, 7)}-${d.slice(7)}`;
+};
 
 const Checkout = () => {
   const navigate = useNavigate();
@@ -85,6 +96,20 @@ const Checkout = () => {
   const [boletoData, setBoletoData] = useState<{ barcode: string; boleto_url: string } | null>(null);
   const [copied, setCopied] = useState(false);
   const [paymentId, setPaymentId] = useState<string | null>(null);
+
+  // Cart abandonment tracking
+  useEffect(() => {
+    if (!user || !cartTotal || step === "success" || step === "processing") return;
+    const timer = setTimeout(() => {
+      supabase.from("cart_abandonment_events").insert({
+        user_id: user.id,
+        step,
+        cart_total: cartTotal,
+        items_count: items.length,
+      } as any).then(() => {});
+    }, 3000); // Track after 3s on each step
+    return () => clearTimeout(timer);
+  }, [step, user]);
 
   // Real-time payment status polling
   const { status: paymentStatus, statusDetail: paymentStatusDetail, polling: isPolling } = usePaymentStatusPolling(
@@ -204,7 +229,10 @@ const Checkout = () => {
 
   const shippingCost = shipping.selectedShipping?.price ?? 0;
   const freeShipping = cartTotal >= 199 && shipping.isLocal;
-  const finalTotal = Math.max(0, cartTotal + (freeShipping ? 0 : shippingCost) - (appliedCoupon?.discount || 0));
+  const pixDiscount = paymentMethod === "pix" ? 0.05 : 0;
+  const subtotalAfterCoupon = Math.max(0, cartTotal - (appliedCoupon?.discount || 0));
+  const subtotalAfterPix = subtotalAfterCoupon * (1 - pixDiscount);
+  const finalTotal = Math.max(0, subtotalAfterPix + (freeShipping ? 0 : shippingCost));
 
   const handleApplyCoupon = async () => {
     if (!couponCode.trim()) return;
@@ -518,11 +546,11 @@ const Checkout = () => {
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-2">
                 <Label>CPF *</Label>
-                <Input value={customerInfo.cpf} onChange={(e) => setCustomerInfo({ ...customerInfo, cpf: e.target.value.replace(/\D/g, "").slice(0, 11) })} placeholder="000.000.000-00" className="bg-muted border-none min-h-[44px]" inputMode="numeric" required />
+                <Input value={formatCpf(customerInfo.cpf)} onChange={(e) => setCustomerInfo({ ...customerInfo, cpf: e.target.value.replace(/\D/g, "").slice(0, 11) })} placeholder="000.000.000-00" className="bg-muted border-none min-h-[44px]" inputMode="numeric" required />
               </div>
               <div className="space-y-2">
                 <Label>Telefone</Label>
-                <Input value={customerInfo.phone} onChange={(e) => setCustomerInfo({ ...customerInfo, phone: e.target.value })} placeholder="(91) 99999-9999" className="bg-muted border-none min-h-[44px]" inputMode="tel" />
+                <Input value={formatPhone(customerInfo.phone)} onChange={(e) => setCustomerInfo({ ...customerInfo, phone: e.target.value.replace(/\D/g, "").slice(0, 11) })} placeholder="(91) 99999-9999" className="bg-muted border-none min-h-[44px]" inputMode="tel" />
               </div>
             </div>
             <Button onClick={() => setStep("review")} disabled={!address.street || !address.number || !address.neighborhood || !address.zip || !customerInfo.cpf || customerInfo.cpf.length < 11} className="w-full bg-primary text-primary-foreground hover:bg-primary/90 min-h-[44px] mt-4">
@@ -623,8 +651,11 @@ const Checkout = () => {
             {/* Totals */}
             <div className="bg-card rounded-xl p-4 border border-border space-y-2">
               <div className="flex justify-between text-sm"><span className="text-muted-foreground">Subtotal</span><span>R$ {cartTotal.toFixed(2).replace(".", ",")}</span></div>
-              {appliedCoupon && (
+               {appliedCoupon && (
                 <div className="flex justify-between text-sm"><span className="text-accent">Cupom {appliedCoupon.code}</span><span className="text-accent">-R$ {appliedCoupon.discount.toFixed(2).replace(".", ",")}</span></div>
+              )}
+              {paymentMethod === "pix" && pixDiscount > 0 && (
+                <div className="flex justify-between text-sm"><span className="text-accent">Desconto PIX (5%)</span><span className="text-accent">-R$ {(subtotalAfterCoupon * pixDiscount).toFixed(2).replace(".", ",")}</span></div>
               )}
               <div className="flex justify-between text-sm">
                 <span className="text-muted-foreground">Frete</span>
@@ -638,8 +669,8 @@ const Checkout = () => {
                 <span className="font-display font-bold">Total</span>
                 <span className="font-bold text-lg text-primary">R$ {finalTotal.toFixed(2).replace(".", ",")}</span>
               </div>
-              {paymentMethod === "pix" && (
-                <p className="text-[10px] text-accent font-semibold text-center">💰 No Pix: R$ {(finalTotal * 0.95).toFixed(2).replace(".", ",")} (5% off)</p>
+              {paymentMethod === "pix" && pixDiscount > 0 && (
+                <p className="text-[10px] text-accent font-semibold text-center">💰 Desconto PIX de 5% já aplicado!</p>
               )}
             </div>
 
@@ -733,6 +764,7 @@ const Checkout = () => {
             {paymentMethod === "card" && !pixData && !boletoData && (
               <CardPaymentForm
                 amount={finalTotal}
+                cpf={customerInfo.cpf}
                 onCancel={() => setStep("review")}
                 loading={payment.loading}
                 onTokenized={async ({ token, paymentMethodId: pmId, installments: inst, issuerId: issId }) => {

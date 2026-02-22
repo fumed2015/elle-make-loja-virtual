@@ -14,6 +14,33 @@ export type Database = {
   }
   public: {
     Tables: {
+      cart_abandonment_events: {
+        Row: {
+          cart_total: number
+          created_at: string
+          id: string
+          items_count: number
+          step: string
+          user_id: string
+        }
+        Insert: {
+          cart_total?: number
+          created_at?: string
+          id?: string
+          items_count?: number
+          step?: string
+          user_id: string
+        }
+        Update: {
+          cart_total?: number
+          created_at?: string
+          id?: string
+          items_count?: number
+          step?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       cart_items: {
         Row: {
           created_at: string
