@@ -36,9 +36,13 @@ const Checkout = () => {
   const [paymentMethod, setPaymentMethod] = useState<"yampi" | "whatsapp">("yampi");
   const [cepLoading, setCepLoading] = useState(false);
   const [customerInfo, setCustomerInfo] = useState({ phone: "", cpf: "" });
-  const [address, setAddress] = useState({
-    street: "", number: "", complement: "", neighborhood: "",
-    city: "Belém", state: "PA", zip: "",
+  const [address, setAddress] = useState(() => {
+    // Pre-fill CEP from shipping calculator (persisted in localStorage)
+    const savedCep = (() => { try { return localStorage.getItem("ellemake_shipping_cep") || ""; } catch { return ""; } })();
+    return {
+      street: "", number: "", complement: "", neighborhood: shipping.addressInfo?.neighborhood || "",
+      city: shipping.addressInfo?.city || "Belém", state: shipping.addressInfo?.state || "PA", zip: savedCep,
+    };
   });
 
   // Auto-fill address from CEP via ViaCEP
