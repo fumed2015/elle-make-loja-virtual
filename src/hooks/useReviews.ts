@@ -7,13 +7,31 @@ export const useReviews = (productId?: string) => {
   return useQuery({
     queryKey: ["reviews", productId],
     queryFn: async () => {
-      const { data, error } = await supabase
+      // Fetch reviews
+      const { data: reviews, error } = await supabase
         .from("reviews")
-        .select("*, profiles(full_name)")
+        .select("*")
         .eq("product_id", productId!)
         .order("created_at", { ascending: false });
       if (error) throw error;
-      return data;
+
+      // Fetch profile names for review authors
+      const userIds = [...new Set((reviews || []).map(r => r.user_id))];
+      let profileMap: Record<string, string> = {};
+      if (userIds.length > 0) {
+        const { data: profiles } = await supabase
+          .from("profiles")
+          .select("user_id, full_name")
+          .in("user_id", userIds);
+        if (profiles) {
+          profileMap = Object.fromEntries(profiles.map(p => [p.user_id, p.full_name || "Anônimo"]));
+        }
+      }
+
+      return (reviews || []).map(r => ({
+        ...r,
+        profiles: { full_name: profileMap[r.user_id] || "Anônimo" },
+      }));
     },
     enabled: !!productId,
   });

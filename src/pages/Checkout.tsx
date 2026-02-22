@@ -196,6 +196,7 @@ const Checkout = () => {
 
   // ViaCEP auto-fill
   const [shippingAutoCalculated, setShippingAutoCalculated] = useState(false);
+  const [pendingShippingCalc, setPendingShippingCalc] = useState(false);
   useEffect(() => {
     const clean = address.zip.replace(/\D/g, "");
     if (clean.length !== 8) return;
@@ -217,11 +218,19 @@ const Checkout = () => {
       .finally(() => { if (!cancelled) setCepLoading(false); });
     if (!shippingAutoCalculated && shipping.options.length === 0) {
       shipping.setCep(clean);
-      setTimeout(() => shipping.calculateShipping(), 100);
       setShippingAutoCalculated(true);
+      setPendingShippingCalc(true);
     }
     return () => { cancelled = true; };
   }, [address.zip]);
+
+  // Trigger shipping calculation after setCep state update
+  useEffect(() => {
+    if (pendingShippingCalc) {
+      setPendingShippingCalc(false);
+      shipping.calculateShipping();
+    }
+  }, [pendingShippingCalc]);
 
   // Redirect unauthenticated
   useEffect(() => {
