@@ -746,12 +746,14 @@ export type Database = {
       profiles: {
         Row: {
           address: Json | null
+          admin_notes: string | null
           avatar_url: string | null
           birthday: string | null
           cpf: string | null
           created_at: string
           full_name: string | null
           id: string
+          instagram: string | null
           loyalty_tier: string | null
           phone: string | null
           total_points: number | null
@@ -760,12 +762,14 @@ export type Database = {
         }
         Insert: {
           address?: Json | null
+          admin_notes?: string | null
           avatar_url?: string | null
           birthday?: string | null
           cpf?: string | null
           created_at?: string
           full_name?: string | null
           id?: string
+          instagram?: string | null
           loyalty_tier?: string | null
           phone?: string | null
           total_points?: number | null
@@ -774,12 +778,14 @@ export type Database = {
         }
         Update: {
           address?: Json | null
+          admin_notes?: string | null
           avatar_url?: string | null
           birthday?: string | null
           cpf?: string | null
           created_at?: string
           full_name?: string | null
           id?: string
+          instagram?: string | null
           loyalty_tier?: string | null
           phone?: string | null
           total_points?: number | null
