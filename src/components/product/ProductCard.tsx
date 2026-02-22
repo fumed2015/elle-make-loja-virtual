@@ -31,6 +31,7 @@ const ProductCard = ({ product, index = 0 }: ProductCardProps) => {
   const handleQuickAdd = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
+    if (product.stock <= 0) return;
     // If product has swatches, navigate to product page instead
     const swatches = typeof product.swatches === 'string' ? JSON.parse(product.swatches) : (product.swatches || []);
     if (swatches.length > 0) {
@@ -143,11 +144,12 @@ const ProductCard = ({ product, index = 0 }: ProductCardProps) => {
           <div className="md:opacity-0 md:group-hover:opacity-100 transition-opacity duration-200">
             <Button
               onClick={handleQuickAdd}
+              disabled={product.stock <= 0}
               className="w-full bg-primary text-primary-foreground hover:bg-primary/90 rounded-full text-[10px] h-7 font-semibold mt-1.5"
               size="sm"
             >
               <ShoppingBag className="w-3 h-3 mr-1" />
-              {swatches.length > 0 ? "Ver cores" : "Adicionar"}
+              {product.stock <= 0 ? "Esgotado" : swatches.length > 0 ? "Ver cores" : "Adicionar"}
             </Button>
           </div>
         </div>

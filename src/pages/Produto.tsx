@@ -244,11 +244,11 @@ const Produto = () => {
             <div className="space-y-2.5">
               <Button
                 onClick={handleAddToCart}
-                disabled={addToCart.isPending}
+                disabled={addToCart.isPending || product.stock <= 0}
                 className="w-full bg-primary text-primary-foreground hover:bg-primary/90 min-h-[48px] text-base font-semibold shadow-marsala"
               >
                 <ShoppingBag className="w-5 h-5 mr-2" />
-                {addToCart.isPending ? "Adicionando..." : "Adicionar à Sacola"}
+                {product.stock <= 0 ? "Esgotado" : addToCart.isPending ? "Adicionando..." : "Adicionar à Sacola"}
               </Button>
 
               <Button
