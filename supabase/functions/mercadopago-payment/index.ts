@@ -148,8 +148,12 @@ serve(async (req) => {
 
 async function createPixPayment(body: any, token: string) {
   const { amount, description, payer_email, payer_cpf, payer_first_name, payer_last_name, external_reference } = body;
+  const parsedAmount = Math.round(Number(amount) * 100) / 100;
+  if (!parsedAmount || parsedAmount <= 0 || isNaN(parsedAmount)) {
+    throw new Error("transaction_amount deve ser maior que zero");
+  }
   const payload = {
-    transaction_amount: Number(amount),
+    transaction_amount: parsedAmount,
     description: description || "Pedido Elle Make",
     payment_method_id: "pix",
     payer: {
@@ -193,8 +197,12 @@ async function createCardPayment(body: any, token: string) {
     issuer_id,
   } = body;
 
+  const parsedAmount = Math.round(Number(amount) * 100) / 100;
+  if (!parsedAmount || parsedAmount <= 0 || isNaN(parsedAmount)) {
+    throw new Error("transaction_amount deve ser maior que zero");
+  }
   const payload = {
-    transaction_amount: Number(amount),
+    transaction_amount: parsedAmount,
     token: cardToken,
     description: description || "Pedido Elle Make",
     installments: Number(installments) || 1,
@@ -234,8 +242,12 @@ async function createCardPayment(body: any, token: string) {
 
 async function createBoletoPayment(body: any, token: string) {
   const { amount, description, payer_email, payer_cpf, payer_first_name, payer_last_name, external_reference } = body;
+  const parsedAmount = Math.round(Number(amount) * 100) / 100;
+  if (!parsedAmount || parsedAmount <= 0 || isNaN(parsedAmount)) {
+    throw new Error("transaction_amount deve ser maior que zero");
+  }
   const payload = {
-    transaction_amount: Number(amount),
+    transaction_amount: parsedAmount,
     description: description || "Pedido Elle Make",
     payment_method_id: "bolbradesco",
     payer: {

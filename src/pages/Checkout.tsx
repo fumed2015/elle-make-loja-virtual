@@ -251,7 +251,7 @@ const Checkout = () => {
   const pixDiscount = paymentMethod === "pix" ? 0.05 : 0;
   const subtotalAfterCoupon = Math.max(0, cartTotal - (appliedCoupon?.discount || 0));
   const subtotalAfterPix = subtotalAfterCoupon * (1 - pixDiscount);
-  const finalTotal = Math.max(0, subtotalAfterPix + (freeShipping ? 0 : shippingCost));
+  const finalTotal = Math.round(Math.max(0, subtotalAfterPix + (freeShipping ? 0 : shippingCost)) * 100) / 100;
 
   const handleApplyCoupon = async () => {
     if (!couponCode.trim()) return;
