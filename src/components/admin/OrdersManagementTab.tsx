@@ -14,7 +14,7 @@ import {
   Search, ShoppingCart, Package, Clock, CheckCircle, Truck, XCircle,
   MapPin, Tag, ChevronDown, ChevronUp, Filter, ArrowUpDown,
   Send, Eye, Pencil, Copy, ExternalLink, MessageCircle, StickyNote,
-  TrendingUp, DollarSign, AlertTriangle, Calendar, X
+  TrendingUp, DollarSign, AlertTriangle, Calendar, X, Trash2
 } from "lucide-react";
 
 const STATUS_CONFIG: Record<string, { label: string; icon: any; color: string; bg: string }> = {
@@ -161,6 +161,17 @@ const OrdersManagementTab = () => {
   const copyOrderId = (id: string) => {
     navigator.clipboard.writeText(id);
     toast.success("ID copiado!");
+  };
+
+  const handleDeleteOrder = async (orderId: string) => {
+    if (!confirm("Tem certeza que deseja apagar este pedido? Esta ação não pode ser desfeita.")) return;
+    const { error } = await supabase.from("orders").delete().eq("id", orderId);
+    if (error) {
+      toast.error("Erro ao apagar pedido");
+    } else {
+      toast.success("Pedido apagado!");
+      setExpandedId(null);
+    }
   };
 
   const sendWhatsApp = (order: any) => {
@@ -502,12 +513,15 @@ const OrdersManagementTab = () => {
                         </div>
 
                         {/* Actions */}
-                        <div className="flex gap-2 pt-1">
+                        <div className="flex gap-2 pt-1 flex-wrap">
                           <Button size="sm" variant="outline" onClick={() => copyOrderId(order.id)} className="text-[10px] h-7 gap-1">
                             <Copy className="w-3 h-3" />Copiar ID
                           </Button>
                           <Button size="sm" variant="outline" onClick={() => sendWhatsApp(order)} className="text-[10px] h-7 gap-1">
                             <MessageCircle className="w-3 h-3" />WhatsApp
+                          </Button>
+                          <Button size="sm" variant="destructive" onClick={() => handleDeleteOrder(order.id)} className="text-[10px] h-7 gap-1">
+                            <Trash2 className="w-3 h-3" />Apagar
                           </Button>
                         </div>
                       </div>
