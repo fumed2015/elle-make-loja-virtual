@@ -70,9 +70,9 @@ const CRMTab = () => {
 
   const dateThreshold = useMemo(() => getDateThreshold(dateRange), [dateRange]);
 
-  // Filter orders by date range
+  // Filter orders by date range (excluding cancelled/refunded)
   const filteredOrders = useMemo(() => {
-    return orders?.filter(o => new Date(o.created_at) >= dateThreshold) || [];
+    return orders?.filter(o => o.status !== "cancelled" && o.status !== "refunded" && new Date(o.created_at) >= dateThreshold) || [];
   }, [orders, dateThreshold]);
 
   const filteredAbandonments = useMemo(() => {
@@ -87,7 +87,7 @@ const CRMTab = () => {
       const userOrders = filteredOrders.filter(o => o.user_id === p.user_id);
       const totalSpent = userOrders.reduce((s, o) => s + Number(o.total), 0);
       const orderCount = userOrders.length;
-      const allUserOrders = orders?.filter(o => o.user_id === p.user_id) || [];
+      const allUserOrders = orders?.filter(o => o.user_id === p.user_id && o.status !== "cancelled" && o.status !== "refunded") || [];
       const lastOrder = allUserOrders.length > 0 ? new Date(Math.max(...allUserOrders.map(o => new Date(o.created_at).getTime()))) : null;
       const daysSinceLastOrder = lastOrder ? Math.floor((now - lastOrder.getTime()) / 86400000) : Infinity;
       const userFavorites = favorites?.filter(f => f.user_id === p.user_id).length || 0;
