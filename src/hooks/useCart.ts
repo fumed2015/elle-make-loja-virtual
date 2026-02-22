@@ -179,5 +179,5 @@ export const useCart = () => {
 
   const cartCount = cartQuery.data?.reduce((sum, item: any) => sum + item.quantity, 0) || 0;
 
-  return { items: cartQuery.data || [], isLoading: cartQuery.isLoading, addToCart, updateQuantity, removeFromCart, cartTotal, cartCount };
+  return { items: cartQuery.data || [], isLoading: cartQuery.isLoading, isFetching: cartQuery.isFetching, addToCart, updateQuantity, removeFromCart, cartTotal, cartCount };
 };
