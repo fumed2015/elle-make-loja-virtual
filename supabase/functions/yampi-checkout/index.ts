@@ -123,7 +123,13 @@ serve(async (req) => {
   }
 
   try {
-    const { action, ...payload } = await req.json();
+    const body = await req.json();
+
+    // Auto-detect Yampi webhook (no "action" field, but has "event" + "resource")
+    const action = body.action || (body.event && body.resource ? 'webhook' : undefined);
+    const payload = action === 'webhook' && !body.action
+      ? { event: body.event, resource: body.resource }
+      : (() => { const { action: _a, ...rest } = body; return rest; })();
 
     const yampiHeaders = {
       'Content-Type': 'application/json',
