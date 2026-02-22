@@ -8,6 +8,7 @@ const FREE_SHIPPING_MIN = 199;
 const FreeShippingBar = () => {
   const { cartTotal } = useCart();
   const [dismissed, setDismissed] = useState(false);
+  const [prevTotal, setPrevTotal] = useState(cartTotal);
 
   const progress = Math.min((cartTotal / FREE_SHIPPING_MIN) * 100, 100);
   const remaining = Math.max(FREE_SHIPPING_MIN - cartTotal, 0);
@@ -17,6 +18,13 @@ const FreeShippingBar = () => {
     const wasDismissed = sessionStorage.getItem("freeShippingDismissed");
     if (wasDismissed) setDismissed(true);
   }, []);
+
+  // Auto-dismiss after 30s if no product added
+  useEffect(() => {
+    if (dismissed || cartTotal <= 0) return;
+    const timer = setTimeout(() => setDismissed(true), 30000);
+    return () => clearTimeout(timer);
+  }, [dismissed, cartTotal]);
 
   const handleDismiss = () => {
     setDismissed(true);
