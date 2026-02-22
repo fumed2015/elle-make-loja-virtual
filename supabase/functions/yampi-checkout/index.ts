@@ -30,6 +30,8 @@ function buildCheckoutUrl(customer: any, address: any): string {
   if (address?.city) params.set('city', address.city);
   if (address?.state) params.set('state', address.state);
 
+  if (customer?.coupon_code) params.set('coupon', customer.coupon_code);
+
   const qs = params.toString();
   return qs ? `${base}?${qs}` : base;
 }
@@ -61,8 +63,8 @@ serve(async (req) => {
     if (action === 'create-order') {
       const { items, customer, address, total, discount, coupon_code, supabase_order_id } = payload;
 
-      // Build pre-filled checkout URL
-      const checkoutUrl = buildCheckoutUrl(customer, address);
+      // Build pre-filled checkout URL (include coupon if provided)
+      const checkoutUrl = buildCheckoutUrl({ ...customer, coupon_code }, address);
 
       // Find or create customer in Yampi
       let yampiCustomerId: number | null = null;
