@@ -14,6 +14,7 @@ declare global {
 
 interface CardPaymentFormProps {
   amount: number;
+  cpf?: string;
   onTokenized: (data: {
     token: string;
     paymentMethodId: string;
@@ -24,7 +25,7 @@ interface CardPaymentFormProps {
   loading?: boolean;
 }
 
-const CardPaymentForm = ({ amount, onTokenized, onCancel, loading }: CardPaymentFormProps) => {
+const CardPaymentForm = ({ amount, cpf, onTokenized, onCancel, loading }: CardPaymentFormProps) => {
   const [sdkReady, setSdkReady] = useState(false);
   const [publicKey, setPublicKey] = useState<string | null>(null);
   const [cardNumber, setCardNumber] = useState("");
@@ -132,7 +133,7 @@ const CardPaymentForm = ({ amount, onTokenized, onCancel, loading }: CardPayment
         cardExpirationYear: expYear.length === 2 ? `20${expYear}` : expYear,
         securityCode: cvv,
         identificationType: "CPF",
-        identificationNumber: "", // Will be filled from payer info
+        identificationNumber: cpf || "",
       });
 
       if (tokenData.error) {
