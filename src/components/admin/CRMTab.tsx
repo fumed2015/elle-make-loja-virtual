@@ -8,12 +8,22 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { motion } from "framer-motion";
-import { Users, ShoppingCart, Clock, MessageCircle, AlertTriangle, Eye, Search, TrendingDown, Heart, BarChart3 } from "lucide-react";
+import { Users, ShoppingCart, Clock, MessageCircle, AlertTriangle, Eye, Search, TrendingDown, Heart, BarChart3, CalendarDays } from "lucide-react";
+
+type DateRange = "today" | "7d" | "30d";
+
+const getDateThreshold = (range: DateRange): Date => {
+  const now = new Date();
+  if (range === "today") return new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  if (range === "7d") return new Date(now.getTime() - 7 * 86400000);
+  return new Date(now.getTime() - 30 * 86400000);
+};
 
 const CRMTab = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [segmentFilter, setSegmentFilter] = useState<string>("all");
   const [selectedCustomer, setSelectedCustomer] = useState<string | null>(null);
+  const [dateRange, setDateRange] = useState<DateRange>("30d");
 
   const { data: orders } = useAllOrders();
   const { data: products } = useProducts({});
@@ -54,15 +64,27 @@ const CRMTab = () => {
     },
   });
 
+  const dateThreshold = useMemo(() => getDateThreshold(dateRange), [dateRange]);
+
+  // Filter orders by date range
+  const filteredOrders = useMemo(() => {
+    return orders?.filter(o => new Date(o.created_at) >= dateThreshold) || [];
+  }, [orders, dateThreshold]);
+
+  const filteredAbandonments = useMemo(() => {
+    return abandonments?.filter(a => new Date(a.created_at) >= dateThreshold) || [];
+  }, [abandonments, dateThreshold]);
+
   // ===== CUSTOMER PROFILES WITH ENRICHMENT =====
   const enrichedCustomers = useMemo(() => {
     if (!profiles) return [];
     const now = Date.now();
     return profiles.map(p => {
-      const userOrders = orders?.filter(o => o.user_id === p.user_id) || [];
+      const userOrders = filteredOrders.filter(o => o.user_id === p.user_id);
       const totalSpent = userOrders.reduce((s, o) => s + Number(o.total), 0);
       const orderCount = userOrders.length;
-      const lastOrder = userOrders.length > 0 ? new Date(Math.max(...userOrders.map(o => new Date(o.created_at).getTime()))) : null;
+      const allUserOrders = orders?.filter(o => o.user_id === p.user_id) || [];
+      const lastOrder = allUserOrders.length > 0 ? new Date(Math.max(...allUserOrders.map(o => new Date(o.created_at).getTime()))) : null;
       const daysSinceLastOrder = lastOrder ? Math.floor((now - lastOrder.getTime()) / 86400000) : Infinity;
       const userFavorites = favorites?.filter(f => f.user_id === p.user_id).length || 0;
       const userReviews = reviews?.filter(r => r.user_id === p.user_id).length || 0;
@@ -76,7 +98,6 @@ const CRMTab = () => {
       else if (orderCount === 0) segment = daysSinceSignup <= 30 ? "new" : "dormant";
       else segment = "dormant";
 
-      // Engagement score (0-100)
       const engagementScore = Math.min(100, Math.round(
         (orderCount * 15) +
         (userFavorites * 5) +
@@ -92,7 +113,7 @@ const CRMTab = () => {
         userFavorites, userReviews, avgRating, segment, engagementScore, daysSinceSignup,
       };
     }).sort((a, b) => b.engagementScore - a.engagementScore);
-  }, [profiles, orders, favorites, reviews]);
+  }, [profiles, filteredOrders, orders, favorites, reviews]);
 
   const filteredCustomers = useMemo(() => {
     return enrichedCustomers.filter(c => {
@@ -107,13 +128,13 @@ const CRMTab = () => {
 
   // ===== CART ABANDONMENT ANALYTICS =====
   const abandonmentStats = useMemo(() => {
-    if (!abandonments) return { total: 0, avgTotal: 0, byStep: {} as Record<string, number> };
-    const total = abandonments.length;
-    const avgTotal = total > 0 ? abandonments.reduce((s, a) => s + Number(a.cart_total), 0) / total : 0;
+    const src = filteredAbandonments;
+    const total = src.length;
+    const avgTotal = total > 0 ? src.reduce((s, a) => s + Number(a.cart_total), 0) / total : 0;
     const byStep: Record<string, number> = {};
-    abandonments.forEach(a => { byStep[a.step] = (byStep[a.step] || 0) + 1; });
+    src.forEach(a => { byStep[a.step] = (byStep[a.step] || 0) + 1; });
     return { total, avgTotal, byStep };
-  }, [abandonments]);
+  }, [filteredAbandonments]);
 
   // ===== SEGMENT COUNTS =====
   const segmentCounts = useMemo(() => ({
@@ -146,9 +167,26 @@ const CRMTab = () => {
 
   return (
     <div className="space-y-4">
-      <h2 className="text-sm font-bold flex items-center gap-2">
-        <Users className="w-4 h-4 text-primary" /> CRM & Clientes
-      </h2>
+      <div className="flex items-center justify-between">
+        <h2 className="text-sm font-bold flex items-center gap-2">
+          <Users className="w-4 h-4 text-primary" /> CRM & Clientes
+        </h2>
+        <div className="flex items-center gap-1 bg-muted rounded-lg p-0.5">
+          {([["today", "Hoje"], ["7d", "7d"], ["30d", "30d"]] as [DateRange, string][]).map(([value, label]) => (
+            <button
+              key={value}
+              onClick={() => setDateRange(value)}
+              className={`px-2.5 py-1 rounded-md text-[10px] font-medium transition-colors ${
+                dateRange === value
+                  ? "bg-primary text-primary-foreground"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+      </div>
 
       {/* Segment Overview */}
       <div className="grid grid-cols-5 gap-1.5">
