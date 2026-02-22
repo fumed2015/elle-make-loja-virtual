@@ -23,8 +23,8 @@ const STEP_LABELS = [
 
 const Checkout = () => {
   const navigate = useNavigate();
-  const { user } = useAuth();
-  const { items, cartTotal, cartCount, isLoading: cartLoading } = useCart();
+  const { user, loading: authLoading } = useAuth();
+  const { items, cartTotal, cartCount, isLoading: cartLoading, isFetching: cartFetching } = useCart();
   const { validateCoupon } = useCoupon();
   const shipping = useShipping();
   const [step, setStep] = useState<Step>("address");
@@ -66,17 +66,25 @@ const Checkout = () => {
     return () => { cancelled = true; };
   }, [address.zip]);
 
-  // Redirect unauthenticated users (must be in useEffect, not during render)
+  // Redirect unauthenticated users (only after auth finishes loading)
   useEffect(() => {
-    if (!user) navigate("/perfil?redirect=/checkout", { replace: true });
-  }, [user, navigate]);
+    if (!authLoading && !user) navigate("/perfil?redirect=/checkout", { replace: true });
+  }, [user, authLoading, navigate]);
 
-  // Redirect if cart is empty (only after loading finishes)
+  // Redirect if cart is empty — use a small delay to let queries settle after auth transitions
+  const [cartChecked, setCartChecked] = useState(false);
   useEffect(() => {
-    if (!cartLoading && items.length === 0 && step !== "success" && step !== "processing") {
+    if (authLoading || cartLoading) { setCartChecked(false); return; }
+    // Wait a tick for React Query to refetch after auth changes
+    const t = setTimeout(() => setCartChecked(true), 500);
+    return () => clearTimeout(t);
+  }, [authLoading, cartLoading]);
+
+  useEffect(() => {
+    if (cartChecked && items.length === 0 && step !== "success" && step !== "processing") {
       navigate("/carrinho", { replace: true });
     }
-  }, [items.length, step, navigate, cartLoading]);
+  }, [cartChecked, items.length, step, navigate]);
 
   // Pre-fill customer info from profile
   useEffect(() => {
@@ -86,8 +94,12 @@ const Checkout = () => {
     });
   }, [user]);
 
-  if (!user) return null;
-  if (cartLoading) {
+  if (authLoading || !user) return (
+    <div className="min-h-screen flex items-center justify-center">
+      <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+    </div>
+  );
+  if (cartLoading || cartFetching) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
