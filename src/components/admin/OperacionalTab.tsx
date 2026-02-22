@@ -8,8 +8,9 @@ import { motion } from "framer-motion";
 import { Package, AlertTriangle, Truck, Clock, CheckCircle, XCircle, Search, ArrowDown } from "lucide-react";
 
 const statusLabels: Record<string, string> = {
-  pending: "Pendente", confirmed: "Confirmado", preparing: "Preparando",
-  shipped: "Enviado", delivered: "Entregue", cancelled: "Cancelado",
+  pending: "Pendente", confirmed: "Confirmado", approved: "Pago",
+  processing: "Preparando", shipped: "Enviado", delivered: "Entregue",
+  cancelled: "Cancelado", refunded: "Reembolsado",
 };
 
 const OperacionalTab = () => {
@@ -26,7 +27,7 @@ const OperacionalTab = () => {
   const healthyStock = products?.filter(p => p.stock > threshold) || [];
 
   // Order pipeline
-  const pipeline = ["pending", "confirmed", "preparing", "shipped", "delivered", "cancelled"];
+  const pipeline = ["pending", "confirmed", "approved", "processing", "shipped", "delivered", "cancelled"];
   const pipelineCounts = pipeline.map(s => ({
     status: s,
     label: statusLabels[s] || s,

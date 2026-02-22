@@ -279,7 +279,9 @@ const LogisticsTab = () => {
                     <p className="text-[9px] text-muted-foreground">{new Date(o.created_at).toLocaleDateString("pt-BR")} • {fmt(Number(o.total))}</p>
                   </div>
                   <div className="flex items-center gap-2">
-                    <Badge variant="secondary" className="text-[9px]">{o.status}</Badge>
+                    <Badge variant="secondary" className="text-[9px]">
+                      {o.status === "approved" ? "Pago" : o.status === "processing" ? "Preparando" : o.status === "confirmed" ? "Confirmado" : o.status}
+                    </Badge>
                     {o.tracking_code && <Badge variant="outline" className="text-[8px]">🚚 {o.tracking_code}</Badge>}
                   </div>
                 </div>

@@ -35,8 +35,9 @@ import SEOContentTab from "@/components/admin/SEOContentTab";
 type Tab = "dashboard" | "products" | "orders" | "add-product" | "coupons" | "reviews" | "influencers" | "seo" | "categories" | "ai-content" | "leads" | "birthdays" | "financeiro" | "comercial" | "operacional" | "marketing" | "pixels" | "whatsapp" | "stock" | "sales-intelligence" | "crm" | "logistics" | "marketing-conversion" | "seo-content";
 
 const statusLabels: Record<string, string> = {
-  pending: "Pendente", confirmed: "Confirmado", preparing: "Preparando",
-  shipped: "Enviado", delivered: "Entregue", cancelled: "Cancelado",
+  pending: "Pendente", confirmed: "Confirmado", approved: "Pago",
+  processing: "Preparando", shipped: "Enviado", delivered: "Entregue",
+  cancelled: "Cancelado", refunded: "Reembolsado",
 };
 
 const Admin = () => {
