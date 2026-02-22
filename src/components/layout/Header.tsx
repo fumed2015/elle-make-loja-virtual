@@ -5,7 +5,8 @@ import { Link, useNavigate } from "react-router-dom";
 import { Input } from "@/components/ui/input";
 import { useCart } from "@/hooks/useCart";
 import { useAuth } from "@/hooks/useAuth";
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useProducts } from "@/hooks/useProducts";
+import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   DropdownMenu,
@@ -110,6 +111,20 @@ const Header = () => {
   const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
   const [hoveredNav, setHoveredNav] = useState<string | null>(null);
   const [promoIndex, setPromoIndex] = useState(0);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const searchContainerRef = useRef<HTMLDivElement>(null);
+  const mobileSearchContainerRef = useRef<HTMLDivElement>(null);
+
+  // Fetch all products for autocomplete (cached 5min)
+  const { data: allProducts } = useProducts({});
+
+  const suggestions = useMemo(() => {
+    if (!search || search.length < 2 || !allProducts) return [];
+    const q = search.toLowerCase();
+    return allProducts
+      .filter(p => p.name.toLowerCase().includes(q) || p.brand?.toLowerCase().includes(q))
+      .slice(0, 5);
+  }, [search, allProducts]);
 
   const closeTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -136,10 +151,67 @@ const Header = () => {
     return () => clearInterval(interval);
   }, []);
 
+  // Close suggestions on outside click
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (
+        searchContainerRef.current && !searchContainerRef.current.contains(e.target as Node) &&
+        mobileSearchContainerRef.current && !mobileSearchContainerRef.current.contains(e.target as Node)
+      ) {
+        setShowSuggestions(false);
+      }
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
+
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
+    setShowSuggestions(false);
     if (search.trim()) navigate(`/explorar?q=${encodeURIComponent(search.trim())}`);
   };
+
+  const handleSelectSuggestion = (slug: string) => {
+    setShowSuggestions(false);
+    setSearch("");
+    setMobileSearchOpen(false);
+    navigate(`/produto/${slug}`);
+  };
+
+  const SuggestionsDropdown = () => (
+    <AnimatePresence>
+      {showSuggestions && suggestions.length > 0 && (
+        <motion.div
+          initial={{ opacity: 0, y: -4 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -4 }}
+          className="absolute top-full left-0 right-0 bg-card border border-border rounded-lg mt-1 shadow-lg z-50 overflow-hidden"
+        >
+          {suggestions.map(p => (
+            <button
+              key={p.id}
+              onClick={() => handleSelectSuggestion(p.slug)}
+              className="w-full text-left px-3 py-2 hover:bg-muted transition-colors flex items-center gap-2.5"
+            >
+              <div className="w-8 h-8 rounded-md overflow-hidden bg-muted flex-shrink-0">
+                {p.images?.[0] && <img src={p.images[0]} alt="" className="w-full h-full object-cover" loading="lazy" />}
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className="text-xs font-medium truncate">{p.name}</p>
+                <p className="text-[10px] text-primary font-bold">R$ {Number(p.price).toFixed(2).replace(".", ",")}</p>
+              </div>
+            </button>
+          ))}
+          <button
+            onClick={() => { setShowSuggestions(false); if (search.trim()) navigate(`/explorar?q=${encodeURIComponent(search.trim())}`); }}
+            className="w-full text-center px-3 py-2 text-[10px] font-semibold text-primary hover:bg-muted transition-colors border-t border-border"
+          >
+            Ver todos os resultados →
+          </button>
+        </motion.div>
+      )}
+    </AnimatePresence>
+  );
 
   return (
     <header className="sticky top-0 z-40">
@@ -174,15 +246,19 @@ const Header = () => {
           </Link>
 
           {/* Search — icon-only on mobile, full bar on desktop */}
-          <form onSubmit={handleSearch} className="hidden md:flex flex-1 min-w-0 relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-            <Input
-              placeholder="Buscar produtos..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="pl-9 h-10 bg-muted border-none rounded-full text-sm focus:ring-2 focus:ring-primary/30 w-full"
-            />
-          </form>
+          <div className="hidden md:flex flex-1 min-w-0 relative" ref={searchContainerRef}>
+            <form onSubmit={handleSearch} className="w-full">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground z-10" />
+              <Input
+                placeholder="Buscar produtos..."
+                value={search}
+                onChange={(e) => { setSearch(e.target.value); setShowSuggestions(e.target.value.length >= 2); }}
+                onFocus={() => search.length >= 2 && setShowSuggestions(true)}
+                className="pl-9 h-10 bg-muted border-none rounded-full text-sm focus:ring-2 focus:ring-primary/30 w-full"
+              />
+            </form>
+            <SuggestionsDropdown />
+          </div>
 
           {/* Icons — pushed right on mobile via ml-auto */}
           <div className="flex items-center gap-0.5 md:gap-1 flex-shrink-0 ml-auto">
@@ -279,18 +355,23 @@ const Header = () => {
             animate={{ height: "auto", opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
             transition={{ duration: 0.15 }}
-            className="md:hidden bg-card border-b border-border overflow-hidden"
+            className="md:hidden bg-card border-b border-border overflow-visible relative z-50"
+            ref={mobileSearchContainerRef}
           >
             <form onSubmit={(e) => { handleSearch(e); setMobileSearchOpen(false); }} className="px-3 py-2 relative">
-              <Search className="absolute left-6 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+              <Search className="absolute left-6 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground z-10" />
               <Input
                 autoFocus
                 placeholder="Buscar produtos..."
                 value={search}
-                onChange={(e) => setSearch(e.target.value)}
+                onChange={(e) => { setSearch(e.target.value); setShowSuggestions(e.target.value.length >= 2); }}
+                onFocus={() => search.length >= 2 && setShowSuggestions(true)}
                 className="pl-9 h-9 bg-muted border-none rounded-full text-sm focus:ring-2 focus:ring-primary/30 w-full"
               />
             </form>
+            <div className="relative px-3">
+              <SuggestionsDropdown />
+            </div>
           </motion.div>
         )}
       </AnimatePresence>
