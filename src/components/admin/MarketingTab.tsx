@@ -34,9 +34,10 @@ const MarketingTab = () => {
     },
   });
 
-  // Coupon analytics
+  const activeOrders = orders?.filter(o => o.status !== "cancelled" && o.status !== "refunded") || [];
+
   const couponAnalytics = coupons?.map(coupon => {
-    const couponOrders = orders?.filter(o => o.coupon_code === coupon.code) || [];
+    const couponOrders = activeOrders.filter(o => o.coupon_code === coupon.code);
     const revenue = couponOrders.reduce((s, o) => s + Number(o.total), 0);
     const totalDiscount = couponOrders.reduce((s, o) => s + Number(o.discount || 0), 0);
     const roi = totalDiscount > 0 ? ((revenue - totalDiscount) / totalDiscount * 100) : 0;
@@ -48,10 +49,10 @@ const MarketingTab = () => {
   const totalCouponDiscount = couponAnalytics.reduce((s, c) => s + c.totalDiscount, 0);
   const overallROI = totalCouponDiscount > 0 ? ((totalCouponRevenue - totalCouponDiscount) / totalCouponDiscount * 100) : 0;
 
-  // Orders with coupons vs without
-  const ordersWithCoupon = orders?.filter(o => o.coupon_code).length || 0;
-  const ordersWithoutCoupon = (orders?.length || 0) - ordersWithCoupon;
-  const couponUsageRate = orders?.length ? (ordersWithCoupon / orders.length * 100) : 0;
+  // Orders with coupons vs without (only active orders)
+  const ordersWithCoupon = activeOrders.filter(o => o.coupon_code).length;
+  const ordersWithoutCoupon = activeOrders.length - ordersWithCoupon;
+  const couponUsageRate = activeOrders.length ? (ordersWithCoupon / activeOrders.length * 100) : 0;
 
   const handleSaveCampaign = () => {
     if (!campaign.title) { toast.error("Título é obrigatório"); return; }
