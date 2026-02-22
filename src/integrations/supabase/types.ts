@@ -253,6 +253,72 @@ export type Database = {
           },
         ]
       }
+      financial_premises: {
+        Row: {
+          created_at: string
+          desired_margin: number
+          fixed_cost_other: number
+          fixed_cost_other_label: string | null
+          fixed_cost_platform: number
+          fixed_cost_whatsgw: number
+          freight_batch_items: number
+          freight_batch_total: number
+          gateway_rate_credit: number
+          gateway_rate_credit_fixed: number
+          gateway_rate_debit: number
+          gateway_rate_physical: number
+          gateway_rate_pix: number
+          id: string
+          influencer_commission_rate: number
+          marketing_budget: number
+          order_target: number
+          packaging_cost: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          desired_margin?: number
+          fixed_cost_other?: number
+          fixed_cost_other_label?: string | null
+          fixed_cost_platform?: number
+          fixed_cost_whatsgw?: number
+          freight_batch_items?: number
+          freight_batch_total?: number
+          gateway_rate_credit?: number
+          gateway_rate_credit_fixed?: number
+          gateway_rate_debit?: number
+          gateway_rate_physical?: number
+          gateway_rate_pix?: number
+          id?: string
+          influencer_commission_rate?: number
+          marketing_budget?: number
+          order_target?: number
+          packaging_cost?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          desired_margin?: number
+          fixed_cost_other?: number
+          fixed_cost_other_label?: string | null
+          fixed_cost_platform?: number
+          fixed_cost_whatsgw?: number
+          freight_batch_items?: number
+          freight_batch_total?: number
+          gateway_rate_credit?: number
+          gateway_rate_credit_fixed?: number
+          gateway_rate_debit?: number
+          gateway_rate_physical?: number
+          gateway_rate_pix?: number
+          id?: string
+          influencer_commission_rate?: number
+          marketing_budget?: number
+          order_target?: number
+          packaging_cost?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       influencer_commissions: {
         Row: {
           commission_percent: number
@@ -499,6 +565,44 @@ export type Database = {
             columns: ["influencer_id"]
             isOneToOne: false
             referencedRelation: "influencers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      product_costs: {
+        Row: {
+          cost_base: number
+          created_at: string
+          freight_per_unit: number
+          id: string
+          notes: string | null
+          product_id: string
+          updated_at: string
+        }
+        Insert: {
+          cost_base?: number
+          created_at?: string
+          freight_per_unit?: number
+          id?: string
+          notes?: string | null
+          product_id: string
+          updated_at?: string
+        }
+        Update: {
+          cost_base?: number
+          created_at?: string
+          freight_per_unit?: number
+          id?: string
+          notes?: string | null
+          product_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "product_costs_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: true
+            referencedRelation: "products"
             referencedColumns: ["id"]
           },
         ]
