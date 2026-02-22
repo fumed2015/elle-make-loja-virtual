@@ -130,21 +130,28 @@ const Checkout = () => {
     return () => clearTimeout(timer);
   }, [step, user]);
 
+  // Clear cart only after payment is confirmed
+  const clearCart = useCallback(async () => {
+    const cartIds = items.map((i: any) => i.id).filter(Boolean);
+    if (cartIds.length > 0) await supabase.from("cart_items").delete().in("id", cartIds);
+  }, [items]);
+
   // Real-time payment status polling
   const { status: paymentStatus, statusDetail: paymentStatusDetail, polling: isPolling } = usePaymentStatusPolling(
     step === "payment" && paymentId ? paymentId : null,
     5000
   );
 
-  // Auto-transition to success when payment is approved
+  // Auto-transition to success when payment is approved + clear cart
   useEffect(() => {
     if (paymentStatus === "approved") {
       toast.success("Pagamento aprovado! 🎉");
+      clearCart();
       setStep("success");
     } else if (paymentStatus === "rejected" || paymentStatus === "cancelled") {
       toast.error("Pagamento recusado. Tente novamente.");
     }
-  }, [paymentStatus]);
+  }, [paymentStatus, clearCart]);
 
   const [address, setAddress] = useState(() => {
     const savedCep = (() => { try { return localStorage.getItem("ellemake_shipping_cep") || ""; } catch { return ""; } })();
@@ -339,48 +346,41 @@ const Checkout = () => {
       }
     }
 
-    // Clear cart
-    const cartIds = items.map((i: any) => i.id).filter(Boolean);
-    if (cartIds.length > 0) await supabase.from("cart_items").delete().in("id", cartIds);
-
     await saveDataAfterOrder();
     return orderData.id;
   };
+
 
   const getPayer = () => {
     const fullName = user.user_metadata?.full_name || "";
     const parts = fullName.split(" ");
     return {
       email: user.email || "",
-      cpf: customerInfo.cpf,
+      cpf: customerInfo.cpf.replace(/\D/g, ""), // Send digits only to MP
       firstName: parts[0] || "Cliente",
       lastName: parts.slice(1).join(" ") || "",
     };
   };
 
   const handlePlaceOrder = async () => {
-    if (!customerInfo.cpf || customerInfo.cpf.length < 11) {
-      toast.error("CPF é obrigatório para pagamento");
+    const cpfDigits = customerInfo.cpf.replace(/\D/g, "");
+    if (!cpfDigits || cpfDigits.length !== 11) {
+      toast.error("CPF é obrigatório para pagamento (11 dígitos)");
       return;
     }
-    if (!isValidCpf(customerInfo.cpf)) {
+    if (!isValidCpf(cpfDigits)) {
       toast.error("CPF inválido. Verifique os dígitos.");
+      return;
+    }
+    if (!address.street || !address.number || !address.neighborhood || !address.zip) {
+      toast.error("Preencha o endereço completo antes de continuar.");
+      setStep("address");
       return;
     }
     setSubmitting(true);
     try {
       const newOrderId = await createOrder();
       setOrderId(newOrderId);
-
-      // Auto-save CPF and phone to profile for future checkouts
-      if (user) {
-        const updates: Record<string, string> = {};
-        if (customerInfo.cpf) updates.cpf = customerInfo.cpf;
-        if (customerInfo.phone) updates.phone = customerInfo.phone;
-        if (Object.keys(updates).length > 0) {
-          supabase.from("profiles").update(updates).eq("user_id", user.id).then(() => {});
-        }
-      }
 
       if (paymentMethod === "whatsapp") {
         const orderItems = items.map((item) => {
@@ -391,6 +391,7 @@ const Checkout = () => {
         const msg = encodeURIComponent(
           `🛒 *Novo Pedido #${newOrderId.slice(0, 8)}*\n\n${itemsList}\n\n💰 Total: R$ ${finalTotal.toFixed(2).replace(".", ",")}\n📍 ${address.street}, ${address.number} - ${address.neighborhood}, ${address.city}\n\nForma de pagamento: Combinar pelo WhatsApp`
         );
+        await clearCart();
         window.open(`https://wa.me/5591983045531?text=${msg}`, '_blank');
         setStep("success");
         toast.success("Pedido enviado pelo WhatsApp! 🎉");
@@ -805,7 +806,7 @@ const Checkout = () => {
             {paymentMethod === "card" && !pixData && !boletoData && (
               <CardPaymentForm
                 amount={finalTotal}
-                cpf={customerInfo.cpf}
+                cpf={customerInfo.cpf.replace(/\D/g, "")}
                 onCancel={() => setStep("review")}
                 loading={payment.loading}
                 onTokenized={async ({ token, paymentMethodId: pmId, installments: inst, issuerId: issId }) => {
@@ -819,6 +820,7 @@ const Checkout = () => {
                       setPaymentId(String(result.id));
                       if (result.status === "approved") {
                         toast.success("Pagamento aprovado! 🎉");
+                        await clearCart();
                         setStep("success");
                       } else if (result.status === "in_process" || result.status === "pending") {
                         toast.info("Pagamento em análise. Você será notificado.");
