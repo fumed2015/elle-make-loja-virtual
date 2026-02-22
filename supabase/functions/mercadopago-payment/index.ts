@@ -25,7 +25,19 @@ serve(async (req) => {
     const body = await req.json();
     const { action } = body;
 
-    if (action === "create-pix") {
+    if (action === "get-public-key") {
+      const publicKey = Deno.env.get("MERCADO_PAGO_PUBLIC_KEY");
+      if (!publicKey) {
+        return new Response(
+          JSON.stringify({ error: "MERCADO_PAGO_PUBLIC_KEY not configured" }),
+          { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+      return new Response(
+        JSON.stringify({ public_key: publicKey }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    } else if (action === "create-pix") {
       return await createPixPayment(body, ACCESS_TOKEN);
     } else if (action === "create-card") {
       return await createCardPayment(body, ACCESS_TOKEN);
