@@ -58,8 +58,7 @@ const Explorar = () => {
     const q = searchQuery.toLowerCase();
     return products
       .filter((p) => p.name.toLowerCase().includes(q))
-      .slice(0, 5)
-      .map((p) => ({ name: p.name, slug: p.slug }));
+      .slice(0, 5);
   }, [searchQuery, products]);
 
   // Filter and sort
@@ -166,13 +165,18 @@ const Explorar = () => {
                 <button
                   key={s.slug}
                   onClick={() => {
-                    handleSearch(s.name);
                     setShowSuggestions(false);
+                    window.location.href = `/produto/${s.slug}`;
                   }}
-                  className="w-full text-left px-4 py-2.5 text-sm hover:bg-muted transition-colors flex items-center gap-2"
+                  className="w-full text-left px-3 py-2 hover:bg-muted transition-colors flex items-center gap-2.5"
                 >
-                  <Search className="w-3 h-3 text-muted-foreground flex-shrink-0" />
-                  <span className="truncate">{s.name}</span>
+                  <div className="w-8 h-8 rounded-md overflow-hidden bg-muted flex-shrink-0">
+                    {s.images?.[0] && <img src={s.images[0]} alt="" className="w-full h-full object-cover" loading="lazy" />}
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-xs font-medium truncate">{s.name}</p>
+                    <p className="text-[10px] text-primary font-bold">R$ {Number(s.price).toFixed(2).replace(".", ",")}</p>
+                  </div>
                 </button>
               ))}
             </motion.div>
