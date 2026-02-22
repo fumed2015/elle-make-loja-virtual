@@ -501,6 +501,7 @@ export type Database = {
           address: Json | null
           avatar_url: string | null
           birthday: string | null
+          cpf: string | null
           created_at: string
           full_name: string | null
           id: string
@@ -514,6 +515,7 @@ export type Database = {
           address?: Json | null
           avatar_url?: string | null
           birthday?: string | null
+          cpf?: string | null
           created_at?: string
           full_name?: string | null
           id?: string
@@ -527,6 +529,7 @@ export type Database = {
           address?: Json | null
           avatar_url?: string | null
           birthday?: string | null
+          cpf?: string | null
           created_at?: string
           full_name?: string | null
           id?: string
