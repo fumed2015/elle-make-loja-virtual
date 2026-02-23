@@ -189,6 +189,33 @@ async function callAiForText(text: string, brandName: string, lovableApiKey: str
   return [];
 }
 
+// Classify error into user-friendly category with retry guidance
+function classifyError(errorMsg: string): { category: string; friendlyMessage: string; retryGuidance: string } {
+  const msg = errorMsg.toLowerCase();
+  if (msg.includes("abort") || msg.includes("timeout") || msg.includes("timed out")) {
+    return { category: "timeout", friendlyMessage: "Download do arquivo demorou demais", retryGuidance: "Tente novamente — pode ser lentidão temporária da rede. Se persistir, verifique se o arquivo não é muito grande." };
+  }
+  if (msg.includes("too large") || msg.includes("size")) {
+    return { category: "file_too_large", friendlyMessage: "Arquivo muito grande para processar", retryGuidance: "Este PDF excede o limite de 6MB. Divida o catálogo em partes menores ou comprima o PDF." };
+  }
+  if (msg.includes("403") || msg.includes("forbidden") || msg.includes("permission")) {
+    return { category: "permission_denied", friendlyMessage: "Sem permissão para acessar o arquivo", retryGuidance: "Verifique se a pasta do Google Drive está com compartilhamento público ('Qualquer pessoa com o link')." };
+  }
+  if (msg.includes("404") || msg.includes("not found")) {
+    return { category: "not_found", friendlyMessage: "Arquivo não encontrado no Drive", retryGuidance: "O arquivo pode ter sido movido ou excluído. Verifique a pasta do fornecedor." };
+  }
+  if (msg.includes("429") || msg.includes("rate limit") || msg.includes("quota")) {
+    return { category: "rate_limit", friendlyMessage: "Limite de requisições atingido", retryGuidance: "Aguarde alguns minutos e retome a importação. O sistema continuará de onde parou." };
+  }
+  if (msg.includes("ai error") || msg.includes("ai gateway") || msg.includes("500")) {
+    return { category: "ai_processing", friendlyMessage: "Erro no processamento de IA", retryGuidance: "O serviço de IA pode estar sobrecarregado. Retome a importação — o arquivo será reprocessado automaticamente." };
+  }
+  if (msg.includes("parse") || msg.includes("json") || msg.includes("unexpected token")) {
+    return { category: "parse_error", friendlyMessage: "Erro ao interpretar resposta da IA", retryGuidance: "Tente novamente. Se persistir, o PDF pode ter formato não suportado (ex: imagens sem texto)." };
+  }
+  return { category: "unknown", friendlyMessage: `Erro inesperado: ${errorMsg.substring(0, 100)}`, retryGuidance: "Tente retomar a importação. Se o erro persistir, entre em contato com o suporte." };
+}
+
 // Process single file with retry (up to 2 attempts)
 async function processFileWithRetry(
   file: { fileId: string; brandName: string; fileName: string },
@@ -197,7 +224,7 @@ async function processFileWithRetry(
   GOOGLE_API_KEY: string,
   LOVABLE_API_KEY: string,
   maxRetries = 2
-): Promise<{ products: number; error?: string }> {
+): Promise<{ products: number; error?: string; errorCategory?: string; retryGuidance?: string }> {
   for (let attempt = 1; attempt <= maxRetries; attempt++) {
     try {
       const pdfBase64 = await downloadPdfAsBase64(file.fileId, GOOGLE_API_KEY);
@@ -227,18 +254,21 @@ async function processFileWithRetry(
     } catch (e: any) {
       console.error(`Attempt ${attempt}/${maxRetries} failed for ${file.fileName}:`, e.message);
       if (attempt === maxRetries) {
-        // Persist failure to audit table
+        const errMsg = e.message || String(e);
+        const classified = classifyError(errMsg);
+        // Persist failure with user-friendly details
         await supabase.from("catalog_import_failures").insert({
           import_id: importId,
           file_id: file.fileId,
           file_name: file.fileName,
           brand_name: file.brandName,
-          error_message: e.message || String(e),
+          error_message: classified.friendlyMessage,
+          error_category: classified.category,
+          retry_guidance: classified.retryGuidance,
           attempts: maxRetries,
         }).then(() => {}).catch(() => {});
-        return { products: 0, error: e.message || String(e) };
+        return { products: 0, error: classified.friendlyMessage, errorCategory: classified.category, retryGuidance: classified.retryGuidance };
       }
-      // Wait before retry (exponential backoff: 1s, 2s)
       await new Promise(r => setTimeout(r, attempt * 1000));
     }
   }
@@ -387,10 +417,13 @@ serve(async (req) => {
         } catch (e: any) {
           const durationMs = Date.now() - t0;
           const errMsg = e.message || String(e);
-          fileResults.push({ fileName: file.fileName, brandName: file.brandName, status: "error", products: 0, durationMs, error: errMsg });
+          const classified = classifyError(errMsg);
+          fileResults.push({ fileName: file.fileName, brandName: file.brandName, status: "error", products: 0, durationMs, error: classified.friendlyMessage });
           console.error(`✗ ${file.fileName}: ${errMsg}`);
           await supabase.from("catalog_import_failures").insert({
-            import_id, file_id: file.fileId, file_name: file.fileName, brand_name: file.brandName, error_message: errMsg, attempts: 1,
+            import_id, file_id: file.fileId, file_name: file.fileName, brand_name: file.brandName,
+            error_message: classified.friendlyMessage, error_category: classified.category,
+            retry_guidance: classified.retryGuidance, attempts: 1,
           }).then(() => {}).catch(() => {});
         }
       }
@@ -425,10 +458,24 @@ serve(async (req) => {
       }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
+    // ── LIST-FAILURES (audit view) ──
+    if (action === "list-failures") {
+      if (!import_id) throw new Error("import_id is required");
+      const { data: failures, error: failErr } = await supabase
+        .from("catalog_import_failures")
+        .select("*")
+        .eq("import_id", import_id)
+        .order("created_at", { ascending: false });
+      if (failErr) throw failErr;
+      return new Response(JSON.stringify({ success: true, failures: failures || [] }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     // ── DELETE-IMPORT ──
     if (action === "delete-import") {
       if (!import_id) throw new Error("import_id is required");
-      // Failures cascade-deleted via FK
+      await supabase.from("catalog_import_failures").delete().eq("import_id", import_id);
       await supabase.from("catalog_items").delete().eq("import_id", import_id);
       const { error } = await supabase.from("catalog_imports").delete().eq("id", import_id);
       if (error) throw error;

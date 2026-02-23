@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { FolderOpen, Search, Loader2, Sparkles, Download, BarChart3, Package, Tag, Trash2, AlertTriangle, RefreshCw, Play, CheckCircle2, Clock } from "lucide-react";
+import { FolderOpen, Search, Loader2, Sparkles, Download, BarChart3, Package, Tag, Trash2, AlertTriangle, RefreshCw, Play, CheckCircle2, Clock, FileWarning, Info } from "lucide-react";
 import { motion } from "framer-motion";
 import ReactMarkdown from "react-markdown";
 import CatalogConsultant from "./CatalogConsultant";
@@ -58,6 +58,9 @@ const CatalogDriveTab = () => {
   const [generatingInsights, setGeneratingInsights] = useState(false);
   const [insights, setInsights] = useState<string | null>(null);
   const [deletingImport, setDeletingImport] = useState<string | null>(null);
+  const [viewingFailures, setViewingFailures] = useState<string | null>(null);
+  const [failures, setFailures] = useState<any[]>([]);
+  const [loadingFailures, setLoadingFailures] = useState(false);
   const [progressData, setProgressData] = useState<ProgressState | null>(null);
 
   const { data: catalogItems, isLoading } = useQuery({
@@ -344,6 +347,24 @@ const CatalogDriveTab = () => {
       queryClient.invalidateQueries({ queryKey: ["catalog-imports"] });
     } catch (e: any) {
       toast.error(e.message || "Erro ao limpar catálogo");
+    }
+  };
+
+  const handleViewFailures = async (importId: string) => {
+    if (viewingFailures === importId) { setViewingFailures(null); setFailures([]); return; }
+    setLoadingFailures(true);
+    setViewingFailures(importId);
+    try {
+      const { data, error } = await supabase.functions.invoke("catalog-drive-import", {
+        body: { action: "list-failures", import_id: importId },
+      });
+      if (error) throw error;
+      setFailures(data?.failures || []);
+    } catch (e: any) {
+      toast.error("Erro ao carregar falhas");
+      setFailures([]);
+    } finally {
+      setLoadingFailures(false);
     }
   };
 
@@ -725,10 +746,62 @@ const CatalogDriveTab = () => {
                 </div>
                 {isProcessing && <Progress value={progress} className="h-1.5" />}
                 {imp.error_message && (
-                  <div className="flex items-center gap-1 text-[9px] text-destructive">
-                    <AlertTriangle className="w-3 h-3" />
-                    {imp.error_message}
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-1 text-[9px] text-destructive">
+                      <AlertTriangle className="w-3 h-3" />
+                      {imp.error_message}
+                    </div>
+                    <Button size="sm" variant="ghost" className="text-[9px] h-5 gap-0.5 text-muted-foreground"
+                      onClick={() => handleViewFailures(imp.id)}
+                      disabled={loadingFailures && viewingFailures === imp.id}
+                    >
+                      {loadingFailures && viewingFailures === imp.id ? (
+                        <Loader2 className="w-2.5 h-2.5 animate-spin" />
+                      ) : (
+                        <FileWarning className="w-2.5 h-2.5" />
+                      )}
+                      {viewingFailures === imp.id ? "Ocultar" : "Ver Falhas"}
+                    </Button>
                   </div>
+                )}
+                {viewingFailures === imp.id && failures.length > 0 && (
+                  <div className="space-y-1.5 mt-1">
+                    <p className="text-[9px] font-semibold text-muted-foreground uppercase">
+                      {failures.length} arquivo(s) com falha
+                    </p>
+                    {failures.map((f: any, fi: number) => (
+                      <div key={fi} className="bg-card border border-destructive/20 rounded-lg p-2.5 space-y-1">
+                        <div className="flex items-start justify-between gap-2">
+                          <div className="min-w-0 flex-1">
+                            <p className="text-[10px] font-semibold truncate">{f.file_name}</p>
+                            <p className="text-[8px] text-muted-foreground">{f.brand_name} • {f.attempts} tentativa(s)</p>
+                          </div>
+                          {f.error_category && (
+                            <Badge variant="outline" className="text-[7px] h-4 shrink-0 border-destructive/30 text-destructive">
+                              {f.error_category === "timeout" ? "⏱ Timeout" :
+                               f.error_category === "file_too_large" ? "📦 Muito grande" :
+                               f.error_category === "permission_denied" ? "🔒 Permissão" :
+                               f.error_category === "not_found" ? "❌ Não encontrado" :
+                               f.error_category === "rate_limit" ? "⚡ Rate limit" :
+                               f.error_category === "ai_processing" ? "🤖 IA" :
+                               f.error_category === "parse_error" ? "📄 Parse" :
+                               "❓ Outro"}
+                            </Badge>
+                          )}
+                        </div>
+                        <p className="text-[9px] text-destructive">{f.error_message}</p>
+                        {f.retry_guidance && (
+                          <div className="flex items-start gap-1.5 bg-muted/50 rounded p-1.5">
+                            <Info className="w-3 h-3 text-primary shrink-0 mt-0.5" />
+                            <p className="text-[8px] text-muted-foreground leading-relaxed">{f.retry_guidance}</p>
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
+                {viewingFailures === imp.id && !loadingFailures && failures.length === 0 && (
+                  <p className="text-[9px] text-muted-foreground italic">Nenhuma falha registrada para esta importação.</p>
                 )}
               </div>
             );
