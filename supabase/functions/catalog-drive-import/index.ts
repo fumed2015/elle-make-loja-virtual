@@ -84,9 +84,9 @@ async function extractProductsFromPdf(pdfBase64: string, brandName: string, file
     body: JSON.stringify({
       model: "google/gemini-2.5-flash-lite",
       messages: [
-        { role: "system", content: `Você é um especialista em análise de catálogos de produtos de beleza/cosméticos. Analise o PDF enviado e extraia TODOS os produtos encontrados. Para cada produto, identifique: nome, preço (se disponível), preço anterior/comparativo (se houver), descrição curta, categoria (ex: maquiagem, skincare, cabelo, unhas, acessórios) e tags relevantes. Retorne APENAS via tool call.` },
+        { role: "system", content: `Você é um especialista em análise de catálogos de cosméticos. Extraia SOMENTE produtos das categorias: maquiagem, skincare e acessórios de beleza. IGNORE completamente: produtos capilares (cabelo/shampoo/condicionador), produtos para unhas, perfumes, e qualquer informação sobre distribuição por atacado, preços de atacado, quantidades mínimas ou condições comerciais B2B. Para o campo "price", extraia APENAS o preço de varejo/unitário do produto (o menor preço individual listado). Se só houver preço de atacado/caixa, NÃO inclua o produto. Retorne APENAS via tool call.` },
         { role: "user", content: [
-          { type: "text", text: `Marca: ${brandName}\nArquivo: ${fileName}\n\nAnalise o PDF anexo e extraia todos os produtos.` },
+          { type: "text", text: `Marca: ${brandName}\nArquivo: ${fileName}\n\nExtraia apenas produtos de maquiagem, skincare e acessórios com seus preços de varejo.` },
           { type: "image_url", image_url: { url: `data:application/pdf;base64,${pdfBase64}` } },
         ] },
       ],
@@ -208,8 +208,8 @@ async function callAiForText(text: string, brandName: string, lovableApiKey: str
     body: JSON.stringify({
       model: "google/gemini-2.5-flash-lite",
       messages: [
-        { role: "system", content: "Extraia produtos do texto de catálogo. Retorne via tool call. Se não encontrar produtos, retorne lista vazia." },
-        { role: "user", content: `Marca: ${brandName}\n\n${text}` },
+        { role: "system", content: "Extraia SOMENTE produtos de maquiagem, skincare e acessórios de beleza. IGNORE produtos capilares, unhas, perfumes e qualquer texto sobre distribuição por atacado, preços de atacado ou condições B2B. Para 'price', use apenas o preço de varejo/unitário. Se só houver preço de atacado, não inclua o produto. Retorne via tool call." },
+        { role: "user", content: `Marca: ${brandName}\n\nExtraia apenas produtos de maquiagem, skincare e acessórios com preços de varejo:\n\n${text}` },
       ],
       tools: [{
         type: "function",
