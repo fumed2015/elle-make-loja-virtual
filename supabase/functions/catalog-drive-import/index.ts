@@ -38,7 +38,7 @@ async function getAllDriveFiles(folderId: string, mimeType: string, apiKey: stri
 }
 
 async function downloadPdfAsBase64(fileId: string, apiKey: string): Promise<string | null> {
-  const MAX_PDF_SIZE = 4 * 1024 * 1024; // 4MB limit to avoid memory issues
+  const MAX_PDF_SIZE = 10 * 1024 * 1024; // 10MB limit
   try {
     const res = await fetch(
       `https://www.googleapis.com/drive/v3/files/${fileId}?alt=media&key=${apiKey}`,
@@ -51,8 +51,8 @@ async function downloadPdfAsBase64(fileId: string, apiKey: string): Promise<stri
     }
     const buffer = await res.arrayBuffer();
     if (buffer.byteLength > MAX_PDF_SIZE) {
-      console.warn(`PDF ${fileId} too large (${(buffer.byteLength / 1024 / 1024).toFixed(1)}MB), skipping`);
-      return null;
+      console.warn(`PDF ${fileId} too large (${(buffer.byteLength / 1024 / 1024).toFixed(1)}MB), using text fallback`);
+      return null; // caller will use text fallback
     }
     return base64Encode(new Uint8Array(buffer));
   } catch (e) {
