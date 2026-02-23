@@ -194,6 +194,21 @@ const CatalogDriveTab = () => {
     }
   };
 
+  const handleDeleteAllCatalog = async () => {
+    if (!confirm("Tem certeza que deseja apagar TODOS os itens do catálogo?")) return;
+    try {
+      const { error } = await supabase.from("catalog_items").delete().neq("id", "00000000-0000-0000-0000-000000000000");
+      if (error) throw error;
+      const { error: err2 } = await supabase.from("catalog_imports").delete().neq("id", "00000000-0000-0000-0000-000000000000");
+      if (err2) throw err2;
+      toast.success("Todos os itens do catálogo foram removidos.");
+      queryClient.invalidateQueries({ queryKey: ["catalog-items"] });
+      queryClient.invalidateQueries({ queryKey: ["catalog-imports"] });
+    } catch (e: any) {
+      toast.error(e.message || "Erro ao limpar catálogo");
+    }
+  };
+
   const handleGenerateInsights = async () => {
     setGeneratingInsights(true);
     setInsights(null);
@@ -512,22 +527,28 @@ const CatalogDriveTab = () => {
 
       {/* Stats bar */}
       {catalogItems && catalogItems.length > 0 && (
-        <div className="grid grid-cols-3 gap-2">
-          <div className="bg-card rounded-xl p-3 border text-center">
-            <Package className="w-4 h-4 mx-auto mb-1 text-primary" />
-            <p className="text-lg font-bold">{catalogItems.length}</p>
-            <p className="text-[9px] text-muted-foreground">Produtos</p>
+        <div className="space-y-2">
+          <div className="grid grid-cols-3 gap-2">
+            <div className="bg-card rounded-xl p-3 border text-center">
+              <Package className="w-4 h-4 mx-auto mb-1 text-primary" />
+              <p className="text-lg font-bold">{catalogItems.length}</p>
+              <p className="text-[9px] text-muted-foreground">Produtos</p>
+            </div>
+            <div className="bg-card rounded-xl p-3 border text-center">
+              <Tag className="w-4 h-4 mx-auto mb-1 text-accent" />
+              <p className="text-lg font-bold">{allBrands.length}</p>
+              <p className="text-[9px] text-muted-foreground">Marcas</p>
+            </div>
+            <div className="bg-card rounded-xl p-3 border text-center">
+              <FolderOpen className="w-4 h-4 mx-auto mb-1 text-muted-foreground" />
+              <p className="text-lg font-bold">{allCategories.length}</p>
+              <p className="text-[9px] text-muted-foreground">Categorias</p>
+            </div>
           </div>
-          <div className="bg-card rounded-xl p-3 border text-center">
-            <Tag className="w-4 h-4 mx-auto mb-1 text-accent" />
-            <p className="text-lg font-bold">{allBrands.length}</p>
-            <p className="text-[9px] text-muted-foreground">Marcas</p>
-          </div>
-          <div className="bg-card rounded-xl p-3 border text-center">
-            <FolderOpen className="w-4 h-4 mx-auto mb-1 text-muted-foreground" />
-            <p className="text-lg font-bold">{allCategories.length}</p>
-            <p className="text-[9px] text-muted-foreground">Categorias</p>
-          </div>
+          <Button size="sm" variant="destructive" className="w-full text-xs" onClick={handleDeleteAllCatalog}>
+            <Trash2 className="w-3.5 h-3.5 mr-1" />
+            Limpar Todo o Catálogo
+          </Button>
         </div>
       )}
 
