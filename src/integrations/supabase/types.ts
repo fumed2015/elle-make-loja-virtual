@@ -142,6 +142,98 @@ export type Database = {
           },
         ]
       }
+      catalog_imports: {
+        Row: {
+          created_at: string
+          error_message: string | null
+          folder_id: string
+          folder_name: string | null
+          id: string
+          processed_files: number | null
+          status: string
+          total_files: number | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          error_message?: string | null
+          folder_id: string
+          folder_name?: string | null
+          id?: string
+          processed_files?: number | null
+          status?: string
+          total_files?: number | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          error_message?: string | null
+          folder_id?: string
+          folder_name?: string | null
+          id?: string
+          processed_files?: number | null
+          status?: string
+          total_files?: number | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      catalog_items: {
+        Row: {
+          brand: string
+          category: string | null
+          compare_at_price: number | null
+          created_at: string
+          description: string | null
+          id: string
+          image_urls: string[] | null
+          import_id: string | null
+          price: number | null
+          product_name: string
+          raw_data: Json | null
+          source_file: string | null
+          tags: string[] | null
+        }
+        Insert: {
+          brand: string
+          category?: string | null
+          compare_at_price?: number | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          image_urls?: string[] | null
+          import_id?: string | null
+          price?: number | null
+          product_name: string
+          raw_data?: Json | null
+          source_file?: string | null
+          tags?: string[] | null
+        }
+        Update: {
+          brand?: string
+          category?: string | null
+          compare_at_price?: number | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          image_urls?: string[] | null
+          import_id?: string | null
+          price?: number | null
+          product_name?: string
+          raw_data?: Json | null
+          source_file?: string | null
+          tags?: string[] | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "catalog_items_import_id_fkey"
+            columns: ["import_id"]
+            isOneToOne: false
+            referencedRelation: "catalog_imports"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       categories: {
         Row: {
           created_at: string
