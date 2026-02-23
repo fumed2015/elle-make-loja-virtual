@@ -11,6 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { FolderOpen, Search, Loader2, Sparkles, Download, BarChart3, Package, Tag, Trash2, AlertTriangle } from "lucide-react";
 import { motion } from "framer-motion";
 import ReactMarkdown from "react-markdown";
+import CatalogConsultant from "./CatalogConsultant";
 
 const CatalogDriveTab = () => {
   const queryClient = useQueryClient();
@@ -281,6 +282,10 @@ const CatalogDriveTab = () => {
           </div>
         )}
       </Card>
+
+
+      {/* AI Buying Consultant */}
+      <CatalogConsultant />
 
       {/* Stats bar */}
       {catalogItems && catalogItems.length > 0 && (
