@@ -84,9 +84,9 @@ async function extractProductsFromPdf(pdfBase64: string, brandName: string, file
     body: JSON.stringify({
       model: "google/gemini-2.5-flash",
       messages: [
-        { role: "system", content: `Você é um especialista em análise VISUAL de catálogos de cosméticos. Analise TODAS as imagens e fotos dos produtos no PDF. Para cada produto visível nas imagens, extraia: nome do produto (leia o texto na embalagem/rótulo), preço de varejo (leia valores impressos — ignore preços de caixa/atacado), descrição curta baseada no que você VÊ na imagem. Extraia SOMENTE produtos de maquiagem, skincare e acessórios de beleza. IGNORE: produtos capilares, unhas, perfumes, informações de atacado/B2B. Se o preço não estiver visível, ainda assim inclua o produto com price=null. Retorne via tool call.` },
+        { role: "system", content: `Você é um especialista em análise VISUAL de catálogos de cosméticos de distribuição. Analise TODAS as imagens e fotos dos produtos no PDF. Para cada produto visível, extraia: nome do produto (leia o texto na embalagem/rótulo), preço (capture o preço listado no catálogo, seja unitário ou de distribuição), descrição curta baseada no que você VÊ na imagem. Extraia SOMENTE produtos de maquiagem, skincare e acessórios de beleza. IGNORE: produtos capilares, unhas, perfumes. Retorne via tool call.` },
         { role: "user", content: [
-          { type: "text", text: `Marca: ${brandName}\nArquivo: ${fileName}\n\nAnalise visualmente cada página e imagem do PDF. Extraia todos os produtos de maquiagem, skincare e acessórios que você conseguir identificar nas fotos/imagens, incluindo nome, preço de varejo e descrição visual.` },
+          { type: "text", text: `Marca: ${brandName}\nArquivo: ${fileName}\n\nAnalise visualmente cada página/imagem do PDF. Extraia todos os produtos de maquiagem, skincare e acessórios com seus preços de distribuição.` },
           { type: "image_url", image_url: { url: `data:application/pdf;base64,${pdfBase64}` } },
         ] },
       ],
@@ -208,7 +208,7 @@ async function callAiForText(text: string, brandName: string, lovableApiKey: str
     body: JSON.stringify({
       model: "google/gemini-2.5-flash",
       messages: [
-        { role: "system", content: "Extraia SOMENTE produtos de maquiagem, skincare e acessórios de beleza. IGNORE produtos capilares, unhas, perfumes e qualquer texto sobre distribuição por atacado, preços de atacado ou condições B2B. Para 'price', use apenas o preço de varejo/unitário. Se só houver preço de atacado, não inclua o produto. Retorne via tool call." },
+        { role: "system", content: "Extraia SOMENTE produtos de maquiagem, skincare e acessórios de beleza. IGNORE produtos capilares, unhas e perfumes. Capture o preço listado no catálogo (seja de distribuição ou unitário). Retorne via tool call." },
         { role: "user", content: `Marca: ${brandName}\n\nExtraia apenas produtos de maquiagem, skincare e acessórios com preços de varejo:\n\n${text}` },
       ],
       tools: [{
