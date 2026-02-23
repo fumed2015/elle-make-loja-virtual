@@ -38,10 +38,25 @@ async function getAllDriveFiles(folderId: string, mimeType: string, apiKey: stri
 }
 
 async function downloadPdfAsBase64(fileId: string, apiKey: string): Promise<string | null> {
-  const MAX_PDF_SIZE = 6 * 1024 * 1024; // 6MB limit
+  const MAX_PDF_SIZE = 3 * 1024 * 1024; // 3MB limit to stay within memory constraints
   try {
+    // Check file size first via metadata to avoid downloading large files
+    const metaRes = await fetch(
+      `https://www.googleapis.com/drive/v3/files/${fileId}?fields=size&key=${apiKey}`
+    );
+    if (metaRes.ok) {
+      const meta = await metaRes.json();
+      const fileSize = parseInt(meta.size || "0", 10);
+      if (fileSize > MAX_PDF_SIZE) {
+        console.warn(`PDF ${fileId} too large (${(fileSize / 1024 / 1024).toFixed(1)}MB), skipping download`);
+        return null;
+      }
+    } else {
+      await metaRes.text();
+    }
+
     const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 20000); // 20s timeout
+    const timeout = setTimeout(() => controller.abort(), 15000); // 15s timeout
     const res = await fetch(
       `https://www.googleapis.com/drive/v3/files/${fileId}?alt=media&key=${apiKey}`,
       { headers: { Accept: "application/pdf" }, signal: controller.signal }
@@ -50,10 +65,12 @@ async function downloadPdfAsBase64(fileId: string, apiKey: string): Promise<stri
     if (!res.ok) { await res.text(); return null; }
     const buffer = await res.arrayBuffer();
     if (buffer.byteLength > MAX_PDF_SIZE) {
-      console.warn(`PDF ${fileId} too large (${(buffer.byteLength / 1024 / 1024).toFixed(1)}MB), using text fallback`);
+      console.warn(`PDF ${fileId} actual size exceeded limit`);
       return null;
     }
-    return base64Encode(new Uint8Array(buffer));
+    const encoded = base64Encode(new Uint8Array(buffer));
+    // Release reference to raw buffer immediately
+    return encoded;
   } catch (e) {
     console.error(`Download error for ${fileId}:`, e);
     return null;
