@@ -11,10 +11,12 @@ type Msg = { role: "user" | "assistant"; content: string };
 const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/catalog-consultant`;
 
 const QUICK_PROMPTS = [
-  { label: "🔍 Filtro de Fornecedor", prompt: "Analise os produtos do catálogo importado. Classifique os 5 melhores como 'estrelas' (lucro+imagem) e os 5 piores como 'bois de piranha' (só volume). Justifique." },
-  { label: "📦 Anti-Encalhe", prompt: "Quais produtos do meu catálogo têm maior risco de encalhe? Sugira bundles/kits para girá-los sem perder margem." },
-  { label: "📅 Calendário Sazonal", prompt: "Considerando os próximos 60 dias, quais categorias devo reforçar o estoque e o que NÃO devo comprar?" },
-  { label: "💰 Análise de Margem", prompt: "Com base nos preços do catálogo e minhas premissas financeiras, quais produtos têm melhor margem de contribuição? Quais estão com preço arriscado?" },
+  { label: "🔍 Filtro de Fornecedor", prompt: "Analise os produtos do catálogo importado. Classifique os 5 melhores como 'estrelas' (lucro+imagem) e os 5 piores como 'bois de piranha' (só volume). Justifique com números de margem." },
+  { label: "📦 Anti-Encalhe", prompt: "Quais produtos do meu catálogo têm maior risco de encalhe? Sugira bundles/kits para girá-los sem perder margem. Calcule o preço ideal do kit." },
+  { label: "📅 Calendário Sazonal", prompt: "Considerando os próximos 60 dias, quais categorias devo reforçar o estoque e o que NÃO devo comprar? Considere meu orçamento e metas." },
+  { label: "💰 Análise de Margem", prompt: "Calcule a margem de contribuição real de cada produto da loja (preço - custo - frete - taxa - embalagem). Quais estão abaixo da margem desejada? Ranking de rentabilidade." },
+  { label: "🧮 Simulação de Compra", prompt: "Tenho R$3.000 para investir em estoque. Simule a melhor distribuição de compra considerando meu mix atual, margem desejada e ticket médio necessário. Quais produtos priorizar?" },
+  { label: "📊 ROI por Marca", prompt: "Compare o ROI esperado de cada marca no meu catálogo. Considere preço de compra, preço de venda, giro estimado e margem líquida. Qual marca devo aumentar e qual devo reduzir?" },
 ];
 
 const CatalogConsultant = () => {

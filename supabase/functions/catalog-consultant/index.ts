@@ -44,14 +44,24 @@ Você sabe fazer:
 3. **Kit Anti-Encalhe** — Criar bundles para girar estoque parado sem perder margem
 4. **Calendário Sazonal** — Orientar compras para datas fortes (Black Friday, Natal, Dia das Mães)
 5. **Validação de Marca Nova** — Avaliar se marca nova vale o investimento inicial
+6. **Simulação de Compra** — Dado um orçamento, simule quanto comprar de cada item considerando custos fixos, frete, taxas e margem desejada
+7. **Análise de Rentabilidade** — Compare margem de contribuição real (preço venda - custo - frete - taxa gateway - embalagem) entre produtos
+
+## Inteligência Financeira
+- Sempre considere as premissas financeiras ao recomendar (margem desejada, custos fixos, taxas de gateway)
+- Calcule margem de contribuição quando tiver dados de custo: MC = Preço Venda - Custo Base - Frete Unitário - Taxa Gateway - Embalagem
+- Alerte quando o preço de compra + custos operacionais não atingem a margem desejada
+- Use o ticket médio necessário para sugerir combos/kits que atinjam esse valor
+- Considere o orçamento de marketing ao sugerir volumes de compra
 
 ## Tom e Linguagem
 - Direta, prática, sem enrolação
 - Use emojis estratégicos para marcar vereditos
 - Fale como uma executiva experiente que já viu muita coisa no mercado
-- Quando tiver dados do catálogo importado, use-os para embasar suas análises
+- Quando tiver dados do catálogo importado e premissas financeiras, use-os para embasar suas análises com números reais
+- Sempre que possível, apresente cálculos de margem e ROI esperado
 
-## DADOS DO CATÁLOGO (contexto do estoque/produtos importados)
+## DADOS DO CATÁLOGO E FINANCEIROS (contexto real da empresa)
 {{CATALOG_CONTEXT}}`;
 
 serve(async (req) => {
@@ -74,6 +84,18 @@ serve(async (req) => {
       .order("created_at", { ascending: false })
       .limit(200);
 
+    // Fetch real products with costs
+    const { data: products } = await supabase
+      .from("products")
+      .select("name, brand, price, compare_at_price, stock, category_id, is_active, tags")
+      .eq("is_active", true)
+      .order("created_at", { ascending: false })
+      .limit(100);
+
+    const { data: productCosts } = await supabase
+      .from("product_costs")
+      .select("product_id, cost_base, freight_per_unit, notes");
+
     let catalogContext = "Nenhum produto importado ainda.";
     if (items && items.length > 0) {
       const brands = [...new Set(items.map(i => i.brand))];
@@ -81,24 +103,55 @@ serve(async (req) => {
       const priced = items.filter(i => i.price);
       const avgPrice = priced.length > 0 ? (priced.reduce((s, i) => s + Number(i.price), 0) / priced.length).toFixed(2) : "N/A";
 
-      catalogContext = `Total: ${items.length} produtos, ${brands.length} marcas, ${categories.length} categorias. Preço médio: R$${avgPrice}.
+      catalogContext = `Total catálogo importado: ${items.length} produtos, ${brands.length} marcas, ${categories.length} categorias. Preço médio: R$${avgPrice}.
 
 Marcas: ${brands.join(", ")}
 Categorias: ${categories.join(", ")}
 
-Produtos (amostra):
+Produtos do catálogo (amostra):
 ${items.slice(0, 50).map(i => `- ${i.brand} | ${i.product_name} | R$${i.price || "N/A"} | ${i.category || "sem categoria"} | Tags: ${(i.tags || []).join(", ")}`).join("\n")}`;
     }
 
-    // Also fetch financial premises for margin context
+    // Add real store products with stock and costs
+    if (products && products.length > 0) {
+      const costsMap = new Map((productCosts || []).map(c => [c.product_id, c]));
+      catalogContext += `\n\n## PRODUTOS DA LOJA (estoque atual):
+${products.map(p => {
+        const cost = costsMap.get((p as any).id);
+        return `- ${p.name} | ${p.brand || "sem marca"} | Venda: R$${p.price} | Estoque: ${p.stock} un${cost ? ` | Custo: R$${cost.cost_base} + Frete: R$${cost.freight_per_unit}` : ""}`;
+      }).join("\n")}`;
+    }
+
+    // Fetch FULL financial premises for budget-aware recommendations
     const { data: premises } = await supabase
       .from("financial_premises")
-      .select("desired_margin, packaging_cost, gateway_rate_pix, gateway_rate_credit, influencer_commission_rate")
+      .select("*")
       .limit(1)
       .maybeSingle();
 
     if (premises) {
-      catalogContext += `\n\nPremissas financeiras: Margem desejada: ${premises.desired_margin}%, Embalagem: R$${premises.packaging_cost}, Taxa Pix: ${premises.gateway_rate_pix}%, Taxa Cartão: ${premises.gateway_rate_credit}%, Comissão influencer: ${premises.influencer_commission_rate}%`;
+      const fixedCosts = [
+        { label: premises.fixed_cost_platform_label || "Plataforma", value: premises.fixed_cost_platform },
+        { label: premises.fixed_cost_whatsgw_label || "WhatsGW", value: premises.fixed_cost_whatsgw },
+        { label: premises.fixed_cost_extra1_label, value: premises.fixed_cost_extra1 },
+        { label: premises.fixed_cost_extra2_label, value: premises.fixed_cost_extra2 },
+        { label: premises.fixed_cost_extra3_label, value: premises.fixed_cost_extra3 },
+        { label: premises.fixed_cost_other_label || "Outros", value: premises.fixed_cost_other },
+      ].filter(c => c.value > 0);
+
+      const totalFixed = fixedCosts.reduce((s, c) => s + c.value, 0);
+
+      catalogContext += `\n\n## PREMISSAS FINANCEIRAS COMPLETAS:
+- Meta de faturamento mensal: R$${premises.monthly_revenue_goal}
+- Meta de pedidos/mês: ${premises.order_target}
+- Margem desejada: ${premises.desired_margin}%
+- Orçamento de marketing: R$${premises.marketing_budget}
+- Custo embalagem: R$${premises.packaging_cost}
+- Taxas gateway: Pix ${premises.gateway_rate_pix}% | Cartão ${premises.gateway_rate_credit}% + R$${premises.gateway_rate_credit_fixed} | Débito ${premises.gateway_rate_debit}%
+- Comissão influencer: ${premises.influencer_commission_rate}%
+- Frete lote (SP→PA): R$${premises.freight_batch_total} para ${premises.freight_batch_items} itens (R$${premises.freight_batch_items > 0 ? (premises.freight_batch_total / premises.freight_batch_items).toFixed(2) : "0"}/un)
+- Custos fixos mensais: R$${totalFixed.toFixed(2)} (${fixedCosts.map(c => `${c.label}: R$${c.value}`).join(", ")})
+- Ticket médio necessário: R$${premises.order_target > 0 ? (premises.monthly_revenue_goal / premises.order_target).toFixed(2) : "N/A"}`;
     }
 
     const systemPrompt = SYSTEM_PROMPT.replace("{{CATALOG_CONTEXT}}", catalogContext);
