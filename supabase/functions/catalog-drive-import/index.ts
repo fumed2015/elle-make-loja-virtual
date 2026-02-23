@@ -280,13 +280,10 @@ serve(async (req) => {
 
       const folderId = rec.folder_id;
 
-      // Check duplicate — skip if same folder already completed
+      // Check duplicate — warn but don't block (allow re-import)
       const { data: existing } = await supabase.from("catalog_imports").select("id").eq("folder_id", folderId).eq("status", "completed").neq("id", import_id).limit(1);
       if (existing && existing.length > 0) {
-        await supabase.from("catalog_imports").update({ status: "completed", error_message: "Importação duplicada — essa pasta já foi importada." }).eq("id", import_id);
-        return new Response(JSON.stringify({ success: false, error: "Essa pasta já foi importada.", done: true }), {
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
+        console.warn(`Folder ${folderId} was previously imported, proceeding with new import.`);
       }
 
       const brands = await getAllDriveFiles(folderId, "application/vnd.google-apps.folder", GOOGLE_API_KEY);
