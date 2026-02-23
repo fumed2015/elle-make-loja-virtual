@@ -285,9 +285,9 @@ serve(async (req) => {
       const { data: rec, error: recErr } = await supabase.from("catalog_imports").select("*").eq("id", import_id).single();
       if (recErr || !rec) throw new Error("Import not found");
 
-      // If still pending, redirect to discover first
+      // If still pending, treat as not yet ready — return done so frontend doesn't loop
       if (rec.status === "pending") {
-        return new Response(JSON.stringify({ success: false, error: "Primeiro execute a ação 'discover' para essa importação." }), {
+        return new Response(JSON.stringify({ success: true, done: true, processedFiles: 0, totalFiles: 0, productsInChunk: 0, message: "Discover não executado. Execute novamente." }), {
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }

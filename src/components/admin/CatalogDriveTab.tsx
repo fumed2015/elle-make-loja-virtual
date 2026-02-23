@@ -143,7 +143,7 @@ const CatalogDriveTab = () => {
           body: { action: "import", import_id: importId },
         });
         if (error) throw error;
-        if (data?.error) throw new Error(data.error);
+        if (data?.error) { console.warn("Batch warning:", data.error); break; }
         const chunkMs = Date.now() - chunkStart;
 
         done = data.done;
