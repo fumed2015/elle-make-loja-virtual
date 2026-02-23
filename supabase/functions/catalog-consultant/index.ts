@@ -75,7 +75,9 @@ serve(async (req) => {
     const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
-    const { messages } = await req.json();
+    const body = await req.json();
+    const isAnalysisMode = body.mode === "analysis";
+    const messages = body.messages || [];
 
     // Fetch catalog context
     const { data: items } = await supabase
@@ -156,6 +158,69 @@ ${products.map(p => {
 
     const systemPrompt = SYSTEM_PROMPT.replace("{{CATALOG_CONTEXT}}", catalogContext);
 
+    if (isAnalysisMode) {
+      // Structured analysis mode: returns JSON with verdicts, risks, opportunities
+      const analysisPrompt = `Analise o portfólio completo do catálogo e da loja. Retorne APENAS um JSON válido (sem markdown, sem \`\`\`) com esta estrutura exata:
+{
+  "summary": "Resumo executivo de 2-3 frases sobre o estado do portfólio",
+  "risk_alerts": ["alerta 1", "alerta 2", ...],
+  "top_opportunities": ["oportunidade 1", "oportunidade 2", ...],
+  "verdicts": [
+    {
+      "product_name": "Nome do produto",
+      "brand": "Marca",
+      "verdict": "safe|moderate|risk",
+      "verdict_label": "🟢 Compra Segura|🟡 Compra Moderada|🔴 Alto Risco",
+      "market_analysis": "Análise breve do mercado",
+      "selling_point": "Ponto forte de venda",
+      "mix_suggestion": "Sugestão de cross-sell",
+      "risk_alert": "Alerta de risco ou string vazia"
+    }
+  ]
+}
+
+Analise até 15 produtos mais relevantes. Inclua pelo menos 3 alertas de risco e 3 oportunidades. Baseie-se nos dados reais do catálogo e premissas financeiras.`;
+
+      const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${LOVABLE_API_KEY}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          model: "google/gemini-3-flash-preview",
+          messages: [
+            { role: "system", content: systemPrompt },
+            { role: "user", content: analysisPrompt },
+          ],
+          stream: false,
+        }),
+      });
+
+      if (!response.ok) {
+        const t = await response.text();
+        console.error("AI analysis error:", response.status, t);
+        throw new Error("Erro na análise IA");
+      }
+
+      const aiResult = await response.json();
+      const raw = aiResult.choices?.[0]?.message?.content || "{}";
+      
+      // Parse JSON from response, handling potential markdown wrapping
+      let parsed;
+      try {
+        const cleaned = raw.replace(/```json\n?/g, "").replace(/```\n?/g, "").trim();
+        parsed = JSON.parse(cleaned);
+      } catch {
+        parsed = { summary: raw, risk_alerts: [], top_opportunities: [], verdicts: [] };
+      }
+
+      return new Response(JSON.stringify(parsed), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // Chat streaming mode (existing)
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
       headers: {
