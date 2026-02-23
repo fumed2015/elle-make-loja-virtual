@@ -6,8 +6,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
+import { Progress } from "@/components/ui/progress";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { FolderOpen, Search, Loader2, Sparkles, Download, BarChart3, Package, Tag, RefreshCw } from "lucide-react";
+import { FolderOpen, Search, Loader2, Sparkles, Download, BarChart3, Package, Tag, Trash2, AlertTriangle } from "lucide-react";
 import { motion } from "framer-motion";
 import ReactMarkdown from "react-markdown";
 
@@ -22,8 +23,8 @@ const CatalogDriveTab = () => {
   const [filterCategory, setFilterCategory] = useState("all");
   const [generatingInsights, setGeneratingInsights] = useState(false);
   const [insights, setInsights] = useState<string | null>(null);
+  const [deletingImport, setDeletingImport] = useState<string | null>(null);
 
-  // Fetch catalog items
   const { data: catalogItems, isLoading } = useQuery({
     queryKey: ["catalog-items"],
     queryFn: async () => {
@@ -36,7 +37,6 @@ const CatalogDriveTab = () => {
     },
   });
 
-  // Fetch imports
   const { data: imports } = useQuery({
     queryKey: ["catalog-imports"],
     queryFn: async () => {
@@ -47,10 +47,10 @@ const CatalogDriveTab = () => {
       if (error) throw error;
       return data || [];
     },
+    refetchInterval: importing ? 3000 : false,
   });
 
   const extractFolderId = (url: string): string | null => {
-    // Handle various Google Drive folder URL formats
     const patterns = [
       /\/folders\/([a-zA-Z0-9_-]+)/,
       /id=([a-zA-Z0-9_-]+)/,
@@ -69,7 +69,6 @@ const CatalogDriveTab = () => {
       toast.error("URL de pasta inválida. Cole o link da pasta do Google Drive.");
       return;
     }
-
     setListing(true);
     setBrands([]);
     try {
@@ -94,26 +93,20 @@ const CatalogDriveTab = () => {
   const handleImport = async () => {
     const folderId = extractFolderId(folderUrl);
     if (!folderId) return;
-
     setImporting(true);
     try {
-      // Create import record
       const { data: importRecord, error: insertError } = await supabase
         .from("catalog_imports")
         .insert({ folder_id: folderId, folder_name: folderUrl, status: "pending" })
         .select()
         .single();
-
       if (insertError) throw insertError;
 
-      // Start processing
       const { data, error } = await supabase.functions.invoke("catalog-drive-import", {
         body: { action: "import", import_id: importRecord.id },
       });
-
       if (error) throw error;
       if (data?.error) throw new Error(data.error);
-
       toast.success(`Importação concluída! ${data.totalProducts} produtos extraídos.`);
       queryClient.invalidateQueries({ queryKey: ["catalog-items"] });
       queryClient.invalidateQueries({ queryKey: ["catalog-imports"] });
@@ -121,6 +114,24 @@ const CatalogDriveTab = () => {
       toast.error(e.message || "Erro na importação");
     } finally {
       setImporting(false);
+    }
+  };
+
+  const handleDeleteImport = async (importId: string) => {
+    setDeletingImport(importId);
+    try {
+      const { data, error } = await supabase.functions.invoke("catalog-drive-import", {
+        body: { action: "delete-import", import_id: importId },
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      toast.success("Importação e itens removidos.");
+      queryClient.invalidateQueries({ queryKey: ["catalog-items"] });
+      queryClient.invalidateQueries({ queryKey: ["catalog-imports"] });
+    } catch (e: any) {
+      toast.error(e.message || "Erro ao deletar importação");
+    } finally {
+      setDeletingImport(null);
     }
   };
 
@@ -141,11 +152,9 @@ const CatalogDriveTab = () => {
     }
   };
 
-  // Derive unique brands and categories
   const allBrands = [...new Set(catalogItems?.map((i) => i.brand) || [])].sort();
   const allCategories = [...new Set(catalogItems?.map((i) => i.category).filter(Boolean) || [])].sort();
 
-  // Filter items
   const filtered = catalogItems?.filter((item) => {
     const matchSearch =
       !search ||
@@ -171,7 +180,6 @@ const CatalogDriveTab = () => {
             <p className="text-[10px] text-muted-foreground">Importe e analise catálogos de marcas via Google Drive</p>
           </div>
         </div>
-
         <div className="space-y-3">
           <Input
             placeholder="Cole o link da pasta do Google Drive..."
@@ -207,23 +215,51 @@ const CatalogDriveTab = () => {
         </Card>
       )}
 
-      {/* Import history */}
+      {/* Import history with progress & delete */}
       {imports && imports.length > 0 && (
         <Card className="p-4 space-y-3">
           <h3 className="text-xs font-bold uppercase text-muted-foreground">Importações</h3>
-          {imports.map((imp: any) => (
-            <div key={imp.id} className="flex items-center justify-between bg-muted rounded-lg p-3">
-              <div>
-                <p className="text-xs font-medium truncate max-w-[200px]">{imp.folder_name || imp.folder_id}</p>
-                <p className="text-[9px] text-muted-foreground">
-                  {imp.processed_files}/{imp.total_files} arquivos • {new Date(imp.created_at).toLocaleDateString("pt-BR")}
-                </p>
+          {imports.map((imp: any) => {
+            const progress = imp.total_files > 0 ? Math.round((imp.processed_files / imp.total_files) * 100) : 0;
+            const isProcessing = imp.status === "processing";
+            return (
+              <div key={imp.id} className="bg-muted rounded-lg p-3 space-y-2">
+                <div className="flex items-center justify-between">
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs font-medium truncate max-w-[200px]">{imp.folder_name || imp.folder_id}</p>
+                    <p className="text-[9px] text-muted-foreground">
+                      {imp.processed_files}/{imp.total_files} arquivos • {new Date(imp.created_at).toLocaleDateString("pt-BR")}
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Badge variant={imp.status === "completed" ? "default" : isProcessing ? "secondary" : "outline"} className="text-[9px]">
+                      {imp.status === "completed" ? "✓ Concluído" : isProcessing ? "⏳ Processando" : "Pendente"}
+                    </Badge>
+                    <Button
+                      size="icon"
+                      variant="ghost"
+                      className="h-6 w-6"
+                      disabled={deletingImport === imp.id}
+                      onClick={() => handleDeleteImport(imp.id)}
+                    >
+                      {deletingImport === imp.id ? (
+                        <Loader2 className="w-3 h-3 animate-spin" />
+                      ) : (
+                        <Trash2 className="w-3 h-3 text-destructive" />
+                      )}
+                    </Button>
+                  </div>
+                </div>
+                {isProcessing && <Progress value={progress} className="h-1.5" />}
+                {imp.error_message && (
+                  <div className="flex items-center gap-1 text-[9px] text-destructive">
+                    <AlertTriangle className="w-3 h-3" />
+                    {imp.error_message}
+                  </div>
+                )}
               </div>
-              <Badge variant={imp.status === "completed" ? "default" : imp.status === "processing" ? "secondary" : "outline"} className="text-[9px]">
-                {imp.status === "completed" ? "✓ Concluído" : imp.status === "processing" ? "⏳ Processando" : "Pendente"}
-              </Badge>
-            </div>
-          ))}
+            );
+          })}
         </Card>
       )}
 
@@ -314,8 +350,8 @@ const CatalogDriveTab = () => {
       ) : filtered.length > 0 ? (
         <div className="space-y-2">
           <p className="text-[10px] text-muted-foreground">{filtered.length} produtos encontrados</p>
-          {filtered.map((item, i) => (
-            <motion.div key={item.id} initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.02 }}>
+          {filtered.slice(0, 100).map((item, i) => (
+            <motion.div key={item.id} initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: Math.min(i * 0.02, 0.5) }}>
               <Card className="p-3">
                 <div className="flex items-start justify-between gap-2">
                   <div className="flex-1 min-w-0">
@@ -356,6 +392,9 @@ const CatalogDriveTab = () => {
               </Card>
             </motion.div>
           ))}
+          {filtered.length > 100 && (
+            <p className="text-[10px] text-center text-muted-foreground">Mostrando 100 de {filtered.length} produtos</p>
+          )}
         </div>
       ) : catalogItems && catalogItems.length === 0 ? (
         <div className="text-center py-12 text-muted-foreground">
