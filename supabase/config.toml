@@ -26,3 +26,6 @@ verify_jwt = false
 
 [functions.catalog-drive-import]
 verify_jwt = false
+
+[functions.catalog-consultant]
+verify_jwt = false
