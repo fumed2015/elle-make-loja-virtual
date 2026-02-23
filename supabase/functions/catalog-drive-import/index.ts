@@ -255,7 +255,7 @@ serve(async (req) => {
     const SUPABASE_SERVICE_ROLE_KEY = getEnv("SUPABASE_SERVICE_ROLE_KEY");
     const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
-    const { action, folder_id, import_id } = await req.json();
+    const { action, folder_id, import_id, supplier_name } = await req.json();
 
     // ── LIST-FOLDER ──
     if (action === "list-folder") {
@@ -327,7 +327,7 @@ serve(async (req) => {
     // ── IMPORT (step 2+: process CHUNK_SIZE files per call with retry) ──
     if (action === "import") {
       if (!import_id) throw new Error("import_id is required");
-      const CHUNK_SIZE = 3;
+      const CHUNK_SIZE = 1; // Process 1 file at a time to avoid compute limits
 
       const { data: rec, error: recErr } = await supabase.from("catalog_imports").select("*").eq("id", import_id).single();
       if (recErr || !rec) throw new Error("Import not found");
@@ -370,36 +370,30 @@ serve(async (req) => {
         });
       }
 
-      // Process files in parallel using Promise.allSettled with per-file retry
+      // Process files sequentially to avoid compute limits
       let productsCount = 0;
       const fileResults: { fileName: string; brandName: string; status: "ok" | "error"; products: number; durationMs: number; error?: string }[] = [];
 
-      const results = await Promise.allSettled(
-        chunk.map(async (file: any) => {
-          const t0 = Date.now();
+      for (const file of chunk) {
+        const t0 = Date.now();
+        try {
           const result = await processFileWithRetry(file, import_id, supabase, GOOGLE_API_KEY, LOVABLE_API_KEY);
-          return { fileName: file.fileName, brandName: file.brandName, products: result.products, durationMs: Date.now() - t0, error: result.error };
-        })
-      );
-
-      for (let i = 0; i < results.length; i++) {
-        const r = results[i];
-        if (r.status === "fulfilled") {
-          productsCount += r.value.products;
-          if (r.value.error) {
-            fileResults.push({ fileName: r.value.fileName, brandName: r.value.brandName, status: "error", products: 0, durationMs: r.value.durationMs, error: r.value.error });
-            console.error(`✗ ${r.value.fileName}: ${r.value.error}`);
+          const durationMs = Date.now() - t0;
+          if (result.error) {
+            fileResults.push({ fileName: file.fileName, brandName: file.brandName, status: "error", products: 0, durationMs, error: result.error });
+            console.error(`✗ ${file.fileName}: ${result.error}`);
           } else {
-            fileResults.push({ fileName: r.value.fileName, brandName: r.value.brandName, status: "ok", products: r.value.products, durationMs: r.value.durationMs });
-            console.log(`✓ ${r.value.fileName} (${r.value.brandName}): ${r.value.products} products in ${r.value.durationMs}ms`);
+            productsCount += result.products;
+            fileResults.push({ fileName: file.fileName, brandName: file.brandName, status: "ok", products: result.products, durationMs });
+            console.log(`✓ ${file.fileName} (${file.brandName}): ${result.products} products in ${durationMs}ms`);
           }
-        } else {
-          const errMsg = r.reason?.message || String(r.reason);
-          fileResults.push({ fileName: chunk[i].fileName, brandName: chunk[i].brandName, status: "error", products: 0, durationMs: 0, error: errMsg });
-          console.error(`✗ ${chunk[i].fileName}: ${errMsg}`);
-          // Persist unexpected failure
+        } catch (e: any) {
+          const durationMs = Date.now() - t0;
+          const errMsg = e.message || String(e);
+          fileResults.push({ fileName: file.fileName, brandName: file.brandName, status: "error", products: 0, durationMs, error: errMsg });
+          console.error(`✗ ${file.fileName}: ${errMsg}`);
           await supabase.from("catalog_import_failures").insert({
-            import_id, file_id: chunk[i].fileId, file_name: chunk[i].fileName, brand_name: chunk[i].brandName, error_message: errMsg, attempts: 1,
+            import_id, file_id: file.fileId, file_name: file.fileName, brand_name: file.brandName, error_message: errMsg, attempts: 1,
           }).then(() => {}).catch(() => {});
         }
       }

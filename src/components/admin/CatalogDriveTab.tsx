@@ -17,9 +17,15 @@ import CatalogAnalysisDashboard from "./CatalogAnalysisDashboard";
 const MAX_BATCH_RETRIES = 3;
 const BATCH_RETRY_DELAY = 2000; // ms
 
+// Fornecedores pré-configurados
+const PRECONFIGURED_SUPPLIERS = [
+  { name: "Bem Mulher", folderId: "1MX0Yokicu7eySv8dSP7whn-RZRaqy28-", url: "https://drive.google.com/drive/folders/1MX0Yokicu7eySv8dSP7whn-RZRaqy28-" },
+];
+
 const CatalogDriveTab = () => {
   const queryClient = useQueryClient();
   const [folderUrl, setFolderUrl] = useState("");
+  const [supplierName, setSupplierName] = useState("");
   const [importing, setImporting] = useState(false);
   const [listing, setListing] = useState(false);
   const [brands, setBrands] = useState<any[]>([]);
@@ -159,9 +165,10 @@ const CatalogDriveTab = () => {
         });
       } else {
         // Create new import
+        const resolvedSupplierName = supplierName || PRECONFIGURED_SUPPLIERS.find(s => s.url === folderUrl || s.folderId === folderId)?.name || "";
         const { data: importRecord, error: insertError } = await supabase
           .from("catalog_imports")
-          .insert({ folder_id: folderId, folder_name: folderUrl, status: "pending" })
+          .insert({ folder_id: folderId, folder_name: folderUrl, status: "pending", supplier_name: resolvedSupplierName || null } as any)
           .select()
           .single();
         if (insertError) throw insertError;
@@ -342,15 +349,34 @@ const CatalogDriveTab = () => {
             <FolderOpen className="w-5 h-5 text-primary" />
           </div>
           <div>
-            <h2 className="text-sm font-bold">Catálogo Google Drive</h2>
-            <p className="text-[10px] text-muted-foreground">Importe e analise catálogos de marcas via Google Drive</p>
+            <h2 className="text-sm font-bold">Catálogo de Fornecedores</h2>
+            <p className="text-[10px] text-muted-foreground">Importe catálogos de fornecedores via Google Drive</p>
           </div>
         </div>
         <div className="space-y-3">
+          {/* Fornecedores pré-configurados */}
+          {PRECONFIGURED_SUPPLIERS.length > 0 && (
+            <div className="space-y-1.5">
+              <p className="text-[10px] font-semibold text-muted-foreground uppercase">Fornecedores cadastrados</p>
+              <div className="flex gap-2 flex-wrap">
+                {PRECONFIGURED_SUPPLIERS.map((s) => (
+                  <Button
+                    key={s.folderId}
+                    size="sm"
+                    variant={folderUrl === s.url ? "default" : "outline"}
+                    className="text-[10px] h-7"
+                    onClick={() => { setFolderUrl(s.url); setSupplierName(s.name); }}
+                  >
+                    {s.name}
+                  </Button>
+                ))}
+              </div>
+            </div>
+          )}
           <Input
-            placeholder="Cole o link da pasta do Google Drive..."
+            placeholder="Ou cole o link da pasta do fornecedor no Google Drive..."
             value={folderUrl}
-            onChange={(e) => setFolderUrl(e.target.value)}
+            onChange={(e) => { setFolderUrl(e.target.value); setSupplierName(""); }}
             className="text-sm"
           />
           <div className="flex gap-2">
@@ -360,7 +386,7 @@ const CatalogDriveTab = () => {
             </Button>
             <Button size="sm" onClick={handleImport} disabled={importing || !folderUrl}>
               {importing ? <Loader2 className="w-3.5 h-3.5 animate-spin mr-1" /> : <Download className="w-3.5 h-3.5 mr-1" />}
-              Importar & Analisar
+              Importar Catálogo
             </Button>
           </div>
         </div>
@@ -397,8 +423,8 @@ const CatalogDriveTab = () => {
                   <h3 className="text-sm font-bold">Progresso da Importação</h3>
                   <p className="text-[10px] text-muted-foreground">
                     {progressData.phase === "discovering" && "Descobrindo arquivos..."}
-                    {progressData.phase === "processing" && "Processando PDFs em lotes de 3 (com retry automático)..."}
-                    {progressData.phase === "done" && "✓ Importação concluída!"}
+                    {progressData.phase === "processing" && "Processando PDFs do fornecedor (1 arquivo por vez com retry)..."}
+                    {progressData.phase === "done" && "✓ Catálogo do fornecedor importado com sucesso!"}
                     {progressData.phase === "error" && (
                       <span className="text-destructive">
                         ✗ Importação pausada — {progressData.errorDetail || "erro desconhecido"}
@@ -564,15 +590,16 @@ const CatalogDriveTab = () => {
 
       {imports && imports.length > 0 && (
         <Card className="p-4 space-y-3">
-          <h3 className="text-xs font-bold uppercase text-muted-foreground">Importações</h3>
+          <h3 className="text-xs font-bold uppercase text-muted-foreground">Importações de Fornecedores</h3>
           {imports.map((imp: any) => {
             const progress = imp.total_files > 0 ? Math.round((imp.processed_files / imp.total_files) * 100) : 0;
             const isProcessing = imp.status === "processing";
+            const displayName = (imp as any).supplier_name || imp.folder_name || imp.folder_id;
             return (
               <div key={imp.id} className="bg-muted rounded-lg p-3 space-y-2">
                 <div className="flex items-center justify-between">
                   <div className="flex-1 min-w-0">
-                    <p className="text-xs font-medium truncate max-w-[200px]">{imp.folder_name || imp.folder_id}</p>
+                    <p className="text-xs font-medium truncate max-w-[200px]">{displayName}</p>
                     <p className="text-[9px] text-muted-foreground">
                       {imp.processed_files}/{imp.total_files} arquivos • {new Date(imp.created_at).toLocaleDateString("pt-BR")}
                     </p>
