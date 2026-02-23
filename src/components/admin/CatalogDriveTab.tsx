@@ -27,6 +27,19 @@ const CatalogDriveTab = () => {
   const [insights, setInsights] = useState<string | null>(null);
   const [deletingImport, setDeletingImport] = useState<string | null>(null);
 
+  // Progress panel state
+  const [progressData, setProgressData] = useState<{
+    active: boolean;
+    totalFiles: number;
+    processedFiles: number;
+    totalProducts: number;
+    brandsCount: number;
+    startTime: number;
+    chunkTimes: number[]; // ms per chunk
+    currentChunk: number;
+    phase: "discovering" | "processing" | "done" | "error";
+  } | null>(null);
+
   const { data: catalogItems, isLoading } = useQuery({
     queryKey: ["catalog-items"],
     queryFn: async () => {
@@ -106,15 +119,15 @@ const CatalogDriveTab = () => {
 
       const importId = importRecord.id;
 
-      // Step 1: Discover files (build manifest only, no processing)
-      toast.info("Descobrindo arquivos nas pastas...");
+      // Step 1: Discover files
+      setProgressData({ active: true, totalFiles: 0, processedFiles: 0, totalProducts: 0, brandsCount: 0, startTime: Date.now(), chunkTimes: [], currentChunk: 0, phase: "discovering" });
       const { data: discoverData, error: discoverError } = await supabase.functions.invoke("catalog-drive-import", {
         body: { action: "discover", import_id: importId },
       });
       if (discoverError) throw discoverError;
       if (discoverData?.error) throw new Error(discoverData.error);
 
-      toast.success(`${discoverData.totalFiles} arquivos em ${discoverData.brandsCount} marcas. Iniciando processamento...`);
+      setProgressData(p => p ? { ...p, totalFiles: discoverData.totalFiles, brandsCount: discoverData.brandsCount, phase: "processing" } : p);
       queryClient.invalidateQueries({ queryKey: ["catalog-imports"] });
 
       // Step 2: Process files in chunks
@@ -122,20 +135,27 @@ const CatalogDriveTab = () => {
       let totalProducts = 0;
 
       while (!done) {
+        const chunkStart = Date.now();
         const { data, error } = await supabase.functions.invoke("catalog-drive-import", {
           body: { action: "import", import_id: importId },
         });
         if (error) throw error;
         if (data?.error) throw new Error(data.error);
+        const chunkMs = Date.now() - chunkStart;
 
         done = data.done;
         totalProducts += data.productsInChunk || 0;
 
-        queryClient.invalidateQueries({ queryKey: ["catalog-imports"] });
+        setProgressData(p => p ? {
+          ...p,
+          processedFiles: data.processedFiles || p.processedFiles,
+          totalProducts,
+          currentChunk: p.currentChunk + 1,
+          chunkTimes: [...p.chunkTimes, chunkMs],
+          phase: done ? "done" : "processing",
+        } : p);
 
-        if (!done) {
-          toast.info(`Processados ${data.processedFiles}/${data.totalFiles} arquivos... (${totalProducts} produtos)`);
-        }
+        queryClient.invalidateQueries({ queryKey: ["catalog-imports"] });
       }
 
       toast.success(`Importação concluída! ${totalProducts} produtos extraídos.`);
@@ -143,6 +163,7 @@ const CatalogDriveTab = () => {
       queryClient.invalidateQueries({ queryKey: ["catalog-imports"] });
     } catch (e: any) {
       toast.error(e.message || "Erro na importação");
+      setProgressData(p => p ? { ...p, phase: "error" } : p);
       queryClient.invalidateQueries({ queryKey: ["catalog-imports"] });
     } finally {
       setImporting(false);
@@ -247,7 +268,123 @@ const CatalogDriveTab = () => {
         </Card>
       )}
 
-      {/* Import history with progress & delete */}
+      {/* ── Live Progress Panel ── */}
+      {progressData && progressData.active && (
+        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
+          <Card className="p-5 space-y-4 border-primary/30 bg-gradient-to-br from-primary/5 to-accent/5">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <div className="relative">
+                  <BarChart3 className="w-5 h-5 text-primary" />
+                  {progressData.phase === "processing" && (
+                    <span className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-primary rounded-full animate-pulse" />
+                  )}
+                </div>
+                <div>
+                  <h3 className="text-sm font-bold">Progresso da Importação</h3>
+                  <p className="text-[10px] text-muted-foreground">
+                    {progressData.phase === "discovering" && "Descobrindo arquivos..."}
+                    {progressData.phase === "processing" && "Processando PDFs em lotes de 3..."}
+                    {progressData.phase === "done" && "✓ Importação concluída!"}
+                    {progressData.phase === "error" && "✗ Erro na importação"}
+                  </p>
+                </div>
+              </div>
+              {(progressData.phase === "done" || progressData.phase === "error") && (
+                <Button size="sm" variant="ghost" className="text-[10px] h-6" onClick={() => setProgressData(null)}>
+                  Fechar
+                </Button>
+              )}
+            </div>
+
+            {/* Main progress bar */}
+            {progressData.totalFiles > 0 && (
+              <div className="space-y-1.5">
+                <div className="flex justify-between text-[10px] text-muted-foreground">
+                  <span>{progressData.processedFiles} de {progressData.totalFiles} PDFs</span>
+                  <span className="font-bold text-foreground">
+                    {Math.round((progressData.processedFiles / progressData.totalFiles) * 100)}%
+                  </span>
+                </div>
+                <Progress value={(progressData.processedFiles / progressData.totalFiles) * 100} className="h-2.5" />
+                <div className="flex justify-between text-[10px] text-muted-foreground">
+                  <span>{progressData.totalFiles - progressData.processedFiles} PDFs restantes</span>
+                  <span>Lote #{progressData.currentChunk}</span>
+                </div>
+              </div>
+            )}
+
+            {/* Metrics grid */}
+            <div className="grid grid-cols-4 gap-2">
+              <div className="bg-card rounded-lg p-2.5 border text-center">
+                <p className="text-lg font-bold text-primary">{progressData.processedFiles}</p>
+                <p className="text-[8px] text-muted-foreground uppercase">Processados</p>
+              </div>
+              <div className="bg-card rounded-lg p-2.5 border text-center">
+                <p className="text-lg font-bold text-destructive">{progressData.totalFiles - progressData.processedFiles}</p>
+                <p className="text-[8px] text-muted-foreground uppercase">Restantes</p>
+              </div>
+              <div className="bg-card rounded-lg p-2.5 border text-center">
+                <p className="text-lg font-bold text-accent-foreground">{progressData.totalProducts}</p>
+                <p className="text-[8px] text-muted-foreground uppercase">Produtos</p>
+              </div>
+              <div className="bg-card rounded-lg p-2.5 border text-center">
+                <p className="text-lg font-bold text-accent-foreground">
+                  {progressData.chunkTimes.length > 0
+                    ? `${Math.round(progressData.chunkTimes[progressData.chunkTimes.length - 1] / 1000)}s`
+                    : "—"}
+                </p>
+                <p className="text-[8px] text-muted-foreground uppercase">Último Lote</p>
+              </div>
+            </div>
+
+            {/* Batch speed chart (simple bar representation) */}
+            {progressData.chunkTimes.length > 1 && (
+              <div className="space-y-1.5">
+                <p className="text-[10px] font-semibold text-muted-foreground uppercase">Tempo por Lote (s)</p>
+                <div className="flex items-end gap-0.5 h-12">
+                  {progressData.chunkTimes.map((ms, i) => {
+                    const maxMs = Math.max(...progressData.chunkTimes);
+                    const heightPct = maxMs > 0 ? (ms / maxMs) * 100 : 10;
+                    return (
+                      <div
+                        key={i}
+                        className="flex-1 bg-primary/60 rounded-t-sm transition-all duration-300 min-w-[3px]"
+                        style={{ height: `${Math.max(heightPct, 8)}%` }}
+                        title={`Lote ${i + 1}: ${(ms / 1000).toFixed(1)}s`}
+                      />
+                    );
+                  })}
+                </div>
+                <div className="flex justify-between text-[8px] text-muted-foreground">
+                  <span>Média: {(progressData.chunkTimes.reduce((a, b) => a + b, 0) / progressData.chunkTimes.length / 1000).toFixed(1)}s</span>
+                  <span>
+                    ETA: {(() => {
+                      const remaining = progressData.totalFiles - progressData.processedFiles;
+                      const avgMs = progressData.chunkTimes.reduce((a, b) => a + b, 0) / progressData.chunkTimes.length;
+                      const chunksLeft = Math.ceil(remaining / 3);
+                      const etaSec = (chunksLeft * avgMs) / 1000;
+                      if (etaSec < 60) return `~${Math.round(etaSec)}s`;
+                      return `~${Math.round(etaSec / 60)}min`;
+                    })()}
+                  </span>
+                </div>
+              </div>
+            )}
+
+            {/* Elapsed time */}
+            <div className="text-[9px] text-muted-foreground text-right">
+              Tempo decorrido: {(() => {
+                const elapsed = (Date.now() - progressData.startTime) / 1000;
+                if (elapsed < 60) return `${Math.round(elapsed)}s`;
+                return `${Math.floor(elapsed / 60)}min ${Math.round(elapsed % 60)}s`;
+              })()}
+            </div>
+          </Card>
+        </motion.div>
+      )}
+
+
       {imports && imports.length > 0 && (
         <Card className="p-4 space-y-3">
           <h3 className="text-xs font-bold uppercase text-muted-foreground">Importações</h3>
