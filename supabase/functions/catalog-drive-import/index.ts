@@ -74,7 +74,7 @@ async function extractProductsFromPdf(
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
-      model: "google/gemini-2.5-flash",
+      model: "google/gemini-2.5-flash-lite",
       messages: [
         {
           role: "system",
@@ -231,83 +231,84 @@ serve(async (req) => {
 
       await supabase.from("catalog_imports").update({ total_files: totalFiles }).eq("id", import_id);
 
-      // Process each PDF one at a time to minimize memory
+      // Process PDFs in parallel batches of 3 for speed
+      const BATCH_SIZE = 3;
       for (const { brand, files } of brandPdfs) {
-        for (const file of files) {
-          const batchItems: any[] = [];
-          try {
-            const pdfBase64 = await downloadPdfAsBase64(file.id, GOOGLE_API_KEY);
+        for (let batchStart = 0; batchStart < files.length; batchStart += BATCH_SIZE) {
+          const batch = files.slice(batchStart, batchStart + BATCH_SIZE);
+          
+          const results = await Promise.allSettled(
+            batch.map(async (file: any) => {
+              const pdfBase64 = await downloadPdfAsBase64(file.id, GOOGLE_API_KEY);
+              let products: any[] = [];
 
-            let products: any[] = [];
-
-            if (pdfBase64) {
-              products = await extractProductsFromPdf(pdfBase64, brand.name, file.name, LOVABLE_API_KEY);
-            } else {
-              // Fallback: try text export
-              const exportRes = await fetch(
-                `https://www.googleapis.com/drive/v3/files/${file.id}/export?mimeType=text/plain&key=${GOOGLE_API_KEY}`
-              );
-              if (exportRes.ok) {
-                const textContent = await exportRes.text();
-                const aiRes = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-                  method: "POST",
-                  headers: {
-                    Authorization: `Bearer ${LOVABLE_API_KEY}`,
-                    "Content-Type": "application/json",
-                  },
-                  body: JSON.stringify({
-                    model: "google/gemini-2.5-flash",
-                    messages: [
-                      { role: "system", content: "Extraia produtos do texto. Retorne via tool call." },
-                      { role: "user", content: `Marca: ${brand.name}\n${textContent.substring(0, 10000)}` },
-                    ],
-                    tools: [{
-                      type: "function",
-                      function: {
-                        name: "extract_products",
-                        description: "Extract products",
-                        parameters: {
-                          type: "object",
-                          properties: {
-                            products: {
-                              type: "array",
-                              items: {
-                                type: "object",
-                                properties: {
-                                  product_name: { type: "string" },
-                                  price: { type: "number" },
-                                  compare_at_price: { type: "number" },
-                                  description: { type: "string" },
-                                  category: { type: "string" },
-                                  tags: { type: "array", items: { type: "string" } },
+              if (pdfBase64) {
+                products = await extractProductsFromPdf(pdfBase64, brand.name, file.name, LOVABLE_API_KEY);
+              } else {
+                // Fallback: try text export
+                const exportRes = await fetch(
+                  `https://www.googleapis.com/drive/v3/files/${file.id}/export?mimeType=text/plain&key=${GOOGLE_API_KEY}`
+                );
+                if (exportRes.ok) {
+                  const textContent = await exportRes.text();
+                  const aiRes = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+                    method: "POST",
+                    headers: {
+                      Authorization: `Bearer ${LOVABLE_API_KEY}`,
+                      "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({
+                      model: "google/gemini-2.5-flash-lite",
+                      messages: [
+                        { role: "system", content: "Extraia produtos do texto. Retorne via tool call." },
+                        { role: "user", content: `Marca: ${brand.name}\n${textContent.substring(0, 10000)}` },
+                      ],
+                      tools: [{
+                        type: "function",
+                        function: {
+                          name: "extract_products",
+                          description: "Extract products",
+                          parameters: {
+                            type: "object",
+                            properties: {
+                              products: {
+                                type: "array",
+                                items: {
+                                  type: "object",
+                                  properties: {
+                                    product_name: { type: "string" },
+                                    price: { type: "number" },
+                                    compare_at_price: { type: "number" },
+                                    description: { type: "string" },
+                                    category: { type: "string" },
+                                    tags: { type: "array", items: { type: "string" } },
+                                  },
+                                  required: ["product_name"],
                                 },
-                                required: ["product_name"],
                               },
                             },
+                            required: ["products"],
                           },
-                          required: ["products"],
                         },
-                      },
-                    }],
-                    tool_choice: { type: "function", function: { name: "extract_products" } },
-                  }),
-                });
-                if (aiRes.ok) {
-                  const d = await aiRes.json();
-                  const tc = d.choices?.[0]?.message?.tool_calls?.[0];
-                  if (tc?.function?.arguments) {
-                    try { products = JSON.parse(tc.function.arguments).products || []; } catch {}
+                      }],
+                      tool_choice: { type: "function", function: { name: "extract_products" } },
+                    }),
+                  });
+                  if (aiRes.ok) {
+                    const d = await aiRes.json();
+                    const tc = d.choices?.[0]?.message?.tool_calls?.[0];
+                    if (tc?.function?.arguments) {
+                      try { products = JSON.parse(tc.function.arguments).products || []; } catch {}
+                    }
+                  } else {
+                    await aiRes.text();
                   }
                 } else {
-                  await aiRes.text();
+                  await exportRes.text();
                 }
-              } else {
-                await exportRes.text();
               }
-            }
 
-            for (const product of products) {
-              batchItems.push({
+              const batchItems = products.map((product: any) => ({
                 import_id,
                 brand: brand.name,
                 product_name: product.product_name || "Produto sem nome",
@@ -318,23 +319,22 @@ serve(async (req) => {
                 tags: product.tags || [],
                 source_file: file.name,
                 raw_data: product,
-              });
-            }
+              }));
 
-            // Insert immediately per-file to free memory
-            if (batchItems.length > 0) {
-              const { error: insertError } = await supabase.from("catalog_items").insert(batchItems);
-              if (insertError) console.error("Insert error:", insertError);
-              totalProducts += batchItems.length;
-            }
+              if (batchItems.length > 0) {
+                const { error: insertError } = await supabase.from("catalog_items").insert(batchItems);
+                if (insertError) console.error("Insert error:", insertError);
+              }
+              return batchItems.length;
+            })
+          );
 
+          for (const r of results) {
             processedFiles++;
-            await supabase.from("catalog_imports").update({ processed_files: processedFiles }).eq("id", import_id);
-          } catch (fileError) {
-            console.error(`Error processing ${file.name}:`, fileError);
-            processedFiles++;
-            await supabase.from("catalog_imports").update({ processed_files: processedFiles }).eq("id", import_id);
+            if (r.status === "fulfilled") totalProducts += r.value;
+            else console.error("Batch file error:", r.reason);
           }
+          await supabase.from("catalog_imports").update({ processed_files: processedFiles }).eq("id", import_id);
         }
       }
 
