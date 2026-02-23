@@ -147,31 +147,40 @@ export type Database = {
           attempts: number
           brand_name: string
           created_at: string
+          error_category: string | null
           error_message: string | null
           file_id: string
           file_name: string
+          file_size_bytes: number | null
           id: string
           import_id: string
+          retry_guidance: string | null
         }
         Insert: {
           attempts?: number
           brand_name: string
           created_at?: string
+          error_category?: string | null
           error_message?: string | null
           file_id: string
           file_name: string
+          file_size_bytes?: number | null
           id?: string
           import_id: string
+          retry_guidance?: string | null
         }
         Update: {
           attempts?: number
           brand_name?: string
           created_at?: string
+          error_category?: string | null
           error_message?: string | null
           file_id?: string
           file_name?: string
+          file_size_bytes?: number | null
           id?: string
           import_id?: string
+          retry_guidance?: string | null
         }
         Relationships: [
           {
