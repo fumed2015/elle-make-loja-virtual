@@ -192,6 +192,7 @@ export type Database = {
           id: string
           processed_files: number | null
           status: string
+          supplier_name: string | null
           total_files: number | null
           updated_at: string
         }
@@ -203,6 +204,7 @@ export type Database = {
           id?: string
           processed_files?: number | null
           status?: string
+          supplier_name?: string | null
           total_files?: number | null
           updated_at?: string
         }
@@ -214,6 +216,7 @@ export type Database = {
           id?: string
           processed_files?: number | null
           status?: string
+          supplier_name?: string | null
           total_files?: number | null
           updated_at?: string
         }
