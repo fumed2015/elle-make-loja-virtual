@@ -105,7 +105,20 @@ const CatalogDriveTab = () => {
       if (insertError) throw insertError;
 
       const importId = importRecord.id;
-      let done = false;
+
+      // Step 1: Discover files (build manifest only, no processing)
+      toast.info("Descobrindo arquivos nas pastas...");
+      const { data: discoverData, error: discoverError } = await supabase.functions.invoke("catalog-drive-import", {
+        body: { action: "discover", import_id: importId },
+      });
+      if (discoverError) throw discoverError;
+      if (discoverData?.error) throw new Error(discoverData.error);
+
+      toast.success(`${discoverData.totalFiles} arquivos em ${discoverData.brandsCount} marcas. Iniciando processamento...`);
+      queryClient.invalidateQueries({ queryKey: ["catalog-imports"] });
+
+      // Step 2: Process files in chunks
+      let done = discoverData.done;
       let totalProducts = 0;
 
       while (!done) {
@@ -118,11 +131,10 @@ const CatalogDriveTab = () => {
         done = data.done;
         totalProducts += data.productsInChunk || 0;
 
-        // Refresh imports to show progress
         queryClient.invalidateQueries({ queryKey: ["catalog-imports"] });
 
         if (!done) {
-          toast.info(`Processados ${data.processedFiles}/${data.totalFiles} arquivos...`);
+          toast.info(`Processados ${data.processedFiles}/${data.totalFiles} arquivos... (${totalProducts} produtos)`);
         }
       }
 
