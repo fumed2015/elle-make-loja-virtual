@@ -38,6 +38,7 @@ async function getAllDriveFiles(folderId: string, mimeType: string, apiKey: stri
 }
 
 async function downloadPdfAsBase64(fileId: string, apiKey: string): Promise<string | null> {
+  const MAX_PDF_SIZE = 4 * 1024 * 1024; // 4MB limit to avoid memory issues
   try {
     const res = await fetch(
       `https://www.googleapis.com/drive/v3/files/${fileId}?alt=media&key=${apiKey}`,
@@ -45,9 +46,14 @@ async function downloadPdfAsBase64(fileId: string, apiKey: string): Promise<stri
     );
     if (!res.ok) {
       console.error(`Download failed for ${fileId}: ${res.status}`);
+      await res.text(); // consume body
       return null;
     }
     const buffer = await res.arrayBuffer();
+    if (buffer.byteLength > MAX_PDF_SIZE) {
+      console.warn(`PDF ${fileId} too large (${(buffer.byteLength / 1024 / 1024).toFixed(1)}MB), skipping`);
+      return null;
+    }
     return base64Encode(new Uint8Array(buffer));
   } catch (e) {
     console.error(`Download error for ${fileId}:`, e);
@@ -213,37 +219,36 @@ serve(async (req) => {
 
       let totalFiles = 0;
       let processedFiles = 0;
-      const allItems: any[] = [];
+      let totalProducts = 0;
 
-      // Count total PDFs with pagination
+      // Count total PDFs
+      const brandPdfs: { brand: any; files: any[] }[] = [];
       for (const brand of brands) {
         const pdfs = await getAllDriveFiles(brand.id, "application/pdf", GOOGLE_API_KEY);
         totalFiles += pdfs.length;
-        brand.pdfFiles = pdfs;
+        brandPdfs.push({ brand, files: pdfs });
       }
 
       await supabase.from("catalog_imports").update({ total_files: totalFiles }).eq("id", import_id);
 
-      // Process each brand's PDFs
-      for (const brand of brands) {
-        for (const file of brand.pdfFiles) {
+      // Process each PDF one at a time to minimize memory
+      for (const { brand, files } of brandPdfs) {
+        for (const file of files) {
+          const batchItems: any[] = [];
           try {
-            // Download actual PDF binary
             const pdfBase64 = await downloadPdfAsBase64(file.id, GOOGLE_API_KEY);
 
             let products: any[] = [];
 
             if (pdfBase64) {
-              // Use Gemini with native PDF vision
               products = await extractProductsFromPdf(pdfBase64, brand.name, file.name, LOVABLE_API_KEY);
             } else {
-              // Fallback: try text export for Google Docs
+              // Fallback: try text export
               const exportRes = await fetch(
                 `https://www.googleapis.com/drive/v3/files/${file.id}/export?mimeType=text/plain&key=${GOOGLE_API_KEY}`
               );
               if (exportRes.ok) {
                 const textContent = await exportRes.text();
-                // Use text-based extraction as fallback
                 const aiRes = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
                   method: "POST",
                   headers: {
@@ -254,7 +259,7 @@ serve(async (req) => {
                     model: "google/gemini-2.5-flash",
                     messages: [
                       { role: "system", content: "Extraia produtos do texto. Retorne via tool call." },
-                      { role: "user", content: `Marca: ${brand.name}\n${textContent.substring(0, 15000)}` },
+                      { role: "user", content: `Marca: ${brand.name}\n${textContent.substring(0, 10000)}` },
                     ],
                     tools: [{
                       type: "function",
@@ -294,15 +299,15 @@ serve(async (req) => {
                     try { products = JSON.parse(tc.function.arguments).products || []; } catch {}
                   }
                 } else {
-                  await aiRes.text(); // consume body
+                  await aiRes.text();
                 }
               } else {
-                await exportRes.text(); // consume body
+                await exportRes.text();
               }
             }
 
             for (const product of products) {
-              allItems.push({
+              batchItems.push({
                 import_id,
                 brand: brand.name,
                 product_name: product.product_name || "Produto sem nome",
@@ -316,6 +321,13 @@ serve(async (req) => {
               });
             }
 
+            // Insert immediately per-file to free memory
+            if (batchItems.length > 0) {
+              const { error: insertError } = await supabase.from("catalog_items").insert(batchItems);
+              if (insertError) console.error("Insert error:", insertError);
+              totalProducts += batchItems.length;
+            }
+
             processedFiles++;
             await supabase.from("catalog_imports").update({ processed_files: processedFiles }).eq("id", import_id);
           } catch (fileError) {
@@ -326,23 +338,13 @@ serve(async (req) => {
         }
       }
 
-      // Batch insert all items
-      if (allItems.length > 0) {
-        const batchSize = 50;
-        for (let i = 0; i < allItems.length; i += batchSize) {
-          const batch = allItems.slice(i, i + batchSize);
-          const { error: insertError } = await supabase.from("catalog_items").insert(batch);
-          if (insertError) console.error("Insert error:", insertError);
-        }
-      }
-
       await supabase.from("catalog_imports").update({
         status: "completed",
         processed_files: processedFiles,
       }).eq("id", import_id);
 
       return new Response(
-        JSON.stringify({ success: true, totalProducts: allItems.length, processedFiles }),
+        JSON.stringify({ success: true, totalProducts, processedFiles }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
