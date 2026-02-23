@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -8,25 +8,48 @@ import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { FolderOpen, Search, Loader2, Sparkles, Download, BarChart3, Package, Tag, Trash2, AlertTriangle, RefreshCw } from "lucide-react";
+import { FolderOpen, Search, Loader2, Sparkles, Download, BarChart3, Package, Tag, Trash2, AlertTriangle, RefreshCw, Play, CheckCircle2, Clock } from "lucide-react";
 import { motion } from "framer-motion";
 import ReactMarkdown from "react-markdown";
 import CatalogConsultant from "./CatalogConsultant";
 import CatalogAnalysisDashboard from "./CatalogAnalysisDashboard";
 
 const MAX_BATCH_RETRIES = 3;
-const BATCH_RETRY_DELAY = 2000; // ms
+const BATCH_RETRY_DELAY = 2000;
 
 // Fornecedores pré-configurados
 const PRECONFIGURED_SUPPLIERS = [
   { name: "Bem Mulher", folderId: "1MX0Yokicu7eySv8dSP7whn-RZRaqy28-", url: "https://drive.google.com/drive/folders/1MX0Yokicu7eySv8dSP7whn-RZRaqy28-" },
 ];
 
+type BatchMetric = {
+  files: { fileName: string; brandName: string; status: "ok" | "error"; products: number; durationMs: number; error?: string }[];
+  successCount: number; failCount: number; totalDurationMs: number;
+};
+
+type ProgressState = {
+  active: boolean;
+  totalFiles: number;
+  processedFiles: number;
+  totalProducts: number;
+  brandsCount: number;
+  startTime: number;
+  chunkTimes: number[];
+  currentChunk: number;
+  phase: "discovering" | "processing" | "done" | "error";
+  totalErrors: number;
+  totalFailures: number;
+  batchHistory: BatchMetric[];
+  errorDetail?: string;
+  supplierName?: string;
+};
+
 const CatalogDriveTab = () => {
   const queryClient = useQueryClient();
   const [folderUrl, setFolderUrl] = useState("");
   const [supplierName, setSupplierName] = useState("");
   const [importing, setImporting] = useState(false);
+  const [importingSupplier, setImportingSupplier] = useState<string | null>(null);
   const [listing, setListing] = useState(false);
   const [brands, setBrands] = useState<any[]>([]);
   const [search, setSearch] = useState("");
@@ -35,23 +58,7 @@ const CatalogDriveTab = () => {
   const [generatingInsights, setGeneratingInsights] = useState(false);
   const [insights, setInsights] = useState<string | null>(null);
   const [deletingImport, setDeletingImport] = useState<string | null>(null);
-
-  type BatchMetric = { files: { fileName: string; brandName: string; status: "ok" | "error"; products: number; durationMs: number; error?: string }[]; successCount: number; failCount: number; totalDurationMs: number };
-  const [progressData, setProgressData] = useState<{
-    active: boolean;
-    totalFiles: number;
-    processedFiles: number;
-    totalProducts: number;
-    brandsCount: number;
-    startTime: number;
-    chunkTimes: number[];
-    currentChunk: number;
-    phase: "discovering" | "processing" | "done" | "error";
-    totalErrors: number;
-    totalFailures: number;
-    batchHistory: BatchMetric[];
-    errorDetail?: string;
-  } | null>(null);
+  const [progressData, setProgressData] = useState<ProgressState | null>(null);
 
   const { data: catalogItems, isLoading } = useQuery({
     queryKey: ["catalog-items"],
@@ -91,6 +98,19 @@ const CatalogDriveTab = () => {
     return null;
   };
 
+  // Get import status for a given folder ID
+  const getSupplierImportStatus = useCallback((folderId: string) => {
+    if (!imports) return null;
+    const supplierImports = imports.filter((imp: any) => imp.folder_id === folderId);
+    if (supplierImports.length === 0) return null;
+    // Prefer processing, then pending, then completed
+    const processing = supplierImports.find((imp: any) => imp.status === "processing");
+    if (processing) return processing;
+    const pending = supplierImports.find((imp: any) => imp.status === "pending");
+    if (pending) return pending;
+    return supplierImports[0]; // most recent (completed or other)
+  }, [imports]);
+
   const handleListFolder = async () => {
     const folderId = extractFolderId(folderUrl);
     if (!folderId) {
@@ -118,7 +138,6 @@ const CatalogDriveTab = () => {
     }
   };
 
-  // Helper: invoke import batch with retry
   const invokeImportWithRetry = async (importId: string, retries = MAX_BATCH_RETRIES): Promise<any> => {
     for (let attempt = 1; attempt <= retries; attempt++) {
       try {
@@ -135,50 +154,65 @@ const CatalogDriveTab = () => {
     }
   };
 
-  const handleImport = async () => {
-    const folderId = extractFolderId(folderUrl);
-    if (!folderId) return;
+  // Core import logic - works for both supplier buttons and manual URL
+  const runImport = async (folderId: string, name: string) => {
     setImporting(true);
+    setImportingSupplier(name || folderId);
     try {
-      // Check for existing in-progress import for same folder
+      // 1. Check for existing resumable import (processing or pending)
       const { data: existingImports } = await supabase
         .from("catalog_imports")
         .select("id, status, processed_files, total_files")
         .eq("folder_id", folderId)
-        .eq("status", "processing")
+        .in("status", ["processing", "pending"])
         .order("created_at", { ascending: false })
         .limit(1);
 
       let importId: string;
-      let skipDiscover = false;
 
       if (existingImports && existingImports.length > 0) {
-        // Resume existing import
         const existing = existingImports[0];
         importId = existing.id;
-        skipDiscover = true;
-        toast.info(`Retomando importação em andamento (${existing.processed_files}/${existing.total_files} arquivos)...`);
-        setProgressData({
-          active: true, totalFiles: existing.total_files || 0, processedFiles: existing.processed_files || 0,
-          totalProducts: 0, brandsCount: 0, startTime: Date.now(), chunkTimes: [], currentChunk: 0,
-          phase: "processing", totalErrors: 0, totalFailures: 0, batchHistory: [],
-        });
+
+        if (existing.status === "pending") {
+          // Needs discover first
+          setProgressData({
+            active: true, totalFiles: 0, processedFiles: 0, totalProducts: 0, brandsCount: 0,
+            startTime: Date.now(), chunkTimes: [], currentChunk: 0, phase: "discovering",
+            totalErrors: 0, totalFailures: 0, batchHistory: [], supplierName: name,
+          });
+
+          const { data: discoverData, error: discoverError } = await supabase.functions.invoke("catalog-drive-import", {
+            body: { action: "discover", import_id: importId },
+          });
+          if (discoverError) throw discoverError;
+          if (discoverData?.error) throw new Error(discoverData.error);
+
+          setProgressData(p => p ? { ...p, totalFiles: discoverData.totalFiles, brandsCount: discoverData.brandsCount, phase: "processing" } : p);
+        } else {
+          // Resume from last processed index
+          toast.info(`Retomando importação: ${existing.processed_files}/${existing.total_files} arquivos já processados`);
+          setProgressData({
+            active: true, totalFiles: existing.total_files || 0, processedFiles: existing.processed_files || 0,
+            totalProducts: 0, brandsCount: 0, startTime: Date.now(), chunkTimes: [], currentChunk: 0,
+            phase: "processing", totalErrors: 0, totalFailures: 0, batchHistory: [], supplierName: name,
+          });
+        }
       } else {
-        // Create new import
-        const resolvedSupplierName = supplierName || PRECONFIGURED_SUPPLIERS.find(s => s.url === folderUrl || s.folderId === folderId)?.name || "";
+        // Create new import record
         const { data: importRecord, error: insertError } = await supabase
           .from("catalog_imports")
-          .insert({ folder_id: folderId, folder_name: folderUrl, status: "pending", supplier_name: resolvedSupplierName || null } as any)
+          .insert({ folder_id: folderId, folder_name: name || folderId, status: "pending", supplier_name: name || null } as any)
           .select()
           .single();
         if (insertError) throw insertError;
         importId = importRecord.id;
 
-        // Step 1: Discover files
+        // Discover files
         setProgressData({
           active: true, totalFiles: 0, processedFiles: 0, totalProducts: 0, brandsCount: 0,
           startTime: Date.now(), chunkTimes: [], currentChunk: 0, phase: "discovering",
-          totalErrors: 0, totalFailures: 0, batchHistory: [],
+          totalErrors: 0, totalFailures: 0, batchHistory: [], supplierName: name,
         });
 
         const { data: discoverData, error: discoverError } = await supabase.functions.invoke("catalog-drive-import", {
@@ -188,10 +222,11 @@ const CatalogDriveTab = () => {
         if (discoverData?.error) throw new Error(discoverData.error);
 
         setProgressData(p => p ? { ...p, totalFiles: discoverData.totalFiles, brandsCount: discoverData.brandsCount, phase: "processing" } : p);
-        queryClient.invalidateQueries({ queryKey: ["catalog-imports"] });
       }
 
-      // Step 2: Process files in chunks with retry
+      queryClient.invalidateQueries({ queryKey: ["catalog-imports"] });
+
+      // 2. Process files one at a time with retry loop
       let done = false;
       let totalProducts = 0;
       let consecutiveErrors = 0;
@@ -200,10 +235,9 @@ const CatalogDriveTab = () => {
         const chunkStart = Date.now();
         try {
           const data = await invokeImportWithRetry(importId);
-          consecutiveErrors = 0; // reset on success
+          consecutiveErrors = 0;
 
           if (data?.needsDiscover) {
-            // Auto-trigger discover if backend says so
             const { data: discoverData, error: discoverError } = await supabase.functions.invoke("catalog-drive-import", {
               body: { action: "discover", import_id: importId },
             });
@@ -213,10 +247,7 @@ const CatalogDriveTab = () => {
             continue;
           }
 
-          if (data?.error) {
-            console.warn("Batch warning:", data.error);
-            break;
-          }
+          if (data?.error) { console.warn("Batch warning:", data.error); break; }
 
           const chunkMs = Date.now() - chunkStart;
           done = data.done;
@@ -238,29 +269,23 @@ const CatalogDriveTab = () => {
         } catch (batchErr: any) {
           consecutiveErrors++;
           const chunkMs = Date.now() - chunkStart;
-          console.error(`Batch error (consecutive: ${consecutiveErrors}):`, batchErr.message);
           setProgressData(p => p ? {
-            ...p,
-            currentChunk: p.currentChunk + 1,
-            chunkTimes: [...p.chunkTimes, chunkMs],
-            totalErrors: p.totalErrors + 1,
-            errorDetail: batchErr.message,
+            ...p, currentChunk: p.currentChunk + 1, chunkTimes: [...p.chunkTimes, chunkMs],
+            totalErrors: p.totalErrors + 1, errorDetail: batchErr.message,
           } : p);
 
           if (consecutiveErrors >= 3) {
-            toast.error(`Importação pausada após ${consecutiveErrors} erros consecutivos. Você pode retomar depois.`);
+            toast.error(`Importação pausada após ${consecutiveErrors} erros consecutivos. Clique novamente para retomar.`);
             setProgressData(p => p ? { ...p, phase: "error", errorDetail: `${consecutiveErrors} erros consecutivos: ${batchErr.message}` } : p);
             break;
           }
-          // Wait before next batch attempt
           await new Promise(r => setTimeout(r, 3000));
         }
-
         queryClient.invalidateQueries({ queryKey: ["catalog-imports"] });
       }
 
       if (done) {
-        toast.success(`Importação concluída! ${totalProducts} produtos extraídos.`);
+        toast.success(`Catálogo ${name || "do fornecedor"} importado! ${totalProducts} produtos extraídos.`);
         setProgressData(p => p ? { ...p, phase: "done" } : p);
       }
       queryClient.invalidateQueries({ queryKey: ["catalog-items"] });
@@ -272,7 +297,21 @@ const CatalogDriveTab = () => {
       queryClient.invalidateQueries({ queryKey: ["catalog-imports"] });
     } finally {
       setImporting(false);
+      setImportingSupplier(null);
     }
+  };
+
+  const handleImport = async () => {
+    const folderId = extractFolderId(folderUrl);
+    if (!folderId) return;
+    const name = supplierName || PRECONFIGURED_SUPPLIERS.find(s => s.folderId === folderId)?.name || "";
+    await runImport(folderId, name);
+  };
+
+  const handleSupplierImport = async (supplier: typeof PRECONFIGURED_SUPPLIERS[0]) => {
+    setFolderUrl(supplier.url);
+    setSupplierName(supplier.name);
+    await runImport(supplier.folderId, supplier.name);
   };
 
   const handleDeleteImport = async (importId: string) => {
@@ -353,26 +392,81 @@ const CatalogDriveTab = () => {
             <p className="text-[10px] text-muted-foreground">Importe catálogos de fornecedores via Google Drive</p>
           </div>
         </div>
-        <div className="space-y-3">
-          {/* Fornecedores pré-configurados */}
-          {PRECONFIGURED_SUPPLIERS.length > 0 && (
-            <div className="space-y-1.5">
-              <p className="text-[10px] font-semibold text-muted-foreground uppercase">Fornecedores cadastrados</p>
-              <div className="flex gap-2 flex-wrap">
-                {PRECONFIGURED_SUPPLIERS.map((s) => (
-                  <Button
-                    key={s.folderId}
-                    size="sm"
-                    variant={folderUrl === s.url ? "default" : "outline"}
-                    className="text-[10px] h-7"
-                    onClick={() => { setFolderUrl(s.url); setSupplierName(s.name); }}
-                  >
-                    {s.name}
-                  </Button>
-                ))}
-              </div>
+
+        {/* Supplier Cards */}
+        {PRECONFIGURED_SUPPLIERS.length > 0 && (
+          <div className="space-y-2 mb-4">
+            <p className="text-[10px] font-semibold text-muted-foreground uppercase">Fornecedores cadastrados</p>
+            <div className="grid grid-cols-1 gap-2">
+              {PRECONFIGURED_SUPPLIERS.map((supplier) => {
+                const importStatus = getSupplierImportStatus(supplier.folderId);
+                const isThisImporting = importingSupplier === supplier.name;
+                const status = importStatus?.status;
+                const processed = importStatus?.processed_files || 0;
+                const total = importStatus?.total_files || 0;
+
+                return (
+                  <Card key={supplier.folderId} className="p-3 border-primary/10">
+                    <div className="flex items-center justify-between gap-3">
+                      <div className="flex items-center gap-2.5 min-w-0 flex-1">
+                        <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+                          <Package className="w-4 h-4 text-primary" />
+                        </div>
+                        <div className="min-w-0">
+                          <p className="text-sm font-semibold truncate">{supplier.name}</p>
+                          <div className="flex items-center gap-1.5">
+                            {status === "completed" && (
+                              <Badge variant="default" className="text-[8px] h-4 gap-0.5">
+                                <CheckCircle2 className="w-2.5 h-2.5" />
+                                Importado ({processed} arquivos)
+                              </Badge>
+                            )}
+                            {status === "processing" && (
+                              <Badge variant="secondary" className="text-[8px] h-4 gap-0.5">
+                                <Clock className="w-2.5 h-2.5" />
+                                {processed}/{total} processados
+                              </Badge>
+                            )}
+                            {status === "pending" && (
+                              <Badge variant="outline" className="text-[8px] h-4">Pendente</Badge>
+                            )}
+                            {!status && (
+                              <span className="text-[9px] text-muted-foreground">Não importado</span>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                      <Button
+                        size="sm"
+                        variant={status === "processing" ? "default" : "outline"}
+                        className="text-[10px] h-7 gap-1 shrink-0"
+                        disabled={isThisImporting || (importing && !isThisImporting)}
+                        onClick={() => handleSupplierImport(supplier)}
+                      >
+                        {isThisImporting ? (
+                          <Loader2 className="w-3 h-3 animate-spin" />
+                        ) : status === "processing" ? (
+                          <RefreshCw className="w-3 h-3" />
+                        ) : status === "completed" ? (
+                          <RefreshCw className="w-3 h-3" />
+                        ) : (
+                          <Play className="w-3 h-3" />
+                        )}
+                        {status === "processing" ? "Retomar" : status === "completed" ? "Reimportar" : "Importar"}
+                      </Button>
+                    </div>
+                    {status === "processing" && total > 0 && (
+                      <Progress value={(processed / total) * 100} className="h-1 mt-2" />
+                    )}
+                  </Card>
+                );
+              })}
             </div>
-          )}
+          </div>
+        )}
+
+        {/* Manual URL input */}
+        <div className="space-y-3">
           <Input
             placeholder="Ou cole o link da pasta do fornecedor no Google Drive..."
             value={folderUrl}
@@ -397,7 +491,7 @@ const CatalogDriveTab = () => {
         <Card className="p-4 space-y-3">
           <h3 className="text-xs font-bold uppercase text-muted-foreground">Marcas encontradas</h3>
           <div className="grid grid-cols-2 gap-2">
-            {brands.map((b) => (
+            {brands.map((b: any) => (
               <div key={b.id} className="bg-muted rounded-lg p-3">
                 <p className="text-sm font-semibold">{b.name}</p>
                 <p className="text-[10px] text-muted-foreground">{b.pdfCount} PDFs</p>
@@ -420,10 +514,12 @@ const CatalogDriveTab = () => {
                   )}
                 </div>
                 <div>
-                  <h3 className="text-sm font-bold">Progresso da Importação</h3>
+                  <h3 className="text-sm font-bold">
+                    {progressData.supplierName ? `Importando: ${progressData.supplierName}` : "Progresso da Importação"}
+                  </h3>
                   <p className="text-[10px] text-muted-foreground">
-                    {progressData.phase === "discovering" && "Descobrindo arquivos..."}
-                    {progressData.phase === "processing" && "Processando PDFs do fornecedor (1 arquivo por vez com retry)..."}
+                    {progressData.phase === "discovering" && "Descobrindo arquivos do fornecedor..."}
+                    {progressData.phase === "processing" && "Processando PDFs (1 arquivo por vez com retry automático)..."}
                     {progressData.phase === "done" && "✓ Catálogo do fornecedor importado com sucesso!"}
                     {progressData.phase === "error" && (
                       <span className="text-destructive">
@@ -434,8 +530,13 @@ const CatalogDriveTab = () => {
                 </div>
               </div>
               <div className="flex items-center gap-1">
-                {progressData.phase === "error" && (
-                  <Button size="sm" variant="outline" className="text-[10px] h-6 gap-1" onClick={handleImport} disabled={importing}>
+                {progressData.phase === "error" && progressData.supplierName && (
+                  <Button size="sm" variant="outline" className="text-[10px] h-6 gap-1" 
+                    onClick={() => {
+                      const supplier = PRECONFIGURED_SUPPLIERS.find(s => s.name === progressData.supplierName);
+                      if (supplier) handleSupplierImport(supplier);
+                    }} 
+                    disabled={importing}>
                     <RefreshCw className="w-3 h-3" />
                     Retomar
                   </Button>
@@ -448,7 +549,6 @@ const CatalogDriveTab = () => {
               </div>
             </div>
 
-            {/* Main progress bar */}
             {progressData.totalFiles > 0 && (
               <div className="space-y-1.5">
                 <div className="flex justify-between text-[10px] text-muted-foreground">
@@ -460,12 +560,11 @@ const CatalogDriveTab = () => {
                 <Progress value={(progressData.processedFiles / progressData.totalFiles) * 100} className="h-2.5" />
                 <div className="flex justify-between text-[10px] text-muted-foreground">
                   <span>{progressData.totalFiles - progressData.processedFiles} PDFs restantes</span>
-                  <span>Lote #{progressData.currentChunk}</span>
+                  <span>Arquivo #{progressData.currentChunk}</span>
                 </div>
               </div>
             )}
 
-            {/* Metrics grid */}
             <div className="grid grid-cols-4 gap-2">
               <div className="bg-card rounded-lg p-2.5 border text-center">
                 <p className="text-lg font-bold text-primary">{progressData.processedFiles}</p>
@@ -485,14 +584,13 @@ const CatalogDriveTab = () => {
                     ? `${Math.round(progressData.chunkTimes[progressData.chunkTimes.length - 1] / 1000)}s`
                     : "—"}
                 </p>
-                <p className="text-[8px] text-muted-foreground uppercase">Último Lote</p>
+                <p className="text-[8px] text-muted-foreground uppercase">Último</p>
               </div>
             </div>
 
-            {/* Batch speed chart */}
             {progressData.chunkTimes.length > 1 && (
               <div className="space-y-1.5">
-                <p className="text-[10px] font-semibold text-muted-foreground uppercase">Tempo por Lote (s)</p>
+                <p className="text-[10px] font-semibold text-muted-foreground uppercase">Tempo por Arquivo (s)</p>
                 <div className="flex items-end gap-0.5 h-12">
                   {progressData.chunkTimes.map((ms, i) => {
                     const maxMs = Math.max(...progressData.chunkTimes);
@@ -502,7 +600,7 @@ const CatalogDriveTab = () => {
                         key={i}
                         className="flex-1 bg-primary/60 rounded-t-sm transition-all duration-300 min-w-[3px]"
                         style={{ height: `${Math.max(heightPct, 8)}%` }}
-                        title={`Lote ${i + 1}: ${(ms / 1000).toFixed(1)}s`}
+                        title={`Arquivo ${i + 1}: ${(ms / 1000).toFixed(1)}s`}
                       />
                     );
                   })}
@@ -513,8 +611,7 @@ const CatalogDriveTab = () => {
                     ETA: {(() => {
                       const remaining = progressData.totalFiles - progressData.processedFiles;
                       const avgMs = progressData.chunkTimes.reduce((a, b) => a + b, 0) / progressData.chunkTimes.length;
-                      const chunksLeft = Math.ceil(remaining / 3);
-                      const etaSec = (chunksLeft * avgMs) / 1000;
+                      const etaSec = (remaining * avgMs) / 1000;
                       if (etaSec < 60) return `~${Math.round(etaSec)}s`;
                       return `~${Math.round(etaSec / 60)}min`;
                     })()}
@@ -523,7 +620,6 @@ const CatalogDriveTab = () => {
               </div>
             )}
 
-            {/* Error/Success summary */}
             {progressData.currentChunk > 0 && (
               <div className="flex gap-2 text-[10px]">
                 <span className="text-primary font-semibold">
@@ -531,7 +627,7 @@ const CatalogDriveTab = () => {
                 </span>
                 {progressData.totalErrors > 0 && (
                   <span className="text-destructive font-semibold">
-                    ✗ {progressData.totalErrors} erro(s) no lote
+                    ✗ {progressData.totalErrors} erro(s)
                   </span>
                 )}
                 {progressData.totalFailures > 0 && (
@@ -542,13 +638,12 @@ const CatalogDriveTab = () => {
               </div>
             )}
 
-            {/* Per-batch file detail (last batch) */}
             {progressData.batchHistory.length > 0 && (() => {
               const last = progressData.batchHistory[progressData.batchHistory.length - 1];
               return (
                 <div className="space-y-1">
                   <p className="text-[10px] font-semibold text-muted-foreground uppercase">
-                    Último Lote (#{progressData.currentChunk})
+                    Último Arquivo (#{progressData.currentChunk})
                   </p>
                   {last.files.map((f, i) => (
                     <div key={i} className="flex items-center justify-between bg-card rounded px-2 py-1 border text-[9px]">
@@ -575,7 +670,6 @@ const CatalogDriveTab = () => {
               );
             })()}
 
-            {/* Elapsed time */}
             <div className="text-[9px] text-muted-foreground text-right">
               Tempo decorrido: {(() => {
                 const elapsed = (Date.now() - progressData.startTime) / 1000;
@@ -587,14 +681,14 @@ const CatalogDriveTab = () => {
         </motion.div>
       )}
 
-
+      {/* Import History */}
       {imports && imports.length > 0 && (
         <Card className="p-4 space-y-3">
-          <h3 className="text-xs font-bold uppercase text-muted-foreground">Importações de Fornecedores</h3>
+          <h3 className="text-xs font-bold uppercase text-muted-foreground">Histórico de Importações</h3>
           {imports.map((imp: any) => {
             const progress = imp.total_files > 0 ? Math.round((imp.processed_files / imp.total_files) * 100) : 0;
             const isProcessing = imp.status === "processing";
-            const displayName = (imp as any).supplier_name || imp.folder_name || imp.folder_id;
+            const displayName = imp.supplier_name || imp.folder_name || imp.folder_id;
             return (
               <div key={imp.id} className="bg-muted rounded-lg p-3 space-y-2">
                 <div className="flex items-center justify-between">
@@ -610,27 +704,14 @@ const CatalogDriveTab = () => {
                     </Badge>
                     {isProcessing && !importing && (
                       <Button
-                        size="icon"
-                        variant="ghost"
-                        className="h-6 w-6"
-                        title="Retomar importação"
-                        onClick={() => {
-                          // Set folder URL and trigger resume
-                          try {
-                            const parsed = JSON.parse(imp.folder_name);
-                            if (parsed.url) setFolderUrl(parsed.url);
-                          } catch {
-                            setFolderUrl(imp.folder_id);
-                          }
-                        }}
+                        size="icon" variant="ghost" className="h-6 w-6" title="Retomar importação"
+                        onClick={() => runImport(imp.folder_id, imp.supplier_name || imp.folder_name || "")}
                       >
                         <RefreshCw className="w-3 h-3 text-primary" />
                       </Button>
                     )}
                     <Button
-                      size="icon"
-                      variant="ghost"
-                      className="h-6 w-6"
+                      size="icon" variant="ghost" className="h-6 w-6"
                       disabled={deletingImport === imp.id}
                       onClick={() => handleDeleteImport(imp.id)}
                     >
@@ -674,13 +755,9 @@ const CatalogDriveTab = () => {
         )}
       </Card>
 
-      {/* AI Analysis Dashboard */}
       <CatalogAnalysisDashboard />
-
-      {/* AI Buying Consultant */}
       <CatalogConsultant />
 
-      {/* Stats bar */}
       {catalogItems && catalogItems.length > 0 && (
         <div className="space-y-2">
           <div className="grid grid-cols-3 gap-2">
@@ -707,7 +784,6 @@ const CatalogDriveTab = () => {
         </div>
       )}
 
-      {/* Search and Filters */}
       {catalogItems && catalogItems.length > 0 && (
         <div className="space-y-3">
           <div className="relative">
@@ -746,7 +822,6 @@ const CatalogDriveTab = () => {
         </div>
       )}
 
-      {/* Results */}
       {isLoading ? (
         <div className="flex justify-center py-8">
           <Loader2 className="w-6 h-6 animate-spin text-primary" />
@@ -804,7 +879,7 @@ const CatalogDriveTab = () => {
         <div className="text-center py-12 text-muted-foreground">
           <FolderOpen className="w-10 h-10 mx-auto mb-3 opacity-30" />
           <p className="text-sm">Nenhum catálogo importado ainda</p>
-          <p className="text-[10px]">Cole o link de uma pasta pública do Google Drive acima</p>
+          <p className="text-[10px]">Clique em um fornecedor acima ou cole um link do Google Drive</p>
         </div>
       ) : null}
     </div>
