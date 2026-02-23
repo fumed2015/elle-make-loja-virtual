@@ -131,28 +131,54 @@ async function extractProductsFromPdf(pdfBase64: string, brandName: string, file
 }
 
 async function extractViaTextFallback(fileId: string, brandName: string, apiKey: string, lovableApiKey: string): Promise<any[]> {
-  const exportRes = await fetch(`https://www.googleapis.com/drive/v3/files/${fileId}/export?mimeType=text/plain&key=${apiKey}`);
-  if (!exportRes.ok) {
-    // Fallback: try downloading raw and extracting readable text
-    const rawRes = await fetch(`https://www.googleapis.com/drive/v3/files/${fileId}?alt=media&key=${apiKey}`);
+  try {
+    // Try Google's text export first (low memory)
+    const exportRes = await fetch(`https://www.googleapis.com/drive/v3/files/${fileId}/export?mimeType=text/plain&key=${apiKey}`);
+    if (exportRes.ok) {
+      const textContent = await exportRes.text();
+      if (textContent.length >= 20) {
+        return await callAiForText(textContent.substring(0, 12000), brandName, lovableApiKey);
+      }
+    } else {
+      await exportRes.text(); // consume body
+    }
+
+    // Raw binary fallback — limit download to 2MB to avoid memory issues
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 10000);
+    const rawRes = await fetch(
+      `https://www.googleapis.com/drive/v3/files/${fileId}?alt=media&key=${apiKey}`,
+      { signal: controller.signal }
+    );
+    clearTimeout(timeout);
     if (!rawRes.ok) { await rawRes.text(); return []; }
-    const buf = await rawRes.arrayBuffer();
-    // Extract printable ASCII/UTF-8 strings from binary PDF
-    const bytes = new Uint8Array(buf);
+
+    // Read only first 200KB of the stream to extract text strings
+    const reader = rawRes.body?.getReader();
+    if (!reader) return [];
+    let bytesRead = 0;
+    const MAX_READ = 200 * 1024; // 200KB is enough for text extraction
     let textContent = "";
     let run = "";
-    for (let i = 0; i < Math.min(bytes.length, 500000); i++) {
-      const c = bytes[i];
-      if (c >= 32 && c < 127) { run += String.fromCharCode(c); }
-      else { if (run.length > 4) textContent += run + " "; run = ""; }
+
+    while (bytesRead < MAX_READ) {
+      const { done, value } = await reader.read();
+      if (done || !value) break;
+      bytesRead += value.length;
+      for (let i = 0; i < value.length && textContent.length < 15000; i++) {
+        const c = value[i];
+        if (c >= 32 && c < 127) { run += String.fromCharCode(c); }
+        else { if (run.length > 4) textContent += run + " "; run = ""; }
+      }
     }
+    reader.cancel().catch(() => {});
     if (run.length > 4) textContent += run;
     if (textContent.length < 50) return [];
     return await callAiForText(textContent.substring(0, 12000), brandName, lovableApiKey);
+  } catch (e) {
+    console.error(`Text fallback error for ${fileId}:`, e);
+    return [];
   }
-  const textContent = await exportRes.text();
-  if (textContent.length < 20) return [];
-  return await callAiForText(textContent.substring(0, 12000), brandName, lovableApiKey);
 }
 
 async function callAiForText(text: string, brandName: string, lovableApiKey: string): Promise<any[]> {
