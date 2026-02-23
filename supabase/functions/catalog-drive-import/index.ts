@@ -280,7 +280,7 @@ serve(async (req) => {
     // ── IMPORT (step 2+: process CHUNK_SIZE files per call) ──
     if (action === "import") {
       if (!import_id) throw new Error("import_id is required");
-      const CHUNK_SIZE = 1; // Process 1 file per call to stay within 60s timeout
+      const CHUNK_SIZE = 3; // Process 3 files in parallel per call
 
       const { data: rec, error: recErr } = await supabase.from("catalog_imports").select("*").eq("id", import_id).single();
       if (recErr || !rec) throw new Error("Import not found");
@@ -316,15 +316,18 @@ serve(async (req) => {
         });
       }
 
-      // Process files sequentially to avoid memory issues (each PDF can be large)
+      // Process files in parallel using Promise.allSettled
       let productsCount = 0;
-      for (const file of chunk) {
-        try {
-          const count = await processFile(file, import_id, supabase, GOOGLE_API_KEY, LOVABLE_API_KEY);
-          productsCount += count;
-          console.log(`Processed ${file.fileName} (${file.brandName}): ${count} products`);
-        } catch (e) {
-          console.error(`Error processing ${file.fileName}:`, e);
+      const results = await Promise.allSettled(
+        chunk.map((file: any) => processFile(file, import_id, supabase, GOOGLE_API_KEY, LOVABLE_API_KEY))
+      );
+      for (let i = 0; i < results.length; i++) {
+        const r = results[i];
+        if (r.status === "fulfilled") {
+          productsCount += r.value;
+          console.log(`Processed ${chunk[i].fileName} (${chunk[i].brandName}): ${r.value} products`);
+        } else {
+          console.error(`Error processing ${chunk[i].fileName}:`, r.reason);
         }
       }
 
