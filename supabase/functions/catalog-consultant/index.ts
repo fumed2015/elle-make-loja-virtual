@@ -159,18 +159,50 @@ ${products.map(p => {
     const systemPrompt = SYSTEM_PROMPT.replace("{{CATALOG_CONTEXT}}", catalogContext);
 
     if (isAnalysisMode) {
-      // Structured analysis mode: returns JSON with verdicts, risks, opportunities
-      const analysisPrompt = `Analise o portfólio completo do catálogo e da loja. Retorne APENAS um JSON válido (sem markdown, sem \`\`\`) com esta estrutura exata:
+      const analysisPrompt = `Analise o portfólio completo do catálogo e da loja com foco em ORÇAMENTO e RENTABILIDADE. Retorne APENAS um JSON válido (sem markdown, sem \`\`\`) com esta estrutura exata:
 {
-  "summary": "Resumo executivo de 2-3 frases sobre o estado do portfólio",
-  "risk_alerts": ["alerta 1", "alerta 2", ...],
-  "top_opportunities": ["oportunidade 1", "oportunidade 2", ...],
+  "summary": "Resumo executivo de 2-3 frases sobre o estado do portfólio e saúde financeira",
+  "budget_health": {
+    "status": "healthy|warning|critical",
+    "label": "Saudável|Atenção|Crítico",
+    "message": "Explicação de 1-2 frases sobre a situação orçamentária",
+    "margin_avg": 35.5,
+    "revenue_gap": 0,
+    "ticket_gap": 0
+  },
+  "risk_alerts": [
+    {
+      "severity": "high|medium|low",
+      "title": "Título curto do alerta",
+      "detail": "Explicação detalhada com números",
+      "action": "Ação recomendada concreta"
+    }
+  ],
+  "top_opportunities": [
+    {
+      "type": "margin|volume|trend|bundle",
+      "title": "Título da oportunidade",
+      "detail": "Explicação com números",
+      "estimated_impact": "R$ X/mês ou X% de margem"
+    }
+  ],
+  "recommended_bundles": [
+    {
+      "name": "Nome do Kit/Bundle",
+      "products": ["Produto 1", "Produto 2"],
+      "strategy": "anti-encalhe|ticket-booster|seasonal|cross-sell",
+      "suggested_price": 89.90,
+      "estimated_margin": 42,
+      "rationale": "Por que esse bundle funciona"
+    }
+  ],
   "verdicts": [
     {
       "product_name": "Nome do produto",
       "brand": "Marca",
       "verdict": "safe|moderate|risk",
       "verdict_label": "🟢 Compra Segura|🟡 Compra Moderada|🔴 Alto Risco",
+      "margin_contribution": 35.5,
       "market_analysis": "Análise breve do mercado",
       "selling_point": "Ponto forte de venda",
       "mix_suggestion": "Sugestão de cross-sell",
@@ -179,7 +211,15 @@ ${products.map(p => {
   ]
 }
 
-Analise até 15 produtos mais relevantes. Inclua pelo menos 3 alertas de risco e 3 oportunidades. Baseie-se nos dados reais do catálogo e premissas financeiras.`;
+REGRAS:
+- Analise até 15 produtos mais relevantes nos verdicts
+- Inclua pelo menos 3 alertas de risco com severidade e ação
+- Inclua pelo menos 3 oportunidades com tipo e impacto estimado
+- Sugira 2-4 bundles estratégicos com preço e margem estimada
+- Calcule margin_contribution real usando as premissas financeiras (MC% = (Preço - Custo - Frete - Taxa - Embalagem) / Preço * 100)
+- budget_health.revenue_gap = meta mensal - faturamento estimado (0 se positivo)
+- budget_health.ticket_gap = ticket médio necessário - ticket médio atual (0 se positivo)
+- Baseie-se nos dados reais do catálogo e premissas financeiras`;
 
       const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
         method: "POST",
@@ -200,20 +240,35 @@ Analise até 15 produtos mais relevantes. Inclua pelo menos 3 alertas de risco e
       if (!response.ok) {
         const t = await response.text();
         console.error("AI analysis error:", response.status, t);
+        if (response.status === 429) {
+          return new Response(JSON.stringify({ error: "Limite de requisições excedido. Tente novamente em instantes." }), {
+            status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" },
+          });
+        }
+        if (response.status === 402) {
+          return new Response(JSON.stringify({ error: "Créditos insuficientes." }), {
+            status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" },
+          });
+        }
         throw new Error("Erro na análise IA");
       }
 
       const aiResult = await response.json();
       const raw = aiResult.choices?.[0]?.message?.content || "{}";
       
-      // Parse JSON from response, handling potential markdown wrapping
       let parsed;
       try {
         const cleaned = raw.replace(/```json\n?/g, "").replace(/```\n?/g, "").trim();
         parsed = JSON.parse(cleaned);
       } catch {
-        parsed = { summary: raw, risk_alerts: [], top_opportunities: [], verdicts: [] };
+        parsed = { summary: raw, budget_health: null, risk_alerts: [], top_opportunities: [], recommended_bundles: [], verdicts: [] };
       }
+
+      // Ensure arrays exist
+      parsed.risk_alerts = parsed.risk_alerts || [];
+      parsed.top_opportunities = parsed.top_opportunities || [];
+      parsed.recommended_bundles = parsed.recommended_bundles || [];
+      parsed.verdicts = parsed.verdicts || [];
 
       return new Response(JSON.stringify(parsed), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
