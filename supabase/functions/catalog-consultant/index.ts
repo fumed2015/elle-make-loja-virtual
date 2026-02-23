@@ -95,7 +95,7 @@ ${items.slice(0, 50).map(i => `- ${i.brand} | ${i.product_name} | R$${i.price ||
       .from("financial_premises")
       .select("desired_margin, packaging_cost, gateway_rate_pix, gateway_rate_credit, influencer_commission_rate")
       .limit(1)
-      .single();
+      .maybeSingle();
 
     if (premises) {
       catalogContext += `\n\nPremissas financeiras: Margem desejada: ${premises.desired_margin}%, Embalagem: R$${premises.packaging_cost}, Taxa Pix: ${premises.gateway_rate_pix}%, Taxa Cartão: ${premises.gateway_rate_credit}%, Comissão influencer: ${premises.influencer_commission_rate}%`;
@@ -110,7 +110,7 @@ ${items.slice(0, 50).map(i => `- ${i.brand} | ${i.product_name} | R$${i.price ||
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "google/gemini-2.5-flash",
+        model: "google/gemini-3-flash-preview",
         messages: [
           { role: "system", content: systemPrompt },
           ...messages,
