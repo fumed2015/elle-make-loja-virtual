@@ -31,8 +31,9 @@ import CRMTab from "@/components/admin/CRMTab";
 import LogisticsTab from "@/components/admin/LogisticsTab";
 import MarketingConversionTab from "@/components/admin/MarketingConversionTab";
 import SEOContentTab from "@/components/admin/SEOContentTab";
+import CatalogDriveTab from "@/components/admin/CatalogDriveTab";
 
-type Tab = "dashboard" | "products" | "orders" | "add-product" | "coupons" | "reviews" | "influencers" | "seo" | "categories" | "ai-content" | "leads" | "birthdays" | "financeiro" | "comercial" | "operacional" | "marketing" | "pixels" | "whatsapp" | "stock" | "sales-intelligence" | "crm" | "logistics" | "marketing-conversion" | "seo-content";
+type Tab = "dashboard" | "products" | "orders" | "add-product" | "coupons" | "reviews" | "influencers" | "seo" | "categories" | "ai-content" | "leads" | "birthdays" | "financeiro" | "comercial" | "operacional" | "marketing" | "pixels" | "whatsapp" | "stock" | "sales-intelligence" | "crm" | "logistics" | "marketing-conversion" | "seo-content" | "catalog-drive";
 
 const statusLabels: Record<string, string> = {
   pending: "Pendente", confirmed: "Confirmado", approved: "Pago",
@@ -85,6 +86,7 @@ const Admin = () => {
     { id: "whatsapp" as Tab, label: "WhatsApp", icon: MessageCircle },
     { id: "seo" as Tab, label: "SEO", icon: Search },
     { id: "ai-content" as Tab, label: "IA Conteúdo", icon: Wand2 },
+    { id: "catalog-drive" as Tab, label: "Catálogo Drive", icon: FolderOpen },
   ];
 
   return (
@@ -128,6 +130,7 @@ const Admin = () => {
       {tab === "pixels" && <TrackingPixelsTab />}
       {tab === "whatsapp" && <WhatsAppTemplatesTab />}
       {tab === "ai-content" && <AIContentTab />}
+      {tab === "catalog-drive" && <CatalogDriveTab />}
     </div>
   );
 };
