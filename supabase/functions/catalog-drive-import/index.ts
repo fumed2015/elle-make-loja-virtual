@@ -38,10 +38,10 @@ async function getAllDriveFiles(folderId: string, mimeType: string, apiKey: stri
 }
 
 async function downloadPdfAsBase64(fileId: string, apiKey: string): Promise<string | null> {
-  const MAX_PDF_SIZE = 4 * 1024 * 1024; // 4MB limit for safety
+  const MAX_PDF_SIZE = 6 * 1024 * 1024; // 6MB limit
   try {
     const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 15000); // 15s timeout
+    const timeout = setTimeout(() => controller.abort(), 20000); // 20s timeout
     const res = await fetch(
       `https://www.googleapis.com/drive/v3/files/${fileId}?alt=media&key=${apiKey}`,
       { headers: { Accept: "application/pdf" }, signal: controller.signal }
@@ -115,16 +115,38 @@ async function extractProductsFromPdf(pdfBase64: string, brandName: string, file
 
 async function extractViaTextFallback(fileId: string, brandName: string, apiKey: string, lovableApiKey: string): Promise<any[]> {
   const exportRes = await fetch(`https://www.googleapis.com/drive/v3/files/${fileId}/export?mimeType=text/plain&key=${apiKey}`);
-  if (!exportRes.ok) { await exportRes.text(); return []; }
+  if (!exportRes.ok) {
+    // Fallback: try downloading raw and extracting readable text
+    const rawRes = await fetch(`https://www.googleapis.com/drive/v3/files/${fileId}?alt=media&key=${apiKey}`);
+    if (!rawRes.ok) { await rawRes.text(); return []; }
+    const buf = await rawRes.arrayBuffer();
+    // Extract printable ASCII/UTF-8 strings from binary PDF
+    const bytes = new Uint8Array(buf);
+    let textContent = "";
+    let run = "";
+    for (let i = 0; i < Math.min(bytes.length, 500000); i++) {
+      const c = bytes[i];
+      if (c >= 32 && c < 127) { run += String.fromCharCode(c); }
+      else { if (run.length > 4) textContent += run + " "; run = ""; }
+    }
+    if (run.length > 4) textContent += run;
+    if (textContent.length < 50) return [];
+    return await callAiForText(textContent.substring(0, 12000), brandName, lovableApiKey);
+  }
   const textContent = await exportRes.text();
+  if (textContent.length < 20) return [];
+  return await callAiForText(textContent.substring(0, 12000), brandName, lovableApiKey);
+}
+
+async function callAiForText(text: string, brandName: string, lovableApiKey: string): Promise<any[]> {
   const aiRes = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
     method: "POST",
     headers: { Authorization: `Bearer ${lovableApiKey}`, "Content-Type": "application/json" },
     body: JSON.stringify({
       model: "google/gemini-2.5-flash-lite",
       messages: [
-        { role: "system", content: "Extraia produtos do texto. Retorne via tool call." },
-        { role: "user", content: `Marca: ${brandName}\n${textContent.substring(0, 8000)}` },
+        { role: "system", content: "Extraia produtos do texto de catálogo. Retorne via tool call. Se não encontrar produtos, retorne lista vazia." },
+        { role: "user", content: `Marca: ${brandName}\n\n${text}` },
       ],
       tools: [{
         type: "function",
@@ -167,31 +189,60 @@ async function extractViaTextFallback(fileId: string, brandName: string, apiKey:
   return [];
 }
 
-async function processFile(file: { fileId: string; brandName: string; fileName: string }, importId: string, supabase: any, GOOGLE_API_KEY: string, LOVABLE_API_KEY: string): Promise<number> {
-  const pdfBase64 = await downloadPdfAsBase64(file.fileId, GOOGLE_API_KEY);
-  let products: any[] = [];
-  if (pdfBase64) {
-    products = await extractProductsFromPdf(pdfBase64, file.brandName, file.fileName, LOVABLE_API_KEY);
-  } else {
-    products = await extractViaTextFallback(file.fileId, file.brandName, GOOGLE_API_KEY, LOVABLE_API_KEY);
+// Process single file with retry (up to 2 attempts)
+async function processFileWithRetry(
+  file: { fileId: string; brandName: string; fileName: string },
+  importId: string,
+  supabase: any,
+  GOOGLE_API_KEY: string,
+  LOVABLE_API_KEY: string,
+  maxRetries = 2
+): Promise<{ products: number; error?: string }> {
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      const pdfBase64 = await downloadPdfAsBase64(file.fileId, GOOGLE_API_KEY);
+      let products: any[] = [];
+      if (pdfBase64) {
+        products = await extractProductsFromPdf(pdfBase64, file.brandName, file.fileName, LOVABLE_API_KEY);
+      } else {
+        products = await extractViaTextFallback(file.fileId, file.brandName, GOOGLE_API_KEY, LOVABLE_API_KEY);
+      }
+      if (products.length > 0) {
+        const items = products.map((p: any) => ({
+          import_id: importId,
+          brand: file.brandName,
+          product_name: p.product_name || "Produto sem nome",
+          price: p.price || null,
+          compare_at_price: p.compare_at_price || null,
+          description: p.description || null,
+          category: p.category || "geral",
+          tags: p.tags || [],
+          source_file: file.fileName,
+          raw_data: p,
+        }));
+        await supabase.from("catalog_items").insert(items);
+        return { products: items.length };
+      }
+      return { products: 0 };
+    } catch (e: any) {
+      console.error(`Attempt ${attempt}/${maxRetries} failed for ${file.fileName}:`, e.message);
+      if (attempt === maxRetries) {
+        // Persist failure to audit table
+        await supabase.from("catalog_import_failures").insert({
+          import_id: importId,
+          file_id: file.fileId,
+          file_name: file.fileName,
+          brand_name: file.brandName,
+          error_message: e.message || String(e),
+          attempts: maxRetries,
+        }).then(() => {}).catch(() => {});
+        return { products: 0, error: e.message || String(e) };
+      }
+      // Wait before retry (exponential backoff: 1s, 2s)
+      await new Promise(r => setTimeout(r, attempt * 1000));
+    }
   }
-  if (products.length > 0) {
-    const items = products.map((p: any) => ({
-      import_id: importId,
-      brand: file.brandName,
-      product_name: p.product_name || "Produto sem nome",
-      price: p.price || null,
-      compare_at_price: p.compare_at_price || null,
-      description: p.description || null,
-      category: p.category || "geral",
-      tags: p.tags || [],
-      source_file: file.fileName,
-      raw_data: p,
-    }));
-    await supabase.from("catalog_items").insert(items);
-    return items.length;
-  }
-  return 0;
+  return { products: 0, error: "max retries exceeded" };
 }
 
 serve(async (req) => {
@@ -210,7 +261,6 @@ serve(async (req) => {
     if (action === "list-folder") {
       if (!folder_id) throw new Error("folder_id is required");
       const folders = await getAllDriveFiles(folder_id, "application/vnd.google-apps.folder", GOOGLE_API_KEY);
-      // Parallel PDF count for all brands
       const brandsWithFiles = await Promise.all(
         folders.map(async (brand: any) => {
           const pdfs = await getAllDriveFiles(brand.id, "application/pdf", GOOGLE_API_KEY);
@@ -230,7 +280,7 @@ serve(async (req) => {
 
       const folderId = rec.folder_id;
 
-      // Check duplicate
+      // Check duplicate — skip if same folder already completed
       const { data: existing } = await supabase.from("catalog_imports").select("id").eq("folder_id", folderId).eq("status", "completed").neq("id", import_id).limit(1);
       if (existing && existing.length > 0) {
         await supabase.from("catalog_imports").update({ status: "completed", error_message: "Importação duplicada — essa pasta já foi importada." }).eq("id", import_id);
@@ -239,11 +289,9 @@ serve(async (req) => {
         });
       }
 
-      // Discover brand folders
       const brands = await getAllDriveFiles(folderId, "application/vnd.google-apps.folder", GOOGLE_API_KEY);
       console.log(`Found ${brands.length} brand folders`);
 
-      // Parallel PDF listing with concurrency limit of 5
       const CONCURRENCY = 5;
       const fileManifest: { brandName: string; fileId: string; fileName: string }[] = [];
       for (let i = 0; i < brands.length; i += CONCURRENCY) {
@@ -259,7 +307,6 @@ serve(async (req) => {
 
       console.log(`Manifest built: ${fileManifest.length} files across ${brands.length} brands`);
 
-      // Store manifest and mark as processing
       await supabase.from("catalog_imports").update({
         status: "processing",
         total_files: fileManifest.length,
@@ -277,19 +324,21 @@ serve(async (req) => {
       }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
-    // ── IMPORT (step 2+: process CHUNK_SIZE files per call) ──
+    // ── IMPORT (step 2+: process CHUNK_SIZE files per call with retry) ──
     if (action === "import") {
       if (!import_id) throw new Error("import_id is required");
-      const CHUNK_SIZE = 3; // Process 3 files in parallel per call
+      const CHUNK_SIZE = 3;
 
       const { data: rec, error: recErr } = await supabase.from("catalog_imports").select("*").eq("id", import_id).single();
       if (recErr || !rec) throw new Error("Import not found");
 
-      // If still pending, treat as not yet ready — return done so frontend doesn't loop
+      // If still pending, auto-trigger discover inline
       if (rec.status === "pending") {
-        return new Response(JSON.stringify({ success: true, done: true, processedFiles: 0, totalFiles: 0, productsInChunk: 0, message: "Discover não executado. Execute novamente." }), {
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
+        return new Response(JSON.stringify({
+          success: true, done: false, needsDiscover: true,
+          processedFiles: 0, totalFiles: 0, productsInChunk: 0,
+          message: "Discover necessário. Executando automaticamente..."
+        }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
       }
 
       if (rec.status !== "processing") {
@@ -310,34 +359,48 @@ serve(async (req) => {
       const chunk = manifest.slice(startIdx, startIdx + CHUNK_SIZE);
 
       if (chunk.length === 0) {
-        await supabase.from("catalog_imports").update({ status: "completed" }).eq("id", import_id);
-        return new Response(JSON.stringify({ success: true, done: true, processedFiles: startIdx, totalFiles: manifest.length }), {
+        // Count failures for this import
+        const { count: failCount } = await supabase.from("catalog_import_failures").select("*", { count: "exact", head: true }).eq("import_id", import_id);
+        await supabase.from("catalog_imports").update({
+          status: "completed",
+          error_message: failCount && failCount > 0 ? `Concluído com ${failCount} arquivo(s) com falha` : null,
+        }).eq("id", import_id);
+        return new Response(JSON.stringify({ success: true, done: true, processedFiles: startIdx, totalFiles: manifest.length, totalFailures: failCount || 0 }), {
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
 
-      // Process files in parallel using Promise.allSettled — resilient to individual failures
+      // Process files in parallel using Promise.allSettled with per-file retry
       let productsCount = 0;
       const fileResults: { fileName: string; brandName: string; status: "ok" | "error"; products: number; durationMs: number; error?: string }[] = [];
-      
+
       const results = await Promise.allSettled(
         chunk.map(async (file: any) => {
           const t0 = Date.now();
-          const count = await processFile(file, import_id, supabase, GOOGLE_API_KEY, LOVABLE_API_KEY);
-          return { fileName: file.fileName, brandName: file.brandName, products: count, durationMs: Date.now() - t0 };
+          const result = await processFileWithRetry(file, import_id, supabase, GOOGLE_API_KEY, LOVABLE_API_KEY);
+          return { fileName: file.fileName, brandName: file.brandName, products: result.products, durationMs: Date.now() - t0, error: result.error };
         })
       );
-      
+
       for (let i = 0; i < results.length; i++) {
         const r = results[i];
         if (r.status === "fulfilled") {
           productsCount += r.value.products;
-          fileResults.push({ ...r.value, status: "ok" });
-          console.log(`✓ ${r.value.fileName} (${r.value.brandName}): ${r.value.products} products in ${r.value.durationMs}ms`);
+          if (r.value.error) {
+            fileResults.push({ fileName: r.value.fileName, brandName: r.value.brandName, status: "error", products: 0, durationMs: r.value.durationMs, error: r.value.error });
+            console.error(`✗ ${r.value.fileName}: ${r.value.error}`);
+          } else {
+            fileResults.push({ fileName: r.value.fileName, brandName: r.value.brandName, status: "ok", products: r.value.products, durationMs: r.value.durationMs });
+            console.log(`✓ ${r.value.fileName} (${r.value.brandName}): ${r.value.products} products in ${r.value.durationMs}ms`);
+          }
         } else {
           const errMsg = r.reason?.message || String(r.reason);
           fileResults.push({ fileName: chunk[i].fileName, brandName: chunk[i].brandName, status: "error", products: 0, durationMs: 0, error: errMsg });
           console.error(`✗ ${chunk[i].fileName}: ${errMsg}`);
+          // Persist unexpected failure
+          await supabase.from("catalog_import_failures").insert({
+            import_id, file_id: chunk[i].fileId, file_name: chunk[i].fileName, brand_name: chunk[i].brandName, error_message: errMsg, attempts: 1,
+          }).then(() => {}).catch(() => {});
         }
       }
 
@@ -346,10 +409,13 @@ serve(async (req) => {
       const processedSoFar = startIdx + chunk.length;
       const done = processedSoFar >= manifest.length;
 
+      // Count total failures for this import
+      const { count: totalFailures } = await supabase.from("catalog_import_failures").select("*", { count: "exact", head: true }).eq("import_id", import_id);
+
       await supabase.from("catalog_imports").update({
         processed_files: processedSoFar,
         ...(done ? { status: "completed" } : {}),
-        ...(failCount > 0 ? { error_message: `${failCount} arquivo(s) com erro no lote ${Math.ceil(processedSoFar / CHUNK_SIZE)}` } : {}),
+        ...(totalFailures && totalFailures > 0 ? { error_message: `${totalFailures} arquivo(s) com falha até o momento` } : {}),
       }).eq("id", import_id);
 
       return new Response(JSON.stringify({
@@ -358,6 +424,7 @@ serve(async (req) => {
         processedFiles: processedSoFar,
         totalFiles: manifest.length,
         productsInChunk: productsCount,
+        totalFailures: totalFailures || 0,
         batchMetrics: {
           files: fileResults,
           successCount,
@@ -370,6 +437,7 @@ serve(async (req) => {
     // ── DELETE-IMPORT ──
     if (action === "delete-import") {
       if (!import_id) throw new Error("import_id is required");
+      // Failures cascade-deleted via FK
       await supabase.from("catalog_items").delete().eq("import_id", import_id);
       const { error } = await supabase.from("catalog_imports").delete().eq("id", import_id);
       if (error) throw error;

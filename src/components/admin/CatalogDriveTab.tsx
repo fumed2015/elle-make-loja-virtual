@@ -8,11 +8,14 @@ import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { FolderOpen, Search, Loader2, Sparkles, Download, BarChart3, Package, Tag, Trash2, AlertTriangle } from "lucide-react";
+import { FolderOpen, Search, Loader2, Sparkles, Download, BarChart3, Package, Tag, Trash2, AlertTriangle, RefreshCw } from "lucide-react";
 import { motion } from "framer-motion";
 import ReactMarkdown from "react-markdown";
 import CatalogConsultant from "./CatalogConsultant";
 import CatalogAnalysisDashboard from "./CatalogAnalysisDashboard";
+
+const MAX_BATCH_RETRIES = 3;
+const BATCH_RETRY_DELAY = 2000; // ms
 
 const CatalogDriveTab = () => {
   const queryClient = useQueryClient();
@@ -27,7 +30,6 @@ const CatalogDriveTab = () => {
   const [insights, setInsights] = useState<string | null>(null);
   const [deletingImport, setDeletingImport] = useState<string | null>(null);
 
-  // Progress panel state
   type BatchMetric = { files: { fileName: string; brandName: string; status: "ok" | "error"; products: number; durationMs: number; error?: string }[]; successCount: number; failCount: number; totalDurationMs: number };
   const [progressData, setProgressData] = useState<{
     active: boolean;
@@ -40,7 +42,9 @@ const CatalogDriveTab = () => {
     currentChunk: number;
     phase: "discovering" | "processing" | "done" | "error";
     totalErrors: number;
+    totalFailures: number;
     batchHistory: BatchMetric[];
+    errorDetail?: string;
   } | null>(null);
 
   const { data: catalogItems, isLoading } = useQuery({
@@ -108,68 +112,156 @@ const CatalogDriveTab = () => {
     }
   };
 
+  // Helper: invoke import batch with retry
+  const invokeImportWithRetry = async (importId: string, retries = MAX_BATCH_RETRIES): Promise<any> => {
+    for (let attempt = 1; attempt <= retries; attempt++) {
+      try {
+        const { data, error } = await supabase.functions.invoke("catalog-drive-import", {
+          body: { action: "import", import_id: importId },
+        });
+        if (error) throw error;
+        return data;
+      } catch (e: any) {
+        console.warn(`Batch attempt ${attempt}/${retries} failed:`, e.message);
+        if (attempt === retries) throw e;
+        await new Promise(r => setTimeout(r, BATCH_RETRY_DELAY * attempt));
+      }
+    }
+  };
+
   const handleImport = async () => {
     const folderId = extractFolderId(folderUrl);
     if (!folderId) return;
     setImporting(true);
     try {
-      const { data: importRecord, error: insertError } = await supabase
+      // Check for existing in-progress import for same folder
+      const { data: existingImports } = await supabase
         .from("catalog_imports")
-        .insert({ folder_id: folderId, folder_name: folderUrl, status: "pending" })
-        .select()
-        .single();
-      if (insertError) throw insertError;
+        .select("id, status, processed_files, total_files")
+        .eq("folder_id", folderId)
+        .eq("status", "processing")
+        .order("created_at", { ascending: false })
+        .limit(1);
 
-      const importId = importRecord.id;
+      let importId: string;
+      let skipDiscover = false;
 
-      // Step 1: Discover files
-      setProgressData({ active: true, totalFiles: 0, processedFiles: 0, totalProducts: 0, brandsCount: 0, startTime: Date.now(), chunkTimes: [], currentChunk: 0, phase: "discovering", totalErrors: 0, batchHistory: [] });
-      const { data: discoverData, error: discoverError } = await supabase.functions.invoke("catalog-drive-import", {
-        body: { action: "discover", import_id: importId },
-      });
-      if (discoverError) throw discoverError;
-      if (discoverData?.error) throw new Error(discoverData.error);
+      if (existingImports && existingImports.length > 0) {
+        // Resume existing import
+        const existing = existingImports[0];
+        importId = existing.id;
+        skipDiscover = true;
+        toast.info(`Retomando importação em andamento (${existing.processed_files}/${existing.total_files} arquivos)...`);
+        setProgressData({
+          active: true, totalFiles: existing.total_files || 0, processedFiles: existing.processed_files || 0,
+          totalProducts: 0, brandsCount: 0, startTime: Date.now(), chunkTimes: [], currentChunk: 0,
+          phase: "processing", totalErrors: 0, totalFailures: 0, batchHistory: [],
+        });
+      } else {
+        // Create new import
+        const { data: importRecord, error: insertError } = await supabase
+          .from("catalog_imports")
+          .insert({ folder_id: folderId, folder_name: folderUrl, status: "pending" })
+          .select()
+          .single();
+        if (insertError) throw insertError;
+        importId = importRecord.id;
 
-      setProgressData(p => p ? { ...p, totalFiles: discoverData.totalFiles, brandsCount: discoverData.brandsCount, phase: "processing" } : p);
-      queryClient.invalidateQueries({ queryKey: ["catalog-imports"] });
+        // Step 1: Discover files
+        setProgressData({
+          active: true, totalFiles: 0, processedFiles: 0, totalProducts: 0, brandsCount: 0,
+          startTime: Date.now(), chunkTimes: [], currentChunk: 0, phase: "discovering",
+          totalErrors: 0, totalFailures: 0, batchHistory: [],
+        });
 
-      // Step 2: Process files in chunks
-      let done = discoverData.done;
+        const { data: discoverData, error: discoverError } = await supabase.functions.invoke("catalog-drive-import", {
+          body: { action: "discover", import_id: importId },
+        });
+        if (discoverError) throw discoverError;
+        if (discoverData?.error) throw new Error(discoverData.error);
+
+        setProgressData(p => p ? { ...p, totalFiles: discoverData.totalFiles, brandsCount: discoverData.brandsCount, phase: "processing" } : p);
+        queryClient.invalidateQueries({ queryKey: ["catalog-imports"] });
+      }
+
+      // Step 2: Process files in chunks with retry
+      let done = false;
       let totalProducts = 0;
+      let consecutiveErrors = 0;
 
       while (!done) {
         const chunkStart = Date.now();
-        const { data, error } = await supabase.functions.invoke("catalog-drive-import", {
-          body: { action: "import", import_id: importId },
-        });
-        if (error) throw error;
-        if (data?.error) { console.warn("Batch warning:", data.error); break; }
-        const chunkMs = Date.now() - chunkStart;
+        try {
+          const data = await invokeImportWithRetry(importId);
+          consecutiveErrors = 0; // reset on success
 
-        done = data.done;
-        totalProducts += data.productsInChunk || 0;
+          if (data?.needsDiscover) {
+            // Auto-trigger discover if backend says so
+            const { data: discoverData, error: discoverError } = await supabase.functions.invoke("catalog-drive-import", {
+              body: { action: "discover", import_id: importId },
+            });
+            if (discoverError) throw discoverError;
+            if (discoverData?.error) throw new Error(discoverData.error);
+            setProgressData(p => p ? { ...p, totalFiles: discoverData.totalFiles, brandsCount: discoverData.brandsCount, phase: "processing" } : p);
+            continue;
+          }
 
-        const batchMetrics = data.batchMetrics as BatchMetric | undefined;
-        setProgressData(p => p ? {
-          ...p,
-          processedFiles: data.processedFiles || p.processedFiles,
-          totalProducts,
-          currentChunk: p.currentChunk + 1,
-          chunkTimes: [...p.chunkTimes, chunkMs],
-          totalErrors: p.totalErrors + (batchMetrics?.failCount || 0),
-          batchHistory: batchMetrics ? [...p.batchHistory, batchMetrics] : p.batchHistory,
-          phase: done ? "done" : "processing",
-        } : p);
+          if (data?.error) {
+            console.warn("Batch warning:", data.error);
+            break;
+          }
+
+          const chunkMs = Date.now() - chunkStart;
+          done = data.done;
+          totalProducts += data.productsInChunk || 0;
+
+          const batchMetrics = data.batchMetrics as BatchMetric | undefined;
+          setProgressData(p => p ? {
+            ...p,
+            processedFiles: data.processedFiles || p.processedFiles,
+            totalFiles: data.totalFiles || p.totalFiles,
+            totalProducts,
+            currentChunk: p.currentChunk + 1,
+            chunkTimes: [...p.chunkTimes, chunkMs],
+            totalErrors: p.totalErrors + (batchMetrics?.failCount || 0),
+            totalFailures: data.totalFailures || p.totalFailures,
+            batchHistory: batchMetrics ? [...p.batchHistory, batchMetrics] : p.batchHistory,
+            phase: done ? "done" : "processing",
+          } : p);
+        } catch (batchErr: any) {
+          consecutiveErrors++;
+          const chunkMs = Date.now() - chunkStart;
+          console.error(`Batch error (consecutive: ${consecutiveErrors}):`, batchErr.message);
+          setProgressData(p => p ? {
+            ...p,
+            currentChunk: p.currentChunk + 1,
+            chunkTimes: [...p.chunkTimes, chunkMs],
+            totalErrors: p.totalErrors + 1,
+            errorDetail: batchErr.message,
+          } : p);
+
+          if (consecutiveErrors >= 3) {
+            toast.error(`Importação pausada após ${consecutiveErrors} erros consecutivos. Você pode retomar depois.`);
+            setProgressData(p => p ? { ...p, phase: "error", errorDetail: `${consecutiveErrors} erros consecutivos: ${batchErr.message}` } : p);
+            break;
+          }
+          // Wait before next batch attempt
+          await new Promise(r => setTimeout(r, 3000));
+        }
 
         queryClient.invalidateQueries({ queryKey: ["catalog-imports"] });
       }
 
-      toast.success(`Importação concluída! ${totalProducts} produtos extraídos.`);
+      if (done) {
+        toast.success(`Importação concluída! ${totalProducts} produtos extraídos.`);
+        setProgressData(p => p ? { ...p, phase: "done" } : p);
+      }
       queryClient.invalidateQueries({ queryKey: ["catalog-items"] });
       queryClient.invalidateQueries({ queryKey: ["catalog-imports"] });
     } catch (e: any) {
-      toast.error(e.message || "Erro na importação");
-      setProgressData(p => p ? { ...p, phase: "error" } : p);
+      const errorMsg = e.message || "Erro na importação";
+      toast.error(errorMsg);
+      setProgressData(p => p ? { ...p, phase: "error", errorDetail: errorMsg } : p);
       queryClient.invalidateQueries({ queryKey: ["catalog-imports"] });
     } finally {
       setImporting(false);
@@ -305,17 +397,29 @@ const CatalogDriveTab = () => {
                   <h3 className="text-sm font-bold">Progresso da Importação</h3>
                   <p className="text-[10px] text-muted-foreground">
                     {progressData.phase === "discovering" && "Descobrindo arquivos..."}
-                    {progressData.phase === "processing" && "Processando PDFs em lotes de 3..."}
+                    {progressData.phase === "processing" && "Processando PDFs em lotes de 3 (com retry automático)..."}
                     {progressData.phase === "done" && "✓ Importação concluída!"}
-                    {progressData.phase === "error" && "✗ Erro na importação"}
+                    {progressData.phase === "error" && (
+                      <span className="text-destructive">
+                        ✗ Importação pausada — {progressData.errorDetail || "erro desconhecido"}
+                      </span>
+                    )}
                   </p>
                 </div>
               </div>
-              {(progressData.phase === "done" || progressData.phase === "error") && (
-                <Button size="sm" variant="ghost" className="text-[10px] h-6" onClick={() => setProgressData(null)}>
-                  Fechar
-                </Button>
-              )}
+              <div className="flex items-center gap-1">
+                {progressData.phase === "error" && (
+                  <Button size="sm" variant="outline" className="text-[10px] h-6 gap-1" onClick={handleImport} disabled={importing}>
+                    <RefreshCw className="w-3 h-3" />
+                    Retomar
+                  </Button>
+                )}
+                {(progressData.phase === "done" || progressData.phase === "error") && (
+                  <Button size="sm" variant="ghost" className="text-[10px] h-6" onClick={() => setProgressData(null)}>
+                    Fechar
+                  </Button>
+                )}
+              </div>
             </div>
 
             {/* Main progress bar */}
@@ -359,7 +463,7 @@ const CatalogDriveTab = () => {
               </div>
             </div>
 
-            {/* Batch speed chart (simple bar representation) */}
+            {/* Batch speed chart */}
             {progressData.chunkTimes.length > 1 && (
               <div className="space-y-1.5">
                 <p className="text-[10px] font-semibold text-muted-foreground uppercase">Tempo por Lote (s)</p>
@@ -401,7 +505,12 @@ const CatalogDriveTab = () => {
                 </span>
                 {progressData.totalErrors > 0 && (
                   <span className="text-destructive font-semibold">
-                    ✗ {progressData.totalErrors} erro(s)
+                    ✗ {progressData.totalErrors} erro(s) no lote
+                  </span>
+                )}
+                {progressData.totalFailures > 0 && (
+                  <span className="text-destructive/70 font-semibold">
+                    ⚠ {progressData.totalFailures} falha(s) persistidas
                   </span>
                 )}
               </div>
@@ -472,6 +581,25 @@ const CatalogDriveTab = () => {
                     <Badge variant={imp.status === "completed" ? "default" : isProcessing ? "secondary" : "outline"} className="text-[9px]">
                       {imp.status === "completed" ? "✓ Concluído" : isProcessing ? "⏳ Processando" : "Pendente"}
                     </Badge>
+                    {isProcessing && !importing && (
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        className="h-6 w-6"
+                        title="Retomar importação"
+                        onClick={() => {
+                          // Set folder URL and trigger resume
+                          try {
+                            const parsed = JSON.parse(imp.folder_name);
+                            if (parsed.url) setFolderUrl(parsed.url);
+                          } catch {
+                            setFolderUrl(imp.folder_id);
+                          }
+                        }}
+                      >
+                        <RefreshCw className="w-3 h-3 text-primary" />
+                      </Button>
+                    )}
                     <Button
                       size="icon"
                       variant="ghost"

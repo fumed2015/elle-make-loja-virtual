@@ -142,6 +142,47 @@ export type Database = {
           },
         ]
       }
+      catalog_import_failures: {
+        Row: {
+          attempts: number
+          brand_name: string
+          created_at: string
+          error_message: string | null
+          file_id: string
+          file_name: string
+          id: string
+          import_id: string
+        }
+        Insert: {
+          attempts?: number
+          brand_name: string
+          created_at?: string
+          error_message?: string | null
+          file_id: string
+          file_name: string
+          id?: string
+          import_id: string
+        }
+        Update: {
+          attempts?: number
+          brand_name?: string
+          created_at?: string
+          error_message?: string | null
+          file_id?: string
+          file_name?: string
+          id?: string
+          import_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "catalog_import_failures_import_id_fkey"
+            columns: ["import_id"]
+            isOneToOne: false
+            referencedRelation: "catalog_imports"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       catalog_imports: {
         Row: {
           created_at: string
