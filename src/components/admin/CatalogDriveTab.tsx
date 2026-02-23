@@ -12,6 +12,7 @@ import { FolderOpen, Search, Loader2, Sparkles, Download, BarChart3, Package, Ta
 import { motion } from "framer-motion";
 import ReactMarkdown from "react-markdown";
 import CatalogConsultant from "./CatalogConsultant";
+import CatalogAnalysisDashboard from "./CatalogAnalysisDashboard";
 
 const CatalogDriveTab = () => {
   const queryClient = useQueryClient();
@@ -283,6 +284,8 @@ const CatalogDriveTab = () => {
         )}
       </Card>
 
+      {/* AI Analysis Dashboard */}
+      <CatalogAnalysisDashboard />
 
       {/* AI Buying Consultant */}
       <CatalogConsultant />
