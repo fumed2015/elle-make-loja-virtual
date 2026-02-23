@@ -316,27 +316,40 @@ serve(async (req) => {
         });
       }
 
-      // Process files in parallel using Promise.allSettled
+      // Process files in parallel using Promise.allSettled — resilient to individual failures
       let productsCount = 0;
+      const fileResults: { fileName: string; brandName: string; status: "ok" | "error"; products: number; durationMs: number; error?: string }[] = [];
+      
       const results = await Promise.allSettled(
-        chunk.map((file: any) => processFile(file, import_id, supabase, GOOGLE_API_KEY, LOVABLE_API_KEY))
+        chunk.map(async (file: any) => {
+          const t0 = Date.now();
+          const count = await processFile(file, import_id, supabase, GOOGLE_API_KEY, LOVABLE_API_KEY);
+          return { fileName: file.fileName, brandName: file.brandName, products: count, durationMs: Date.now() - t0 };
+        })
       );
+      
       for (let i = 0; i < results.length; i++) {
         const r = results[i];
         if (r.status === "fulfilled") {
-          productsCount += r.value;
-          console.log(`Processed ${chunk[i].fileName} (${chunk[i].brandName}): ${r.value} products`);
+          productsCount += r.value.products;
+          fileResults.push({ ...r.value, status: "ok" });
+          console.log(`✓ ${r.value.fileName} (${r.value.brandName}): ${r.value.products} products in ${r.value.durationMs}ms`);
         } else {
-          console.error(`Error processing ${chunk[i].fileName}:`, r.reason);
+          const errMsg = r.reason?.message || String(r.reason);
+          fileResults.push({ fileName: chunk[i].fileName, brandName: chunk[i].brandName, status: "error", products: 0, durationMs: 0, error: errMsg });
+          console.error(`✗ ${chunk[i].fileName}: ${errMsg}`);
         }
       }
 
+      const successCount = fileResults.filter(f => f.status === "ok").length;
+      const failCount = fileResults.filter(f => f.status === "error").length;
       const processedSoFar = startIdx + chunk.length;
       const done = processedSoFar >= manifest.length;
 
       await supabase.from("catalog_imports").update({
         processed_files: processedSoFar,
         ...(done ? { status: "completed" } : {}),
+        ...(failCount > 0 ? { error_message: `${failCount} arquivo(s) com erro no lote ${Math.ceil(processedSoFar / CHUNK_SIZE)}` } : {}),
       }).eq("id", import_id);
 
       return new Response(JSON.stringify({
@@ -345,6 +358,12 @@ serve(async (req) => {
         processedFiles: processedSoFar,
         totalFiles: manifest.length,
         productsInChunk: productsCount,
+        batchMetrics: {
+          files: fileResults,
+          successCount,
+          failCount,
+          totalDurationMs: fileResults.reduce((s, f) => Math.max(s, f.durationMs), 0),
+        },
       }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 

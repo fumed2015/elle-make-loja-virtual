@@ -28,6 +28,7 @@ const CatalogDriveTab = () => {
   const [deletingImport, setDeletingImport] = useState<string | null>(null);
 
   // Progress panel state
+  type BatchMetric = { files: { fileName: string; brandName: string; status: "ok" | "error"; products: number; durationMs: number; error?: string }[]; successCount: number; failCount: number; totalDurationMs: number };
   const [progressData, setProgressData] = useState<{
     active: boolean;
     totalFiles: number;
@@ -35,9 +36,11 @@ const CatalogDriveTab = () => {
     totalProducts: number;
     brandsCount: number;
     startTime: number;
-    chunkTimes: number[]; // ms per chunk
+    chunkTimes: number[];
     currentChunk: number;
     phase: "discovering" | "processing" | "done" | "error";
+    totalErrors: number;
+    batchHistory: BatchMetric[];
   } | null>(null);
 
   const { data: catalogItems, isLoading } = useQuery({
@@ -120,7 +123,7 @@ const CatalogDriveTab = () => {
       const importId = importRecord.id;
 
       // Step 1: Discover files
-      setProgressData({ active: true, totalFiles: 0, processedFiles: 0, totalProducts: 0, brandsCount: 0, startTime: Date.now(), chunkTimes: [], currentChunk: 0, phase: "discovering" });
+      setProgressData({ active: true, totalFiles: 0, processedFiles: 0, totalProducts: 0, brandsCount: 0, startTime: Date.now(), chunkTimes: [], currentChunk: 0, phase: "discovering", totalErrors: 0, batchHistory: [] });
       const { data: discoverData, error: discoverError } = await supabase.functions.invoke("catalog-drive-import", {
         body: { action: "discover", import_id: importId },
       });
@@ -146,12 +149,15 @@ const CatalogDriveTab = () => {
         done = data.done;
         totalProducts += data.productsInChunk || 0;
 
+        const batchMetrics = data.batchMetrics as BatchMetric | undefined;
         setProgressData(p => p ? {
           ...p,
           processedFiles: data.processedFiles || p.processedFiles,
           totalProducts,
           currentChunk: p.currentChunk + 1,
           chunkTimes: [...p.chunkTimes, chunkMs],
+          totalErrors: p.totalErrors + (batchMetrics?.failCount || 0),
+          batchHistory: batchMetrics ? [...p.batchHistory, batchMetrics] : p.batchHistory,
           phase: done ? "done" : "processing",
         } : p);
 
@@ -371,6 +377,53 @@ const CatalogDriveTab = () => {
                 </div>
               </div>
             )}
+
+            {/* Error/Success summary */}
+            {progressData.currentChunk > 0 && (
+              <div className="flex gap-2 text-[10px]">
+                <span className="text-primary font-semibold">
+                  ✓ {progressData.batchHistory.reduce((s, b) => s + b.successCount, 0)} OK
+                </span>
+                {progressData.totalErrors > 0 && (
+                  <span className="text-destructive font-semibold">
+                    ✗ {progressData.totalErrors} erro(s)
+                  </span>
+                )}
+              </div>
+            )}
+
+            {/* Per-batch file detail (last batch) */}
+            {progressData.batchHistory.length > 0 && (() => {
+              const last = progressData.batchHistory[progressData.batchHistory.length - 1];
+              return (
+                <div className="space-y-1">
+                  <p className="text-[10px] font-semibold text-muted-foreground uppercase">
+                    Último Lote (#{progressData.currentChunk})
+                  </p>
+                  {last.files.map((f, i) => (
+                    <div key={i} className="flex items-center justify-between bg-card rounded px-2 py-1 border text-[9px]">
+                      <div className="flex items-center gap-1.5 min-w-0 flex-1">
+                        <span className={f.status === "ok" ? "text-primary" : "text-destructive"}>
+                          {f.status === "ok" ? "✓" : "✗"}
+                        </span>
+                        <span className="truncate">{f.fileName}</span>
+                        <span className="text-muted-foreground shrink-0">({f.brandName})</span>
+                      </div>
+                      <div className="flex items-center gap-2 shrink-0">
+                        {f.status === "ok" ? (
+                          <>
+                            <span className="font-semibold">{f.products} prod.</span>
+                            <span className="text-muted-foreground">{(f.durationMs / 1000).toFixed(1)}s</span>
+                          </>
+                        ) : (
+                          <span className="text-destructive truncate max-w-[120px]">{f.error}</span>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              );
+            })()}
 
             {/* Elapsed time */}
             <div className="text-[9px] text-muted-foreground text-right">
