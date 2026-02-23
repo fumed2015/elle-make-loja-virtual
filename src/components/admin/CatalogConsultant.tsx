@@ -1,10 +1,9 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { Loader2, Send, ShoppingCart, Sparkles, Trash2 } from "lucide-react";
+import { Loader2, Send, ShoppingCart, Sparkles, Trash2, Zap } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 
 type Msg = { role: "user" | "assistant"; content: string };
@@ -22,17 +21,22 @@ const CatalogConsultant = () => {
   const [messages, setMessages] = useState<Msg[]>([]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const scrollRef = useRef<HTMLDivElement>(null);
+  const [showQuickPrompts, setShowQuickPrompts] = useState(false);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
+  const scrollToBottom = useCallback(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, []);
+
   useEffect(() => {
-    if (scrollRef.current) {
-      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
-    }
-  }, [messages]);
+    scrollToBottom();
+  }, [messages, scrollToBottom]);
 
   const sendMessage = async (text: string) => {
     if (!text.trim() || isLoading) return;
+    setShowQuickPrompts(false);
     const userMsg: Msg = { role: "user", content: text.trim() };
     const allMessages = [...messages, userMsg];
     setMessages(allMessages);
@@ -46,6 +50,7 @@ const CatalogConsultant = () => {
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+          apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
         },
         body: JSON.stringify({ messages: allMessages }),
       });
@@ -84,12 +89,13 @@ const CatalogConsultant = () => {
             const content = parsed.choices?.[0]?.delta?.content as string | undefined;
             if (content) {
               assistantSoFar += content;
+              const snapshot = assistantSoFar;
               setMessages(prev => {
                 const last = prev[prev.length - 1];
                 if (last?.role === "assistant") {
-                  return prev.map((m, i) => i === prev.length - 1 ? { ...m, content: assistantSoFar } : m);
+                  return prev.map((m, i) => i === prev.length - 1 ? { ...m, content: snapshot } : m);
                 }
-                return [...prev, { role: "assistant", content: assistantSoFar }];
+                return [...prev, { role: "assistant", content: snapshot }];
               });
             }
           } catch {
@@ -112,12 +118,13 @@ const CatalogConsultant = () => {
             const content = parsed.choices?.[0]?.delta?.content;
             if (content) {
               assistantSoFar += content;
+              const snapshot = assistantSoFar;
               setMessages(prev => {
                 const last = prev[prev.length - 1];
                 if (last?.role === "assistant") {
-                  return prev.map((m, i) => i === prev.length - 1 ? { ...m, content: assistantSoFar } : m);
+                  return prev.map((m, i) => i === prev.length - 1 ? { ...m, content: snapshot } : m);
                 }
-                return [...prev, { role: "assistant", content: assistantSoFar }];
+                return [...prev, { role: "assistant", content: snapshot }];
               });
             }
           } catch {}
@@ -125,7 +132,6 @@ const CatalogConsultant = () => {
       }
     } catch (e: any) {
       toast.error(e.message || "Erro ao consultar a IA");
-      // Remove user message if no response
       if (!assistantSoFar) {
         setMessages(prev => prev.slice(0, -1));
       }
@@ -138,7 +144,7 @@ const CatalogConsultant = () => {
   return (
     <Card className="flex flex-col h-[500px] overflow-hidden">
       {/* Header */}
-      <div className="flex items-center justify-between px-4 py-3 border-b bg-gradient-to-r from-primary/5 to-accent/5">
+      <div className="flex items-center justify-between px-4 py-3 border-b bg-gradient-to-r from-primary/5 to-accent/5 shrink-0">
         <div className="flex items-center gap-2">
           <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center">
             <ShoppingCart className="w-4 h-4 text-primary" />
@@ -148,15 +154,45 @@ const CatalogConsultant = () => {
             <p className="text-[9px] text-muted-foreground">Estrategista de Portfólio & Mix</p>
           </div>
         </div>
-        {messages.length > 0 && (
-          <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => setMessages([])}>
-            <Trash2 className="w-3.5 h-3.5" />
-          </Button>
-        )}
+        <div className="flex items-center gap-1">
+          {messages.length > 0 && (
+            <>
+              <Button
+                size="icon"
+                variant="ghost"
+                className="h-7 w-7"
+                onClick={() => setShowQuickPrompts(!showQuickPrompts)}
+                title="Atalhos rápidos"
+              >
+                <Zap className="w-3.5 h-3.5" />
+              </Button>
+              <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => { setMessages([]); setShowQuickPrompts(false); }}>
+                <Trash2 className="w-3.5 h-3.5" />
+              </Button>
+            </>
+          )}
+        </div>
       </div>
 
+      {/* Quick prompts popover */}
+      {showQuickPrompts && (
+        <div className="px-4 py-2 border-b bg-muted/50 shrink-0">
+          <div className="grid grid-cols-2 gap-1.5">
+            {QUICK_PROMPTS.map((qp, i) => (
+              <button
+                key={i}
+                onClick={() => sendMessage(qp.prompt)}
+                className="text-left p-2 rounded-lg border bg-card hover:bg-accent/10 transition-colors"
+              >
+                <p className="text-[9px] font-medium">{qp.label}</p>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Messages */}
-      <ScrollArea className="flex-1 px-4 py-3" ref={scrollRef}>
+      <div className="flex-1 overflow-y-auto px-4 py-3" ref={scrollContainerRef}>
         {messages.length === 0 ? (
           <div className="space-y-3">
             <div className="text-center py-4">
@@ -195,19 +231,21 @@ const CatalogConsultant = () => {
                 </div>
               </div>
             ))}
-            {isLoading && messages[messages.length - 1]?.role === "user" && (
+            {isLoading && messages[messages.length - 1]?.role !== "assistant" && (
               <div className="flex justify-start">
-                <div className="bg-muted rounded-xl px-3 py-2">
-                  <Loader2 className="w-4 h-4 animate-spin text-primary" />
+                <div className="bg-muted rounded-xl px-3 py-2 flex items-center gap-2">
+                  <Loader2 className="w-3.5 h-3.5 animate-spin text-primary" />
+                  <span className="text-[9px] text-muted-foreground">Analisando...</span>
                 </div>
               </div>
             )}
+            <div ref={messagesEndRef} />
           </div>
         )}
-      </ScrollArea>
+      </div>
 
       {/* Input */}
-      <div className="border-t px-3 py-2">
+      <div className="border-t px-3 py-2 shrink-0">
         <form
           onSubmit={(e) => { e.preventDefault(); sendMessage(input); }}
           className="flex gap-2"
