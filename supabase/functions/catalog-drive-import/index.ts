@@ -38,7 +38,7 @@ async function getAllDriveFiles(folderId: string, mimeType: string, apiKey: stri
 }
 
 async function downloadPdfAsBase64(fileId: string, apiKey: string): Promise<string | null> {
-  const MAX_PDF_SIZE = 3 * 1024 * 1024; // 3MB limit to stay within memory constraints
+  const MAX_PDF_SIZE = 2 * 1024 * 1024; // 2MB limit — lower to prevent OOM in edge functions
   try {
     // Check file size first via metadata to avoid downloading large files
     const metaRes = await fetch(
@@ -132,15 +132,35 @@ async function extractProductsFromPdf(pdfBase64: string, brandName: string, file
 
 async function extractViaTextFallback(fileId: string, brandName: string, apiKey: string, lovableApiKey: string): Promise<any[]> {
   try {
-    // Try Google's text export first (low memory)
-    const exportRes = await fetch(`https://www.googleapis.com/drive/v3/files/${fileId}/export?mimeType=text/plain&key=${apiKey}`);
+    // Try Google's text export first (low memory) — but limit response
+    const controller1 = new AbortController();
+    const timeout1 = setTimeout(() => controller1.abort(), 8000);
+    const exportRes = await fetch(
+      `https://www.googleapis.com/drive/v3/files/${fileId}/export?mimeType=text/plain&key=${apiKey}`,
+      { signal: controller1.signal }
+    );
+    clearTimeout(timeout1);
     if (exportRes.ok) {
-      const textContent = await exportRes.text();
-      if (textContent.length >= 20) {
-        return await callAiForText(textContent.substring(0, 12000), brandName, lovableApiKey);
+      // Read only first 15KB to avoid memory issues with huge text exports
+      const reader = exportRes.body?.getReader();
+      if (reader) {
+        let textContent = "";
+        let bytesRead = 0;
+        const MAX_TEXT = 15000;
+        while (bytesRead < MAX_TEXT) {
+          const { done, value } = await reader.read();
+          if (done || !value) break;
+          bytesRead += value.length;
+          textContent += new TextDecoder().decode(value, { stream: true });
+          if (textContent.length >= MAX_TEXT) break;
+        }
+        reader.cancel().catch(() => {});
+        if (textContent.length >= 20) {
+          return await callAiForText(textContent.substring(0, 12000), brandName, lovableApiKey);
+        }
       }
     } else {
-      await exportRes.text(); // consume body
+      await exportRes.text();
     }
 
     // Raw binary fallback — limit download to 2MB to avoid memory issues
@@ -397,12 +417,11 @@ serve(async (req) => {
     // ── IMPORT (step 2+: process CHUNK_SIZE files per call with retry) ──
     if (action === "import") {
       if (!import_id) throw new Error("import_id is required");
-      const CHUNK_SIZE = 1; // Process 1 file at a time to avoid compute limits
+      const CHUNK_SIZE = 1;
 
       const { data: rec, error: recErr } = await supabase.from("catalog_imports").select("*").eq("id", import_id).single();
       if (recErr || !rec) throw new Error("Import not found");
 
-      // If still pending, auto-trigger discover inline
       if (rec.status === "pending") {
         return new Response(JSON.stringify({
           success: true, done: false, needsDiscover: true,
@@ -425,7 +444,20 @@ serve(async (req) => {
         throw new Error("Manifesto corrompido. Delete e reimporte.");
       }
 
-      const startIdx = rec.processed_files || 0;
+      // Load already-failed file IDs to skip them on resume
+      const { data: failedFiles } = await supabase
+        .from("catalog_import_failures")
+        .select("file_id")
+        .eq("import_id", import_id);
+      const failedFileIds = new Set((failedFiles || []).map((f: any) => f.file_id));
+
+      let startIdx = rec.processed_files || 0;
+      
+      // Skip past any already-failed files at the current position
+      while (startIdx < manifest.length && failedFileIds.has(manifest[startIdx].fileId)) {
+        startIdx++;
+      }
+
       const chunk = manifest.slice(startIdx, startIdx + CHUNK_SIZE);
 
       if (chunk.length === 0) {
@@ -444,7 +476,13 @@ serve(async (req) => {
       let productsCount = 0;
       const fileResults: { fileName: string; brandName: string; status: "ok" | "error"; products: number; durationMs: number; error?: string }[] = [];
 
-      for (const file of chunk) {
+      for (let ci = 0; ci < chunk.length; ci++) {
+        const file = chunk[ci];
+        const fileIdx = startIdx + ci;
+
+        // CRITICAL: Advance processed_files BEFORE processing so OOM crashes don't cause infinite loops
+        await supabase.from("catalog_imports").update({ processed_files: fileIdx + 1 }).eq("id", import_id);
+
         const t0 = Date.now();
         try {
           const result = await processFileWithRetry(file, import_id, supabase, GOOGLE_API_KEY, LOVABLE_API_KEY);
