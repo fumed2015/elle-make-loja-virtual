@@ -38,21 +38,20 @@ async function getAllDriveFiles(folderId: string, mimeType: string, apiKey: stri
 }
 
 async function downloadPdfAsBase64(fileId: string, apiKey: string): Promise<string | null> {
-  const MAX_PDF_SIZE = 10 * 1024 * 1024; // 10MB limit
+  const MAX_PDF_SIZE = 6 * 1024 * 1024; // 6MB limit (reduced for memory safety)
   try {
     const res = await fetch(
       `https://www.googleapis.com/drive/v3/files/${fileId}?alt=media&key=${apiKey}`,
       { headers: { Accept: "application/pdf" } }
     );
     if (!res.ok) {
-      console.error(`Download failed for ${fileId}: ${res.status}`);
-      await res.text(); // consume body
+      await res.text();
       return null;
     }
     const buffer = await res.arrayBuffer();
     if (buffer.byteLength > MAX_PDF_SIZE) {
       console.warn(`PDF ${fileId} too large (${(buffer.byteLength / 1024 / 1024).toFixed(1)}MB), using text fallback`);
-      return null; // caller will use text fallback
+      return null;
     }
     return base64Encode(new Uint8Array(buffer));
   } catch (e) {
@@ -144,6 +143,70 @@ async function extractProductsFromPdf(
   return [];
 }
 
+async function extractViaTextFallback(fileId: string, brandName: string, apiKey: string, lovableApiKey: string): Promise<any[]> {
+  const exportRes = await fetch(
+    `https://www.googleapis.com/drive/v3/files/${fileId}/export?mimeType=text/plain&key=${apiKey}`
+  );
+  if (!exportRes.ok) {
+    await exportRes.text();
+    return [];
+  }
+  const textContent = await exportRes.text();
+  const aiRes = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${lovableApiKey}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      model: "google/gemini-2.5-flash-lite",
+      messages: [
+        { role: "system", content: "Extraia produtos do texto. Retorne via tool call." },
+        { role: "user", content: `Marca: ${brandName}\n${textContent.substring(0, 8000)}` },
+      ],
+      tools: [{
+        type: "function",
+        function: {
+          name: "extract_products",
+          description: "Extract products",
+          parameters: {
+            type: "object",
+            properties: {
+              products: {
+                type: "array",
+                items: {
+                  type: "object",
+                  properties: {
+                    product_name: { type: "string" },
+                    price: { type: "number" },
+                    compare_at_price: { type: "number" },
+                    description: { type: "string" },
+                    category: { type: "string" },
+                    tags: { type: "array", items: { type: "string" } },
+                  },
+                  required: ["product_name"],
+                },
+              },
+            },
+            required: ["products"],
+          },
+        },
+      }],
+      tool_choice: { type: "function", function: { name: "extract_products" } },
+    }),
+  });
+  if (aiRes.ok) {
+    const d = await aiRes.json();
+    const tc = d.choices?.[0]?.message?.tool_calls?.[0];
+    if (tc?.function?.arguments) {
+      try { return JSON.parse(tc.function.arguments).products || []; } catch {}
+    }
+  } else {
+    await aiRes.text();
+  }
+  return [];
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
@@ -179,9 +242,11 @@ serve(async (req) => {
       });
     }
 
-    // ── IMPORT ──
+    // ── IMPORT (chunked — processes CHUNK_SIZE files per call) ──
     if (action === "import") {
       if (!import_id) throw new Error("import_id is required");
+
+      const CHUNK_SIZE = 3; // files per invocation
 
       const { data: importRecord, error: importError } = await supabase
         .from("catalog_imports")
@@ -191,169 +256,178 @@ serve(async (req) => {
 
       if (importError || !importRecord) throw new Error("Import not found");
 
-      // Check for duplicate (same folder already completed)
-      const { data: existing } = await supabase
-        .from("catalog_imports")
-        .select("id")
-        .eq("folder_id", importRecord.folder_id)
-        .eq("status", "completed")
-        .neq("id", import_id)
-        .limit(1);
+      const folderId = importRecord.folder_id;
 
-      if (existing && existing.length > 0) {
+      // First call: discover files and store metadata
+      if (importRecord.status === "pending") {
+        // Check for duplicate
+        const { data: existing } = await supabase
+          .from("catalog_imports")
+          .select("id")
+          .eq("folder_id", folderId)
+          .eq("status", "completed")
+          .neq("id", import_id)
+          .limit(1);
+
+        if (existing && existing.length > 0) {
+          await supabase.from("catalog_imports").update({
+            status: "completed",
+            error_message: "Importação duplicada — essa pasta já foi importada anteriormente.",
+          }).eq("id", import_id);
+
+          return new Response(JSON.stringify({
+            success: false,
+            error: "Essa pasta já foi importada. Delete a importação anterior para reimportar.",
+            done: true,
+          }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+        }
+
+        // Discover all brand folders and PDFs
+        const brands = await getAllDriveFiles(folderId, "application/vnd.google-apps.folder", GOOGLE_API_KEY);
+        const fileManifest: { brandName: string; fileId: string; fileName: string }[] = [];
+
+        for (const brand of brands) {
+          const pdfs = await getAllDriveFiles(brand.id, "application/pdf", GOOGLE_API_KEY);
+          for (const pdf of pdfs) {
+            fileManifest.push({ brandName: brand.name, fileId: pdf.id, fileName: pdf.name });
+          }
+        }
+
+        // Store manifest in folder_name field as JSON for subsequent calls
         await supabase.from("catalog_imports").update({
-          status: "completed",
-          error_message: "Importação duplicada — essa pasta já foi importada anteriormente.",
+          status: "processing",
+          total_files: fileManifest.length,
+          processed_files: 0,
+          folder_name: JSON.stringify({ url: importRecord.folder_name, manifest: fileManifest }),
+        }).eq("id", import_id);
+
+        // Process first chunk
+        const chunk = fileManifest.slice(0, CHUNK_SIZE);
+        let productsCount = 0;
+
+        for (const file of chunk) {
+          const pdfBase64 = await downloadPdfAsBase64(file.fileId, GOOGLE_API_KEY);
+          let products: any[] = [];
+
+          if (pdfBase64) {
+            products = await extractProductsFromPdf(pdfBase64, file.brandName, file.fileName, LOVABLE_API_KEY);
+          } else {
+            products = await extractViaTextFallback(file.fileId, file.brandName, GOOGLE_API_KEY, LOVABLE_API_KEY);
+          }
+
+          if (products.length > 0) {
+            const items = products.map((p: any) => ({
+              import_id,
+              brand: file.brandName,
+              product_name: p.product_name || "Produto sem nome",
+              price: p.price || null,
+              compare_at_price: p.compare_at_price || null,
+              description: p.description || null,
+              category: p.category || "geral",
+              tags: p.tags || [],
+              source_file: file.fileName,
+              raw_data: p,
+            }));
+            await supabase.from("catalog_items").insert(items);
+            productsCount += items.length;
+          }
+        }
+
+        const processedSoFar = Math.min(CHUNK_SIZE, fileManifest.length);
+        const done = processedSoFar >= fileManifest.length;
+
+        await supabase.from("catalog_imports").update({
+          processed_files: processedSoFar,
+          ...(done ? { status: "completed" } : {}),
         }).eq("id", import_id);
 
         return new Response(JSON.stringify({
-          success: false,
-          error: "Essa pasta já foi importada. Delete a importação anterior para reimportar.",
+          success: true,
+          done,
+          processedFiles: processedSoFar,
+          totalFiles: fileManifest.length,
+          productsInChunk: productsCount,
         }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
       }
 
-      await supabase.from("catalog_imports").update({ status: "processing" }).eq("id", import_id);
-
-      const folderId = importRecord.folder_id;
-      const brands = await getAllDriveFiles(folderId, "application/vnd.google-apps.folder", GOOGLE_API_KEY);
-
-      let totalFiles = 0;
-      let processedFiles = 0;
-      let totalProducts = 0;
-
-      // Count total PDFs
-      const brandPdfs: { brand: any; files: any[] }[] = [];
-      for (const brand of brands) {
-        const pdfs = await getAllDriveFiles(brand.id, "application/pdf", GOOGLE_API_KEY);
-        totalFiles += pdfs.length;
-        brandPdfs.push({ brand, files: pdfs });
-      }
-
-      await supabase.from("catalog_imports").update({ total_files: totalFiles }).eq("id", import_id);
-
-      // Process PDFs in parallel batches of 3 for speed
-      const BATCH_SIZE = 3;
-      for (const { brand, files } of brandPdfs) {
-        for (let batchStart = 0; batchStart < files.length; batchStart += BATCH_SIZE) {
-          const batch = files.slice(batchStart, batchStart + BATCH_SIZE);
-          
-          const results = await Promise.allSettled(
-            batch.map(async (file: any) => {
-              const pdfBase64 = await downloadPdfAsBase64(file.id, GOOGLE_API_KEY);
-              let products: any[] = [];
-
-              if (pdfBase64) {
-                products = await extractProductsFromPdf(pdfBase64, brand.name, file.name, LOVABLE_API_KEY);
-              } else {
-                // Fallback: try text export
-                const exportRes = await fetch(
-                  `https://www.googleapis.com/drive/v3/files/${file.id}/export?mimeType=text/plain&key=${GOOGLE_API_KEY}`
-                );
-                if (exportRes.ok) {
-                  const textContent = await exportRes.text();
-                  const aiRes = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-                    method: "POST",
-                    headers: {
-                      Authorization: `Bearer ${LOVABLE_API_KEY}`,
-                      "Content-Type": "application/json",
-                    },
-                    body: JSON.stringify({
-                      model: "google/gemini-2.5-flash-lite",
-                      messages: [
-                        { role: "system", content: "Extraia produtos do texto. Retorne via tool call." },
-                        { role: "user", content: `Marca: ${brand.name}\n${textContent.substring(0, 10000)}` },
-                      ],
-                      tools: [{
-                        type: "function",
-                        function: {
-                          name: "extract_products",
-                          description: "Extract products",
-                          parameters: {
-                            type: "object",
-                            properties: {
-                              products: {
-                                type: "array",
-                                items: {
-                                  type: "object",
-                                  properties: {
-                                    product_name: { type: "string" },
-                                    price: { type: "number" },
-                                    compare_at_price: { type: "number" },
-                                    description: { type: "string" },
-                                    category: { type: "string" },
-                                    tags: { type: "array", items: { type: "string" } },
-                                  },
-                                  required: ["product_name"],
-                                },
-                              },
-                            },
-                            required: ["products"],
-                          },
-                        },
-                      }],
-                      tool_choice: { type: "function", function: { name: "extract_products" } },
-                    }),
-                  });
-                  if (aiRes.ok) {
-                    const d = await aiRes.json();
-                    const tc = d.choices?.[0]?.message?.tool_calls?.[0];
-                    if (tc?.function?.arguments) {
-                      try { products = JSON.parse(tc.function.arguments).products || []; } catch {}
-                    }
-                  } else {
-                    await aiRes.text();
-                  }
-                } else {
-                  await exportRes.text();
-                }
-              }
-
-              const batchItems = products.map((product: any) => ({
-                import_id,
-                brand: brand.name,
-                product_name: product.product_name || "Produto sem nome",
-                price: product.price || null,
-                compare_at_price: product.compare_at_price || null,
-                description: product.description || null,
-                category: product.category || "geral",
-                tags: product.tags || [],
-                source_file: file.name,
-                raw_data: product,
-              }));
-
-              if (batchItems.length > 0) {
-                const { error: insertError } = await supabase.from("catalog_items").insert(batchItems);
-                if (insertError) console.error("Insert error:", insertError);
-              }
-              return batchItems.length;
-            })
-          );
-
-          for (const r of results) {
-            processedFiles++;
-            if (r.status === "fulfilled") totalProducts += r.value;
-            else console.error("Batch file error:", r.reason);
-          }
-          await supabase.from("catalog_imports").update({ processed_files: processedFiles }).eq("id", import_id);
+      // Subsequent calls: continue processing from where we left off
+      if (importRecord.status === "processing") {
+        let manifest: any[];
+        try {
+          const parsed = JSON.parse(importRecord.folder_name);
+          manifest = parsed.manifest;
+        } catch {
+          throw new Error("Manifesto corrompido. Delete e reimporte.");
         }
+
+        const startIdx = importRecord.processed_files || 0;
+        const chunk = manifest.slice(startIdx, startIdx + CHUNK_SIZE);
+
+        if (chunk.length === 0) {
+          await supabase.from("catalog_imports").update({ status: "completed" }).eq("id", import_id);
+          return new Response(JSON.stringify({ success: true, done: true, processedFiles: startIdx, totalFiles: manifest.length }), {
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          });
+        }
+
+        let productsCount = 0;
+        for (const file of chunk) {
+          const pdfBase64 = await downloadPdfAsBase64(file.fileId, GOOGLE_API_KEY);
+          let products: any[] = [];
+
+          if (pdfBase64) {
+            products = await extractProductsFromPdf(pdfBase64, file.brandName, file.fileName, LOVABLE_API_KEY);
+          } else {
+            products = await extractViaTextFallback(file.fileId, file.brandName, GOOGLE_API_KEY, LOVABLE_API_KEY);
+          }
+
+          if (products.length > 0) {
+            const items = products.map((p: any) => ({
+              import_id,
+              brand: file.brandName,
+              product_name: p.product_name || "Produto sem nome",
+              price: p.price || null,
+              compare_at_price: p.compare_at_price || null,
+              description: p.description || null,
+              category: p.category || "geral",
+              tags: p.tags || [],
+              source_file: file.fileName,
+              raw_data: p,
+            }));
+            await supabase.from("catalog_items").insert(items);
+            productsCount += items.length;
+          }
+        }
+
+        const processedSoFar = startIdx + chunk.length;
+        const done = processedSoFar >= manifest.length;
+
+        await supabase.from("catalog_imports").update({
+          processed_files: processedSoFar,
+          ...(done ? { status: "completed" } : {}),
+        }).eq("id", import_id);
+
+        return new Response(JSON.stringify({
+          success: true,
+          done,
+          processedFiles: processedSoFar,
+          totalFiles: manifest.length,
+          productsInChunk: productsCount,
+        }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
       }
 
-      await supabase.from("catalog_imports").update({
-        status: "completed",
-        processed_files: processedFiles,
-      }).eq("id", import_id);
-
-      return new Response(
-        JSON.stringify({ success: true, totalProducts, processedFiles }),
-        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+      // Already completed or failed
+      return new Response(JSON.stringify({
+        success: true,
+        done: true,
+        processedFiles: importRecord.processed_files,
+        totalFiles: importRecord.total_files,
+      }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
     // ── DELETE-IMPORT ──
     if (action === "delete-import") {
       if (!import_id) throw new Error("import_id is required");
-
-      // Delete items first, then the import record
       await supabase.from("catalog_items").delete().eq("import_id", import_id);
       const { error } = await supabase.from("catalog_imports").delete().eq("id", import_id);
       if (error) throw error;
@@ -391,15 +465,15 @@ serve(async (req) => {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          model: "google/gemini-2.5-flash",
+          model: "google/gemini-2.5-flash-lite",
           messages: [
             {
               role: "system",
-              content: "Você é um analista de mercado de cosméticos. Gere insights estratégicos em português sobre o catálogo de produtos.",
+              content: "Você é um analista de mercado de cosméticos. Gere insights estratégicos em português sobre o catálogo de produtos. Seja conciso.",
             },
             {
               role: "user",
-              content: `Analise este catálogo e gere insights:\n${summary}\n\nProdutos por marca:\n${brands.map(b => `${b}: ${items.filter(i => i.brand === b).length} produtos`).join("\n")}\n\nCategorias: ${categories.join(", ")}\n\nPrimeiros 30 produtos:\n${items.slice(0, 30).map(i => `- ${i.brand} | ${i.product_name} | R$${i.price || "N/A"} | ${i.category}`).join("\n")}`,
+              content: `Analise este catálogo:\n${summary}\n\nMarcas: ${brands.map(b => `${b}: ${items.filter(i => i.brand === b).length}`).join(", ")}\n\nCategorias: ${categories.join(", ")}\n\nAmostra:\n${items.slice(0, 20).map(i => `- ${i.brand} | ${i.product_name} | R$${i.price || "N/A"} | ${i.category}`).join("\n")}`,
             },
           ],
         }),
@@ -414,11 +488,9 @@ serve(async (req) => {
       const aiData = await aiResponse.json();
       const insights = aiData.choices?.[0]?.message?.content || "Sem insights disponíveis.";
 
-      return new Response(JSON.stringify({
-        success: true,
-        insights,
-        summary: { total: items.length, brands: brands.length, categories: categories.length, avgPrice },
-      }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      return new Response(JSON.stringify({ success: true, insights }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     }
 
     throw new Error(`Unknown action: ${action}`);

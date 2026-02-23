@@ -104,16 +104,34 @@ const CatalogDriveTab = () => {
         .single();
       if (insertError) throw insertError;
 
-      const { data, error } = await supabase.functions.invoke("catalog-drive-import", {
-        body: { action: "import", import_id: importRecord.id },
-      });
-      if (error) throw error;
-      if (data?.error) throw new Error(data.error);
-      toast.success(`Importação concluída! ${data.totalProducts} produtos extraídos.`);
+      const importId = importRecord.id;
+      let done = false;
+      let totalProducts = 0;
+
+      while (!done) {
+        const { data, error } = await supabase.functions.invoke("catalog-drive-import", {
+          body: { action: "import", import_id: importId },
+        });
+        if (error) throw error;
+        if (data?.error) throw new Error(data.error);
+
+        done = data.done;
+        totalProducts += data.productsInChunk || 0;
+
+        // Refresh imports to show progress
+        queryClient.invalidateQueries({ queryKey: ["catalog-imports"] });
+
+        if (!done) {
+          toast.info(`Processados ${data.processedFiles}/${data.totalFiles} arquivos...`);
+        }
+      }
+
+      toast.success(`Importação concluída! ${totalProducts} produtos extraídos.`);
       queryClient.invalidateQueries({ queryKey: ["catalog-items"] });
       queryClient.invalidateQueries({ queryKey: ["catalog-imports"] });
     } catch (e: any) {
       toast.error(e.message || "Erro na importação");
+      queryClient.invalidateQueries({ queryKey: ["catalog-imports"] });
     } finally {
       setImporting(false);
     }
