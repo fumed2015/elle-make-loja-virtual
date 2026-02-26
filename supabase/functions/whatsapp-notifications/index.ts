@@ -52,20 +52,71 @@ function buildMessageFromTemplate(template: string, data: Record<string, any>): 
     .replace(/{total}/g, data.total || "0,00")
     .replace(/{tracking_code}/g, data.tracking_code || "N/A")
     .replace(/{tracking_url}/g, data.tracking_url || "")
+    .replace(/{address}/g, data.address || "")
+    .replace(/{payment_method}/g, data.payment_method || "")
+    .replace(/{order_id}/g, data.order_id || "")
+    .replace(/{items_count}/g, data.items_count || "0")
     .replace(/{link}/g, data.link || "https://ellemake2.lovable.app");
 }
 
+const PAYMENT_LABELS: Record<string, string> = {
+  pix: "Pix",
+  credit_card: "Cartão de Crédito",
+  debit_card: "Cartão de Débito",
+  whatsapp: "Combinar pelo WhatsApp",
+  boleto: "Boleto Bancário",
+};
+
 const FALLBACK_TEMPLATES: Record<string, string> = {
   "order.created":
-    "🛒 Oi {first_name}! Seu pedido na *{merchant}* foi recebido! 🎉\n\n{products_list}\n\n💰 Total: R$ {total}\n\nVamos te avisar! 💕",
+    `✨ *Novo Pedido Recebido!* ✨\n\nOi *{first_name}*! 💕\nSeu pedido na *{merchant}* foi confirmado com sucesso!\n\n` +
+    `🆔 *Pedido #{order_id}*\n` +
+    `━━━━━━━━━━━━━━━━━━\n\n` +
+    `🛍️ *Itens do pedido:*\n{products_list}\n\n` +
+    `━━━━━━━━━━━━━━━━━━\n` +
+    `💰 *Total: R$ {total}*\n` +
+    `📍 *Entrega:* {address}\n` +
+    `💳 *Pagamento:* {payment_method}\n\n` +
+    `Vamos preparar tudo com muito carinho! 💖\nAcompanhe seu pedido pelo nosso site 🔗`,
+
   "order.paid":
-    "✅ {first_name}, pagamento *confirmado*! 🎉\n\n{products_list}\n\nPreparando com carinho! 💖",
+    `✅ *Pagamento Confirmado!* 🎉\n\nOi *{first_name}*!\n\n` +
+    `🆔 *Pedido #{order_id}*\n` +
+    `━━━━━━━━━━━━━━━━━━\n\n` +
+    `🛍️ *Seus itens:*\n{products_list}\n\n` +
+    `━━━━━━━━━━━━━━━━━━\n` +
+    `💰 *Total: R$ {total}*\n\n` +
+    `Recebemos seu pagamento! 💸\nEstamos preparando tudo com carinho para enviar o mais rápido possível! 📦✨`,
+
   "order.shipped":
-    "📦 {first_name}, produtos *a caminho*! 🚚\n\n{products_list}\n\nRastreio: *{tracking_code}*\n{tracking_url}",
+    `📦 *Pedido Enviado!* 🚀\n\nOi *{first_name}*!\n\n` +
+    `🆔 *Pedido #{order_id}*\n` +
+    `━━━━━━━━━━━━━━━━━━\n\n` +
+    `🛍️ *Itens:*\n{products_list}\n\n` +
+    `━━━━━━━━━━━━━━━━━━\n` +
+    `🔎 *Código de rastreio:*\n📋 *{tracking_code}*\n\n` +
+    `📍 *Entrega em:* {address}\n\n` +
+    `Acompanhe a entrega aqui: 🔗 {tracking_url}\n\n` +
+    `Seus produtos estão a caminho! 🎁💕`,
+
   "order.delivered":
-    "🎉 {first_name}, pedido *entregue*! 💖\n\n{products_list}\n\nConta o que achou! ⭐\n📸 Marca a gente no Insta: *@ellemake* 🤳\n🔗 Avalie: {link}",
+    `🎉 *Pedido Entregue!* 💖\n\nOi *{first_name}*!\n\n` +
+    `🆔 *Pedido #{order_id}*\n` +
+    `━━━━━━━━━━━━━━━━━━\n\n` +
+    `🛍️ *Itens:*\n{products_list}\n\n` +
+    `━━━━━━━━━━━━━━━━━━\n\n` +
+    `Esperamos que você ame tudo! 😍\n\n` +
+    `⭐ *Avalie seus produtos:* {link}\n` +
+    `📸 Mostra pra gente! Marca *@ellemake* no Instagram 🤳\n\n` +
+    `Obrigada por comprar com a gente! 💕`,
+
   "order.cancelled":
-    "❌ {first_name}, seu pedido na *{merchant}* foi cancelado.\n\nSe tiver dúvidas, fale conosco! 💬",
+    `😔 *Pedido Cancelado*\n\nOi *{first_name}*,\n\n` +
+    `🆔 *Pedido #{order_id}*\n` +
+    `━━━━━━━━━━━━━━━━━━\n\n` +
+    `Infelizmente seu pedido na *{merchant}* foi cancelado.\n\n` +
+    `Se tiver alguma dúvida ou quiser fazer um novo pedido, estamos aqui! 💬\n\n` +
+    `🔗 Visite nossa loja: {link}`,
 };
 
 async function buildMessage(
@@ -101,9 +152,17 @@ function formatProductsList(items: any[]): string {
       const name = item.name || item.product_name || "Produto";
       const qty = item.quantity || 1;
       const price = item.price || 0;
-      return `• ${name} (${qty}x) — R$ ${Number(price).toFixed(2).replace(".", ",")}`;
+      const lineTotal = Number(price) * qty;
+      return `  • ${name} (${qty}x) — R$ ${lineTotal.toFixed(2).replace(".", ",")}`;
     })
     .join("\n");
+}
+
+function formatAddress(addr: any): string {
+  if (!addr) return "";
+  const parts = [addr.street, addr.number].filter(Boolean).join(", ");
+  const extra = [addr.neighborhood, addr.city].filter(Boolean).join(", ");
+  return [parts, extra].filter(Boolean).join(" — ");
 }
 
 serve(async (req) => {
@@ -156,10 +215,17 @@ serve(async (req) => {
       const productsList = formatProductsList(items);
       const totalFormatted = Number(order.total).toFixed(2).replace(".", ",");
 
+      const shippingAddr = order.shipping_address as any;
+      const paymentLabel = PAYMENT_LABELS[order.payment_method] || order.payment_method || "";
+
       const messageData = {
         first_name: firstName,
+        order_id: order.id.slice(0, 8),
         products_list: productsList,
         total: totalFormatted,
+        items_count: String(items.reduce((s: number, i: any) => s + (i.quantity || 1), 0)),
+        address: formatAddress(shippingAddr),
+        payment_method: paymentLabel,
         tracking_code: order.tracking_code || "",
         tracking_url: order.tracking_url || "",
         link: "https://ellemake2.lovable.app/pedidos",

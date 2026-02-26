@@ -202,11 +202,22 @@ const OrdersManagementTab = () => {
 
   const sendWhatsApp = (order: any) => {
     const items = (order.items as any[]) || [];
-    const itemsList = items.map((i: any) => `• ${i.name} (${i.quantity}x)`).join("\n");
+    const itemsList = items.map((i: any) => {
+      const lineTotal = (Number(i.price || 0) * (i.quantity || 1)).toFixed(2).replace(".", ",");
+      return `  • ${i.name} (${i.quantity}x) — R$ ${lineTotal}`;
+    }).join("\n");
     const address = order.shipping_address as any;
-    const addressStr = address ? `${address.street}, ${address.number} - ${address.neighborhood}, ${address.city}` : "";
+    const addressStr = address ? `${address.street}, ${address.number} — ${address.neighborhood}, ${address.city}` : "";
+    const totalStr = Number(order.total).toFixed(2).replace(".", ",");
+    const statusLabel = STATUS_CONFIG[order.status]?.label || order.status;
     const msg = encodeURIComponent(
-      `📋 *Pedido #${order.id.slice(0, 8)}*\n\n${itemsList}\n\n💰 Total: R$ ${Number(order.total).toFixed(2).replace(".", ",")}\n📍 ${addressStr}\n\nStatus: ${STATUS_CONFIG[order.status]?.label || order.status}`
+      `📋 *Pedido #${order.id.slice(0, 8)}*\n` +
+      `━━━━━━━━━━━━━━━━━━\n\n` +
+      `🛍️ *Itens:*\n${itemsList}\n\n` +
+      `━━━━━━━━━━━━━━━━━━\n` +
+      `💰 *Total: R$ ${totalStr}*\n` +
+      `📍 *Endereço:* ${addressStr}\n` +
+      `📌 *Status:* ${statusLabel}\n`
     );
     window.open(`https://wa.me/?text=${msg}`, "_blank");
   };
