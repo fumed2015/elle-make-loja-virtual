@@ -457,7 +457,7 @@ const Header = () => {
             </DropdownMenu>
 
             {/* Cart */}
-            <Link to="/carrinho" className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-muted transition-colors relative" aria-label="Carrinho">
+            <Link to="/carrinho" className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-white/10 md:hover:bg-white/10 hover:bg-muted transition-colors relative" aria-label="Carrinho">
               <motion.div
                 whileHover={{ scale: 1.1 }}
                 whileTap={{ scale: 0.9 }}
@@ -465,7 +465,7 @@ const Header = () => {
                 animate={cartCount > 0 ? { scale: [1, 1.3, 1], rotate: [0, -10, 10, 0] } : {}}
                 transition={{ duration: 0.4 }}
               >
-                <ShoppingBag className="w-5 h-5 text-foreground" />
+                <ShoppingBag className="w-5 h-5 text-foreground md:text-white md:drop-shadow-sm" />
               </motion.div>
               {cartCount > 0 && (
                 <motion.span
