@@ -288,21 +288,21 @@ const HeroCarousel = () => {
       {/* Hero Carousel — extends behind header */}
       <HeroCarousel />
 
-      {/* Benefits bar — removed individual whileInView, single container animation */}
-      <section className="border-b border-border bg-card/50 backdrop-blur-sm px-4 py-4">
-        <div className="max-w-5xl mx-auto flex justify-between gap-2 overflow-x-auto scrollbar-hide">
+      {/* Benefits bar — clean layout matching reference */}
+      <section className="bg-background py-8 px-4">
+        <div className="max-w-5xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-8">
           {benefits.map((b, i) => (
             <div
               key={i}
-              className="flex items-center gap-2 px-3 py-2.5 rounded-lg min-w-fit flex-1 animate-fade-in"
+              className="flex items-center gap-3 animate-fade-in"
               style={{ animationDelay: `${i * 100}ms` }}
             >
-              <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
-                <b.icon className="w-4 h-4 text-primary" />
+              <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+                <b.icon className="w-5 h-5 text-primary" />
               </div>
               <div className="text-left">
-                <p className="text-xs font-bold text-foreground whitespace-nowrap">{b.text}</p>
-                <p className="text-[10px] text-muted-foreground whitespace-nowrap">{b.sub}</p>
+                <p className="text-sm font-bold text-foreground">{b.text}</p>
+                <p className="text-xs text-muted-foreground">{b.sub}</p>
               </div>
             </div>
           ))}
