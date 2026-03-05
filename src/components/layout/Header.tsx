@@ -221,74 +221,110 @@ const Header = () => {
 
   return (
     <header className="sticky top-0 z-40">
-      {/* Promo bar */}
-      <div className="bg-primary text-primary-foreground text-center py-1.5 px-4 overflow-hidden h-8 flex items-center justify-center">
-        <AnimatePresence mode="wait">
-          <motion.p
-            key={promoIndex}
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
-            transition={{ duration: 0.3 }}
-            className="text-[11px] font-medium tracking-wide"
-          >
-            {promoMessages[promoIndex]}
-          </motion.p>
-        </AnimatePresence>
+      {/* Promo bar with arrows like reference */}
+      <div className="bg-primary text-primary-foreground py-1.5 px-2 overflow-hidden h-8 flex items-center justify-between">
+        <button
+          onClick={() => setPromoIndex((i) => (i - 1 + promoMessages.length) % promoMessages.length)}
+          className="w-6 h-6 flex items-center justify-center flex-shrink-0 hover:bg-primary-foreground/10 rounded-full transition-colors"
+          aria-label="Promoção anterior"
+        >
+          <ChevronLeft className="w-4 h-4" />
+        </button>
+        <div className="flex-1 text-center overflow-hidden">
+          <AnimatePresence mode="wait">
+            <motion.p
+              key={promoIndex}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              transition={{ duration: 0.3 }}
+              className="text-[11px] font-medium tracking-wide flex items-center justify-center gap-1.5"
+            >
+              <span>🚚</span> {promoMessages[promoIndex]}
+            </motion.p>
+          </AnimatePresence>
+        </div>
+        <button
+          onClick={() => setPromoIndex((i) => (i + 1) % promoMessages.length)}
+          className="w-6 h-6 flex items-center justify-center flex-shrink-0 hover:bg-primary-foreground/10 rounded-full transition-colors"
+          aria-label="Próxima promoção"
+        >
+          <ChevronRight className="w-4 h-4" />
+        </button>
       </div>
 
-      {/* Main header */}
-      <div className="bg-card border-b border-border px-3 md:px-4 py-2 md:py-3">
-        <div className="max-w-5xl mx-auto flex items-center gap-2 md:gap-3 min-w-0 justify-between">
-          {/* Logo */}
-          <Link to="/" className="flex-shrink-0">
-            <motion.h1
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-              className="text-lg md:text-xl font-bold tracking-wider text-primary"
-            >
-              ELLE MAKE
-            </motion.h1>
-          </Link>
-
-          {/* Search — icon-only on mobile, full bar on desktop */}
-          <div className="hidden md:flex flex-1 min-w-0 relative" ref={searchContainerRef}>
-            <form onSubmit={handleSearch} className="w-full">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground z-10" />
-              <Input
-                placeholder="Buscar produtos..."
-                value={search}
-                onChange={(e) => { setSearch(e.target.value); setShowSuggestions(e.target.value.length >= 2); }}
-                onFocus={() => search.length >= 2 && setShowSuggestions(true)}
-                className="pl-9 h-10 bg-muted border-none rounded-full text-sm focus:ring-2 focus:ring-primary/30 w-full"
-              />
-            </form>
-            <SuggestionsDropdown />
+      {/* Main header — hamburger left, centered logo, cart right (mobile) */}
+      <div className="bg-card border-b border-border px-3 md:px-4 py-2.5 md:py-3">
+        <div className="max-w-5xl mx-auto flex items-center min-w-0">
+          {/* Left: hamburger (mobile) */}
+          <div className="flex items-center gap-1 flex-shrink-0 w-20 md:w-auto">
+            <Sheet>
+              <SheetTrigger asChild>
+                <button className="md:hidden w-10 h-10 flex items-center justify-center rounded-full hover:bg-muted transition-colors" aria-label="Menu">
+                  <Menu className="w-6 h-6 text-foreground" />
+                </button>
+              </SheetTrigger>
+              <SheetContent side="left" className="w-72 p-0">
+                <div className="p-4 border-b border-border">
+                  <h2 className="text-lg font-bold text-primary tracking-wider">ELLE MAKE</h2>
+                </div>
+                <nav className="py-2">
+                  {navLinks.map((link) => (
+                    <div key={link.label}>
+                      <SheetClose asChild>
+                        <Link
+                          to={link.to}
+                          className="flex items-center justify-between px-4 py-3 text-sm font-medium text-foreground hover:bg-muted transition-colors"
+                        >
+                          {link.label}
+                          {link.subs && <ChevronRight className="w-4 h-4 text-muted-foreground" />}
+                        </Link>
+                      </SheetClose>
+                      {link.subs && (
+                        <div className="pl-6 pb-1">
+                          {link.subs.map((sub) => (
+                            <SheetClose asChild key={sub.label}>
+                              <Link
+                                to={sub.to}
+                                className="block px-4 py-1.5 text-xs text-muted-foreground hover:text-primary transition-colors"
+                              >
+                                {sub.label}
+                              </Link>
+                            </SheetClose>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </nav>
+              </SheetContent>
+            </Sheet>
           </div>
 
-          {/* Icons — pushed right on mobile via ml-auto */}
-          <div className="flex items-center gap-0.5 md:gap-1 flex-shrink-0 ml-auto">
-            <button
-              type="button"
-              onClick={() => setMobileSearchOpen(v => !v)}
-              className="md:hidden w-9 h-9 flex items-center justify-center rounded-full hover:bg-muted transition-colors"
-              aria-label="Buscar"
-            >
-              <Search className="w-5 h-5 text-foreground" />
-            </button>
-            <a href="https://wa.me/5591983045531?text=Olá! Gostaria de saber mais sobre os produtos" target="_blank" rel="noopener noreferrer" className="w-9 h-9 md:w-10 md:h-10 flex items-center justify-center rounded-full hover:bg-muted transition-colors" aria-label="WhatsApp">
-              <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
-                <WhatsAppIcon className="w-5 h-5 text-accent" />
-              </motion.div>
+          {/* Center: Logo */}
+          <div className="flex-1 flex justify-center">
+            <Link to="/">
+              <motion.h1
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                className="text-xl md:text-2xl font-bold tracking-[0.15em] text-primary"
+              >
+                ELLE MAKE
+              </motion.h1>
+            </Link>
+          </div>
+
+          {/* Right: icons */}
+          <div className="flex items-center gap-0.5 md:gap-1 flex-shrink-0 w-20 md:w-auto justify-end">
+            <a href="https://wa.me/5591983045531?text=Olá! Gostaria de saber mais sobre os produtos" target="_blank" rel="noopener noreferrer" className="hidden md:flex w-10 h-10 items-center justify-center rounded-full hover:bg-muted transition-colors" aria-label="WhatsApp">
+              <WhatsAppIcon className="w-5 h-5 text-accent" />
             </a>
 
             {/* User dropdown */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <button className="w-9 h-9 md:w-10 md:h-10 flex items-center justify-center rounded-full hover:bg-muted transition-colors relative" aria-label="Conta">
-                  <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
-                    <User className="w-5 h-5 text-foreground" />
-                  </motion.div>
+                <button className="hidden md:flex w-10 h-10 items-center justify-center rounded-full hover:bg-muted transition-colors relative" aria-label="Conta">
+                  <User className="w-5 h-5 text-foreground" />
                   {user && (
                     <span className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-accent border-2 border-card" />
                   )}
@@ -325,9 +361,7 @@ const Header = () => {
               </DropdownMenuContent>
             </DropdownMenu>
 
-            
-
-            <Link to="/carrinho" className="w-9 h-9 md:w-10 md:h-10 flex items-center justify-center rounded-full hover:bg-muted transition-colors relative" aria-label="Carrinho">
+            <Link to="/carrinho" className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-muted transition-colors relative" aria-label="Carrinho">
               <motion.div
                 whileHover={{ scale: 1.1 }}
                 whileTap={{ scale: 0.9 }}
@@ -353,45 +387,35 @@ const Header = () => {
         </div>
       </div>
 
-      {/* Mobile search bar */}
-      <AnimatePresence>
-        {mobileSearchOpen && (
-          <motion.div
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: "auto", opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.15 }}
-            className="md:hidden bg-card border-b border-border overflow-visible relative z-50"
-            ref={mobileSearchContainerRef}
-          >
-            <form onSubmit={(e) => { handleSearch(e); setMobileSearchOpen(false); }} className="px-3 py-2 relative">
-              <Search className="absolute left-6 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground z-10" />
-              <Input
-                autoFocus
-                placeholder="Buscar produtos..."
-                value={search}
-                onChange={(e) => { setSearch(e.target.value); setShowSuggestions(e.target.value.length >= 2); }}
-                onFocus={() => search.length >= 2 && setShowSuggestions(true)}
-                className="pl-9 h-9 bg-muted border-none rounded-full text-sm focus:ring-2 focus:ring-primary/30 w-full"
-              />
-            </form>
-            <div className="relative px-3">
-              <SuggestionsDropdown />
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      {/* Always-visible search bar below header (like reference) */}
+      <div className="bg-card border-b border-border px-3 md:px-4 py-2" ref={searchContainerRef}>
+        <div className="max-w-5xl mx-auto relative">
+          <form onSubmit={handleSearch} className="w-full relative">
+            <Input
+              placeholder="Buscar"
+              value={search}
+              onChange={(e) => { setSearch(e.target.value); setShowSuggestions(e.target.value.length >= 2); }}
+              onFocus={() => search.length >= 2 && setShowSuggestions(true)}
+              className="h-10 md:h-11 bg-background border border-border rounded-lg text-sm pr-12 focus:ring-2 focus:ring-primary/30 w-full"
+            />
+            <button type="submit" className="absolute right-1 top-1/2 -translate-y-1/2 w-9 h-8 flex items-center justify-center rounded-md hover:bg-muted transition-colors">
+              <Search className="w-5 h-5 text-muted-foreground" />
+            </button>
+          </form>
+          <SuggestionsDropdown />
+        </div>
+      </div>
 
-      {/* Navigation */}
+      {/* Desktop Navigation */}
       <nav
-        className="bg-primary overflow-visible relative"
+        className="bg-primary overflow-visible relative hidden md:block"
         onMouseLeave={handleMouseLeave}
       >
         <div className="max-w-5xl mx-auto flex items-center justify-between px-1 md:px-2 overflow-x-auto scrollbar-hide">
           {navLinks.map((link) => (
             <div
               key={link.label}
-              className={`relative flex-shrink-0 flex-1 ${!mobileNavLabels.has(link.label) ? "hidden md:flex" : "flex"}`}
+              className="relative flex-shrink-0 flex-1 flex"
               onMouseEnter={() => handleMouseEnter(link.label)}
             >
               <Link
@@ -399,7 +423,7 @@ const Header = () => {
                 className="flex items-center justify-center gap-0.5 w-full px-1 md:px-2 py-2.5 text-[10px] md:text-[11px] font-semibold text-primary-foreground/90 hover:text-primary-foreground hover:bg-primary-foreground/10 transition-all tracking-wide uppercase whitespace-nowrap relative group"
               >
                 {link.label}
-                {link.subs && <ChevronDown className="w-2.5 h-2.5 md:w-3 md:h-3 hidden md:block" />}
+                {link.subs && <ChevronDown className="w-2.5 h-2.5 md:w-3 md:h-3" />}
                 <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-0 h-0.5 bg-primary-foreground/50 group-hover:w-3/4 transition-all duration-300" />
               </Link>
             </div>
