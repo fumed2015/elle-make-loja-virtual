@@ -22,7 +22,7 @@ const quickQuestions = [
 
 const InlineConsultant = () => {
   const [messages, setMessages] = useState<Msg[]>([
-    { role: "assistant", content: "Oi, amiga! 😊 Sou a **Michelle**, consultora de beleza da Elle Make. Me conta o que você tá procurando — vou te ajudar a encontrar os produtos perfeitos pra você!" },
+    { role: "assistant", content: "Égua, mana! 😊 Sou a **Michelle**, consultora de beleza da Elle Make. Me conta o que tu tá procurando — vou te ajudar a encontrar os produtos pai d'égua perfeitos pra tu arrasar! ✨" },
   ]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
