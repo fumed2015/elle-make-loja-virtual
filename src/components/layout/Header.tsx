@@ -413,10 +413,10 @@ const Header = () => {
                   value={search}
                   onChange={(e) => { setSearch(e.target.value); setShowSuggestions(e.target.value.length >= 2); }}
                   onFocus={() => search.length >= 2 && setShowSuggestions(true)}
-                  className="h-10 bg-white/15 border border-white/30 rounded-lg text-sm pr-10 focus:ring-2 focus:ring-white/30 w-full text-white placeholder:text-white/60"
+                  className={`h-10 rounded-lg text-sm pr-10 focus:ring-2 w-full transition-colors duration-300 ${scrolled ? 'bg-background border border-border focus:ring-primary/30 text-foreground' : 'bg-white/15 border border-white/30 focus:ring-white/30 text-white placeholder:text-white/60'}`}
                 />
                 <button type="submit" className="absolute right-1 top-1/2 -translate-y-1/2 w-8 h-8 flex items-center justify-center rounded-md hover:bg-muted transition-colors">
-                  <Search className="w-5 h-5 text-white/70" />
+                  <Search className={`w-5 h-5 ${scrolled ? 'text-muted-foreground' : 'text-white/70'}`} />
                 </button>
               </form>
               <SuggestionsDropdown />
@@ -425,8 +425,8 @@ const Header = () => {
             {/* User dropdown (desktop) */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <button className="hidden md:flex w-10 h-10 items-center justify-center rounded-full hover:bg-white/10 transition-colors relative" aria-label="Conta">
-                  <User className="w-5 h-5 text-white drop-shadow-sm" />
+                <button className={`hidden md:flex w-10 h-10 items-center justify-center rounded-full transition-colors relative ${scrolled ? 'hover:bg-muted' : 'hover:bg-white/10'}`} aria-label="Conta">
+                  <User className={`w-5 h-5 ${scrolled ? 'text-foreground' : 'text-white drop-shadow-sm'}`} />
                   {user && (
                     <span className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-accent border-2 border-card" />
                   )}
