@@ -396,18 +396,22 @@ const AIContentTab = () => {
         </div>
       </div>
 
-      {/* Bulk Action */}
       <div className="bg-card rounded-xl p-4 border border-border space-y-3">
         <h3 className="text-sm font-bold flex items-center gap-2">
           <Sparkles className="w-4 h-4 text-primary" />
           Otimização em Lote
         </h3>
         <p className="text-xs text-muted-foreground">
-          A IA irá gerar automaticamente descrições sensoriais, copy de venda e tags SEO para até 10 produtos que estejam sem conteúdo.
+          A IA irá gerar automaticamente descrições sensoriais, copy de venda e tags SEO para seus produtos.
         </p>
-        <Button onClick={handleBulkSEO} disabled={bulkRunning} className="bg-primary text-primary-foreground text-xs gap-2">
-          {bulkRunning ? <><Loader2 className="w-3.5 h-3.5 animate-spin" />Processando...</> : <><Wand2 className="w-3.5 h-3.5" />Otimizar Produtos sem Conteúdo</>}
-        </Button>
+        <div className="flex flex-col gap-2">
+          <Button onClick={() => handleBulkSEO(false)} disabled={bulkRunning || bulkAllRunning} className="bg-primary text-primary-foreground text-xs gap-2">
+            {bulkRunning ? <><Loader2 className="w-3.5 h-3.5 animate-spin" />Processando...</> : <><Wand2 className="w-3.5 h-3.5" />Otimizar Produtos sem Conteúdo (até 10)</>}
+          </Button>
+          <Button onClick={() => handleBulkSEO(true)} disabled={bulkRunning || bulkAllRunning} variant="outline" className="text-xs gap-2 border-primary/30 text-primary">
+            {bulkAllRunning ? <><Loader2 className="w-3.5 h-3.5 animate-spin" />Gerando para TODOS ({products?.length || 0})...</> : <><RefreshCw className="w-3.5 h-3.5" />Gerar/Regerar para TODOS os {products?.length || 0} Produtos</>}
+          </Button>
+        </div>
 
         {results && (
           <div className="space-y-1.5 max-h-48 overflow-y-auto">
