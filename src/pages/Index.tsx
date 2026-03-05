@@ -83,7 +83,7 @@ const heroSlides = [
   {
     image: "/hero-banner-2.jpg",
     label: "Lábios Perfeitos",
-    title: "BATONS\n& GLOSSES",
+    title: "BATONS\n& GLOSS",
     cta: "Ver Coleção",
     link: "/categoria/labios",
   },
