@@ -121,6 +121,7 @@ const Header = () => {
   const [promoIndex, setPromoIndex] = useState(0);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const isTransparent = isHome && !scrolled;
   const searchContainerRef = useRef<HTMLDivElement>(null);
   const mobileSearchContainerRef = useRef<HTMLDivElement>(null);
 
