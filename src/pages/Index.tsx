@@ -49,24 +49,6 @@ const faqs = [
   { q: "Como escolher o tom certo de base?", a: "O ideal é testar na mandíbula. Se não puder vir pessoalmente, envie uma foto pelo WhatsApp e nossa equipe ajuda a encontrar o tom perfeito!" },
 ];
 
-const categoryIcons: Record<string, React.ElementType> = {
-  labios: Heart,
-  rosto: Smile,
-  olhos: Eye,
-  skincare: Droplets,
-  "kits-bundles": Package,
-  sobrancelhas: Paintbrush,
-  unhas: Gem,
-  acessorios: Gem,
-  paletas: Palette,
-  perfumaria: Wind,
-  ofertas: Tag,
-  novidades: Zap,
-  cabelos: Scissors,
-  "corpo-banho": ShowerHead,
-  "primers-fixadores": SprayCan,
-  protecao: Sun,
-};
 
 const Index = () => {
   // Single unified query instead of 2 separate ones
