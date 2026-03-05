@@ -406,10 +406,10 @@ const Header = () => {
                   value={search}
                   onChange={(e) => { setSearch(e.target.value); setShowSuggestions(e.target.value.length >= 2); }}
                   onFocus={() => search.length >= 2 && setShowSuggestions(true)}
-                  className="h-10 bg-white/15 border border-white/25 rounded-lg text-sm pr-10 focus:ring-2 focus:ring-white/30 w-full text-white placeholder:text-white/60"
+                  className="h-10 bg-background border border-border rounded-lg text-sm pr-10 focus:ring-2 focus:ring-primary/30 w-full"
                 />
-                <button type="submit" className="absolute right-1 top-1/2 -translate-y-1/2 w-8 h-8 flex items-center justify-center rounded-md hover:bg-white/10 transition-colors">
-                  <Search className="w-5 h-5 text-white/70" />
+                <button type="submit" className="absolute right-1 top-1/2 -translate-y-1/2 w-8 h-8 flex items-center justify-center rounded-md hover:bg-muted transition-colors">
+                  <Search className="w-5 h-5 text-muted-foreground" />
                 </button>
               </form>
               <SuggestionsDropdown />
@@ -418,8 +418,8 @@ const Header = () => {
             {/* User dropdown (desktop) */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <button className="hidden md:flex w-10 h-10 items-center justify-center rounded-full hover:bg-white/10 transition-colors relative" aria-label="Conta">
-                  <User className="w-5 h-5 text-foreground md:text-white md:drop-shadow-sm" />
+                <button className="hidden md:flex w-10 h-10 items-center justify-center rounded-full hover:bg-muted transition-colors relative" aria-label="Conta">
+                  <User className="w-5 h-5 text-foreground" />
                   {user && (
                     <span className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-accent border-2 border-card" />
                   )}
