@@ -316,7 +316,7 @@ const HeroCarousel = () => {
             })}
           </div>
         </section>
-      )
+      )}
 
       {/* Benefits bar — trust strip */}
       <section className="bg-background py-6 px-4 border-b border-border">
