@@ -1,4 +1,4 @@
-import { Search, User, ShoppingBag, ChevronDown, LogIn, LogOut, Settings, Menu, ChevronLeft, ChevronRight, X } from "lucide-react";
+import { Search, User, ShoppingBag, ChevronDown, LogIn, LogOut, Settings, Menu, ChevronLeft, ChevronRight, X, Mail, Phone } from "lucide-react";
 
 import WhatsAppIcon from "@/components/icons/WhatsAppIcon";
 import { Link, useNavigate } from "react-router-dom";
@@ -221,7 +221,7 @@ const Header = () => {
 
   return (
     <header className="sticky top-0 z-40">
-      {/* Promo bar with arrows like reference */}
+      {/* Promo bar with arrows */}
       <div className="bg-primary text-primary-foreground py-1.5 px-2 overflow-hidden h-8 flex items-center justify-between">
         <button
           onClick={() => setPromoIndex((i) => (i - 1 + promoMessages.length) % promoMessages.length)}
@@ -253,11 +253,33 @@ const Header = () => {
         </button>
       </div>
 
-      {/* Main header — hamburger left, centered logo, cart right (mobile) */}
+      {/* Desktop secondary info bar */}
+      <div className="hidden md:flex bg-muted/50 border-b border-border px-4 py-1.5">
+        <div className="max-w-6xl mx-auto w-full flex items-center justify-between">
+          <div className="flex items-center gap-4 text-[11px] text-muted-foreground">
+            <a href="https://wa.me/5591983045531" target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 hover:text-primary transition-colors">
+              <WhatsAppIcon className="w-3.5 h-3.5" /> WhatsApp
+            </a>
+            <span className="flex items-center gap-1">
+              <Phone className="w-3 h-3" /> (91) 98304-5531
+            </span>
+            <span className="flex items-center gap-1">
+              <Mail className="w-3 h-3" /> contato@ellemake.com.br
+            </span>
+          </div>
+          <div className="flex items-center gap-3 text-[11px] text-muted-foreground">
+            <Link to="/sobre" className="hover:text-primary transition-colors">Sobre</Link>
+            <Link to="/termos" className="hover:text-primary transition-colors">Contato</Link>
+          </div>
+        </div>
+      </div>
+
+      {/* Main header — MOBILE: hamburger left, centered logo, cart right */}
+      {/* DESKTOP: logo left, nav center, search+icons right */}
       <div className="bg-card border-b border-border px-3 md:px-4 py-2.5 md:py-3">
-        <div className="max-w-5xl mx-auto flex items-center min-w-0">
-          {/* Left: hamburger (mobile) */}
-          <div className="flex items-center gap-1 flex-shrink-0 w-20 md:w-auto">
+        <div className="max-w-6xl mx-auto flex items-center min-w-0">
+          {/* Left: hamburger (mobile only) + Logo */}
+          <div className="flex items-center gap-1 flex-shrink-0 md:w-auto">
             <Sheet>
               <SheetTrigger asChild>
                 <button className="md:hidden w-10 h-10 flex items-center justify-center rounded-full hover:bg-muted transition-colors" aria-label="Menu">
@@ -301,8 +323,8 @@ const Header = () => {
             </Sheet>
           </div>
 
-          {/* Center: Logo */}
-          <div className="flex-1 flex justify-center">
+          {/* Center: Logo (centered on mobile, left on desktop) */}
+          <div className="flex-1 flex justify-center md:justify-start md:flex-none md:mr-8">
             <Link to="/">
               <motion.h1
                 whileHover={{ scale: 1.02 }}
@@ -314,13 +336,85 @@ const Header = () => {
             </Link>
           </div>
 
-          {/* Right: icons */}
-          <div className="flex items-center gap-0.5 md:gap-1 flex-shrink-0 w-20 md:w-auto justify-end">
-            <a href="https://wa.me/5591983045531?text=Olá! Gostaria de saber mais sobre os produtos" target="_blank" rel="noopener noreferrer" className="hidden md:flex w-10 h-10 items-center justify-center rounded-full hover:bg-muted transition-colors" aria-label="WhatsApp">
-              <WhatsAppIcon className="w-5 h-5 text-accent" />
-            </a>
+          {/* Desktop nav links inline in header */}
+          <nav
+            className="hidden md:flex flex-1 items-center justify-center gap-0.5 overflow-visible relative"
+            onMouseLeave={handleMouseLeave}
+          >
+            {navLinks.map((link) => (
+              <div
+                key={link.label}
+                className="relative flex-shrink-0"
+                onMouseEnter={() => handleMouseEnter(link.label)}
+              >
+                <Link
+                  to={link.to}
+                  className="flex items-center gap-0.5 px-2.5 py-2 text-[12px] font-semibold text-foreground/80 hover:text-primary transition-all tracking-wide uppercase whitespace-nowrap"
+                >
+                  {link.label}
+                  {link.subs && <ChevronDown className="w-3 h-3" />}
+                </Link>
+              </div>
+            ))}
 
-            {/* User dropdown */}
+            {/* Mega menu panel */}
+            <AnimatePresence>
+              {hoveredNav && navLinks.find(l => l.label === hoveredNav)?.subs && (
+                <motion.div
+                  initial={{ opacity: 0, y: -4 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -4 }}
+                  transition={{ duration: 0.15 }}
+                  className="absolute top-full left-0 w-[600px] z-50 bg-card border border-border shadow-lg rounded-b-lg"
+                  onMouseEnter={() => handleMouseEnter(hoveredNav)}
+                  onMouseLeave={handleMouseLeave}
+                >
+                  <div className="px-6 py-5">
+                    <div className="grid grid-cols-2 gap-x-8 gap-y-3">
+                      {navLinks.find(l => l.label === hoveredNav)?.subs?.map((sub) => (
+                        <Link
+                          key={sub.label}
+                          to={sub.to}
+                          className="text-sm text-foreground hover:text-primary font-medium transition-colors whitespace-nowrap"
+                        >
+                          {sub.label}
+                        </Link>
+                      ))}
+                    </div>
+                    <div className="border-t border-border mt-4 pt-3">
+                      <Link
+                        to={navLinks.find(l => l.label === hoveredNav)?.to || "/explorar"}
+                        className="text-xs font-semibold text-primary hover:underline"
+                      >
+                        Ver tudo em {hoveredNav} →
+                      </Link>
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </nav>
+
+          {/* Right: search + icons */}
+          <div className="flex items-center gap-1 flex-shrink-0 md:w-auto justify-end">
+            {/* Desktop search */}
+            <div className="hidden md:flex relative w-48 lg:w-56" ref={searchContainerRef}>
+              <form onSubmit={handleSearch} className="w-full relative">
+                <Input
+                  placeholder="Buscar"
+                  value={search}
+                  onChange={(e) => { setSearch(e.target.value); setShowSuggestions(e.target.value.length >= 2); }}
+                  onFocus={() => search.length >= 2 && setShowSuggestions(true)}
+                  className="h-10 bg-background border border-border rounded-lg text-sm pr-10 focus:ring-2 focus:ring-primary/30 w-full"
+                />
+                <button type="submit" className="absolute right-1 top-1/2 -translate-y-1/2 w-8 h-8 flex items-center justify-center rounded-md hover:bg-muted transition-colors">
+                  <Search className="w-5 h-5 text-muted-foreground" />
+                </button>
+              </form>
+              <SuggestionsDropdown />
+            </div>
+
+            {/* User dropdown (desktop) */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <button className="hidden md:flex w-10 h-10 items-center justify-center rounded-full hover:bg-muted transition-colors relative" aria-label="Conta">
@@ -361,6 +455,7 @@ const Header = () => {
               </DropdownMenuContent>
             </DropdownMenu>
 
+            {/* Cart */}
             <Link to="/carrinho" className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-muted transition-colors relative" aria-label="Carrinho">
               <motion.div
                 whileHover={{ scale: 1.1 }}
@@ -387,16 +482,16 @@ const Header = () => {
         </div>
       </div>
 
-      {/* Always-visible search bar below header (like reference) */}
-      <div className="bg-card border-b border-border px-3 md:px-4 py-2" ref={searchContainerRef}>
-        <div className="max-w-5xl mx-auto relative">
+      {/* Mobile search bar (always visible on mobile) */}
+      <div className="md:hidden bg-card border-b border-border px-3 py-2" ref={mobileSearchContainerRef}>
+        <div className="relative">
           <form onSubmit={handleSearch} className="w-full relative">
             <Input
               placeholder="Buscar"
               value={search}
               onChange={(e) => { setSearch(e.target.value); setShowSuggestions(e.target.value.length >= 2); }}
               onFocus={() => search.length >= 2 && setShowSuggestions(true)}
-              className="h-10 md:h-11 bg-background border border-border rounded-lg text-sm pr-12 focus:ring-2 focus:ring-primary/30 w-full"
+              className="h-10 bg-background border border-border rounded-lg text-sm pr-12 focus:ring-2 focus:ring-primary/30 w-full"
             />
             <button type="submit" className="absolute right-1 top-1/2 -translate-y-1/2 w-9 h-8 flex items-center justify-center rounded-md hover:bg-muted transition-colors">
               <Search className="w-5 h-5 text-muted-foreground" />
@@ -405,68 +500,6 @@ const Header = () => {
           <SuggestionsDropdown />
         </div>
       </div>
-
-      {/* Desktop Navigation */}
-      <nav
-        className="bg-primary overflow-visible relative hidden md:block"
-        onMouseLeave={handleMouseLeave}
-      >
-        <div className="max-w-5xl mx-auto flex items-center justify-between px-1 md:px-2 overflow-x-auto scrollbar-hide">
-          {navLinks.map((link) => (
-            <div
-              key={link.label}
-              className="relative flex-shrink-0 flex-1 flex"
-              onMouseEnter={() => handleMouseEnter(link.label)}
-            >
-              <Link
-                to={link.to}
-                className="flex items-center justify-center gap-0.5 w-full px-1 md:px-2 py-2.5 text-[10px] md:text-[11px] font-semibold text-primary-foreground/90 hover:text-primary-foreground hover:bg-primary-foreground/10 transition-all tracking-wide uppercase whitespace-nowrap relative group"
-              >
-                {link.label}
-                {link.subs && <ChevronDown className="w-2.5 h-2.5 md:w-3 md:h-3" />}
-                <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-0 h-0.5 bg-primary-foreground/50 group-hover:w-3/4 transition-all duration-300" />
-              </Link>
-            </div>
-          ))}
-        </div>
-
-        {/* Mega menu panel */}
-        <AnimatePresence>
-          {hoveredNav && navLinks.find(l => l.label === hoveredNav)?.subs && (
-            <motion.div
-              initial={{ opacity: 0, y: -4 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -4 }}
-              transition={{ duration: 0.15 }}
-              className="absolute top-full left-0 w-full z-50 bg-card border-b border-border shadow-lg"
-              onMouseEnter={() => handleMouseEnter(hoveredNav)}
-              onMouseLeave={handleMouseLeave}
-            >
-              <div className="max-w-5xl mx-auto px-6 py-5">
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-x-8 gap-y-3">
-                  {navLinks.find(l => l.label === hoveredNav)?.subs?.map((sub) => (
-                    <Link
-                      key={sub.label}
-                      to={sub.to}
-                      className="text-sm text-foreground hover:text-primary font-medium transition-colors whitespace-nowrap"
-                    >
-                      {sub.label}
-                    </Link>
-                  ))}
-                </div>
-                <div className="border-t border-border mt-4 pt-3">
-                  <Link
-                    to={navLinks.find(l => l.label === hoveredNav)?.to || "/explorar"}
-                    className="text-xs font-semibold text-primary hover:underline"
-                  >
-                    Ver tudo em {hoveredNav} →
-                  </Link>
-                </div>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </nav>
     </header>
   );
 };
