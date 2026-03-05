@@ -254,9 +254,9 @@ const Header = () => {
       </div>
 
       {/* Desktop secondary info bar */}
-      <div className="hidden md:flex bg-card/60 backdrop-blur-md border-b border-border/30 px-4 py-1.5">
+      <div className="hidden md:flex bg-black/20 backdrop-blur-sm border-b border-white/10 px-4 py-1.5">
         <div className="max-w-6xl mx-auto w-full flex items-center justify-between">
-          <div className="flex items-center gap-4 text-[11px] text-muted-foreground">
+          <div className="flex items-center gap-4 text-[11px] text-white/70">
             <a href="https://wa.me/5591983045531" target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 hover:text-primary transition-colors">
               <WhatsAppIcon className="w-3.5 h-3.5" /> WhatsApp
             </a>
@@ -267,7 +267,7 @@ const Header = () => {
               <Mail className="w-3 h-3" /> contato@ellemake.com.br
             </span>
           </div>
-          <div className="flex items-center gap-3 text-[11px] text-muted-foreground">
+          <div className="flex items-center gap-3 text-[11px] text-white/70">
             <Link to="/sobre" className="hover:text-primary transition-colors">Sobre</Link>
             <Link to="/termos" className="hover:text-primary transition-colors">Contato</Link>
           </div>
@@ -276,7 +276,7 @@ const Header = () => {
 
       {/* Main header — MOBILE: hamburger left, centered logo, cart right */}
       {/* DESKTOP: logo left, nav center, search+icons right */}
-      <div className="bg-card/70 md:bg-card/60 md:backdrop-blur-md border-b border-border/30 px-3 md:px-4 py-2.5 md:py-3">
+      <div className="bg-card/70 md:bg-black/20 md:backdrop-blur-sm border-b border-white/10 px-3 md:px-4 py-2.5 md:py-3">
         <div className="max-w-6xl mx-auto flex items-center min-w-0">
           {/* Left: hamburger (mobile only) + Logo */}
           <div className="flex items-center gap-1 flex-shrink-0 md:w-auto">
