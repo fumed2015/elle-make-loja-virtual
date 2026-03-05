@@ -33,7 +33,7 @@ serve(async (req) => {
       }
     }
 
-    const { action, product_id, product_ids } = await req.json();
+    const { action, product_id, product_ids, force_all } = await req.json();
 
     // Action: generate - Generate content for a single product
     if (action === "generate") {
@@ -134,7 +134,6 @@ Gere EXATAMENTE o seguinte conteúdo usando a function tool:
     // Action: bulk-seo - Auto-optimize products missing content
     if (action === "bulk-seo") {
       const targetIds = product_ids as string[] | undefined;
-      const forceAll = (await req.clone().json().catch(() => ({}))).force_all || false;
       
       let query = supabase
         .from("products")
