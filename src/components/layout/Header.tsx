@@ -512,8 +512,8 @@ const Header = () => {
               onFocus={() => search.length >= 2 && setShowSuggestions(true)}
               className={`h-10 rounded-lg text-sm pr-12 focus:ring-2 w-full transition-colors duration-300 ${!isTransparent ? 'bg-background border border-border focus:ring-primary/30' : 'bg-white/15 border border-white/30 focus:ring-white/30 text-white placeholder:text-white/60'}`}
             />
-            <button type="submit" className="absolute right-1 top-1/2 -translate-y-1/2 w-9 h-8 flex items-center justify-center rounded-md hover:bg-muted transition-colors">
-              <Search className="w-5 h-5 text-muted-foreground" />
+            <button type="submit" className={`absolute right-1 top-1/2 -translate-y-1/2 w-9 h-8 flex items-center justify-center rounded-md transition-colors ${!isTransparent ? 'hover:bg-muted' : 'hover:bg-white/10'}`}>
+              <Search className={`w-5 h-5 ${!isTransparent ? 'text-muted-foreground' : 'text-white/70'}`} />
             </button>
           </form>
           <SuggestionsDropdown />
