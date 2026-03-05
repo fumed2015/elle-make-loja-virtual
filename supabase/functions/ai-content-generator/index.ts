@@ -33,7 +33,7 @@ serve(async (req) => {
       }
     }
 
-    const { action, product_id, product_ids } = await req.json();
+    const { action, product_id, product_ids, force_all } = await req.json();
 
     // Action: generate - Generate content for a single product
     if (action === "generate") {
@@ -142,8 +142,7 @@ Gere EXATAMENTE o seguinte conteúdo usando a function tool:
 
       if (targetIds && targetIds.length > 0) {
         query = query.in("id", targetIds);
-      } else {
-        // Find products missing descriptions
+      } else if (!force_all) {
         query = query.or("description.is.null,description.eq.,sensorial_description.is.null,how_to_use.is.null");
         query = query.limit(10);
       }
@@ -223,16 +222,16 @@ Gere: description (150-250 palavras, sensorial, SEO), sensorial_description (2-3
           const content = JSON.parse(tc.function.arguments);
           
           const updateData: any = {};
-          if (!product.description || product.description.length < 50) {
+          if (force_all || !product.description || product.description.length < 50) {
             updateData.description = content.description;
           }
-          if (!product.sensorial_description) {
+          if (force_all || !product.sensorial_description) {
             updateData.sensorial_description = content.sensorial_description;
           }
-          if (!(product as any).how_to_use) {
+          if (force_all || !(product as any).how_to_use) {
             updateData.how_to_use = content.how_to_use;
           }
-          if (!product.tags || product.tags.length === 0) {
+          if (force_all || !product.tags || product.tags.length === 0) {
             updateData.tags = content.tags;
           }
 
