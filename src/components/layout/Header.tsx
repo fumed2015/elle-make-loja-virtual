@@ -1,7 +1,7 @@
 import { Search, User, ShoppingBag, ChevronDown, LogIn, LogOut, Settings, Menu, ChevronLeft, ChevronRight, X, Mail, Phone, Instagram, Facebook, Youtube } from "lucide-react";
 
 import WhatsAppIcon from "@/components/icons/WhatsAppIcon";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { Input } from "@/components/ui/input";
 import { useCart } from "@/hooks/useCart";
 import { useAuth } from "@/hooks/useAuth";
@@ -113,12 +113,15 @@ const Header = () => {
   const { cartCount } = useCart();
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
+  const isHome = location.pathname === "/";
   const [search, setSearch] = useState("");
   const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
   const [hoveredNav, setHoveredNav] = useState<string | null>(null);
   const [promoIndex, setPromoIndex] = useState(0);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const isTransparent = isHome && !scrolled;
   const searchContainerRef = useRef<HTMLDivElement>(null);
   const mobileSearchContainerRef = useRef<HTMLDivElement>(null);
 
@@ -262,10 +265,10 @@ const Header = () => {
       </div>
 
       {/* Desktop secondary info bar */}
-      <div className={`hidden md:flex border-b px-4 py-2 transition-colors duration-300 ${scrolled ? 'bg-card border-border' : 'bg-transparent border-white/10'}`}>
+      <div className={`hidden md:flex border-b px-4 py-2 transition-colors duration-300 ${!isTransparent ? 'bg-card border-border' : 'bg-transparent border-white/10'}`}>
         <div className="max-w-6xl mx-auto w-full flex items-center justify-between">
-          <div className={`flex items-center gap-5 text-sm font-bold transition-colors duration-300 ${scrolled ? 'text-foreground' : 'text-white'}`}>
-            <a href="https://wa.me/5591983045531" target="_blank" rel="noopener noreferrer" className={`flex items-center gap-1.5 transition-colors ${scrolled ? 'hover:text-primary' : 'hover:text-white/80'}`}>
+          <div className={`flex items-center gap-5 text-sm font-bold transition-colors duration-300 ${!isTransparent ? 'text-foreground' : 'text-white'}`}>
+            <a href="https://wa.me/5591983045531" target="_blank" rel="noopener noreferrer" className={`flex items-center gap-1.5 transition-colors ${!isTransparent ? 'hover:text-primary' : 'hover:text-white/80'}`}>
               <WhatsAppIcon className="w-4 h-4" /> <span className="underline">WhatsApp</span>
             </a>
             <span className="flex items-center gap-1.5">
@@ -275,8 +278,8 @@ const Header = () => {
               <Mail className="w-3.5 h-3.5" /> contato@ellemake.com.br
             </span>
           </div>
-          <div className={`flex items-center gap-3 transition-colors duration-300 ${scrolled ? 'text-foreground' : 'text-white'}`}>
-            <a href="https://instagram.com/ellemake" target="_blank" rel="noopener noreferrer" className={`transition-colors ${scrolled ? 'hover:text-primary' : 'hover:text-white/80'}`} aria-label="Instagram">
+          <div className={`flex items-center gap-3 transition-colors duration-300 ${!isTransparent ? 'text-foreground' : 'text-white'}`}>
+            <a href="https://instagram.com/ellemake" target="_blank" rel="noopener noreferrer" className={`transition-colors ${!isTransparent ? 'hover:text-primary' : 'hover:text-white/80'}`} aria-label="Instagram">
               <Instagram className="w-4 h-4" />
             </a>
           </div>
@@ -284,7 +287,7 @@ const Header = () => {
       </div>
 
       {/* Main header */}
-      <div className={`border-b px-3 md:px-4 py-3 md:py-4 transition-colors duration-300 ${scrolled ? 'bg-card border-border' : 'bg-card md:bg-transparent border-border md:border-transparent'}`}>
+      <div className={`border-b px-3 md:px-4 py-3 md:py-4 transition-colors duration-300 ${!isTransparent ? 'bg-card border-border' : 'bg-card md:bg-transparent border-border md:border-transparent'}`}>
         <div className="max-w-6xl mx-auto flex items-center min-w-0">
           {/* Left: hamburger (mobile only) + Logo */}
           <div className="flex items-center gap-1 flex-shrink-0 md:w-auto">
@@ -337,7 +340,7 @@ const Header = () => {
               <motion.h1
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
-                className={`text-2xl md:text-3xl font-bold tracking-[0.18em] text-primary transition-colors duration-300 ${scrolled ? 'md:text-foreground' : 'md:text-white md:drop-shadow-sm'}`}
+                className={`text-2xl md:text-3xl font-bold tracking-[0.18em] text-primary transition-colors duration-300 ${!isTransparent ? 'md:text-foreground' : 'md:text-white md:drop-shadow-sm'}`}
               >
                 ELLE MAKE
               </motion.h1>
@@ -357,7 +360,7 @@ const Header = () => {
               >
                 <Link
                   to={link.to}
-                  className={`flex items-center gap-1 px-3 py-2 text-sm font-semibold transition-all tracking-wide uppercase whitespace-nowrap ${scrolled ? 'text-foreground hover:text-primary' : 'text-white hover:text-white/80 drop-shadow-sm'}`}
+                  className={`flex items-center gap-1 px-3 py-2 text-sm font-semibold transition-all tracking-wide uppercase whitespace-nowrap ${!isTransparent ? 'text-foreground hover:text-primary' : 'text-white hover:text-white/80 drop-shadow-sm'}`}
                 >
                   {link.label}
                   {link.subs && <ChevronDown className="w-3 h-3" />}
@@ -413,10 +416,10 @@ const Header = () => {
                   value={search}
                   onChange={(e) => { setSearch(e.target.value); setShowSuggestions(e.target.value.length >= 2); }}
                   onFocus={() => search.length >= 2 && setShowSuggestions(true)}
-                  className={`h-10 rounded-lg text-sm pr-10 focus:ring-2 w-full transition-colors duration-300 ${scrolled ? 'bg-background border border-border focus:ring-primary/30 text-foreground' : 'bg-white/15 border border-white/30 focus:ring-white/30 text-white placeholder:text-white/60'}`}
+                  className={`h-10 rounded-lg text-sm pr-10 focus:ring-2 w-full transition-colors duration-300 ${!isTransparent ? 'bg-background border border-border focus:ring-primary/30 text-foreground' : 'bg-white/15 border border-white/30 focus:ring-white/30 text-white placeholder:text-white/60'}`}
                 />
                 <button type="submit" className="absolute right-1 top-1/2 -translate-y-1/2 w-8 h-8 flex items-center justify-center rounded-md hover:bg-muted transition-colors">
-                  <Search className={`w-5 h-5 ${scrolled ? 'text-muted-foreground' : 'text-white/70'}`} />
+                  <Search className={`w-5 h-5 ${!isTransparent ? 'text-muted-foreground' : 'text-white/70'}`} />
                 </button>
               </form>
               <SuggestionsDropdown />
@@ -425,8 +428,8 @@ const Header = () => {
             {/* User dropdown (desktop) */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <button className={`hidden md:flex w-10 h-10 items-center justify-center rounded-full transition-colors relative ${scrolled ? 'hover:bg-muted' : 'hover:bg-white/10'}`} aria-label="Conta">
-                  <User className={`w-5 h-5 ${scrolled ? 'text-foreground' : 'text-white drop-shadow-sm'}`} />
+                <button className={`hidden md:flex w-10 h-10 items-center justify-center rounded-full transition-colors relative ${!isTransparent ? 'hover:bg-muted' : 'hover:bg-white/10'}`} aria-label="Conta">
+                  <User className={`w-5 h-5 ${!isTransparent ? 'text-foreground' : 'text-white drop-shadow-sm'}`} />
                   {user && (
                     <span className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-accent border-2 border-card" />
                   )}
@@ -464,7 +467,7 @@ const Header = () => {
             </DropdownMenu>
 
             {/* Cart */}
-            <Link to="/carrinho" className={`w-10 h-10 flex items-center justify-center rounded-full transition-colors relative ${scrolled ? 'hover:bg-muted' : 'hover:bg-muted md:hover:bg-white/10'}`} aria-label="Carrinho">
+            <Link to="/carrinho" className={`w-10 h-10 flex items-center justify-center rounded-full transition-colors relative ${!isTransparent ? 'hover:bg-muted' : 'hover:bg-muted md:hover:bg-white/10'}`} aria-label="Carrinho">
               <motion.div
                 whileHover={{ scale: 1.1 }}
                 whileTap={{ scale: 0.9 }}
@@ -472,7 +475,7 @@ const Header = () => {
                 animate={cartCount > 0 ? { scale: [1, 1.3, 1], rotate: [0, -10, 10, 0] } : {}}
                 transition={{ duration: 0.4 }}
               >
-                <ShoppingBag className={`w-5 h-5 text-foreground ${scrolled ? '' : 'md:text-white md:drop-shadow-sm'}`} />
+                <ShoppingBag className={`w-5 h-5 text-foreground ${!isTransparent ? '' : 'md:text-white md:drop-shadow-sm'}`} />
               </motion.div>
               {cartCount > 0 && (
                 <motion.span
