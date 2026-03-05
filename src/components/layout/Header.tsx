@@ -254,7 +254,7 @@ const Header = () => {
       </div>
 
       {/* Desktop secondary info bar — solid light background */}
-      <div className="hidden md:flex bg-black/20 backdrop-blur-sm border-b border-white/10 px-4 py-2">
+      <div className="hidden md:flex bg-transparent border-b border-white/10 px-4 py-2">
         <div className="max-w-6xl mx-auto w-full flex items-center justify-between">
           <div className="flex items-center gap-5 text-xs text-white/80 drop-shadow-sm">
             <a href="https://wa.me/5591983045531" target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 hover:text-white transition-colors font-medium">
@@ -277,7 +277,7 @@ const Header = () => {
 
       {/* Main header — MOBILE: hamburger left, centered logo, cart right */}
       {/* DESKTOP: logo left, nav center, search+icons right */}
-      <div className="bg-card md:bg-black/20 md:backdrop-blur-sm border-b border-border md:border-white/10 px-3 md:px-4 py-3 md:py-4">
+      <div className="bg-card md:bg-transparent border-b border-border md:border-transparent px-3 md:px-4 py-3 md:py-4">
         <div className="max-w-6xl mx-auto flex items-center min-w-0">
           {/* Left: hamburger (mobile only) + Logo */}
           <div className="flex items-center gap-1 flex-shrink-0 md:w-auto">
