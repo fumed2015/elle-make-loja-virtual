@@ -225,8 +225,7 @@ const HeroCarousel = () => {
   );
 };
 
-      {/* Clickable overlay for banner navigation */}
-      <Link to={slide.link} className="absolute inset-0 z-[1] cursor-pointer" aria-label={slide.label} />
+
 
   return (
     <div className="min-h-screen">
