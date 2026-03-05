@@ -1,4 +1,4 @@
-import { Search, User, ShoppingBag, ChevronDown, LogIn, LogOut, Settings, Menu, ChevronLeft, ChevronRight, X, Mail, Phone } from "lucide-react";
+import { Search, User, ShoppingBag, ChevronDown, LogIn, LogOut, Settings, Menu, ChevronLeft, ChevronRight, X, Mail, Phone, Instagram, Facebook, Youtube } from "lucide-react";
 
 import WhatsAppIcon from "@/components/icons/WhatsAppIcon";
 import { Link, useNavigate } from "react-router-dom";
