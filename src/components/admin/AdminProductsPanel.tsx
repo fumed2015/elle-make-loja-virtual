@@ -437,28 +437,63 @@ const AdminProductsPanel = () => {
 
         {/* Swatches / Variações */}
         <fieldset className="bg-card rounded-xl p-4 border border-border space-y-3">
-          <legend className="text-xs font-bold text-foreground px-2">Variações / Cores ({swatches.length})</legend>
+          <div className="flex items-center justify-between">
+            <legend className="text-xs font-bold text-foreground px-2">Variações / Cores ({swatches.length})</legend>
+            <Button type="button" onClick={handleAutoGenerateSwatches} size="sm" variant="ghost" className="text-xs gap-1 text-primary h-7">
+              <Wand2 className="w-3 h-3" />Auto-gerar cores
+            </Button>
+          </div>
           {swatches.length > 0 && (
-            <div className="flex flex-wrap gap-2">
+            <div className="space-y-2">
               {swatches.map((s, i) => (
-                <div key={i} className="flex items-center gap-1.5 bg-muted rounded-full px-2 py-1">
-                  <div className="w-4 h-4 rounded-full border border-border" style={{ backgroundColor: s.color }} />
-                  <span className="text-[10px] font-medium">{s.name}</span>
-                  <button type="button" onClick={() => handleRemoveSwatch(i)} className="w-4 h-4 flex items-center justify-center"><X className="w-2.5 h-2.5 text-muted-foreground" /></button>
+                <div key={i} className={cn("flex items-center gap-2 bg-muted rounded-lg px-3 py-2", !s.available && "opacity-60")}>
+                  <div className="w-6 h-6 rounded-full border border-border flex-shrink-0" style={{ backgroundColor: s.color }} />
+                  <div className="flex-1 min-w-0">
+                    <p className="text-[11px] font-semibold truncate">{s.name}</p>
+                    <div className="flex items-center gap-2 text-[9px] text-muted-foreground">
+                      {s.barcode && <span>EAN: {s.barcode}</span>}
+                      {s.ref_code && <span>Ref: {s.ref_code}</span>}
+                      <span>Est: {s.stock ?? 0}</span>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-1.5 flex-shrink-0">
+                    {!s.available && <Badge variant="secondary" className="text-[7px] px-1 py-0 bg-destructive/10 text-destructive">Indisponível</Badge>}
+                    <Button type="button" size="sm" variant="ghost" onClick={() => handleToggleSwatchAvailable(i)} className="h-6 w-6 p-0" title={s.available ? "Marcar indisponível" : "Marcar disponível"}>
+                      {s.available ? <Eye className="w-3 h-3" /> : <EyeOff className="w-3 h-3 text-destructive" />}
+                    </Button>
+                    <button type="button" onClick={() => handleRemoveSwatch(i)} className="w-5 h-5 flex items-center justify-center"><X className="w-3 h-3 text-muted-foreground" /></button>
+                  </div>
                 </div>
               ))}
             </div>
           )}
-          <div className="flex gap-2 items-end">
-            <div className="space-y-1 flex-1">
-              <Label className="text-[10px]">Nome do tom</Label>
-              <Input value={newSwatch.name} onChange={(e) => setNewSwatch({ ...newSwatch, name: e.target.value })} placeholder="Ex: Bege Claro" className="bg-muted border-none min-h-[36px] text-xs" onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), handleAddSwatch())} />
+          <div className="space-y-2 border-t border-border pt-3">
+            <p className="text-[10px] font-semibold text-muted-foreground">Adicionar nova cor</p>
+            <div className="grid grid-cols-2 gap-2">
+              <div className="space-y-1">
+                <Label className="text-[10px]">Nome do tom *</Label>
+                <Input value={newSwatch.name} onChange={(e) => setNewSwatch({ ...newSwatch, name: e.target.value })} placeholder="Ex: Bege Claro" className="bg-background border-border min-h-[36px] text-xs" onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), handleAddSwatch())} />
+              </div>
+              <div className="flex gap-2 items-end">
+                <div className="space-y-1">
+                  <Label className="text-[10px]">Cor</Label>
+                  <input type="color" value={newSwatch.color} onChange={(e) => setNewSwatch({ ...newSwatch, color: e.target.value })} className="w-9 h-9 rounded border border-border cursor-pointer" />
+                </div>
+                <div className="space-y-1 flex-1">
+                  <Label className="text-[10px]">Estoque</Label>
+                  <Input type="number" value={newSwatch.stock ?? 0} onChange={(e) => setNewSwatch({ ...newSwatch, stock: parseInt(e.target.value) || 0 })} className="bg-background border-border min-h-[36px] text-xs" />
+                </div>
+              </div>
+              <div className="space-y-1">
+                <Label className="text-[10px]">Cód. Barras (EAN)</Label>
+                <Input value={newSwatch.barcode || ""} onChange={(e) => setNewSwatch({ ...newSwatch, barcode: e.target.value })} placeholder="7891234567890" className="bg-background border-border min-h-[36px] text-xs" />
+              </div>
+              <div className="space-y-1">
+                <Label className="text-[10px]">Cód. Referência</Label>
+                <Input value={newSwatch.ref_code || ""} onChange={(e) => setNewSwatch({ ...newSwatch, ref_code: e.target.value })} placeholder="REF-001" className="bg-background border-border min-h-[36px] text-xs" />
+              </div>
             </div>
-            <div className="space-y-1">
-              <Label className="text-[10px]">Cor</Label>
-              <input type="color" value={newSwatch.color} onChange={(e) => setNewSwatch({ ...newSwatch, color: e.target.value })} className="w-9 h-9 rounded border border-border cursor-pointer" />
-            </div>
-            <Button type="button" onClick={handleAddSwatch} size="sm" variant="outline" className="text-xs h-9">+ Cor</Button>
+            <Button type="button" onClick={handleAddSwatch} size="sm" variant="outline" className="text-xs h-8 gap-1 w-full"><Plus className="w-3 h-3" />Adicionar Cor</Button>
           </div>
         </fieldset>
 

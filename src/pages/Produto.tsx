@@ -36,12 +36,13 @@ const Produto = () => {
   const [qty, setQty] = useState(1);
   const shipping = useShipping();
 
-  // Auto-select first swatch when product loads (hook must be before early returns)
+  // Auto-select first available swatch when product loads
   useEffect(() => {
     if (!product) return;
     const sw = typeof product.swatches === 'string' ? JSON.parse(product.swatches) : (product.swatches || []);
-    if (sw.length > 0) {
-      setSelectedSwatch(sw[0]);
+    const firstAvailable = sw.find((s: any) => s.available !== false) || sw[0];
+    if (firstAvailable) {
+      setSelectedSwatch(firstAvailable);
     }
   }, [product?.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -198,22 +199,35 @@ const Produto = () => {
             {/* Swatches */}
             {swatches.length > 0 && (
               <div>
-                <p className="text-sm font-medium mb-2">Cor: <span className="text-primary">{selectedSwatch?.name || "Selecione"}</span></p>
+                <p className="text-sm font-medium mb-2">Cor: <span className="text-primary">{selectedSwatch?.name || "Selecione"}</span>
+                  {selectedSwatch?.available === false && <span className="text-destructive text-xs ml-2">(Indisponível)</span>}
+                </p>
                 <div className="flex flex-wrap gap-2.5">
-                  {swatches.map((s: any, i: number) => (
-                    <motion.button
-                      key={i}
-                      onClick={() => setSelectedSwatch(s)}
-                      whileHover={{ scale: 1.1 }}
-                      whileTap={{ scale: 0.9 }}
-                      className={cn(
-                        "w-10 h-10 rounded-full border-2 transition-all shadow-sm",
-                        selectedSwatch?.color === s.color ? "border-primary ring-2 ring-primary/30 scale-110" : "border-border"
-                      )}
-                      style={{ backgroundColor: s.color }}
-                      title={s.name}
-                    />
-                  ))}
+                  {swatches.map((s: any, i: number) => {
+                    const isUnavailable = s.available === false;
+                    return (
+                      <motion.button
+                        key={i}
+                        onClick={() => !isUnavailable && setSelectedSwatch(s)}
+                        whileHover={!isUnavailable ? { scale: 1.1 } : {}}
+                        whileTap={!isUnavailable ? { scale: 0.9 } : {}}
+                        className={cn(
+                          "w-10 h-10 rounded-full border-2 transition-all shadow-sm relative",
+                          selectedSwatch?.color === s.color && !isUnavailable ? "border-primary ring-2 ring-primary/30 scale-110" : "border-border",
+                          isUnavailable && "opacity-40 cursor-not-allowed"
+                        )}
+                        style={{ backgroundColor: s.color }}
+                        title={isUnavailable ? `${s.name} - Indisponível` : s.name}
+                        disabled={isUnavailable}
+                      >
+                        {isUnavailable && (
+                          <span className="absolute inset-0 flex items-center justify-center">
+                            <span className="w-[120%] h-[2px] bg-foreground/60 rotate-45 absolute" />
+                          </span>
+                        )}
+                      </motion.button>
+                    );
+                  })}
                 </div>
               </div>
             )}
