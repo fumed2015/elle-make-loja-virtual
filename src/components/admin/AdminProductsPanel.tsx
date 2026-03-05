@@ -12,12 +12,64 @@ import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
+import { cn } from "@/lib/utils";
 
 type View = "list" | "add" | "edit";
 
 interface Swatch {
   name: string;
   color: string;
+  barcode?: string;
+  ref_code?: string;
+  stock?: number;
+  available?: boolean;
+}
+
+// Mapa de cores comuns em cosméticos para auto-geração
+const COLOR_MAP: Record<string, string> = {
+  "nude": "#c8a98a", "bege": "#d4b896", "bege claro": "#e8d5b7", "bege medio": "#c4a882", "bege escuro": "#a07850",
+  "marrom": "#6b3a2a", "marrom claro": "#8b5e3c", "marrom escuro": "#4a2a1a", "chocolate": "#5c3317",
+  "vermelho": "#c0392b", "red": "#c0392b", "vinho": "#722f37", "marsala": "#8e3741", "borgonha": "#800020",
+  "rosa": "#e8a0b4", "pink": "#e84393", "rosa claro": "#f0c0d0", "rosa escuro": "#c45a7a", "rosado": "#d4917a",
+  "coral": "#e8735a", "laranja": "#d35400", "pêssego": "#e8b090", "pessego": "#e8b090", "terracota": "#b45639",
+  "dourado": "#c9a84c", "gold": "#c9a84c", "bronze": "#8b6b3d", "cobre": "#b87333", "champagne": "#d4b896",
+  "preto": "#1a1a1a", "black": "#1a1a1a", "branco": "#f5f5f5", "white": "#f5f5f5",
+  "cinza": "#808080", "prata": "#c0c0c0", "natural": "#d4b896", "caramelo": "#a06030",
+  "lilás": "#b39ddb", "lilas": "#b39ddb", "roxo": "#6a1b9a", "violeta": "#7b1fa2", "uva": "#5c2a6a",
+  "verm. escuro": "#8b1a1a", "berry": "#8e2252", "cereja": "#a0202a", "framboesa": "#c72c48",
+  "malva": "#993366", "ameixa": "#6a2c6a", "mogno": "#5a2a1a", "canela": "#8b5740",
+  "mel": "#d4a540", "caramelo claro": "#c8943c", "café": "#4a3420", "tabaco": "#6b4226",
+  "pêssego claro": "#f0d0b8", "damasco": "#e8a860", "salmão": "#e87060", "salmon": "#e87060",
+  "magenta": "#c2185b", "fúcsia": "#c2185b", "fucsia": "#c2185b",
+}
+
+function autoGenerateSwatches(productName: string): Swatch[] {
+  const name = productName.toLowerCase();
+  const results: Swatch[] = [];
+  
+  // Try to extract color names from the product name
+  const sortedKeys = Object.keys(COLOR_MAP).sort((a, b) => b.length - a.length);
+  for (const colorName of sortedKeys) {
+    if (name.includes(colorName) && !results.find(r => r.color === COLOR_MAP[colorName])) {
+      results.push({
+        name: colorName.charAt(0).toUpperCase() + colorName.slice(1),
+        color: COLOR_MAP[colorName],
+        stock: 0,
+        available: true,
+      });
+    }
+  }
+  
+  // If "kit" or "paleta" with number, generate numbered swatches
+  const kitMatch = name.match(/kit\s*(\d+)/);
+  if (kitMatch && results.length === 0) {
+    const count = Math.min(parseInt(kitMatch[1]), 12);
+    for (let i = 1; i <= count; i++) {
+      results.push({ name: `Tom ${i}`, color: "#c45a5a", stock: 0, available: true });
+    }
+  }
+  
+  return results;
 }
 
 const emptyForm = {
@@ -38,7 +90,7 @@ const AdminProductsPanel = () => {
   const [images, setImages] = useState<string[]>([]);
   const [newImageUrl, setNewImageUrl] = useState("");
   const [swatches, setSwatches] = useState<Swatch[]>([]);
-  const [newSwatch, setNewSwatch] = useState<Swatch>({ name: "", color: "#c45a5a" });
+  const [newSwatch, setNewSwatch] = useState<Swatch>({ name: "", color: "#c45a5a", barcode: "", ref_code: "", stock: 0, available: true });
   const [submitting, setSubmitting] = useState(false);
   const [aiGenerating, setAiGenerating] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
@@ -68,7 +120,7 @@ const AdminProductsPanel = () => {
     setImages([]);
     setSwatches([]);
     setNewImageUrl("");
-    setNewSwatch({ name: "", color: "#c45a5a" });
+    setNewSwatch({ name: "", color: "#c45a5a", barcode: "", ref_code: "", stock: 0, available: true });
     setEditingId(null);
   };
 
@@ -116,10 +168,23 @@ const AdminProductsPanel = () => {
   const handleAddSwatch = () => {
     if (newSwatch.name.trim()) {
       setSwatches([...swatches, { ...newSwatch, name: newSwatch.name.trim() }]);
-      setNewSwatch({ name: "", color: "#c45a5a" });
+      setNewSwatch({ name: "", color: "#c45a5a", barcode: "", ref_code: "", stock: 0, available: true });
     }
   };
   const handleRemoveSwatch = (idx: number) => setSwatches(swatches.filter((_, i) => i !== idx));
+  const handleToggleSwatchAvailable = (idx: number) => {
+    setSwatches(swatches.map((s, i) => i === idx ? { ...s, available: !s.available } : s));
+  };
+  const handleSwatchStockChange = (idx: number, stock: number) => {
+    setSwatches(swatches.map((s, i) => i === idx ? { ...s, stock, available: stock > 0 ? s.available : false } : s));
+  };
+  const handleAutoGenerateSwatches = () => {
+    if (!form.name) { toast.error("Preencha o nome do produto primeiro"); return; }
+    const generated = autoGenerateSwatches(form.name);
+    if (generated.length === 0) { toast.info("Não foi possível detectar cores no título. Adicione manualmente."); return; }
+    setSwatches(prev => [...prev, ...generated]);
+    toast.success(`${generated.length} cor(es) adicionada(s) automaticamente!`);
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -373,28 +438,63 @@ const AdminProductsPanel = () => {
 
         {/* Swatches / Variações */}
         <fieldset className="bg-card rounded-xl p-4 border border-border space-y-3">
-          <legend className="text-xs font-bold text-foreground px-2">Variações / Cores ({swatches.length})</legend>
+          <div className="flex items-center justify-between">
+            <legend className="text-xs font-bold text-foreground px-2">Variações / Cores ({swatches.length})</legend>
+            <Button type="button" onClick={handleAutoGenerateSwatches} size="sm" variant="ghost" className="text-xs gap-1 text-primary h-7">
+              <Wand2 className="w-3 h-3" />Auto-gerar cores
+            </Button>
+          </div>
           {swatches.length > 0 && (
-            <div className="flex flex-wrap gap-2">
+            <div className="space-y-2">
               {swatches.map((s, i) => (
-                <div key={i} className="flex items-center gap-1.5 bg-muted rounded-full px-2 py-1">
-                  <div className="w-4 h-4 rounded-full border border-border" style={{ backgroundColor: s.color }} />
-                  <span className="text-[10px] font-medium">{s.name}</span>
-                  <button type="button" onClick={() => handleRemoveSwatch(i)} className="w-4 h-4 flex items-center justify-center"><X className="w-2.5 h-2.5 text-muted-foreground" /></button>
+                <div key={i} className={cn("flex items-center gap-2 bg-muted rounded-lg px-3 py-2", !s.available && "opacity-60")}>
+                  <div className="w-6 h-6 rounded-full border border-border flex-shrink-0" style={{ backgroundColor: s.color }} />
+                  <div className="flex-1 min-w-0">
+                    <p className="text-[11px] font-semibold truncate">{s.name}</p>
+                    <div className="flex items-center gap-2 text-[9px] text-muted-foreground">
+                      {s.barcode && <span>EAN: {s.barcode}</span>}
+                      {s.ref_code && <span>Ref: {s.ref_code}</span>}
+                      <span>Est: {s.stock ?? 0}</span>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-1.5 flex-shrink-0">
+                    {!s.available && <Badge variant="secondary" className="text-[7px] px-1 py-0 bg-destructive/10 text-destructive">Indisponível</Badge>}
+                    <Button type="button" size="sm" variant="ghost" onClick={() => handleToggleSwatchAvailable(i)} className="h-6 w-6 p-0" title={s.available ? "Marcar indisponível" : "Marcar disponível"}>
+                      {s.available ? <Eye className="w-3 h-3" /> : <EyeOff className="w-3 h-3 text-destructive" />}
+                    </Button>
+                    <button type="button" onClick={() => handleRemoveSwatch(i)} className="w-5 h-5 flex items-center justify-center"><X className="w-3 h-3 text-muted-foreground" /></button>
+                  </div>
                 </div>
               ))}
             </div>
           )}
-          <div className="flex gap-2 items-end">
-            <div className="space-y-1 flex-1">
-              <Label className="text-[10px]">Nome do tom</Label>
-              <Input value={newSwatch.name} onChange={(e) => setNewSwatch({ ...newSwatch, name: e.target.value })} placeholder="Ex: Bege Claro" className="bg-muted border-none min-h-[36px] text-xs" onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), handleAddSwatch())} />
+          <div className="space-y-2 border-t border-border pt-3">
+            <p className="text-[10px] font-semibold text-muted-foreground">Adicionar nova cor</p>
+            <div className="grid grid-cols-2 gap-2">
+              <div className="space-y-1">
+                <Label className="text-[10px]">Nome do tom *</Label>
+                <Input value={newSwatch.name} onChange={(e) => setNewSwatch({ ...newSwatch, name: e.target.value })} placeholder="Ex: Bege Claro" className="bg-background border-border min-h-[36px] text-xs" onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), handleAddSwatch())} />
+              </div>
+              <div className="flex gap-2 items-end">
+                <div className="space-y-1">
+                  <Label className="text-[10px]">Cor</Label>
+                  <input type="color" value={newSwatch.color} onChange={(e) => setNewSwatch({ ...newSwatch, color: e.target.value })} className="w-9 h-9 rounded border border-border cursor-pointer" />
+                </div>
+                <div className="space-y-1 flex-1">
+                  <Label className="text-[10px]">Estoque</Label>
+                  <Input type="number" value={newSwatch.stock ?? 0} onChange={(e) => setNewSwatch({ ...newSwatch, stock: parseInt(e.target.value) || 0 })} className="bg-background border-border min-h-[36px] text-xs" />
+                </div>
+              </div>
+              <div className="space-y-1">
+                <Label className="text-[10px]">Cód. Barras (EAN)</Label>
+                <Input value={newSwatch.barcode || ""} onChange={(e) => setNewSwatch({ ...newSwatch, barcode: e.target.value })} placeholder="7891234567890" className="bg-background border-border min-h-[36px] text-xs" />
+              </div>
+              <div className="space-y-1">
+                <Label className="text-[10px]">Cód. Referência</Label>
+                <Input value={newSwatch.ref_code || ""} onChange={(e) => setNewSwatch({ ...newSwatch, ref_code: e.target.value })} placeholder="REF-001" className="bg-background border-border min-h-[36px] text-xs" />
+              </div>
             </div>
-            <div className="space-y-1">
-              <Label className="text-[10px]">Cor</Label>
-              <input type="color" value={newSwatch.color} onChange={(e) => setNewSwatch({ ...newSwatch, color: e.target.value })} className="w-9 h-9 rounded border border-border cursor-pointer" />
-            </div>
-            <Button type="button" onClick={handleAddSwatch} size="sm" variant="outline" className="text-xs h-9">+ Cor</Button>
+            <Button type="button" onClick={handleAddSwatch} size="sm" variant="outline" className="text-xs h-8 gap-1 w-full"><Plus className="w-3 h-3" />Adicionar Cor</Button>
           </div>
         </fieldset>
 
