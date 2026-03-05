@@ -26,13 +26,22 @@ const InlineConsultant = () => {
   ]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const scrollRef = useRef<HTMLDivElement>(null);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
   const hasInteracted = useRef(false);
+  const msgIdCounter = useRef(0);
+  const [msgKeys] = useState<Map<number, string>>(() => new Map());
+
+  const getMsgKey = (index: number) => {
+    if (!msgKeys.has(index)) {
+      msgKeys.set(index, `msg-${msgIdCounter.current++}`);
+    }
+    return msgKeys.get(index)!;
+  };
 
   useEffect(() => {
-    // Only auto-scroll after user has sent a message, not on initial render
-    if (hasInteracted.current) {
-      scrollRef.current?.scrollIntoView({ behavior: "smooth" });
+    if (hasInteracted.current && scrollContainerRef.current) {
+      const el = scrollContainerRef.current;
+      el.scrollTop = el.scrollHeight;
     }
   }, [messages]);
 
@@ -119,12 +128,12 @@ const InlineConsultant = () => {
 
       <div className="bg-card border border-border rounded-2xl overflow-hidden shadow-sm">
         {/* Chat messages */}
-        <div className="h-[320px] overflow-y-auto px-4 py-4 space-y-3">
+        <div ref={scrollContainerRef} className="h-[320px] overflow-y-auto px-4 py-4 space-y-3">
           <AnimatePresence>
             {messages.map((msg, i) => (
               <motion.div
-                key={i}
-                initial={{ opacity: 0, y: 8 }}
+                key={getMsgKey(i)}
+                initial={i === messages.length - 1 ? { opacity: 0, y: 8 } : false}
                 animate={{ opacity: 1, y: 0 }}
                 className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}
               >
@@ -168,7 +177,7 @@ const InlineConsultant = () => {
               </div>
             </div>
           )}
-          <div ref={scrollRef} />
+          
         </div>
 
         {/* Quick questions */}
