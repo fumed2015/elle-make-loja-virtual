@@ -128,7 +128,7 @@ const InlineConsultant = () => {
 
       <div className="bg-card border border-border rounded-2xl overflow-hidden shadow-sm">
         {/* Chat messages */}
-        <div className="h-[320px] overflow-y-auto px-4 py-4 space-y-3">
+        <div ref={scrollContainerRef} className="h-[320px] overflow-y-auto px-4 py-4 space-y-3">
           <AnimatePresence>
             {messages.map((msg, i) => (
               <motion.div
