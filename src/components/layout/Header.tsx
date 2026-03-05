@@ -268,8 +268,8 @@ const Header = () => {
             </span>
           </div>
           <div className="flex items-center gap-3 text-[11px] text-white/70">
-            <Link to="/sobre" className="hover:text-primary transition-colors">Sobre</Link>
-            <Link to="/termos" className="hover:text-primary transition-colors">Contato</Link>
+            <Link to="/sobre" className="hover:text-white transition-colors">Sobre</Link>
+            <Link to="/termos" className="hover:text-white transition-colors">Contato</Link>
           </div>
         </div>
       </div>
@@ -329,7 +329,7 @@ const Header = () => {
               <motion.h1
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
-                className="text-xl md:text-2xl font-bold tracking-[0.15em] text-primary"
+                className="text-xl md:text-2xl font-bold tracking-[0.15em] text-primary md:text-white"
               >
                 ELLE MAKE
               </motion.h1>
@@ -349,7 +349,7 @@ const Header = () => {
               >
                 <Link
                   to={link.to}
-                  className="flex items-center gap-0.5 px-2.5 py-2 text-[12px] font-semibold text-foreground/80 hover:text-primary transition-all tracking-wide uppercase whitespace-nowrap"
+                  className="flex items-center gap-0.5 px-2.5 py-2 text-[12px] font-semibold text-foreground/80 md:text-white/90 hover:text-primary md:hover:text-white transition-all tracking-wide uppercase whitespace-nowrap"
                 >
                   {link.label}
                   {link.subs && <ChevronDown className="w-3 h-3" />}
@@ -405,10 +405,10 @@ const Header = () => {
                   value={search}
                   onChange={(e) => { setSearch(e.target.value); setShowSuggestions(e.target.value.length >= 2); }}
                   onFocus={() => search.length >= 2 && setShowSuggestions(true)}
-                  className="h-10 bg-background border border-border rounded-lg text-sm pr-10 focus:ring-2 focus:ring-primary/30 w-full"
+                  className="h-10 bg-white/10 border border-white/20 rounded-lg text-sm pr-10 focus:ring-2 focus:ring-white/30 w-full text-white placeholder:text-white/50"
                 />
                 <button type="submit" className="absolute right-1 top-1/2 -translate-y-1/2 w-8 h-8 flex items-center justify-center rounded-md hover:bg-muted transition-colors">
-                  <Search className="w-5 h-5 text-muted-foreground" />
+                  <Search className="w-5 h-5 text-white/70" />
                 </button>
               </form>
               <SuggestionsDropdown />
@@ -417,8 +417,8 @@ const Header = () => {
             {/* User dropdown (desktop) */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <button className="hidden md:flex w-10 h-10 items-center justify-center rounded-full hover:bg-muted transition-colors relative" aria-label="Conta">
-                  <User className="w-5 h-5 text-foreground" />
+                <button className="hidden md:flex w-10 h-10 items-center justify-center rounded-full hover:bg-white/10 transition-colors relative" aria-label="Conta">
+                  <User className="w-5 h-5 text-white" />
                   {user && (
                     <span className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-accent border-2 border-card" />
                   )}
@@ -456,7 +456,7 @@ const Header = () => {
             </DropdownMenu>
 
             {/* Cart */}
-            <Link to="/carrinho" className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-muted transition-colors relative" aria-label="Carrinho">
+            <Link to="/carrinho" className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-white/10 md:hover:bg-white/10 hover:bg-muted transition-colors relative" aria-label="Carrinho">
               <motion.div
                 whileHover={{ scale: 1.1 }}
                 whileTap={{ scale: 0.9 }}
@@ -464,7 +464,7 @@ const Header = () => {
                 animate={cartCount > 0 ? { scale: [1, 1.3, 1], rotate: [0, -10, 10, 0] } : {}}
                 transition={{ duration: 0.4 }}
               >
-                <ShoppingBag className="w-5 h-5 text-foreground" />
+                <ShoppingBag className="w-5 h-5 text-foreground md:text-white" />
               </motion.div>
               {cartCount > 0 && (
                 <motion.span
