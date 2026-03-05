@@ -147,12 +147,13 @@ const HeroCarousel = () => {
         >
           <div className="max-w-lg">
             <span
-              className="inline-block text-xs font-semibold tracking-[0.28em] uppercase px-5 py-2 mb-5 rounded-sm"
+              className="inline-block text-xs font-medium tracking-[0.3em] uppercase px-5 py-2 mb-5 rounded-md"
               style={{
-                background: 'linear-gradient(135deg, rgba(212,175,110,0.25) 0%, rgba(255,248,230,0.18) 100%)',
-                backdropFilter: 'blur(12px)',
-                border: '1px solid rgba(212,175,110,0.4)',
-                color: 'hsl(var(--primary))',
+                background: 'rgba(255,255,255,0.12)',
+                backdropFilter: 'blur(16px)',
+                WebkitBackdropFilter: 'blur(16px)',
+                border: '1px solid rgba(255,255,255,0.25)',
+                color: '#FAF3E8',
                 fontFamily: 'Montserrat, sans-serif',
               }}
             >
@@ -162,17 +163,17 @@ const HeroCarousel = () => {
             <h1
               className="text-6xl lg:text-8xl font-bold leading-[0.85] mb-8 tracking-tight whitespace-pre-line"
               style={{
-                color: '#D4AF6E',
-                textShadow: '0 2px 8px rgba(0,0,0,0.6), 0 0 40px rgba(0,0,0,0.3)',
-                fontFamily: 'Georgia, "Times New Roman", serif',
+                color: '#FAF3E8',
+                textShadow: '0 4px 16px rgba(20,10,5,0.7), 0 1px 3px rgba(0,0,0,0.5)',
+                fontFamily: '"Playfair Display", Didot, "Bodoni MT", Georgia, serif',
               }}
             >
               {slide.title}
             </h1>
 
-            <Button asChild className="bg-primary hover:bg-primary/90 min-h-[48px] px-10 rounded-sm shadow-xl relative overflow-hidden group border-0" style={{ letterSpacing: '-0.02em' }}>
+            <Button asChild className="bg-primary hover:bg-primary/90 min-h-[48px] px-10 rounded-sm shadow-xl relative overflow-hidden group border-0">
               <Link to={slide.link}>
-                <span className="relative z-10 font-bold text-sm uppercase" style={{ color: '#FFF8E6', fontFamily: 'Montserrat, sans-serif', textShadow: '0 1px 2px rgba(0,0,0,0.3)' }}>{slide.cta}</span>
+                <span className="relative z-10 font-medium text-sm uppercase tracking-[0.1em]" style={{ color: '#FAF3E8', fontFamily: 'Montserrat, sans-serif' }}>{slide.cta}</span>
                 <span className="absolute inset-0 bg-gradient-to-r from-transparent via-primary-foreground/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700" />
               </Link>
             </Button>
@@ -191,12 +192,13 @@ const HeroCarousel = () => {
           className="absolute inset-0 flex flex-col items-center justify-center text-center px-6 pt-[80px] md:hidden z-[2]"
         >
           <span
-            className="inline-block text-[11px] font-semibold tracking-[0.25em] uppercase px-4 py-2 rounded-sm mb-4"
+            className="inline-block text-[11px] font-medium tracking-[0.3em] uppercase px-4 py-2 rounded-md mb-4"
             style={{
-              background: 'linear-gradient(135deg, rgba(212,175,110,0.25) 0%, rgba(255,248,230,0.18) 100%)',
-              backdropFilter: 'blur(12px)',
-              border: '1px solid rgba(212,175,110,0.4)',
-              color: 'hsl(var(--primary))',
+              background: 'rgba(255,255,255,0.12)',
+              backdropFilter: 'blur(16px)',
+              WebkitBackdropFilter: 'blur(16px)',
+              border: '1px solid rgba(255,255,255,0.25)',
+              color: '#FAF3E8',
               fontFamily: 'Montserrat, sans-serif',
             }}
           >
@@ -206,17 +208,17 @@ const HeroCarousel = () => {
           <h1
             className="text-4xl font-bold leading-none mb-6 tracking-tight whitespace-pre-line"
             style={{
-              color: '#D4AF6E',
-              textShadow: '0 2px 6px rgba(0,0,0,0.6), 0 0 30px rgba(0,0,0,0.25)',
-              fontFamily: 'Georgia, "Times New Roman", serif',
+              color: '#FAF3E8',
+              textShadow: '0 4px 14px rgba(20,10,5,0.7), 0 1px 3px rgba(0,0,0,0.5)',
+              fontFamily: '"Playfair Display", Didot, "Bodoni MT", Georgia, serif',
             }}
           >
             {slide.title}
           </h1>
 
-          <Button asChild className="bg-primary hover:bg-primary/90 min-h-[44px] px-8 rounded-sm shadow-lg border-0" style={{ letterSpacing: '-0.02em' }}>
+          <Button asChild className="bg-primary hover:bg-primary/90 min-h-[44px] px-8 rounded-sm shadow-lg border-0">
             <Link to={slide.link}>
-              <span className="font-bold text-xs uppercase" style={{ color: '#FFF8E6', fontFamily: 'Montserrat, sans-serif', textShadow: '0 1px 2px rgba(0,0,0,0.3)' }}>{slide.cta}</span>
+              <span className="font-medium text-xs uppercase tracking-[0.1em]" style={{ color: '#FAF3E8', fontFamily: 'Montserrat, sans-serif' }}>{slide.cta}</span>
             </Link>
           </Button>
         </motion.div>
