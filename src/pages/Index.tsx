@@ -116,6 +116,7 @@ const heroSlides = [
 
 const HeroCarousel = () => {
   const [current, setCurrent] = useState(0);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const timer = setInterval(() => setCurrent(c => (c + 1) % heroSlides.length), 5000);
