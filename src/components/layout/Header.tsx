@@ -1,4 +1,4 @@
-import { Search, User, ShoppingBag, ChevronDown, LogIn, LogOut, Settings } from "lucide-react";
+import { Search, User, ShoppingBag, ChevronDown, LogIn, LogOut, Settings, Menu, ChevronLeft, ChevronRight, X } from "lucide-react";
 
 import WhatsAppIcon from "@/components/icons/WhatsAppIcon";
 import { Link, useNavigate } from "react-router-dom";
@@ -15,6 +15,12 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  Sheet,
+  SheetContent,
+  SheetTrigger,
+  SheetClose,
+} from "@/components/ui/sheet";
 import { toast } from "sonner";
 
 interface SubItem {
