@@ -2,7 +2,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useEffect, lazy, Suspense, useMemo } from "react";
 import { ArrowRight, Truck, CreditCard, ShieldCheck, Star, ChevronDown, ChevronLeft, ChevronRight, Heart, Eye, Sparkles, Droplets, Package, Paintbrush, Gem, Palette, Wind, Tag, Zap, Scissors, ShowerHead, SprayCan, Smile, Sun } from "lucide-react";
 import WhatsAppIcon from "@/components/icons/WhatsAppIcon";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import SEOHead from "@/components/SEOHead";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -116,6 +116,7 @@ const heroSlides = [
 
 const HeroCarousel = () => {
   const [current, setCurrent] = useState(0);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const timer = setInterval(() => setCurrent(c => (c + 1) % heroSlides.length), 5000);
@@ -146,8 +147,11 @@ const HeroCarousel = () => {
       </AnimatePresence>
 
       {/* Gradient overlays */}
-      <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-black/20 to-transparent hidden md:block" />
-      <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-transparent to-black/40 md:hidden" />
+      <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-black/20 to-transparent hidden md:block pointer-events-none" />
+      <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-transparent to-black/40 md:hidden pointer-events-none" />
+
+      {/* Clickable banner overlay */}
+      <Link to={slide.link} className="absolute inset-0 z-[1]" aria-label={slide.label} />
 
       {/* Desktop: left-aligned content */}
       <AnimatePresence mode="wait">
@@ -157,7 +161,7 @@ const HeroCarousel = () => {
           animate={{ opacity: 1, x: 0 }}
           exit={{ opacity: 0, x: 40 }}
           transition={{ duration: 0.6 }}
-          className="absolute inset-0 hidden md:flex items-center px-16 lg:px-24 pt-[100px]"
+          className="absolute inset-0 hidden md:flex items-center px-16 lg:px-24 pt-[100px] z-[2]"
         >
           <div className="max-w-lg">
             <span className="inline-block text-xs font-semibold tracking-[0.25em] uppercase text-white/80 border border-white/40 px-5 py-1.5 mb-5 backdrop-blur-sm">
@@ -186,7 +190,7 @@ const HeroCarousel = () => {
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -20 }}
           transition={{ duration: 0.6 }}
-          className="absolute inset-0 flex flex-col items-center justify-center text-center px-6 md:hidden"
+          className="absolute inset-0 flex flex-col items-center justify-center text-center px-6 md:hidden z-[2]"
         >
           <span className="inline-block text-[11px] font-semibold tracking-[0.2em] uppercase text-white/90 border border-white/40 px-4 py-1.5 rounded-sm mb-4 backdrop-blur-sm">
             {slide.label}
@@ -223,6 +227,7 @@ const HeroCarousel = () => {
     </section>
   );
 };
+
 
 
   return (
