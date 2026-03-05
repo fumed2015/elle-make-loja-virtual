@@ -8,7 +8,7 @@ const AppLayout = () => {
   const location = useLocation();
 
   return (
-    <div className="min-h-screen bg-background transition-colors duration-300">
+    <div className="min-h-screen bg-background transition-colors duration-300 overscroll-none">
       <Header />
       <AnimatePresence mode="wait">
         <motion.main
