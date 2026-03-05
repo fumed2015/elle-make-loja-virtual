@@ -77,7 +77,7 @@ const heroSlides = [
     image: "/hero-banner.jpg",
     label: "Maquiagem & Cosméticos",
     title: "ELLE\nMAKE",
-    cta: "Aproveite!",
+    cta: "Ver Catálogo",
     link: "/explorar",
   },
   {
@@ -101,7 +101,7 @@ const HeroCarousel = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const timer = setInterval(() => setCurrent(c => (c + 1) % heroSlides.length), 12000);
+    const timer = setInterval(() => setCurrent(c => (c + 1) % heroSlides.length), 15000);
     return () => clearInterval(timer);
   }, []);
 
