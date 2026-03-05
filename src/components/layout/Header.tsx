@@ -267,22 +267,16 @@ const Header = () => {
               <Mail className="w-3 h-3" /> contato@ellemake.com.br
             </span>
           </div>
-          <div className="flex items-center gap-5">
-            <div className="flex items-center gap-4 text-xs text-muted-foreground font-medium">
-              <Link to="/sobre" className="hover:text-primary transition-colors">Sobre</Link>
-              <Link to="/termos" className="hover:text-primary transition-colors">Contato</Link>
-            </div>
-            <div className="flex items-center gap-3 text-muted-foreground ml-3 border-l border-border pl-4">
-              <a href="https://instagram.com/ellemake" target="_blank" rel="noopener noreferrer" className="hover:text-primary transition-colors" aria-label="Instagram">
-                <Instagram className="w-4 h-4" />
-              </a>
-              <a href="#" className="hover:text-primary transition-colors" aria-label="Facebook">
-                <Facebook className="w-4 h-4" />
-              </a>
-              <a href="#" className="hover:text-primary transition-colors" aria-label="YouTube">
-                <Youtube className="w-4 h-4" />
-              </a>
-            </div>
+          <div className="flex items-center gap-3 text-muted-foreground">
+            <a href="https://instagram.com/ellemake" target="_blank" rel="noopener noreferrer" className="hover:text-primary transition-colors" aria-label="Instagram">
+              <Instagram className="w-4 h-4" />
+            </a>
+            <a href="#" className="hover:text-primary transition-colors" aria-label="Facebook">
+              <Facebook className="w-4 h-4" />
+            </a>
+            <a href="#" className="hover:text-primary transition-colors" aria-label="YouTube">
+              <Youtube className="w-4 h-4" />
+            </a>
           </div>
         </div>
       </div>
