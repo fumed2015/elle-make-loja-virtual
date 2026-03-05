@@ -142,8 +142,7 @@ Gere EXATAMENTE o seguinte conteúdo usando a function tool:
 
       if (targetIds && targetIds.length > 0) {
         query = query.in("id", targetIds);
-      } else if (!forceAll) {
-        // Find products missing descriptions
+      } else if (!force_all) {
         query = query.or("description.is.null,description.eq.,sensorial_description.is.null,how_to_use.is.null");
         query = query.limit(10);
       }
