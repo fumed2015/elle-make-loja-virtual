@@ -465,7 +465,7 @@ const Header = () => {
                 animate={cartCount > 0 ? { scale: [1, 1.3, 1], rotate: [0, -10, 10, 0] } : {}}
                 transition={{ duration: 0.4 }}
               >
-                <ShoppingBag className="w-5 h-5 text-foreground md:text-white md:drop-shadow-sm" />
+                <ShoppingBag className="w-5 h-5 text-foreground" />
               </motion.div>
               {cartCount > 0 && (
                 <motion.span
