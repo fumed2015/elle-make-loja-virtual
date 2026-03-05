@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { useRef, useEffect, lazy, Suspense, useMemo } from "react";
+import { useEffect, lazy, Suspense, useMemo } from "react";
 import { ArrowRight, Truck, CreditCard, ShieldCheck, Star, ChevronDown, Heart, Eye, Sparkles, Droplets, Package, Paintbrush, Gem, Palette, Wind, Tag, Zap, Scissors, ShowerHead, SprayCan, Smile, Sun } from "lucide-react";
 import WhatsAppIcon from "@/components/icons/WhatsAppIcon";
 import { Link } from "react-router-dom";
@@ -74,9 +74,6 @@ const Index = () => {
   const { data: categories } = useCategories();
   const [couponCode, setCouponCode] = useState("");
   const [openFaq, setOpenFaq] = useState<number | null>(null);
-  const videoRef = useRef<HTMLVideoElement>(null);
-  const [videoFailed, setVideoFailed] = useState(false);
-  const [videoReady, setVideoReady] = useState(false);
 
   // Derive featured + offers from single query (no extra network calls)
   const featured = useMemo(() => allProducts?.filter(p => p.is_featured).slice(0, 5) || [], [allProducts]);
@@ -94,43 +91,6 @@ const Index = () => {
     });
   }, []);
 
-  useEffect(() => {
-    const video = videoRef.current;
-    if (!video) return;
-    video.muted = true;
-    video.setAttribute('playsinline', '');
-    video.setAttribute('webkit-playsinline', '');
-
-    const timeout = setTimeout(() => {
-      if (video.readyState < 2) setVideoFailed(true);
-    }, 6000);
-
-    const tryPlay = () => {
-      const p = video.play();
-      if (p !== undefined) {
-        p.then(() => setVideoFailed(false)).catch(() => {
-          setVideoFailed(true);
-          // Wait for user interaction (Safari often needs this)
-          const resume = () => {
-            video.play().then(() => setVideoFailed(false)).catch(() => {});
-          };
-          document.addEventListener('touchstart', resume, { once: true });
-          document.addEventListener('click', resume, { once: true });
-        });
-      }
-    };
-
-    // Safari needs data loaded before play
-    if (video.readyState >= 2) {
-      tryPlay();
-    } else {
-      video.addEventListener('loadeddata', tryPlay, { once: true });
-    }
-
-    video.addEventListener('error', () => setVideoFailed(true));
-
-    return () => clearTimeout(timeout);
-  }, []);
 
   return (
     <div className="min-h-screen">
@@ -192,37 +152,18 @@ const Index = () => {
         ]}
       />
 
-      {/* Hero — video with instant poster + lazy video load */}
+      {/* Hero — static banner */}
       <section className="relative overflow-hidden bg-background">
-        {/* Poster image shown immediately while video loads */}
-        {(!videoReady || videoFailed) && (
-          <img
-            src="/pwa-512x512.png"
-            alt="Elle Make - Maquiagem e Cosméticos"
-            className="w-full h-[320px] md:h-[480px] object-cover absolute inset-0"
-            style={{ objectPosition: "center" }}
-          />
-        )}
-        <video
-          ref={videoRef}
-          loop
-          muted
-          playsInline
-          autoPlay
-          preload="metadata"
-          className={`w-full h-[320px] md:h-[480px] object-cover transition-opacity duration-500 ${videoReady && !videoFailed ? 'opacity-100' : 'opacity-0'}`}
-          style={{ objectPosition: "200% center" }}
-          onCanPlay={(e) => {
-            setVideoReady(true);
-            setVideoFailed(false);
-            e.currentTarget.play().catch(() => {});
-          }}
-          onError={() => setVideoFailed(true)}
-        >
-          <source src="/hero-banner.mp4" type="video/mp4" />
-        </video>
+        <img
+          src="/hero-banner.jpg"
+          alt="Elle Make - Maquiagem e Cosméticos premium em Belém"
+          className="w-full h-[380px] md:h-[520px] lg:h-[560px] object-cover"
+          style={{ objectPosition: "center" }}
+          loading="eager"
+          fetchPriority="high"
+        />
         {/* Gradient overlay */}
-        <div className="absolute inset-0 bg-gradient-to-r from-background/95 via-background/60 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-r from-background/90 via-background/50 to-transparent" />
         <div className="absolute inset-0 bg-gradient-to-t from-background/50 via-transparent to-transparent" />
 
         <motion.div
