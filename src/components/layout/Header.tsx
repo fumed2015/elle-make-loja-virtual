@@ -271,12 +271,6 @@ const Header = () => {
             <a href="https://instagram.com/ellemake" target="_blank" rel="noopener noreferrer" className="hover:text-primary transition-colors" aria-label="Instagram">
               <Instagram className="w-4 h-4" />
             </a>
-            <a href="#" className="hover:text-primary transition-colors" aria-label="Facebook">
-              <Facebook className="w-4 h-4" />
-            </a>
-            <a href="#" className="hover:text-primary transition-colors" aria-label="YouTube">
-              <Youtube className="w-4 h-4" />
-            </a>
           </div>
         </div>
       </div>
