@@ -1,4 +1,4 @@
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { useEffect, lazy, Suspense, useMemo } from "react";
 import { ArrowRight, Truck, CreditCard, ShieldCheck, Star, ChevronDown, ChevronLeft, ChevronRight, Heart, Eye, Sparkles, Droplets, Package, Paintbrush, Gem, Palette, Wind, Tag, Zap, Scissors, ShowerHead, SprayCan, Smile, Sun } from "lucide-react";
 import WhatsAppIcon from "@/components/icons/WhatsAppIcon";
@@ -90,6 +90,139 @@ const Index = () => {
       window.scrollTo(0, 0);
     });
   }, []);
+const heroSlides = [
+  {
+    image: "/hero-banner.jpg",
+    label: "Maquiagem & Cosméticos",
+    title: "ELLE\nMAKE",
+    cta: "Aproveite!",
+    link: "/explorar",
+  },
+  {
+    image: "/hero-banner-2.jpg",
+    label: "Lábios Perfeitos",
+    title: "BATONS\n& GLOSSES",
+    cta: "Ver Coleção",
+    link: "/categoria/labios",
+  },
+  {
+    image: "/hero-banner-3.jpg",
+    label: "Base & Skincare",
+    title: "PELE\nPERFEITA",
+    cta: "Compre Agora",
+    link: "/categoria/rosto",
+  },
+];
+
+const HeroCarousel = () => {
+  const [current, setCurrent] = useState(0);
+
+  useEffect(() => {
+    const timer = setInterval(() => setCurrent(c => (c + 1) % heroSlides.length), 5000);
+    return () => clearInterval(timer);
+  }, []);
+
+  const prev = () => setCurrent(c => (c - 1 + heroSlides.length) % heroSlides.length);
+  const next = () => setCurrent(c => (c + 1) % heroSlides.length);
+
+  const slide = heroSlides[current];
+
+  return (
+    <section className="relative overflow-hidden md:-mt-[100px]" style={{ backgroundColor: 'hsl(20 30% 88%)' }}>
+      <AnimatePresence mode="wait">
+        <motion.img
+          key={slide.image}
+          src={slide.image}
+          alt={slide.label}
+          initial={{ opacity: 0, scale: 1.05 }}
+          animate={{ opacity: 1, scale: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.7 }}
+          className="w-full h-[420px] md:h-[620px] lg:h-[660px] object-cover"
+          style={{ objectPosition: "center" }}
+          loading="eager"
+          fetchPriority="high"
+        />
+      </AnimatePresence>
+
+      {/* Gradient overlays */}
+      <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-black/20 to-transparent hidden md:block" />
+      <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-transparent to-black/40 md:hidden" />
+
+      {/* Desktop: left-aligned content */}
+      <AnimatePresence mode="wait">
+        <motion.div
+          key={`desktop-${current}`}
+          initial={{ opacity: 0, x: -40 }}
+          animate={{ opacity: 1, x: 0 }}
+          exit={{ opacity: 0, x: 40 }}
+          transition={{ duration: 0.6 }}
+          className="absolute inset-0 hidden md:flex items-center px-16 lg:px-24 pt-[100px]"
+        >
+          <div className="max-w-lg">
+            <span className="inline-block text-xs font-semibold tracking-[0.25em] uppercase text-white/80 border border-white/40 px-5 py-1.5 mb-5 backdrop-blur-sm">
+              {slide.label}
+            </span>
+
+            <h1 className="text-6xl lg:text-8xl font-bold leading-[0.85] text-white mb-8 tracking-tight whitespace-pre-line" style={{ textShadow: '0 4px 40px rgba(0,0,0,0.4)' }}>
+              {slide.title}
+            </h1>
+
+            <Button asChild className="bg-primary text-primary-foreground hover:bg-primary/90 min-h-[48px] px-10 rounded-sm font-semibold tracking-[0.15em] uppercase text-sm shadow-xl relative overflow-hidden group">
+              <Link to={slide.link}>
+                <span className="relative z-10">{slide.cta}</span>
+                <span className="absolute inset-0 bg-gradient-to-r from-transparent via-primary-foreground/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700" />
+              </Link>
+            </Button>
+          </div>
+        </motion.div>
+      </AnimatePresence>
+
+      {/* Mobile: centered content */}
+      <AnimatePresence mode="wait">
+        <motion.div
+          key={`mobile-${current}`}
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -20 }}
+          transition={{ duration: 0.6 }}
+          className="absolute inset-0 flex flex-col items-center justify-center text-center px-6 md:hidden"
+        >
+          <span className="inline-block text-[11px] font-semibold tracking-[0.2em] uppercase text-white/90 border border-white/40 px-4 py-1.5 rounded-sm mb-4 backdrop-blur-sm">
+            {slide.label}
+          </span>
+
+          <h1 className="text-4xl font-bold leading-none text-white mb-6 tracking-tight whitespace-pre-line" style={{ textShadow: '0 2px 30px rgba(0,0,0,0.4)' }}>
+            {slide.title}
+          </h1>
+
+          <Button asChild className="bg-primary text-primary-foreground hover:bg-primary/90 min-h-[44px] px-8 rounded-sm font-semibold tracking-wider uppercase text-xs shadow-lg">
+            <Link to={slide.link}>{slide.cta}</Link>
+          </Button>
+        </motion.div>
+      </AnimatePresence>
+
+      {/* Side arrows */}
+      <button onClick={prev} className="absolute left-3 md:left-6 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/80 backdrop-blur-sm flex items-center justify-center shadow-lg hover:bg-white transition-colors z-10">
+        <ChevronLeft className="w-5 h-5 text-foreground" />
+      </button>
+      <button onClick={next} className="absolute right-3 md:right-6 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/80 backdrop-blur-sm flex items-center justify-center shadow-lg hover:bg-white transition-colors z-10">
+        <ChevronRight className="w-5 h-5 text-foreground" />
+      </button>
+
+      {/* Dot indicators */}
+      <div className="absolute bottom-5 left-1/2 -translate-x-1/2 flex gap-2.5 z-10">
+        {heroSlides.map((_, i) => (
+          <button
+            key={i}
+            onClick={() => setCurrent(i)}
+            className={`rounded-full transition-all duration-300 ${i === current ? 'w-3 h-3 bg-white' : 'w-2 h-2 bg-white/50 hover:bg-white/70'}`}
+          />
+        ))}
+      </div>
+    </section>
+  );
+};
 
 
   return (
@@ -152,113 +285,8 @@ const Index = () => {
         ]}
       />
 
-      {/* Hero — left-aligned text on desktop (like reference), centered on mobile */}
-      <section className="relative overflow-hidden" style={{ backgroundColor: 'hsl(20 30% 88%)' }}>
-        <img
-          src="/hero-banner.jpg"
-          alt="Elle Make - Maquiagem e Cosméticos premium em Belém"
-          className="w-full h-[420px] md:h-[520px] lg:h-[560px] object-cover"
-          style={{ objectPosition: "center" }}
-          loading="eager"
-          fetchPriority="high"
-        />
-        {/* Gradient overlays */}
-        <div className="absolute inset-0 bg-gradient-to-r from-background/80 via-background/30 to-transparent hidden md:block" />
-        <div className="absolute inset-0 bg-gradient-to-b from-black/10 via-transparent to-black/30 md:hidden" />
-
-        {/* Desktop: left-aligned content */}
-        <motion.div
-          initial={{ opacity: 0, x: -40 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.8, delay: 0.2, ease: "easeOut" }}
-          className="absolute inset-0 hidden md:flex items-center px-16 lg:px-24"
-        >
-          <div className="max-w-md">
-            <motion.span
-              initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.4 }}
-              className="inline-block text-xs font-semibold tracking-[0.2em] uppercase text-foreground/80 border border-foreground/30 px-5 py-1.5 mb-5"
-            >
-              Maquiagem & Cosméticos
-            </motion.span>
-
-            <motion.h1
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.5 }}
-              className="text-5xl lg:text-7xl font-bold leading-[0.9] text-foreground mb-8 tracking-tight"
-            >
-              ELLE<br />MAKE
-            </motion.h1>
-
-            <motion.div
-              initial={{ opacity: 0, y: 15 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.8 }}
-            >
-              <Button asChild className="bg-primary text-primary-foreground hover:bg-primary/90 min-h-[44px] px-8 rounded-sm font-semibold tracking-[0.15em] uppercase text-xs shadow-lg relative overflow-hidden group">
-                <Link to="/explorar">
-                  <span className="relative z-10">Aproveite!</span>
-                  <span className="absolute inset-0 bg-gradient-to-r from-transparent via-primary-foreground/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700" />
-                </Link>
-              </Button>
-            </motion.div>
-          </div>
-        </motion.div>
-
-        {/* Mobile: centered content */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.2, ease: "easeOut" }}
-          className="absolute inset-0 flex flex-col items-center justify-center text-center px-6 md:hidden"
-        >
-          <motion.span
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.4 }}
-            className="inline-block text-[11px] font-semibold tracking-[0.2em] uppercase text-white/90 border border-white/40 px-4 py-1.5 rounded-sm mb-4 backdrop-blur-sm"
-          >
-            Maquiagem & Cosméticos
-          </motion.span>
-
-          <motion.h1
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.6, delay: 0.5 }}
-            className="text-4xl font-bold leading-none text-white mb-6 tracking-tight"
-            style={{ textShadow: '0 2px 30px rgba(0,0,0,0.3)' }}
-          >
-            ELLE<br />MAKE
-          </motion.h1>
-
-          <motion.div
-            initial={{ opacity: 0, y: 15 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.8 }}
-          >
-            <Button asChild className="bg-primary text-primary-foreground hover:bg-primary/90 min-h-[44px] px-8 rounded-sm font-semibold tracking-wider uppercase text-xs shadow-lg">
-              <Link to="/explorar">Aproveite!</Link>
-            </Button>
-          </motion.div>
-        </motion.div>
-
-        {/* Side arrows (desktop) */}
-        <button className="hidden md:flex absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-card/80 backdrop-blur-sm items-center justify-center shadow-lg hover:bg-card transition-colors z-10">
-          <ChevronLeft className="w-5 h-5 text-foreground" />
-        </button>
-        <button className="hidden md:flex absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-card/80 backdrop-blur-sm items-center justify-center shadow-lg hover:bg-card transition-colors z-10">
-          <ChevronRight className="w-5 h-5 text-foreground" />
-        </button>
-
-        {/* Dot indicators */}
-        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2 z-10">
-          <span className="w-2 h-2 rounded-full bg-foreground/30" />
-          <span className="w-2 h-2 rounded-full bg-foreground/30" />
-          <span className="w-2.5 h-2.5 rounded-full bg-foreground" />
-        </div>
-      </section>
+      {/* Hero Carousel — extends behind header */}
+      <HeroCarousel />
 
       {/* Benefits bar — removed individual whileInView, single container animation */}
       <section className="border-b border-border bg-card/50 backdrop-blur-sm px-4 py-4">
