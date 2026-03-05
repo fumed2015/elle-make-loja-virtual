@@ -254,10 +254,10 @@ const Header = () => {
       </div>
 
       {/* Desktop secondary info bar — solid light background */}
-      <div className="hidden md:flex bg-muted border-b border-border px-4 py-2">
+      <div className="hidden md:flex bg-black/20 backdrop-blur-sm border-b border-white/10 px-4 py-2">
         <div className="max-w-6xl mx-auto w-full flex items-center justify-between">
-          <div className="flex items-center gap-5 text-xs text-muted-foreground">
-            <a href="https://wa.me/5591983045531" target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 hover:text-primary transition-colors font-medium">
+          <div className="flex items-center gap-5 text-xs text-white/80 drop-shadow-sm">
+            <a href="https://wa.me/5591983045531" target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 hover:text-white transition-colors font-medium">
               <WhatsAppIcon className="w-3.5 h-3.5" /> <span className="underline">WhatsApp</span>
             </a>
             <span className="flex items-center gap-1.5">
@@ -267,8 +267,8 @@ const Header = () => {
               <Mail className="w-3 h-3" /> contato@ellemake.com.br
             </span>
           </div>
-          <div className="flex items-center gap-3 text-muted-foreground">
-            <a href="https://instagram.com/ellemake" target="_blank" rel="noopener noreferrer" className="hover:text-primary transition-colors" aria-label="Instagram">
+          <div className="flex items-center gap-3 text-white/80 drop-shadow-sm">
+            <a href="https://instagram.com/ellemake" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors" aria-label="Instagram">
               <Instagram className="w-4 h-4" />
             </a>
           </div>
@@ -277,7 +277,7 @@ const Header = () => {
 
       {/* Main header — MOBILE: hamburger left, centered logo, cart right */}
       {/* DESKTOP: logo left, nav center, search+icons right */}
-      <div className="bg-card border-b border-border px-3 md:px-4 py-3 md:py-4">
+      <div className="bg-card md:bg-black/20 md:backdrop-blur-sm border-b border-border md:border-white/10 px-3 md:px-4 py-3 md:py-4">
         <div className="max-w-6xl mx-auto flex items-center min-w-0">
           {/* Left: hamburger (mobile only) + Logo */}
           <div className="flex items-center gap-1 flex-shrink-0 md:w-auto">
