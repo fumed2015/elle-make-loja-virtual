@@ -418,8 +418,8 @@ const Header = () => {
             {/* User dropdown (desktop) */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <button className="hidden md:flex w-10 h-10 items-center justify-center rounded-full hover:bg-muted transition-colors relative" aria-label="Conta">
-                  <User className="w-5 h-5 text-foreground" />
+                <button className="hidden md:flex w-10 h-10 items-center justify-center rounded-full hover:bg-white/10 transition-colors relative" aria-label="Conta">
+                  <User className="w-5 h-5 text-foreground md:text-white md:drop-shadow-sm" />
                   {user && (
                     <span className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-accent border-2 border-card" />
                   )}
@@ -465,7 +465,7 @@ const Header = () => {
                 animate={cartCount > 0 ? { scale: [1, 1.3, 1], rotate: [0, -10, 10, 0] } : {}}
                 transition={{ duration: 0.4 }}
               >
-                <ShoppingBag className="w-5 h-5 text-foreground" />
+                <ShoppingBag className="w-5 h-5 text-foreground md:text-white md:drop-shadow-sm" />
               </motion.div>
               {cartCount > 0 && (
                 <motion.span
