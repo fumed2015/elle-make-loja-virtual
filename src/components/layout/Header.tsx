@@ -221,8 +221,8 @@ const Header = () => {
 
   return (
     <header className="sticky top-0 z-40">
-      {/* Promo bar with arrows */}
-      <div className="bg-primary text-primary-foreground py-1.5 px-2 overflow-hidden h-8 flex items-center justify-between">
+      {/* Promo bar with arrows — always opaque */}
+      <div className="bg-primary text-primary-foreground py-1.5 px-2 overflow-hidden h-8 flex items-center justify-between relative z-10">
         <button
           onClick={() => setPromoIndex((i) => (i - 1 + promoMessages.length) % promoMessages.length)}
           className="w-6 h-6 flex items-center justify-center flex-shrink-0 hover:bg-primary-foreground/10 rounded-full transition-colors"
@@ -254,7 +254,7 @@ const Header = () => {
       </div>
 
       {/* Desktop secondary info bar */}
-      <div className="hidden md:flex bg-muted/50 border-b border-border px-4 py-1.5">
+      <div className="hidden md:flex bg-card/60 backdrop-blur-md border-b border-border/30 px-4 py-1.5">
         <div className="max-w-6xl mx-auto w-full flex items-center justify-between">
           <div className="flex items-center gap-4 text-[11px] text-muted-foreground">
             <a href="https://wa.me/5591983045531" target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 hover:text-primary transition-colors">
@@ -276,7 +276,7 @@ const Header = () => {
 
       {/* Main header — MOBILE: hamburger left, centered logo, cart right */}
       {/* DESKTOP: logo left, nav center, search+icons right */}
-      <div className="bg-card border-b border-border px-3 md:px-4 py-2.5 md:py-3">
+      <div className="bg-card/70 md:bg-card/60 md:backdrop-blur-md border-b border-border/30 px-3 md:px-4 py-2.5 md:py-3">
         <div className="max-w-6xl mx-auto flex items-center min-w-0">
           {/* Left: hamburger (mobile only) + Logo */}
           <div className="flex items-center gap-1 flex-shrink-0 md:w-auto">
