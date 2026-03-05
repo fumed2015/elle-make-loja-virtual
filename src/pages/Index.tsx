@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { useRef, useEffect, lazy, Suspense, useMemo } from "react";
+import { useEffect, lazy, Suspense, useMemo } from "react";
 import { ArrowRight, Truck, CreditCard, ShieldCheck, Star, ChevronDown, Heart, Eye, Sparkles, Droplets, Package, Paintbrush, Gem, Palette, Wind, Tag, Zap, Scissors, ShowerHead, SprayCan, Smile, Sun } from "lucide-react";
 import WhatsAppIcon from "@/components/icons/WhatsAppIcon";
 import { Link } from "react-router-dom";
