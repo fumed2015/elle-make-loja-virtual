@@ -1,4 +1,4 @@
-import { Search, User, ShoppingBag, ChevronDown, LogIn, LogOut, Settings, Menu, ChevronLeft, ChevronRight, X, Mail, Phone } from "lucide-react";
+import { Search, User, ShoppingBag, ChevronDown, LogIn, LogOut, Settings, Menu, ChevronLeft, ChevronRight, X, Mail, Phone, Instagram, Facebook, Youtube } from "lucide-react";
 
 import WhatsAppIcon from "@/components/icons/WhatsAppIcon";
 import { Link, useNavigate } from "react-router-dom";
@@ -253,30 +253,43 @@ const Header = () => {
         </button>
       </div>
 
-      {/* Desktop secondary info bar */}
-      <div className="hidden md:flex bg-transparent px-4 py-2">
+      {/* Desktop secondary info bar — solid light background */}
+      <div className="hidden md:flex bg-muted border-b border-border px-4 py-2">
         <div className="max-w-6xl mx-auto w-full flex items-center justify-between">
-          <div className="flex items-center gap-5 text-xs text-white/80 drop-shadow-sm">
-            <a href="https://wa.me/5591983045531" target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 hover:text-primary-foreground transition-colors">
-              <WhatsAppIcon className="w-3.5 h-3.5" /> WhatsApp
+          <div className="flex items-center gap-5 text-xs text-muted-foreground">
+            <a href="https://wa.me/5591983045531" target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 hover:text-primary transition-colors font-medium">
+              <WhatsAppIcon className="w-3.5 h-3.5" /> <span className="underline">WhatsApp</span>
             </a>
-            <span className="flex items-center gap-1">
+            <span className="flex items-center gap-1.5">
               <Phone className="w-3 h-3" /> (91) 98304-5531
             </span>
-            <span className="flex items-center gap-1">
+            <span className="flex items-center gap-1.5">
               <Mail className="w-3 h-3" /> contato@ellemake.com.br
             </span>
           </div>
-          <div className="flex items-center gap-4 text-xs text-white/80 drop-shadow-sm">
-            <Link to="/sobre" className="hover:text-primary-foreground transition-colors">Sobre</Link>
-            <Link to="/termos" className="hover:text-primary-foreground transition-colors">Contato</Link>
+          <div className="flex items-center gap-5">
+            <div className="flex items-center gap-4 text-xs text-muted-foreground font-medium">
+              <Link to="/sobre" className="hover:text-primary transition-colors">Sobre</Link>
+              <Link to="/termos" className="hover:text-primary transition-colors">Contato</Link>
+            </div>
+            <div className="flex items-center gap-3 text-muted-foreground ml-3 border-l border-border pl-4">
+              <a href="https://instagram.com/ellemake" target="_blank" rel="noopener noreferrer" className="hover:text-primary transition-colors" aria-label="Instagram">
+                <Instagram className="w-4 h-4" />
+              </a>
+              <a href="#" className="hover:text-primary transition-colors" aria-label="Facebook">
+                <Facebook className="w-4 h-4" />
+              </a>
+              <a href="#" className="hover:text-primary transition-colors" aria-label="YouTube">
+                <Youtube className="w-4 h-4" />
+              </a>
+            </div>
           </div>
         </div>
       </div>
 
       {/* Main header — MOBILE: hamburger left, centered logo, cart right */}
       {/* DESKTOP: logo left, nav center, search+icons right */}
-      <div className="bg-card md:bg-transparent border-b border-transparent px-3 md:px-4 py-3 md:py-4">
+      <div className="bg-card border-b border-border px-3 md:px-4 py-3 md:py-4">
         <div className="max-w-6xl mx-auto flex items-center min-w-0">
           {/* Left: hamburger (mobile only) + Logo */}
           <div className="flex items-center gap-1 flex-shrink-0 md:w-auto">
@@ -329,7 +342,7 @@ const Header = () => {
               <motion.h1
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
-                className="text-2xl md:text-3xl font-bold tracking-[0.18em] text-primary md:text-white drop-shadow-md"
+                className="text-2xl md:text-3xl font-bold tracking-[0.18em] text-primary"
               >
                 ELLE MAKE
               </motion.h1>
@@ -349,7 +362,7 @@ const Header = () => {
               >
                 <Link
                   to={link.to}
-                  className="flex items-center gap-1 px-3 py-2 text-sm font-semibold text-foreground md:text-white md:drop-shadow-sm hover:text-primary md:hover:text-white/80 transition-all tracking-wide uppercase whitespace-nowrap"
+                  className="flex items-center gap-1 px-3 py-2 text-sm font-semibold text-foreground hover:text-primary transition-all tracking-wide uppercase whitespace-nowrap"
                 >
                   {link.label}
                   {link.subs && <ChevronDown className="w-3 h-3" />}
@@ -405,10 +418,10 @@ const Header = () => {
                   value={search}
                   onChange={(e) => { setSearch(e.target.value); setShowSuggestions(e.target.value.length >= 2); }}
                   onFocus={() => search.length >= 2 && setShowSuggestions(true)}
-                  className="h-10 bg-white/15 border border-white/25 rounded-lg text-sm pr-10 focus:ring-2 focus:ring-white/30 w-full text-white placeholder:text-white/60"
+                  className="h-10 bg-background border border-border rounded-lg text-sm pr-10 focus:ring-2 focus:ring-primary/30 w-full"
                 />
                 <button type="submit" className="absolute right-1 top-1/2 -translate-y-1/2 w-8 h-8 flex items-center justify-center rounded-md hover:bg-muted transition-colors">
-                  <Search className="w-5 h-5 text-white/70" />
+                  <Search className="w-5 h-5 text-muted-foreground" />
                 </button>
               </form>
               <SuggestionsDropdown />
@@ -417,8 +430,8 @@ const Header = () => {
             {/* User dropdown (desktop) */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <button className="hidden md:flex w-10 h-10 items-center justify-center rounded-full hover:bg-white/10 transition-colors relative" aria-label="Conta">
-                  <User className="w-5 h-5 text-foreground md:text-white md:drop-shadow-sm" />
+                <button className="hidden md:flex w-10 h-10 items-center justify-center rounded-full hover:bg-muted transition-colors relative" aria-label="Conta">
+                  <User className="w-5 h-5 text-foreground" />
                   {user && (
                     <span className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-accent border-2 border-card" />
                   )}
@@ -464,7 +477,7 @@ const Header = () => {
                 animate={cartCount > 0 ? { scale: [1, 1.3, 1], rotate: [0, -10, 10, 0] } : {}}
                 transition={{ duration: 0.4 }}
               >
-                <ShoppingBag className="w-5 h-5 text-foreground md:text-white md:drop-shadow-sm" />
+                <ShoppingBag className="w-5 h-5 text-foreground" />
               </motion.div>
               {cartCount > 0 && (
                 <motion.span
