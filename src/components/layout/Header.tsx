@@ -262,10 +262,10 @@ const Header = () => {
       </div>
 
       {/* Desktop secondary info bar */}
-      <div className="hidden md:flex bg-transparent border-b border-white/10 px-4 py-2">
+      <div className={`hidden md:flex border-b px-4 py-2 transition-colors duration-300 ${scrolled ? 'bg-card border-border' : 'bg-transparent border-white/10'}`}>
         <div className="max-w-6xl mx-auto w-full flex items-center justify-between">
-          <div className="flex items-center gap-5 text-sm font-bold text-white">
-            <a href="https://wa.me/5591983045531" target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 hover:text-white/80 transition-colors">
+          <div className={`flex items-center gap-5 text-sm font-bold transition-colors duration-300 ${scrolled ? 'text-foreground' : 'text-white'}`}>
+            <a href="https://wa.me/5591983045531" target="_blank" rel="noopener noreferrer" className={`flex items-center gap-1.5 transition-colors ${scrolled ? 'hover:text-primary' : 'hover:text-white/80'}`}>
               <WhatsAppIcon className="w-4 h-4" /> <span className="underline">WhatsApp</span>
             </a>
             <span className="flex items-center gap-1.5">
@@ -275,17 +275,16 @@ const Header = () => {
               <Mail className="w-3.5 h-3.5" /> contato@ellemake.com.br
             </span>
           </div>
-          <div className="flex items-center gap-3 text-white">
-            <a href="https://instagram.com/ellemake" target="_blank" rel="noopener noreferrer" className="hover:text-white/80 transition-colors" aria-label="Instagram">
+          <div className={`flex items-center gap-3 transition-colors duration-300 ${scrolled ? 'text-foreground' : 'text-white'}`}>
+            <a href="https://instagram.com/ellemake" target="_blank" rel="noopener noreferrer" className={`transition-colors ${scrolled ? 'hover:text-primary' : 'hover:text-white/80'}`} aria-label="Instagram">
               <Instagram className="w-4 h-4" />
             </a>
           </div>
         </div>
       </div>
 
-      {/* Main header — MOBILE: hamburger left, centered logo, cart right */}
-      {/* DESKTOP: logo left, nav center, search+icons right */}
-      <div className="bg-card md:bg-transparent border-b border-border md:border-transparent px-3 md:px-4 py-3 md:py-4">
+      {/* Main header */}
+      <div className={`border-b px-3 md:px-4 py-3 md:py-4 transition-colors duration-300 ${scrolled ? 'bg-card border-border' : 'bg-card md:bg-transparent border-border md:border-transparent'}`}>
         <div className="max-w-6xl mx-auto flex items-center min-w-0">
           {/* Left: hamburger (mobile only) + Logo */}
           <div className="flex items-center gap-1 flex-shrink-0 md:w-auto">
