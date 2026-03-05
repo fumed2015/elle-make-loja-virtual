@@ -177,7 +177,7 @@ const InlineConsultant = () => {
               </div>
             </div>
           )}
-          <div ref={scrollRef} />
+          
         </div>
 
         {/* Quick questions */}
