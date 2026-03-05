@@ -121,7 +121,7 @@ const HeroCarousel = () => {
           animate={{ opacity: 1, scale: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 0.7 }}
-          className="w-full h-[420px] md:h-[620px] lg:h-[660px] object-cover"
+          className="w-full h-[520px] md:h-[620px] lg:h-[660px] object-cover"
           style={{ objectPosition: "center" }}
           loading="eager"
           fetchPriority="high"
@@ -172,7 +172,7 @@ const HeroCarousel = () => {
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -20 }}
           transition={{ duration: 0.6 }}
-          className="absolute inset-0 flex flex-col items-center justify-center text-center px-6 md:hidden z-[2]"
+          className="absolute inset-0 flex flex-col items-center justify-center text-center px-6 pt-[80px] md:hidden z-[2]"
         >
           <span className="inline-block text-[11px] font-semibold tracking-[0.2em] uppercase text-white/90 border border-white/40 px-4 py-1.5 rounded-sm mb-4 backdrop-blur-sm">
             {slide.label}
