@@ -111,7 +111,7 @@ const HeroCarousel = () => {
   const slide = heroSlides[current];
 
   return (
-    <section className="relative overflow-hidden -mt-[140px] md:-mt-[120px]" style={{ backgroundColor: 'hsl(20 30% 88%)' }}>
+    <section className="relative overflow-hidden -mt-[88px] md:-mt-[120px]" style={{ backgroundColor: 'hsl(20 30% 88%)' }}>
       <AnimatePresence mode="wait">
         <motion.img
           key={slide.image}
