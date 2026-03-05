@@ -288,11 +288,11 @@ const HeroCarousel = () => {
                     to={`/explorar?cat=${cat.slug}`}
                     className="flex flex-col items-center gap-2 w-24 md:w-28 text-center group"
                   >
-                    <div className="w-20 h-20 md:w-24 md:h-24 rounded-full bg-muted/60 flex items-center justify-center group-hover:scale-105 transition-transform duration-300 overflow-hidden shadow-sm">
+                    <div className="w-[72px] h-[72px] md:w-[88px] md:h-[88px] rounded-full bg-secondary flex items-center justify-center group-hover:scale-110 transition-transform duration-300 shadow-md overflow-visible">
                       <img
                         src={categoryImage}
                         alt={cat.name}
-                        className="w-full h-full object-cover"
+                        className="w-[80px] h-[80px] md:w-[96px] md:h-[96px] object-contain drop-shadow-lg -mt-2"
                         loading="lazy"
                       />
                     </div>
