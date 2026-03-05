@@ -466,6 +466,15 @@ const Header = () => {
               </DropdownMenuContent>
             </DropdownMenu>
 
+            {/* Search icon (mobile) */}
+            <button
+              onClick={() => setMobileSearchOpen(prev => !prev)}
+              className={`md:hidden w-10 h-10 flex items-center justify-center rounded-full transition-colors ${!isTransparent ? 'hover:bg-muted' : 'hover:bg-white/10'}`}
+              aria-label="Buscar"
+            >
+              <Search className={`w-5 h-5 ${!isTransparent ? 'text-foreground' : 'text-white drop-shadow-sm'}`} />
+            </button>
+
             {/* Account icon (mobile) */}
             <Link to="/perfil" className={`md:hidden w-10 h-10 flex items-center justify-center rounded-full transition-colors relative ${!isTransparent ? 'hover:bg-muted' : 'hover:bg-white/10'}`} aria-label="Conta">
               <User className={`w-5 h-5 ${!isTransparent ? 'text-foreground' : 'text-white drop-shadow-sm'}`} />
@@ -501,24 +510,39 @@ const Header = () => {
         </div>
       </div>
 
-      {/* Mobile search bar (always visible on mobile) */}
-      <div className={`md:hidden border-b px-3 py-2 transition-all duration-500 ease-in-out ${!isTransparent ? 'bg-card/95 backdrop-blur-md border-border' : 'bg-black/10 backdrop-blur-sm border-white/10'}`} ref={mobileSearchContainerRef}>
-        <div className="relative">
-          <form onSubmit={handleSearch} className="w-full relative">
-            <Input
-              placeholder="Buscar"
-              value={search}
-              onChange={(e) => { setSearch(e.target.value); setShowSuggestions(e.target.value.length >= 2); }}
-              onFocus={() => search.length >= 2 && setShowSuggestions(true)}
-              className={`h-10 rounded-lg text-sm pr-12 focus:ring-2 w-full transition-colors duration-300 ${!isTransparent ? 'bg-background border border-border focus:ring-primary/30' : 'bg-white/15 border border-white/30 focus:ring-white/30 text-white placeholder:text-white/60'}`}
-            />
-            <button type="submit" className={`absolute right-1 top-1/2 -translate-y-1/2 w-9 h-8 flex items-center justify-center rounded-md transition-colors ${!isTransparent ? 'hover:bg-muted' : 'hover:bg-white/10'}`}>
-              <Search className={`w-5 h-5 ${!isTransparent ? 'text-muted-foreground' : 'text-white/70'}`} />
-            </button>
-          </form>
-          <SuggestionsDropdown />
-        </div>
-      </div>
+      {/* Mobile search overlay (toggled by search icon) */}
+      <AnimatePresence>
+        {mobileSearchOpen && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.25, ease: "easeInOut" }}
+            className="md:hidden overflow-hidden bg-card border-b border-border"
+            ref={mobileSearchContainerRef}
+          >
+            <div className="px-3 py-2 relative">
+              <form onSubmit={handleSearch} className="w-full relative flex items-center gap-2">
+                <Input
+                  placeholder="Buscar produtos..."
+                  value={search}
+                  onChange={(e) => { setSearch(e.target.value); setShowSuggestions(e.target.value.length >= 2); }}
+                  onFocus={() => search.length >= 2 && setShowSuggestions(true)}
+                  className="h-10 rounded-lg text-sm pr-10 focus:ring-2 w-full bg-background border border-border focus:ring-primary/30"
+                  autoFocus
+                />
+                <button type="submit" className="absolute right-12 top-1/2 -translate-y-1/2 w-8 h-8 flex items-center justify-center rounded-md hover:bg-muted transition-colors">
+                  <Search className="w-5 h-5 text-muted-foreground" />
+                </button>
+                <button type="button" onClick={() => { setMobileSearchOpen(false); setShowSuggestions(false); }} className="w-8 h-8 flex items-center justify-center rounded-md hover:bg-muted transition-colors flex-shrink-0">
+                  <X className="w-5 h-5 text-muted-foreground" />
+                </button>
+              </form>
+              <SuggestionsDropdown />
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </header>
   );
 };
