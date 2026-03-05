@@ -330,7 +330,7 @@ const Header = () => {
               <motion.h1
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
-                className="text-2xl md:text-3xl font-bold tracking-[0.18em] text-primary"
+                className="text-2xl md:text-3xl font-bold tracking-[0.18em] text-primary md:text-white md:drop-shadow-md"
               >
                 ELLE MAKE
               </motion.h1>
@@ -350,7 +350,7 @@ const Header = () => {
               >
                 <Link
                   to={link.to}
-                  className="flex items-center gap-1 px-3 py-2 text-sm font-semibold text-foreground hover:text-primary transition-all tracking-wide uppercase whitespace-nowrap"
+                  className="flex items-center gap-1 px-3 py-2 text-sm font-semibold text-foreground md:text-white md:drop-shadow-sm hover:text-primary md:hover:text-white/80 transition-all tracking-wide uppercase whitespace-nowrap"
                 >
                   {link.label}
                   {link.subs && <ChevronDown className="w-3 h-3" />}
@@ -406,10 +406,10 @@ const Header = () => {
                   value={search}
                   onChange={(e) => { setSearch(e.target.value); setShowSuggestions(e.target.value.length >= 2); }}
                   onFocus={() => search.length >= 2 && setShowSuggestions(true)}
-                  className="h-10 bg-background border border-border rounded-lg text-sm pr-10 focus:ring-2 focus:ring-primary/30 w-full"
+                  className="h-10 bg-white/15 border border-white/25 rounded-lg text-sm pr-10 focus:ring-2 focus:ring-white/30 w-full text-white placeholder:text-white/60"
                 />
-                <button type="submit" className="absolute right-1 top-1/2 -translate-y-1/2 w-8 h-8 flex items-center justify-center rounded-md hover:bg-muted transition-colors">
-                  <Search className="w-5 h-5 text-muted-foreground" />
+                <button type="submit" className="absolute right-1 top-1/2 -translate-y-1/2 w-8 h-8 flex items-center justify-center rounded-md hover:bg-white/10 transition-colors">
+                  <Search className="w-5 h-5 text-white/70" />
                 </button>
               </form>
               <SuggestionsDropdown />
