@@ -90,6 +90,139 @@ const Index = () => {
       window.scrollTo(0, 0);
     });
   }, []);
+const heroSlides = [
+  {
+    image: "/hero-banner.jpg",
+    label: "Maquiagem & Cosméticos",
+    title: "ELLE\nMAKE",
+    cta: "Aproveite!",
+    link: "/explorar",
+  },
+  {
+    image: "/hero-banner-2.jpg",
+    label: "Lábios Perfeitos",
+    title: "BATONS\n& GLOSSES",
+    cta: "Ver Coleção",
+    link: "/categoria/labios",
+  },
+  {
+    image: "/hero-banner-3.jpg",
+    label: "Base & Skincare",
+    title: "PELE\nPERFEITA",
+    cta: "Compre Agora",
+    link: "/categoria/rosto",
+  },
+];
+
+const HeroCarousel = () => {
+  const [current, setCurrent] = useState(0);
+
+  useEffect(() => {
+    const timer = setInterval(() => setCurrent(c => (c + 1) % heroSlides.length), 5000);
+    return () => clearInterval(timer);
+  }, []);
+
+  const prev = () => setCurrent(c => (c - 1 + heroSlides.length) % heroSlides.length);
+  const next = () => setCurrent(c => (c + 1) % heroSlides.length);
+
+  const slide = heroSlides[current];
+
+  return (
+    <section className="relative overflow-hidden md:-mt-[100px]" style={{ backgroundColor: 'hsl(20 30% 88%)' }}>
+      <AnimatePresence mode="wait">
+        <motion.img
+          key={slide.image}
+          src={slide.image}
+          alt={slide.label}
+          initial={{ opacity: 0, scale: 1.05 }}
+          animate={{ opacity: 1, scale: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.7 }}
+          className="w-full h-[420px] md:h-[620px] lg:h-[660px] object-cover"
+          style={{ objectPosition: "center" }}
+          loading="eager"
+          fetchPriority="high"
+        />
+      </AnimatePresence>
+
+      {/* Gradient overlays */}
+      <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-black/20 to-transparent hidden md:block" />
+      <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-transparent to-black/40 md:hidden" />
+
+      {/* Desktop: left-aligned content */}
+      <AnimatePresence mode="wait">
+        <motion.div
+          key={`desktop-${current}`}
+          initial={{ opacity: 0, x: -40 }}
+          animate={{ opacity: 1, x: 0 }}
+          exit={{ opacity: 0, x: 40 }}
+          transition={{ duration: 0.6 }}
+          className="absolute inset-0 hidden md:flex items-center px-16 lg:px-24 pt-[100px]"
+        >
+          <div className="max-w-lg">
+            <span className="inline-block text-xs font-semibold tracking-[0.25em] uppercase text-white/80 border border-white/40 px-5 py-1.5 mb-5 backdrop-blur-sm">
+              {slide.label}
+            </span>
+
+            <h1 className="text-6xl lg:text-8xl font-bold leading-[0.85] text-white mb-8 tracking-tight whitespace-pre-line" style={{ textShadow: '0 4px 40px rgba(0,0,0,0.4)' }}>
+              {slide.title}
+            </h1>
+
+            <Button asChild className="bg-primary text-primary-foreground hover:bg-primary/90 min-h-[48px] px-10 rounded-sm font-semibold tracking-[0.15em] uppercase text-sm shadow-xl relative overflow-hidden group">
+              <Link to={slide.link}>
+                <span className="relative z-10">{slide.cta}</span>
+                <span className="absolute inset-0 bg-gradient-to-r from-transparent via-primary-foreground/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700" />
+              </Link>
+            </Button>
+          </div>
+        </motion.div>
+      </AnimatePresence>
+
+      {/* Mobile: centered content */}
+      <AnimatePresence mode="wait">
+        <motion.div
+          key={`mobile-${current}`}
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -20 }}
+          transition={{ duration: 0.6 }}
+          className="absolute inset-0 flex flex-col items-center justify-center text-center px-6 md:hidden"
+        >
+          <span className="inline-block text-[11px] font-semibold tracking-[0.2em] uppercase text-white/90 border border-white/40 px-4 py-1.5 rounded-sm mb-4 backdrop-blur-sm">
+            {slide.label}
+          </span>
+
+          <h1 className="text-4xl font-bold leading-none text-white mb-6 tracking-tight whitespace-pre-line" style={{ textShadow: '0 2px 30px rgba(0,0,0,0.4)' }}>
+            {slide.title}
+          </h1>
+
+          <Button asChild className="bg-primary text-primary-foreground hover:bg-primary/90 min-h-[44px] px-8 rounded-sm font-semibold tracking-wider uppercase text-xs shadow-lg">
+            <Link to={slide.link}>{slide.cta}</Link>
+          </Button>
+        </motion.div>
+      </AnimatePresence>
+
+      {/* Side arrows */}
+      <button onClick={prev} className="absolute left-3 md:left-6 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/80 backdrop-blur-sm flex items-center justify-center shadow-lg hover:bg-white transition-colors z-10">
+        <ChevronLeft className="w-5 h-5 text-foreground" />
+      </button>
+      <button onClick={next} className="absolute right-3 md:right-6 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/80 backdrop-blur-sm flex items-center justify-center shadow-lg hover:bg-white transition-colors z-10">
+        <ChevronRight className="w-5 h-5 text-foreground" />
+      </button>
+
+      {/* Dot indicators */}
+      <div className="absolute bottom-5 left-1/2 -translate-x-1/2 flex gap-2.5 z-10">
+        {heroSlides.map((_, i) => (
+          <button
+            key={i}
+            onClick={() => setCurrent(i)}
+            className={`rounded-full transition-all duration-300 ${i === current ? 'w-3 h-3 bg-white' : 'w-2 h-2 bg-white/50 hover:bg-white/70'}`}
+          />
+        ))}
+      </div>
+    </section>
+  );
+};
 
 
   return (
