@@ -295,21 +295,26 @@ const HeroCarousel = () => {
 
       {/* Categories — right after hero */}
       {categories && categories.length > 0 && (
-        <section className="px-4 py-6 max-w-5xl mx-auto">
-          <h2 className="text-lg font-bold text-foreground mb-3">Categorias</h2>
-          <div className="flex gap-3 overflow-x-auto scrollbar-hide pb-1">
+        <section className="px-4 py-8 max-w-5xl mx-auto">
+          <h2 className="text-lg font-bold text-foreground mb-4">Categorias</h2>
+          <div className="flex gap-5 overflow-x-auto scrollbar-hide pb-2 justify-center">
             {categories.map((cat) => {
-              const IconComp = categoryIcons[cat.slug] || Sparkles;
+              const categoryImage = `/categories/${cat.slug}.png`;
               return (
                 <div key={cat.id} className="flex-shrink-0">
                   <Link
                     to={`/explorar?cat=${cat.slug}`}
-                    className="flex flex-col items-center gap-1 w-14 text-center group"
+                    className="flex flex-col items-center gap-2 w-20 md:w-24 text-center group"
                   >
-                    <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 group-hover:scale-110 transition-all">
-                      <IconComp className="w-4 h-4 text-primary" />
+                    <div className="w-16 h-16 md:w-20 md:h-20 rounded-full bg-muted flex items-center justify-center group-hover:scale-105 transition-transform duration-300 overflow-hidden">
+                      <img
+                        src={categoryImage}
+                        alt={cat.name}
+                        className="w-12 h-12 md:w-16 md:h-16 object-contain"
+                        loading="lazy"
+                      />
                     </div>
-                    <p className="text-[9px] font-medium text-muted-foreground group-hover:text-primary transition-colors leading-tight truncate w-full">{cat.name}</p>
+                    <p className="text-[10px] md:text-xs font-medium text-muted-foreground group-hover:text-primary transition-colors leading-tight">{cat.name}</p>
                   </Link>
                 </div>
               );
