@@ -304,13 +304,16 @@ const AIContentTab = () => {
   const { data: products, refetch } = useProducts({});
   const [bulkRunning, setBulkRunning] = useState(false);
   const [bulkAllRunning, setBulkAllRunning] = useState(false);
+  const [bulkCompleteRunning, setBulkCompleteRunning] = useState(false);
   const [results, setResults] = useState<any[] | null>(null);
   const [generatingId, setGeneratingId] = useState<string | null>(null);
+  const [generatingImageId, setGeneratingImageId] = useState<string | null>(null);
   const [preview, setPreview] = useState<any>(null);
 
   const productsNoDesc = products?.filter(p => !p.description || p.description.length < 30) || [];
   const productsNoSensorial = products?.filter(p => !p.sensorial_description) || [];
   const productsNoTags = products?.filter(p => !p.tags || p.tags.length === 0) || [];
+  const productsNoImages = products?.filter(p => !p.images || p.images.length === 0) || [];
 
   const handleBulkSEO = async (forceAll = false) => {
     if (forceAll) setBulkAllRunning(true);
@@ -332,6 +335,24 @@ const AIContentTab = () => {
     }
   };
 
+  const handleBulkComplete = async () => {
+    setBulkCompleteRunning(true);
+    setResults(null);
+    try {
+      const { data, error } = await supabase.functions.invoke("ai-content-generator", {
+        body: { action: "bulk-complete", force_all: false },
+      });
+      if (error) throw error;
+      setResults(data?.results || []);
+      toast.success(`${data?.updated || 0} produtos completos (descrição + imagem)!`);
+      refetch();
+    } catch (e: any) {
+      toast.error(e.message || "Erro na geração completa");
+    } finally {
+      setBulkCompleteRunning(false);
+    }
+  };
+
   const handleGeneratePreview = async (productId: string) => {
     setGeneratingId(productId);
     setPreview(null);
@@ -345,6 +366,22 @@ const AIContentTab = () => {
       toast.error(e.message || "Erro ao gerar preview");
     } finally {
       setGeneratingId(null);
+    }
+  };
+
+  const handleGenerateImage = async (productId: string) => {
+    setGeneratingImageId(productId);
+    try {
+      const { data, error } = await supabase.functions.invoke("ai-content-generator", {
+        body: { action: "generate-image", product_id: productId },
+      });
+      if (error) throw error;
+      toast.success("Imagem gerada com sucesso!");
+      refetch();
+    } catch (e: any) {
+      toast.error(e.message || "Erro ao gerar imagem");
+    } finally {
+      setGeneratingImageId(null);
     }
   };
 
@@ -365,6 +402,8 @@ const AIContentTab = () => {
     }
   };
 
+  const anyRunning = bulkRunning || bulkAllRunning || bulkCompleteRunning;
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -375,13 +414,13 @@ const AIContentTab = () => {
           </div>
           <div>
             <h2 className="text-sm font-bold text-foreground">Gerador de Conteúdo com IA</h2>
-            <p className="text-xs text-muted-foreground">Crie descrições, títulos SEO e tags automaticamente</p>
+            <p className="text-xs text-muted-foreground">Crie descrições, títulos SEO, tags e imagens automaticamente</p>
           </div>
         </div>
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-3 gap-3">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         <div className="bg-card rounded-lg p-3 border border-border text-center">
           <p className={`text-lg font-bold ${productsNoDesc.length > 0 ? "text-destructive" : "text-accent"}`}>{productsNoDesc.length}</p>
           <p className="text-[10px] text-muted-foreground">Sem descrição</p>
@@ -394,22 +433,41 @@ const AIContentTab = () => {
           <p className={`text-lg font-bold ${productsNoTags.length > 0 ? "text-yellow-500" : "text-accent"}`}>{productsNoTags.length}</p>
           <p className="text-[10px] text-muted-foreground">Sem tags</p>
         </div>
+        <div className="bg-card rounded-lg p-3 border border-border text-center">
+          <p className={`text-lg font-bold ${productsNoImages.length > 0 ? "text-destructive" : "text-accent"}`}>{productsNoImages.length}</p>
+          <p className="text-[10px] text-muted-foreground">Sem imagens</p>
+        </div>
       </div>
 
+      {/* Bulk Complete - Main CTA */}
+      <div className="bg-gradient-to-r from-primary/5 to-primary/10 rounded-xl p-4 border-2 border-primary/30 space-y-3">
+        <h3 className="text-sm font-bold flex items-center gap-2">
+          <Sparkles className="w-4 h-4 text-primary" />
+          🚀 Geração Completa (Descrições + Imagens)
+        </h3>
+        <p className="text-xs text-muted-foreground">
+          A IA irá gerar descrições SEO, copy sensorial, instruções de uso, tags E imagens profissionais para todos os produtos que ainda não possuem conteúdo.
+        </p>
+        <Button onClick={handleBulkComplete} disabled={anyRunning} className="w-full bg-primary text-primary-foreground text-xs gap-2 h-10">
+          {bulkCompleteRunning ? <><Loader2 className="w-4 h-4 animate-spin" />Gerando descrições + imagens para {productsNoDesc.length + productsNoImages.length} produtos...</> : <><Wand2 className="w-4 h-4" />Gerar Tudo (Descrições + Imagens) para Produtos Incompletos</>}
+        </Button>
+      </div>
+
+      {/* Text-only bulk */}
       <div className="bg-card rounded-xl p-4 border border-border space-y-3">
         <h3 className="text-sm font-bold flex items-center gap-2">
           <Sparkles className="w-4 h-4 text-primary" />
-          Otimização em Lote
+          Otimização de Texto em Lote
         </h3>
         <p className="text-xs text-muted-foreground">
-          A IA irá gerar automaticamente descrições sensoriais, copy de venda e tags SEO para seus produtos.
+          Gera apenas descrições, tags e copy sensorial (sem imagens).
         </p>
         <div className="flex flex-col gap-2">
-          <Button onClick={() => handleBulkSEO(false)} disabled={bulkRunning || bulkAllRunning} className="bg-primary text-primary-foreground text-xs gap-2">
+          <Button onClick={() => handleBulkSEO(false)} disabled={anyRunning} className="bg-primary text-primary-foreground text-xs gap-2">
             {bulkRunning ? <><Loader2 className="w-3.5 h-3.5 animate-spin" />Processando...</> : <><Wand2 className="w-3.5 h-3.5" />Otimizar Produtos sem Conteúdo (até 10)</>}
           </Button>
-          <Button onClick={() => handleBulkSEO(true)} disabled={bulkRunning || bulkAllRunning} variant="outline" className="text-xs gap-2 border-primary/30 text-primary">
-            {bulkAllRunning ? <><Loader2 className="w-3.5 h-3.5 animate-spin" />Gerando para TODOS ({products?.length || 0})...</> : <><RefreshCw className="w-3.5 h-3.5" />Gerar/Regerar para TODOS os {products?.length || 0} Produtos</>}
+          <Button onClick={() => handleBulkSEO(true)} disabled={anyRunning} variant="outline" className="text-xs gap-2 border-primary/30 text-primary">
+            {bulkAllRunning ? <><Loader2 className="w-3.5 h-3.5 animate-spin" />Gerando para TODOS ({products?.length || 0})...</> : <><RefreshCw className="w-3.5 h-3.5" />Regerar Textos para TODOS os {products?.length || 0} Produtos</>}
           </Button>
         </div>
 
@@ -436,24 +494,43 @@ const AIContentTab = () => {
           <Wand2 className="w-4 h-4 text-primary" />
           Gerar para Produto Específico
         </h3>
-        <p className="text-xs text-muted-foreground">Selecione um produto para gerar e visualizar o conteúdo antes de aplicar.</p>
+        <p className="text-xs text-muted-foreground">Selecione um produto para gerar conteúdo ou imagem individualmente.</p>
 
-        <div className="space-y-2 max-h-64 overflow-y-auto">
+        <div className="space-y-2 max-h-80 overflow-y-auto">
           {products?.map((p) => (
             <div key={p.id} className="flex items-center gap-2 p-2 bg-muted rounded-lg">
               <div className="w-8 h-8 rounded bg-background overflow-hidden flex-shrink-0">
-                {p.images?.[0] && <img src={p.images[0]} alt="" className="w-full h-full object-cover" />}
+                {p.images?.[0] ? <img src={p.images[0]} alt="" className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center text-[7px] text-muted-foreground">📷</div>}
               </div>
-              <span className="text-xs truncate flex-1">{p.name}</span>
-              <Button
-                size="sm" variant="ghost"
-                onClick={() => handleGeneratePreview(p.id)}
-                disabled={generatingId === p.id}
-                className="text-xs h-7 gap-1"
-              >
-                {generatingId === p.id ? <Loader2 className="w-3 h-3 animate-spin" /> : <Wand2 className="w-3 h-3" />}
-                Gerar
-              </Button>
+              <div className="flex-1 min-w-0">
+                <span className="text-xs truncate block">{p.name}</span>
+                <div className="flex gap-1 mt-0.5">
+                  {(!p.description || p.description.length < 30) && <Badge variant="destructive" className="text-[7px] px-1 py-0">sem texto</Badge>}
+                  {(!p.images || p.images.length === 0) && <Badge variant="destructive" className="text-[7px] px-1 py-0">sem imagem</Badge>}
+                </div>
+              </div>
+              <div className="flex gap-1 flex-shrink-0">
+                <Button
+                  size="sm" variant="ghost"
+                  onClick={() => handleGeneratePreview(p.id)}
+                  disabled={generatingId === p.id}
+                  className="text-xs h-7 gap-1 px-2"
+                  title="Gerar texto"
+                >
+                  {generatingId === p.id ? <Loader2 className="w-3 h-3 animate-spin" /> : <Wand2 className="w-3 h-3" />}
+                  Texto
+                </Button>
+                <Button
+                  size="sm" variant="ghost"
+                  onClick={() => handleGenerateImage(p.id)}
+                  disabled={generatingImageId === p.id}
+                  className="text-xs h-7 gap-1 px-2"
+                  title="Gerar imagem"
+                >
+                  {generatingImageId === p.id ? <Loader2 className="w-3 h-3 animate-spin" /> : <ImageIcon className="w-3 h-3" />}
+                  Foto
+                </Button>
+              </div>
             </div>
           ))}
         </div>
