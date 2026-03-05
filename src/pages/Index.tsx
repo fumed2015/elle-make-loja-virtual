@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useAllProductsUnified, useCategories } from "@/hooks/useProducts";
 import ProductCard from "@/components/product/ProductCard";
-import UGCSection from "@/components/social/UGCSection";
+
 import Footer from "@/components/layout/Footer";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -518,9 +518,6 @@ const Index = () => {
           ))}
         </div>
       </section>
-
-      {/* UGC */}
-      <UGCSection />
 
       {/* Footer */}
       <Footer />
