@@ -330,7 +330,7 @@ const Header = () => {
               <motion.h1
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
-                className="text-2xl md:text-3xl font-bold tracking-[0.18em] text-primary md:text-white md:drop-shadow-md"
+                className="text-2xl md:text-3xl font-bold tracking-[0.18em] text-primary md:text-foreground"
               >
                 ELLE MAKE
               </motion.h1>
@@ -350,7 +350,7 @@ const Header = () => {
               >
                 <Link
                   to={link.to}
-                  className="flex items-center gap-1 px-3 py-2 text-sm font-semibold text-foreground md:text-white md:drop-shadow-sm hover:text-primary md:hover:text-white/80 transition-all tracking-wide uppercase whitespace-nowrap"
+                  className="flex items-center gap-1 px-3 py-2 text-sm font-semibold text-foreground hover:text-primary transition-all tracking-wide uppercase whitespace-nowrap"
                 >
                   {link.label}
                   {link.subs && <ChevronDown className="w-3 h-3" />}
