@@ -131,7 +131,242 @@ Gere EXATAMENTE o seguinte conteúdo usando a function tool:
       });
     }
 
-    // Action: bulk-seo - Auto-optimize products missing content
+    // Action: generate-image - Generate AI product image and upload to storage
+    if (action === "generate-image") {
+      const { data: product, error } = await supabase
+        .from("products")
+        .select("name, brand, slug, categories(name)")
+        .eq("id", product_id)
+        .single();
+
+      if (error || !product) {
+        return new Response(JSON.stringify({ error: "Produto não encontrado" }), {
+          status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      const categoryName = (product.categories as any)?.name || "Maquiagem";
+      const imagePrompt = `Professional product photography of a ${categoryName.toLowerCase()} cosmetic product: "${product.name}" by ${product.brand || "beauty brand"}. Clean white background, studio lighting, high-end beauty product shot, elegant composition, ultra high resolution, commercial quality e-commerce photo.`;
+
+      const imageResp = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${LOVABLE_API_KEY}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          model: "google/gemini-2.5-flash-image",
+          messages: [{ role: "user", content: imagePrompt }],
+          modalities: ["image", "text"],
+        }),
+      });
+
+      if (!imageResp.ok) {
+        const t = await imageResp.text();
+        console.error("Image AI error:", imageResp.status, t);
+        if (imageResp.status === 429) {
+          return new Response(JSON.stringify({ error: "Limite de requisições atingido." }), {
+            status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" },
+          });
+        }
+        throw new Error("Image AI error: " + imageResp.status);
+      }
+
+      const imageData = await imageResp.json();
+      const imageUrl = imageData.choices?.[0]?.message?.images?.[0]?.image_url?.url;
+      if (!imageUrl) throw new Error("IA não retornou imagem");
+
+      // Extract base64 data and upload to storage
+      const base64Data = imageUrl.replace(/^data:image\/\w+;base64,/, "");
+      const imageBytes = Uint8Array.from(atob(base64Data), c => c.charCodeAt(0));
+      const filePath = `${product.slug}-${Date.now()}.png`;
+
+      const { error: uploadError } = await supabase.storage
+        .from("product-images")
+        .upload(filePath, imageBytes, { contentType: "image/png", upsert: true });
+
+      if (uploadError) throw new Error("Erro ao salvar imagem: " + uploadError.message);
+
+      const { data: publicUrlData } = supabase.storage.from("product-images").getPublicUrl(filePath);
+      const publicUrl = publicUrlData.publicUrl;
+
+      // Get current images and add the new one
+      const { data: currentProduct } = await supabase.from("products").select("images").eq("id", product_id).single();
+      const currentImages = (currentProduct?.images as string[]) || [];
+      const updatedImages = [...currentImages, publicUrl];
+
+      const { error: updateError } = await supabase
+        .from("products")
+        .update({ images: updatedImages })
+        .eq("id", product_id);
+
+      if (updateError) throw new Error("Erro ao atualizar produto: " + updateError.message);
+
+      return new Response(JSON.stringify({
+        message: "Imagem gerada com sucesso!",
+        image_url: publicUrl,
+        product_id,
+      }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
+
+    // Action: bulk-complete - Generate descriptions + images for all products
+    if (action === "bulk-complete") {
+      let query = supabase
+        .from("products")
+        .select("id, name, brand, slug, price, tags, ingredients, description, sensorial_description, how_to_use, images, categories(name)")
+        .eq("is_active", true);
+
+      if (!force_all) {
+        query = query.or("description.is.null,description.eq.,images.eq.{}");
+      }
+
+      const { data: products, error } = await query.order("name");
+      if (error) throw error;
+      if (!products || products.length === 0) {
+        return new Response(JSON.stringify({ message: "Todos os produtos já estão completos!", updated: 0 }), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      const results: any[] = [];
+
+      for (const product of products) {
+        try {
+          const needsDescription = force_all || !product.description || product.description.length < 50;
+          const needsImage = force_all || !product.images || (product.images as string[]).length === 0;
+
+          const updateData: any = {};
+
+          // Generate description if needed
+          if (needsDescription) {
+            const prompt = `Gere conteúdo SEO para este produto de maquiagem:
+Nome: ${product.name}
+Marca: ${product.brand || "N/A"}
+Categoria: ${(product.categories as any)?.name || "Maquiagem"}
+Preço: R$ ${Number(product.price).toFixed(2)}
+Tags: ${(product.tags || []).join(", ")}
+Ingredientes: ${product.ingredients || "N/A"}
+
+Gere: description (150-250 palavras, sensorial, SEO), sensorial_description (2-3 frases), how_to_use (3-5 passos com verbos imperativos), tags (5-8 tags).`;
+
+            const aiResp = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+              method: "POST",
+              headers: {
+                Authorization: `Bearer ${LOVABLE_API_KEY}`,
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                model: "google/gemini-3-flash-preview",
+                messages: [
+                  { role: "system", content: "Copywriter expert em cosméticos e SEO para e-commerce brasileiro." },
+                  { role: "user", content: prompt },
+                ],
+                tools: [{
+                  type: "function",
+                  function: {
+                    name: "save_content",
+                    description: "Save product content",
+                    parameters: {
+                      type: "object",
+                      properties: {
+                        description: { type: "string" },
+                        sensorial_description: { type: "string" },
+                        how_to_use: { type: "string" },
+                        tags: { type: "array", items: { type: "string" } },
+                      },
+                      required: ["description", "sensorial_description", "how_to_use", "tags"],
+                      additionalProperties: false,
+                    },
+                  },
+                }],
+                tool_choice: { type: "function", function: { name: "save_content" } },
+              }),
+            });
+
+            if (aiResp.ok) {
+              const aiData = await aiResp.json();
+              const tc = aiData.choices?.[0]?.message?.tool_calls?.[0];
+              if (tc) {
+                const content = JSON.parse(tc.function.arguments);
+                if (force_all || !product.description || product.description.length < 50) updateData.description = content.description;
+                if (force_all || !product.sensorial_description) updateData.sensorial_description = content.sensorial_description;
+                if (force_all || !(product as any).how_to_use) updateData.how_to_use = content.how_to_use;
+                if (force_all || !product.tags || product.tags.length === 0) updateData.tags = content.tags;
+              }
+            }
+            await new Promise(r => setTimeout(r, 800));
+          }
+
+          // Generate image if needed
+          if (needsImage) {
+            try {
+              const categoryName = (product.categories as any)?.name || "Maquiagem";
+              const imagePrompt = `Professional product photography of a ${categoryName.toLowerCase()} cosmetic product: "${product.name}" by ${product.brand || "beauty brand"}. Clean white background, studio lighting, high-end beauty product shot, elegant composition, ultra high resolution, commercial quality e-commerce photo.`;
+
+              const imageResp = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+                method: "POST",
+                headers: {
+                  Authorization: `Bearer ${LOVABLE_API_KEY}`,
+                  "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                  model: "google/gemini-2.5-flash-image",
+                  messages: [{ role: "user", content: imagePrompt }],
+                  modalities: ["image", "text"],
+                }),
+              });
+
+              if (imageResp.ok) {
+                const imageData = await imageResp.json();
+                const imgUrl = imageData.choices?.[0]?.message?.images?.[0]?.image_url?.url;
+                if (imgUrl) {
+                  const base64Data = imgUrl.replace(/^data:image\/\w+;base64,/, "");
+                  const imageBytes = Uint8Array.from(atob(base64Data), c => c.charCodeAt(0));
+                  const filePath = `${product.slug}-${Date.now()}.png`;
+
+                  const { error: uploadError } = await supabase.storage
+                    .from("product-images")
+                    .upload(filePath, imageBytes, { contentType: "image/png", upsert: true });
+
+                  if (!uploadError) {
+                    const { data: publicUrlData } = supabase.storage.from("product-images").getPublicUrl(filePath);
+                    const currentImages = (product.images as string[]) || [];
+                    updateData.images = [...currentImages, publicUrlData.publicUrl];
+                  }
+                }
+              }
+              await new Promise(r => setTimeout(r, 1500));
+            } catch (imgErr) {
+              console.error(`Image error for ${product.id}:`, imgErr);
+            }
+          }
+
+          if (Object.keys(updateData).length > 0) {
+            const { error: updateError } = await supabase
+              .from("products").update(updateData).eq("id", product.id);
+
+            if (updateError) {
+              results.push({ id: product.id, name: product.name, status: "update_error" });
+            } else {
+              results.push({ id: product.id, name: product.name, status: "updated", fields: Object.keys(updateData) });
+            }
+          } else {
+            results.push({ id: product.id, name: product.name, status: "skipped" });
+          }
+        } catch (err) {
+          console.error(`Error processing ${product.id}:`, err);
+          results.push({ id: product.id, name: product.name, status: "error" });
+        }
+      }
+
+      return new Response(JSON.stringify({
+        message: `Processados ${results.length} produtos`,
+        results,
+        updated: results.filter(r => r.status === "updated").length,
+      }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
+
+    // Action: bulk-seo - Auto-optimize products missing content (text only)
     if (action === "bulk-seo") {
       const targetIds = product_ids as string[] | undefined;
       
@@ -182,26 +417,24 @@ Gere: description (150-250 palavras, sensorial, SEO), sensorial_description (2-3
                 { role: "system", content: "Copywriter expert em cosméticos e SEO para e-commerce brasileiro. Gere conteúdo persuasivo e sensorial." },
                 { role: "user", content: prompt },
               ],
-              tools: [
-                {
-                  type: "function",
-                  function: {
-                    name: "save_content",
-                    description: "Save product content",
-                    parameters: {
-                      type: "object",
-                      properties: {
-                        description: { type: "string" },
-                        sensorial_description: { type: "string" },
-                        how_to_use: { type: "string" },
-                        tags: { type: "array", items: { type: "string" } },
-                      },
-                      required: ["description", "sensorial_description", "how_to_use", "tags"],
-                      additionalProperties: false,
+              tools: [{
+                type: "function",
+                function: {
+                  name: "save_content",
+                  description: "Save product content",
+                  parameters: {
+                    type: "object",
+                    properties: {
+                      description: { type: "string" },
+                      sensorial_description: { type: "string" },
+                      how_to_use: { type: "string" },
+                      tags: { type: "array", items: { type: "string" } },
                     },
+                    required: ["description", "sensorial_description", "how_to_use", "tags"],
+                    additionalProperties: false,
                   },
                 },
-              ],
+              }],
               tool_choice: { type: "function", function: { name: "save_content" } },
             }),
           });
@@ -222,27 +455,14 @@ Gere: description (150-250 palavras, sensorial, SEO), sensorial_description (2-3
           const content = JSON.parse(tc.function.arguments);
           
           const updateData: any = {};
-          if (force_all || !product.description || product.description.length < 50) {
-            updateData.description = content.description;
-          }
-          if (force_all || !product.sensorial_description) {
-            updateData.sensorial_description = content.sensorial_description;
-          }
-          if (force_all || !(product as any).how_to_use) {
-            updateData.how_to_use = content.how_to_use;
-          }
-          if (force_all || !product.tags || product.tags.length === 0) {
-            updateData.tags = content.tags;
-          }
+          if (force_all || !product.description || product.description.length < 50) updateData.description = content.description;
+          if (force_all || !product.sensorial_description) updateData.sensorial_description = content.sensorial_description;
+          if (force_all || !(product as any).how_to_use) updateData.how_to_use = content.how_to_use;
+          if (force_all || !product.tags || product.tags.length === 0) updateData.tags = content.tags;
 
           if (Object.keys(updateData).length > 0) {
-            const { error: updateError } = await supabase
-              .from("products")
-              .update(updateData)
-              .eq("id", product.id);
-
+            const { error: updateError } = await supabase.from("products").update(updateData).eq("id", product.id);
             if (updateError) {
-              console.error(`Update error for ${product.id}:`, updateError);
               results.push({ id: product.id, name: product.name, status: "update_error" });
             } else {
               results.push({ id: product.id, name: product.name, status: "updated", fields: Object.keys(updateData) });
@@ -251,7 +471,6 @@ Gere: description (150-250 palavras, sensorial, SEO), sensorial_description (2-3
             results.push({ id: product.id, name: product.name, status: "skipped" });
           }
 
-          // Small delay between API calls to avoid rate limits
           await new Promise(r => setTimeout(r, 1000));
         } catch (err) {
           console.error(`Error processing ${product.id}:`, err);
@@ -263,12 +482,10 @@ Gere: description (150-250 palavras, sensorial, SEO), sensorial_description (2-3
         message: `Processados ${results.length} produtos`,
         results,
         updated: results.filter(r => r.status === "updated").length,
-      }), {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
-    // Action: generate-reviews - Generate realistic AI reviews for a product
+    // Action: generate-reviews
     if (action === "generate-reviews") {
       const { data: product, error: pErr } = await supabase
         .from("products")
@@ -361,14 +578,7 @@ Gere exatamente 5 avaliações REALISTAS de clientes brasileiras. Cada avaliaç�
 
       for (const rev of generatedReviews) {
         const fakeUserId = crypto.randomUUID();
-
-        // Create a profile for the fake reviewer (service role bypasses RLS)
-        await supabase.from("profiles").insert({
-          user_id: fakeUserId,
-          full_name: rev.name,
-        });
-
-        // Insert the review (service role bypasses RLS)
+        await supabase.from("profiles").insert({ user_id: fakeUserId, full_name: rev.name });
         const { error: revErr } = await supabase.from("reviews").insert({
           user_id: fakeUserId,
           product_id: product_id,
@@ -376,23 +586,17 @@ Gere exatamente 5 avaliações REALISTAS de clientes brasileiras. Cada avaliaç�
           comment: rev.comment,
           is_approved: true,
         });
-
-        if (!revErr) {
-          insertedReviews.push({ name: rev.name, rating: rev.rating });
-        } else {
-          console.error("Review insert error:", revErr);
-        }
+        if (!revErr) insertedReviews.push({ name: rev.name, rating: rev.rating });
+        else console.error("Review insert error:", revErr);
       }
 
       return new Response(JSON.stringify({
         message: `${insertedReviews.length} avaliações geradas!`,
         reviews: insertedReviews,
-      }), {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
-    return new Response(JSON.stringify({ error: "Ação inválida. Use 'generate', 'bulk-seo' ou 'generate-reviews'." }), {
+    return new Response(JSON.stringify({ error: "Ação inválida. Use 'generate', 'bulk-seo', 'bulk-complete', 'generate-image' ou 'generate-reviews'." }), {
       status: 400,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
