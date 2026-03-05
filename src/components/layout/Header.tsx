@@ -253,18 +253,18 @@ const Header = () => {
         </button>
       </div>
 
-      {/* Desktop secondary info bar — solid light background */}
-      <div className="hidden md:flex bg-transparent border-b border-white/10 px-4 py-2">
+      {/* Desktop secondary info bar — white background */}
+      <div className="hidden md:flex bg-card border-b border-border px-4 py-2">
         <div className="max-w-6xl mx-auto w-full flex items-center justify-between">
-          <div className="flex items-center gap-5 text-xs text-foreground">
-            <a href="https://wa.me/5591983045531" target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 hover:text-primary transition-colors font-medium">
-              <WhatsAppIcon className="w-3.5 h-3.5" /> <span className="underline">WhatsApp</span>
+          <div className="flex items-center gap-5 text-sm font-bold text-foreground">
+            <a href="https://wa.me/5591983045531" target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 hover:text-primary transition-colors">
+              <WhatsAppIcon className="w-4 h-4" /> <span className="underline">WhatsApp</span>
             </a>
             <span className="flex items-center gap-1.5">
-              <Phone className="w-3 h-3" /> (91) 98304-5531
+              <Phone className="w-3.5 h-3.5" /> (91) 98304-5531
             </span>
             <span className="flex items-center gap-1.5">
-              <Mail className="w-3 h-3" /> contato@ellemake.com.br
+              <Mail className="w-3.5 h-3.5" /> contato@ellemake.com.br
             </span>
           </div>
           <div className="flex items-center gap-3 text-foreground">
@@ -277,7 +277,7 @@ const Header = () => {
 
       {/* Main header — MOBILE: hamburger left, centered logo, cart right */}
       {/* DESKTOP: logo left, nav center, search+icons right */}
-      <div className="bg-card md:bg-transparent border-b border-border md:border-transparent px-3 md:px-4 py-3 md:py-4">
+      <div className="bg-card border-b border-border px-3 md:px-4 py-3 md:py-4">
         <div className="max-w-6xl mx-auto flex items-center min-w-0">
           {/* Left: hamburger (mobile only) + Logo */}
           <div className="flex items-center gap-1 flex-shrink-0 md:w-auto">
