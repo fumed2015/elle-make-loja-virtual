@@ -2,7 +2,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useEffect, lazy, Suspense, useMemo } from "react";
 import { ArrowRight, Truck, CreditCard, ShieldCheck, Star, ChevronDown, ChevronLeft, ChevronRight, Heart, Eye, Sparkles, Droplets, Package, Paintbrush, Gem, Palette, Wind, Tag, Zap, Scissors, ShowerHead, SprayCan, Smile, Sun } from "lucide-react";
 import WhatsAppIcon from "@/components/icons/WhatsAppIcon";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import SEOHead from "@/components/SEOHead";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -129,7 +129,7 @@ const HeroCarousel = () => {
   const slide = heroSlides[current];
 
   return (
-    <section className="relative overflow-hidden md:-mt-[120px] cursor-pointer" style={{ backgroundColor: 'hsl(20 30% 88%)' }} onClick={() => window.location.href = slide.link}>
+    <section className="relative overflow-hidden md:-mt-[120px]" style={{ backgroundColor: 'hsl(20 30% 88%)' }}>
       <AnimatePresence mode="wait">
         <motion.img
           key={slide.image}
