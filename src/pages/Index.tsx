@@ -519,9 +519,6 @@ const Index = () => {
         </div>
       </section>
 
-      {/* UGC */}
-      <UGCSection />
-
       {/* Footer */}
       <Footer />
     </div>
