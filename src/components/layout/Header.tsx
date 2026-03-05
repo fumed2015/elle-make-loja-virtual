@@ -118,6 +118,17 @@ const Header = () => {
   const [hoveredNav, setHoveredNav] = useState<string | null>(null);
   const [promoIndex, setPromoIndex] = useState(0);
   const [showSuggestions, setShowSuggestions] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
+  const searchContainerRef = useRef<HTMLDivElement>(null);
+  const mobileSearchContainerRef = useRef<HTMLDivElement>(null);
+  const { cartCount } = useCart();
+  const { user, signOut } = useAuth();
+  const navigate = useNavigate();
+  const [search, setSearch] = useState("");
+  const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
+  const [hoveredNav, setHoveredNav] = useState<string | null>(null);
+  const [promoIndex, setPromoIndex] = useState(0);
+  const [showSuggestions, setShowSuggestions] = useState(false);
   const searchContainerRef = useRef<HTMLDivElement>(null);
   const mobileSearchContainerRef = useRef<HTMLDivElement>(null);
 
