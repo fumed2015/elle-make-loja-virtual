@@ -132,8 +132,8 @@ const InlineConsultant = () => {
           <AnimatePresence>
             {messages.map((msg, i) => (
               <motion.div
-                key={i}
-                initial={{ opacity: 0, y: 8 }}
+                key={getMsgKey(i)}
+                initial={i === messages.length - 1 ? { opacity: 0, y: 8 } : false}
                 animate={{ opacity: 1, y: 0 }}
                 className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}
               >
