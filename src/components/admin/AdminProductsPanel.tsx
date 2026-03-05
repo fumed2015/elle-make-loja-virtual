@@ -18,6 +18,57 @@ type View = "list" | "add" | "edit";
 interface Swatch {
   name: string;
   color: string;
+  barcode?: string;
+  ref_code?: string;
+  stock?: number;
+  available?: boolean;
+}
+
+// Mapa de cores comuns em cosméticos para auto-geração
+const COLOR_MAP: Record<string, string> = {
+  "nude": "#c8a98a", "bege": "#d4b896", "bege claro": "#e8d5b7", "bege medio": "#c4a882", "bege escuro": "#a07850",
+  "marrom": "#6b3a2a", "marrom claro": "#8b5e3c", "marrom escuro": "#4a2a1a", "chocolate": "#5c3317",
+  "vermelho": "#c0392b", "red": "#c0392b", "vinho": "#722f37", "marsala": "#8e3741", "borgonha": "#800020",
+  "rosa": "#e8a0b4", "pink": "#e84393", "rosa claro": "#f0c0d0", "rosa escuro": "#c45a7a", "rosado": "#d4917a",
+  "coral": "#e8735a", "laranja": "#d35400", "pêssego": "#e8b090", "pessego": "#e8b090", "terracota": "#b45639",
+  "dourado": "#c9a84c", "gold": "#c9a84c", "bronze": "#8b6b3d", "cobre": "#b87333", "champagne": "#d4b896",
+  "preto": "#1a1a1a", "black": "#1a1a1a", "branco": "#f5f5f5", "white": "#f5f5f5",
+  "cinza": "#808080", "prata": "#c0c0c0", "natural": "#d4b896", "caramelo": "#a06030",
+  "lilás": "#b39ddb", "lilas": "#b39ddb", "roxo": "#6a1b9a", "violeta": "#7b1fa2", "uva": "#5c2a6a",
+  "verm. escuro": "#8b1a1a", "berry": "#8e2252", "cereja": "#a0202a", "framboesa": "#c72c48",
+  "malva": "#993366", "ameixa": "#6a2c6a", "mogno": "#5a2a1a", "canela": "#8b5740",
+  "mel": "#d4a540", "caramelo claro": "#c8943c", "café": "#4a3420", "tabaco": "#6b4226",
+  "pêssego claro": "#f0d0b8", "damasco": "#e8a860", "salmão": "#e87060", "salmon": "#e87060",
+  "magenta": "#c2185b", "fúcsia": "#c2185b", "fucsia": "#c2185b",
+}
+
+function autoGenerateSwatches(productName: string): Swatch[] {
+  const name = productName.toLowerCase();
+  const results: Swatch[] = [];
+  
+  // Try to extract color names from the product name
+  const sortedKeys = Object.keys(COLOR_MAP).sort((a, b) => b.length - a.length);
+  for (const colorName of sortedKeys) {
+    if (name.includes(colorName) && !results.find(r => r.color === COLOR_MAP[colorName])) {
+      results.push({
+        name: colorName.charAt(0).toUpperCase() + colorName.slice(1),
+        color: COLOR_MAP[colorName],
+        stock: 0,
+        available: true,
+      });
+    }
+  }
+  
+  // If "kit" or "paleta" with number, generate numbered swatches
+  const kitMatch = name.match(/kit\s*(\d+)/);
+  if (kitMatch && results.length === 0) {
+    const count = Math.min(parseInt(kitMatch[1]), 12);
+    for (let i = 1; i <= count; i++) {
+      results.push({ name: `Tom ${i}`, color: "#c45a5a", stock: 0, available: true });
+    }
+  }
+  
+  return results;
 }
 
 const emptyForm = {
@@ -38,7 +89,7 @@ const AdminProductsPanel = () => {
   const [images, setImages] = useState<string[]>([]);
   const [newImageUrl, setNewImageUrl] = useState("");
   const [swatches, setSwatches] = useState<Swatch[]>([]);
-  const [newSwatch, setNewSwatch] = useState<Swatch>({ name: "", color: "#c45a5a" });
+  const [newSwatch, setNewSwatch] = useState<Swatch>({ name: "", color: "#c45a5a", barcode: "", ref_code: "", stock: 0, available: true });
   const [submitting, setSubmitting] = useState(false);
   const [aiGenerating, setAiGenerating] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
@@ -68,7 +119,7 @@ const AdminProductsPanel = () => {
     setImages([]);
     setSwatches([]);
     setNewImageUrl("");
-    setNewSwatch({ name: "", color: "#c45a5a" });
+    setNewSwatch({ name: "", color: "#c45a5a", barcode: "", ref_code: "", stock: 0, available: true });
     setEditingId(null);
   };
 
@@ -116,10 +167,23 @@ const AdminProductsPanel = () => {
   const handleAddSwatch = () => {
     if (newSwatch.name.trim()) {
       setSwatches([...swatches, { ...newSwatch, name: newSwatch.name.trim() }]);
-      setNewSwatch({ name: "", color: "#c45a5a" });
+      setNewSwatch({ name: "", color: "#c45a5a", barcode: "", ref_code: "", stock: 0, available: true });
     }
   };
   const handleRemoveSwatch = (idx: number) => setSwatches(swatches.filter((_, i) => i !== idx));
+  const handleToggleSwatchAvailable = (idx: number) => {
+    setSwatches(swatches.map((s, i) => i === idx ? { ...s, available: !s.available } : s));
+  };
+  const handleSwatchStockChange = (idx: number, stock: number) => {
+    setSwatches(swatches.map((s, i) => i === idx ? { ...s, stock, available: stock > 0 ? s.available : false } : s));
+  };
+  const handleAutoGenerateSwatches = () => {
+    if (!form.name) { toast.error("Preencha o nome do produto primeiro"); return; }
+    const generated = autoGenerateSwatches(form.name);
+    if (generated.length === 0) { toast.info("Não foi possível detectar cores no título. Adicione manualmente."); return; }
+    setSwatches(prev => [...prev, ...generated]);
+    toast.success(`${generated.length} cor(es) adicionada(s) automaticamente!`);
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
