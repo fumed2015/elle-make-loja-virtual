@@ -119,7 +119,7 @@ const HeroCarousel = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const timer = setInterval(() => setCurrent(c => (c + 1) % heroSlides.length), 8000);
+    const timer = setInterval(() => setCurrent(c => (c + 1) % heroSlides.length), 12000);
     return () => clearInterval(timer);
   }, []);
 
