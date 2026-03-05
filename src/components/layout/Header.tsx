@@ -253,23 +253,36 @@ const Header = () => {
         </button>
       </div>
 
-      {/* Desktop secondary info bar */}
-      <div className="hidden md:flex bg-transparent px-4 py-2">
+      {/* Desktop secondary info bar — solid light background */}
+      <div className="hidden md:flex bg-muted border-b border-border px-4 py-2">
         <div className="max-w-6xl mx-auto w-full flex items-center justify-between">
-          <div className="flex items-center gap-5 text-xs text-white/80 drop-shadow-sm">
-            <a href="https://wa.me/5591983045531" target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 hover:text-primary-foreground transition-colors">
-              <WhatsAppIcon className="w-3.5 h-3.5" /> WhatsApp
+          <div className="flex items-center gap-5 text-xs text-muted-foreground">
+            <a href="https://wa.me/5591983045531" target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 hover:text-primary transition-colors font-medium">
+              <WhatsAppIcon className="w-3.5 h-3.5" /> <span className="underline">WhatsApp</span>
             </a>
-            <span className="flex items-center gap-1">
+            <span className="flex items-center gap-1.5">
               <Phone className="w-3 h-3" /> (91) 98304-5531
             </span>
-            <span className="flex items-center gap-1">
+            <span className="flex items-center gap-1.5">
               <Mail className="w-3 h-3" /> contato@ellemake.com.br
             </span>
           </div>
-          <div className="flex items-center gap-4 text-xs text-white/80 drop-shadow-sm">
-            <Link to="/sobre" className="hover:text-primary-foreground transition-colors">Sobre</Link>
-            <Link to="/termos" className="hover:text-primary-foreground transition-colors">Contato</Link>
+          <div className="flex items-center gap-5">
+            <div className="flex items-center gap-4 text-xs text-muted-foreground font-medium">
+              <Link to="/sobre" className="hover:text-primary transition-colors">Sobre</Link>
+              <Link to="/termos" className="hover:text-primary transition-colors">Contato</Link>
+            </div>
+            <div className="flex items-center gap-3 text-muted-foreground ml-3 border-l border-border pl-4">
+              <a href="https://instagram.com/ellemake" target="_blank" rel="noopener noreferrer" className="hover:text-primary transition-colors" aria-label="Instagram">
+                <Instagram className="w-4 h-4" />
+              </a>
+              <a href="#" className="hover:text-primary transition-colors" aria-label="Facebook">
+                <Facebook className="w-4 h-4" />
+              </a>
+              <a href="#" className="hover:text-primary transition-colors" aria-label="YouTube">
+                <Youtube className="w-4 h-4" />
+              </a>
+            </div>
           </div>
         </div>
       </div>
