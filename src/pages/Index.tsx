@@ -286,13 +286,13 @@ const HeroCarousel = () => {
                 <div key={cat.id} className="flex-shrink-0">
                   <Link
                     to={`/explorar?cat=${cat.slug}`}
-                    className="flex flex-col items-center gap-2 w-20 md:w-24 text-center group"
+                    className="flex flex-col items-center gap-2 w-24 md:w-28 text-center group"
                   >
-                    <div className="w-16 h-16 md:w-20 md:h-20 rounded-full bg-muted flex items-center justify-center group-hover:scale-105 transition-transform duration-300 overflow-hidden">
+                    <div className="w-20 h-20 md:w-24 md:h-24 rounded-full bg-muted/60 flex items-center justify-center group-hover:scale-105 transition-transform duration-300 overflow-hidden shadow-sm">
                       <img
                         src={categoryImage}
                         alt={cat.name}
-                        className="w-12 h-12 md:w-16 md:h-16 object-contain"
+                        className="w-full h-full object-cover"
                         loading="lazy"
                       />
                     </div>
