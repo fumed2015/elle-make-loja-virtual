@@ -289,7 +289,7 @@ const Header = () => {
 
       {/* Main header — MOBILE: hamburger left, centered logo, cart right */}
       {/* DESKTOP: logo left, nav center, search+icons right */}
-      <div className="bg-card md:bg-transparent border-b border-transparent px-3 md:px-4 py-3 md:py-4">
+      <div className="bg-card border-b border-border px-3 md:px-4 py-3 md:py-4">
         <div className="max-w-6xl mx-auto flex items-center min-w-0">
           {/* Left: hamburger (mobile only) + Logo */}
           <div className="flex items-center gap-1 flex-shrink-0 md:w-auto">
