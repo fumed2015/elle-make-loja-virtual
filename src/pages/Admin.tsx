@@ -303,6 +303,7 @@ const DashboardTab = () => {
 const AIContentTab = () => {
   const { data: products, refetch } = useProducts({});
   const [bulkRunning, setBulkRunning] = useState(false);
+  const [bulkAllRunning, setBulkAllRunning] = useState(false);
   const [results, setResults] = useState<any[] | null>(null);
   const [generatingId, setGeneratingId] = useState<string | null>(null);
   const [preview, setPreview] = useState<any>(null);
@@ -311,12 +312,13 @@ const AIContentTab = () => {
   const productsNoSensorial = products?.filter(p => !p.sensorial_description) || [];
   const productsNoTags = products?.filter(p => !p.tags || p.tags.length === 0) || [];
 
-  const handleBulkSEO = async () => {
-    setBulkRunning(true);
+  const handleBulkSEO = async (forceAll = false) => {
+    if (forceAll) setBulkAllRunning(true);
+    else setBulkRunning(true);
     setResults(null);
     try {
       const { data, error } = await supabase.functions.invoke("ai-content-generator", {
-        body: { action: "bulk-seo" },
+        body: { action: "bulk-seo", force_all: forceAll },
       });
       if (error) throw error;
       setResults(data?.results || []);
@@ -326,6 +328,7 @@ const AIContentTab = () => {
       toast.error(e.message || "Erro no SEO em lote");
     } finally {
       setBulkRunning(false);
+      setBulkAllRunning(false);
     }
   };
 
