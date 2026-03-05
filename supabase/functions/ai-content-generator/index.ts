@@ -134,6 +134,7 @@ Gere EXATAMENTE o seguinte conteúdo usando a function tool:
     // Action: bulk-seo - Auto-optimize products missing content
     if (action === "bulk-seo") {
       const targetIds = product_ids as string[] | undefined;
+      const forceAll = (await req.clone().json().catch(() => ({}))).force_all || false;
       
       let query = supabase
         .from("products")
@@ -142,7 +143,7 @@ Gere EXATAMENTE o seguinte conteúdo usando a function tool:
 
       if (targetIds && targetIds.length > 0) {
         query = query.in("id", targetIds);
-      } else {
+      } else if (!forceAll) {
         // Find products missing descriptions
         query = query.or("description.is.null,description.eq.,sensorial_description.is.null,how_to_use.is.null");
         query = query.limit(10);
