@@ -152,82 +152,65 @@ const Index = () => {
         ]}
       />
 
-      {/* Hero — static banner */}
-      <section className="relative overflow-hidden bg-background">
+      {/* Hero — centered style like reference */}
+      <section className="relative overflow-hidden" style={{ backgroundColor: 'hsl(20 30% 88%)' }}>
         <img
           src="/hero-banner.jpg"
           alt="Elle Make - Maquiagem e Cosméticos premium em Belém"
-          className="w-full h-[380px] md:h-[520px] lg:h-[560px] object-cover"
+          className="w-full h-[420px] md:h-[520px] lg:h-[560px] object-cover"
           style={{ objectPosition: "center" }}
           loading="eager"
           fetchPriority="high"
         />
-        {/* Gradient overlay */}
-        <div className="absolute inset-0 bg-gradient-to-r from-background/90 via-background/50 to-transparent" />
-        <div className="absolute inset-0 bg-gradient-to-t from-background/50 via-transparent to-transparent" />
+        {/* Soft overlay for text readability */}
+        <div className="absolute inset-0 bg-gradient-to-b from-black/10 via-transparent to-black/30" />
 
         <motion.div
-          initial={{ opacity: 0, x: -40 }}
-          animate={{ opacity: 1, x: 0 }}
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.2, ease: "easeOut" }}
-          className="absolute inset-0 flex items-center px-6 md:px-16"
+          className="absolute inset-0 flex flex-col items-center justify-center text-center px-6"
         >
-          <div className="max-w-lg text-left">
-            <motion.h1
-              initial={{ opacity: 0, y: 15 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.4 }}
-              className="font-serif-accent text-3xl md:text-5xl font-bold leading-tight text-foreground mb-4"
-              style={{ textShadow: '0 2px 20px hsl(var(--background) / 0.8), 0 1px 4px hsl(var(--background) / 0.6)' }}
-            >
-              Maquiagem e{" "}
-              <span className="text-primary" style={{ textShadow: '0 2px 16px hsl(var(--primary) / 0.4)' }}>
-                Cosméticos
-              </span>
-              <br />em Belém
-            </motion.h1>
+          {/* Category label */}
+          <motion.span
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.4 }}
+            className="inline-block text-[11px] md:text-xs font-semibold tracking-[0.2em] uppercase text-white/90 border border-white/40 px-4 py-1.5 rounded-sm mb-4 backdrop-blur-sm"
+          >
+            Maquiagem & Cosméticos
+          </motion.span>
 
-            <motion.p
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.7 }}
-              className="text-sm md:text-lg font-semibold text-foreground/90 mb-3"
-              style={{ textShadow: '0 1px 8px hsl(var(--background) / 0.7)' }}
-            >
-              Frete grátis acima de R$ 199
-            </motion.p>
+          {/* Large product name */}
+          <motion.h1
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.6, delay: 0.5 }}
+            className="text-4xl md:text-6xl lg:text-7xl font-bold leading-none text-white mb-6 tracking-tight"
+            style={{ textShadow: '0 2px 30px rgba(0,0,0,0.3)' }}
+          >
+            ELLE<br />MAKE
+          </motion.h1>
 
-            <motion.div
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: 0.9, type: "spring", stiffness: 200 }}
-              className="inline-flex items-center gap-2 bg-primary text-primary-foreground text-xs md:text-sm font-bold px-5 py-2 rounded-full mb-6 shadow-lg"
-              style={{ boxShadow: '0 0 20px hsl(var(--primary) / 0.4), 0 4px 12px hsl(var(--primary) / 0.3)' }}
-            >
-              <span className="animate-pulse">🛵</span>
-              Entrega em até 3h · Belém e Ananindeua
-            </motion.div>
+          {/* CTA Button */}
+          <motion.div
+            initial={{ opacity: 0, y: 15 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.8 }}
+          >
+            <Button asChild className="bg-primary text-primary-foreground hover:bg-primary/90 min-h-[44px] px-8 rounded-sm font-semibold tracking-wider uppercase text-xs shadow-lg relative overflow-hidden group">
+              <Link to="/explorar">
+                <span className="relative z-10">Aproveite!</span>
+                <span className="absolute inset-0 bg-gradient-to-r from-transparent via-primary-foreground/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700" />
+              </Link>
+            </Button>
+          </motion.div>
 
-            <motion.div
-              initial={{ opacity: 0, y: 15 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 1.1 }}
-              className="flex flex-wrap gap-3"
-            >
-              <Button asChild className="bg-primary text-primary-foreground hover:bg-primary/90 min-h-[48px] px-8 rounded-full font-semibold shadow-lg relative overflow-hidden group">
-                <Link to="/explorar">
-                  <span className="relative z-10 flex items-center">
-                    Ver Catálogo <ArrowRight className="w-4 h-4 ml-1.5" />
-                  </span>
-                  <span className="absolute inset-0 bg-gradient-to-r from-transparent via-primary-foreground/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700" />
-                </Link>
-              </Button>
-              <Button variant="outline" asChild className="min-h-[48px] px-6 rounded-full border-accent text-accent hover:bg-accent hover:text-accent-foreground font-semibold bg-background/70 backdrop-blur-sm shadow-lg">
-                <a href="https://wa.me/5591983045531?text=Olá! Gostaria de fazer um pedido" target="_blank" rel="noopener noreferrer">
-                  <WhatsAppIcon className="w-4 h-4 mr-1.5" /> Comprar no WhatsApp
-                </a>
-              </Button>
-            </motion.div>
+          {/* Dot indicators */}
+          <div className="flex gap-2 mt-6">
+            <span className="w-2 h-2 rounded-full bg-white/50" />
+            <span className="w-2 h-2 rounded-full bg-white/50" />
+            <span className="w-2 h-2 rounded-full bg-white" />
           </div>
         </motion.div>
       </section>
