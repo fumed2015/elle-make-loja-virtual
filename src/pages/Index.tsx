@@ -147,8 +147,11 @@ const HeroCarousel = () => {
       </AnimatePresence>
 
       {/* Gradient overlays */}
-      <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-black/20 to-transparent hidden md:block" />
-      <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-transparent to-black/40 md:hidden" />
+      <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-black/20 to-transparent hidden md:block pointer-events-none" />
+      <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-transparent to-black/40 md:hidden pointer-events-none" />
+
+      {/* Clickable banner overlay */}
+      <Link to={slide.link} className="absolute inset-0 z-[1]" aria-label={slide.label} />
 
       {/* Desktop: left-aligned content */}
       <AnimatePresence mode="wait">
