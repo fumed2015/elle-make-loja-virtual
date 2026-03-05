@@ -293,24 +293,25 @@ const HeroCarousel = () => {
       {/* Hero Carousel — extends behind header */}
       <HeroCarousel />
 
-      {/* Benefits bar — clean layout matching reference */}
-      <section className="bg-background py-8 px-4">
-        <div className="max-w-5xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-8">
-          {benefits.map((b, i) => (
-            <div
-              key={i}
-              className="flex items-center gap-3 animate-fade-in"
-              style={{ animationDelay: `${i * 100}ms` }}
-            >
-              <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
-                <b.icon className="w-5 h-5 text-primary" />
+      {/* Benefits bar — trust strip */}
+      <section className="bg-background py-6 px-4 border-b border-border">
+        <div className="max-w-5xl mx-auto">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-0 border border-border rounded-xl overflow-hidden">
+            {benefits.map((b, i) => (
+              <div
+                key={i}
+                className={`flex items-center gap-3 px-5 py-4 ${i < benefits.length - 1 ? 'border-b md:border-b-0 md:border-r border-border' : ''} ${i === 1 ? 'border-r-0 md:border-r border-border' : ''}`}
+              >
+                <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+                  <b.icon className="w-5 h-5 text-primary" />
+                </div>
+                <div className="text-left">
+                  <p className="text-sm font-bold text-foreground leading-tight">{b.text}</p>
+                  <p className="text-xs text-muted-foreground">{b.sub}</p>
+                </div>
               </div>
-              <div className="text-left">
-                <p className="text-sm font-bold text-foreground">{b.text}</p>
-                <p className="text-xs text-muted-foreground">{b.sub}</p>
-              </div>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
       </section>
 
