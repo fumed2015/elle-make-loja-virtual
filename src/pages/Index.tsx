@@ -146,17 +146,33 @@ const HeroCarousel = () => {
           className="absolute inset-0 hidden md:flex items-center px-16 lg:px-24 pt-[100px] z-[2]"
         >
           <div className="max-w-lg">
-            <span className="inline-block text-xs font-semibold tracking-[0.25em] uppercase text-white/80 border border-white/40 px-5 py-1.5 mb-5 backdrop-blur-sm">
+            <span
+              className="inline-block text-xs font-semibold tracking-[0.28em] uppercase px-5 py-2 mb-5 rounded-sm"
+              style={{
+                background: 'linear-gradient(135deg, rgba(212,175,110,0.25) 0%, rgba(255,248,230,0.18) 100%)',
+                backdropFilter: 'blur(12px)',
+                border: '1px solid rgba(212,175,110,0.4)',
+                color: 'hsl(var(--primary))',
+                fontFamily: 'Montserrat, sans-serif',
+              }}
+            >
               {slide.label}
             </span>
 
-            <h1 className="text-6xl lg:text-8xl font-bold leading-[0.85] text-white mb-8 tracking-tight whitespace-pre-line" style={{ textShadow: '0 4px 40px rgba(0,0,0,0.4)' }}>
+            <h1
+              className="text-6xl lg:text-8xl font-bold leading-[0.85] mb-8 tracking-tight whitespace-pre-line"
+              style={{
+                color: '#D4AF6E',
+                textShadow: '0 2px 8px rgba(0,0,0,0.6), 0 0 40px rgba(0,0,0,0.3)',
+                fontFamily: 'Georgia, "Times New Roman", serif',
+              }}
+            >
               {slide.title}
             </h1>
 
-            <Button asChild className="bg-primary text-primary-foreground hover:bg-primary/90 min-h-[48px] px-10 rounded-sm font-semibold tracking-[0.15em] uppercase text-sm shadow-xl relative overflow-hidden group">
+            <Button asChild className="bg-primary hover:bg-primary/90 min-h-[48px] px-10 rounded-sm shadow-xl relative overflow-hidden group border-0" style={{ letterSpacing: '-0.02em' }}>
               <Link to={slide.link}>
-                <span className="relative z-10">{slide.cta}</span>
+                <span className="relative z-10 font-bold text-sm uppercase" style={{ color: '#FFF8E6', fontFamily: 'Montserrat, sans-serif', textShadow: '0 1px 2px rgba(0,0,0,0.3)' }}>{slide.cta}</span>
                 <span className="absolute inset-0 bg-gradient-to-r from-transparent via-primary-foreground/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700" />
               </Link>
             </Button>
@@ -174,16 +190,34 @@ const HeroCarousel = () => {
           transition={{ duration: 0.6 }}
           className="absolute inset-0 flex flex-col items-center justify-center text-center px-6 pt-[80px] md:hidden z-[2]"
         >
-          <span className="inline-block text-[11px] font-semibold tracking-[0.2em] uppercase text-white/90 border border-white/40 px-4 py-1.5 rounded-sm mb-4 backdrop-blur-sm">
+          <span
+            className="inline-block text-[11px] font-semibold tracking-[0.25em] uppercase px-4 py-2 rounded-sm mb-4"
+            style={{
+              background: 'linear-gradient(135deg, rgba(212,175,110,0.25) 0%, rgba(255,248,230,0.18) 100%)',
+              backdropFilter: 'blur(12px)',
+              border: '1px solid rgba(212,175,110,0.4)',
+              color: 'hsl(var(--primary))',
+              fontFamily: 'Montserrat, sans-serif',
+            }}
+          >
             {slide.label}
           </span>
 
-          <h1 className="text-4xl font-bold leading-none text-white mb-6 tracking-tight whitespace-pre-line" style={{ textShadow: '0 2px 30px rgba(0,0,0,0.4)' }}>
+          <h1
+            className="text-4xl font-bold leading-none mb-6 tracking-tight whitespace-pre-line"
+            style={{
+              color: '#D4AF6E',
+              textShadow: '0 2px 6px rgba(0,0,0,0.6), 0 0 30px rgba(0,0,0,0.25)',
+              fontFamily: 'Georgia, "Times New Roman", serif',
+            }}
+          >
             {slide.title}
           </h1>
 
-          <Button asChild className="bg-primary text-primary-foreground hover:bg-primary/90 min-h-[44px] px-8 rounded-sm font-semibold tracking-wider uppercase text-xs shadow-lg">
-            <Link to={slide.link}>{slide.cta}</Link>
+          <Button asChild className="bg-primary hover:bg-primary/90 min-h-[44px] px-8 rounded-sm shadow-lg border-0" style={{ letterSpacing: '-0.02em' }}>
+            <Link to={slide.link}>
+              <span className="font-bold text-xs uppercase" style={{ color: '#FFF8E6', fontFamily: 'Montserrat, sans-serif', textShadow: '0 1px 2px rgba(0,0,0,0.3)' }}>{slide.cta}</span>
+            </Link>
           </Button>
         </motion.div>
       </AnimatePresence>
