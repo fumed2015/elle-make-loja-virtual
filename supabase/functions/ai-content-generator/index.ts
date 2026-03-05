@@ -222,16 +222,16 @@ Gere: description (150-250 palavras, sensorial, SEO), sensorial_description (2-3
           const content = JSON.parse(tc.function.arguments);
           
           const updateData: any = {};
-          if (!product.description || product.description.length < 50) {
+          if (force_all || !product.description || product.description.length < 50) {
             updateData.description = content.description;
           }
-          if (!product.sensorial_description) {
+          if (force_all || !product.sensorial_description) {
             updateData.sensorial_description = content.sensorial_description;
           }
-          if (!(product as any).how_to_use) {
+          if (force_all || !(product as any).how_to_use) {
             updateData.how_to_use = content.how_to_use;
           }
-          if (!product.tags || product.tags.length === 0) {
+          if (force_all || !product.tags || product.tags.length === 0) {
             updateData.tags = content.tags;
           }
 
