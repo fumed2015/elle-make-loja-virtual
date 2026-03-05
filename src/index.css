@@ -2,8 +2,11 @@
   display: none !important;
 }
 
-html, body {
+html {
   overscroll-behavior: none;
+}
+
+body {
   overflow-x: hidden;
 }
 
