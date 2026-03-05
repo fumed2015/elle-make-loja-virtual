@@ -115,6 +115,8 @@ const Header = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const isHome = location.pathname === "/";
+  // Header is transparent only on home page when not scrolled
+  const isTransparent = isHome && !scrolled;
   const [search, setSearch] = useState("");
   const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
   const [hoveredNav, setHoveredNav] = useState<string | null>(null);
