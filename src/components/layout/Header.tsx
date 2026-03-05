@@ -287,14 +287,14 @@ const Header = () => {
       </div>
 
       {/* Main header */}
-      <div className={`border-b px-3 md:px-4 py-3 md:py-4 transition-colors duration-300 ${!isTransparent ? 'bg-card border-border' : 'bg-card md:bg-transparent border-border md:border-transparent'}`}>
+      <div className={`border-b px-3 md:px-4 py-3 md:py-4 transition-colors duration-300 ${!isTransparent ? 'bg-card border-border' : 'bg-transparent border-transparent'}`}>
         <div className="max-w-6xl mx-auto flex items-center min-w-0">
           {/* Left: hamburger (mobile only) + Logo */}
           <div className="flex items-center gap-1 flex-shrink-0 md:w-auto">
             <Sheet>
               <SheetTrigger asChild>
-                <button className="md:hidden w-10 h-10 flex items-center justify-center rounded-full hover:bg-muted transition-colors" aria-label="Menu">
-                  <Menu className="w-6 h-6 text-foreground" />
+                <button className={`md:hidden w-10 h-10 flex items-center justify-center rounded-full transition-colors ${!isTransparent ? 'hover:bg-muted' : 'hover:bg-white/10'}`} aria-label="Menu">
+                   <Menu className={`w-6 h-6 ${!isTransparent ? 'text-foreground' : 'text-white drop-shadow-sm'}`} />
                 </button>
               </SheetTrigger>
               <SheetContent side="left" className="w-72 p-0">
@@ -340,7 +340,7 @@ const Header = () => {
               <motion.h1
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
-                className={`text-2xl md:text-3xl font-bold tracking-[0.18em] text-primary transition-colors duration-300 ${!isTransparent ? 'md:text-foreground' : 'md:text-white md:drop-shadow-sm'}`}
+                className={`text-2xl md:text-3xl font-bold tracking-[0.18em] transition-colors duration-300 ${!isTransparent ? 'text-primary md:text-foreground' : 'text-white drop-shadow-sm'}`}
               >
                 ELLE MAKE
               </motion.h1>
@@ -466,8 +466,16 @@ const Header = () => {
               </DropdownMenuContent>
             </DropdownMenu>
 
+            {/* Account icon (mobile) */}
+            <Link to="/perfil" className={`md:hidden w-10 h-10 flex items-center justify-center rounded-full transition-colors relative ${!isTransparent ? 'hover:bg-muted' : 'hover:bg-white/10'}`} aria-label="Conta">
+              <User className={`w-5 h-5 ${!isTransparent ? 'text-foreground' : 'text-white drop-shadow-sm'}`} />
+              {user && (
+                <span className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-accent border-2 border-card" />
+              )}
+            </Link>
+
             {/* Cart */}
-            <Link to="/carrinho" className={`w-10 h-10 flex items-center justify-center rounded-full transition-colors relative ${!isTransparent ? 'hover:bg-muted' : 'hover:bg-muted md:hover:bg-white/10'}`} aria-label="Carrinho">
+            <Link to="/carrinho" className={`w-10 h-10 flex items-center justify-center rounded-full transition-colors relative ${!isTransparent ? 'hover:bg-muted' : 'hover:bg-white/10'}`} aria-label="Carrinho">
               <motion.div
                 whileHover={{ scale: 1.1 }}
                 whileTap={{ scale: 0.9 }}
@@ -475,7 +483,7 @@ const Header = () => {
                 animate={cartCount > 0 ? { scale: [1, 1.3, 1], rotate: [0, -10, 10, 0] } : {}}
                 transition={{ duration: 0.4 }}
               >
-                <ShoppingBag className={`w-5 h-5 text-foreground ${!isTransparent ? '' : 'md:text-white md:drop-shadow-sm'}`} />
+                <ShoppingBag className={`w-5 h-5 ${!isTransparent ? 'text-foreground' : 'text-white drop-shadow-sm'}`} />
               </motion.div>
               {cartCount > 0 && (
                 <motion.span
@@ -494,7 +502,7 @@ const Header = () => {
       </div>
 
       {/* Mobile search bar (always visible on mobile) */}
-      <div className="md:hidden bg-card border-b border-border px-3 py-2" ref={mobileSearchContainerRef}>
+      <div className={`md:hidden border-b px-3 py-2 transition-colors duration-300 ${!isTransparent ? 'bg-card border-border' : 'bg-black/20 backdrop-blur-sm border-white/10'}`} ref={mobileSearchContainerRef}>
         <div className="relative">
           <form onSubmit={handleSearch} className="w-full relative">
             <Input
@@ -502,7 +510,7 @@ const Header = () => {
               value={search}
               onChange={(e) => { setSearch(e.target.value); setShowSuggestions(e.target.value.length >= 2); }}
               onFocus={() => search.length >= 2 && setShowSuggestions(true)}
-              className="h-10 bg-background border border-border rounded-lg text-sm pr-12 focus:ring-2 focus:ring-primary/30 w-full"
+              className={`h-10 rounded-lg text-sm pr-12 focus:ring-2 w-full transition-colors duration-300 ${!isTransparent ? 'bg-background border border-border focus:ring-primary/30' : 'bg-white/15 border border-white/30 focus:ring-white/30 text-white placeholder:text-white/60'}`}
             />
             <button type="submit" className="absolute right-1 top-1/2 -translate-y-1/2 w-9 h-8 flex items-center justify-center rounded-md hover:bg-muted transition-colors">
               <Search className="w-5 h-5 text-muted-foreground" />
