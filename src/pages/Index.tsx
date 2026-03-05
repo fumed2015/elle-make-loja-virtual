@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
 import { useEffect, lazy, Suspense, useMemo } from "react";
-import { ArrowRight, Truck, CreditCard, ShieldCheck, Star, ChevronDown, Heart, Eye, Sparkles, Droplets, Package, Paintbrush, Gem, Palette, Wind, Tag, Zap, Scissors, ShowerHead, SprayCan, Smile, Sun } from "lucide-react";
+import { ArrowRight, Truck, CreditCard, ShieldCheck, Star, ChevronDown, ChevronLeft, ChevronRight, Heart, Eye, Sparkles, Droplets, Package, Paintbrush, Gem, Palette, Wind, Tag, Zap, Scissors, ShowerHead, SprayCan, Smile, Sun } from "lucide-react";
 import WhatsAppIcon from "@/components/icons/WhatsAppIcon";
 import { Link } from "react-router-dom";
 import SEOHead from "@/components/SEOHead";
@@ -152,7 +152,7 @@ const Index = () => {
         ]}
       />
 
-      {/* Hero — centered style like reference */}
+      {/* Hero — left-aligned text on desktop (like reference), centered on mobile */}
       <section className="relative overflow-hidden" style={{ backgroundColor: 'hsl(20 30% 88%)' }}>
         <img
           src="/hero-banner.jpg"
@@ -162,57 +162,102 @@ const Index = () => {
           loading="eager"
           fetchPriority="high"
         />
-        {/* Soft overlay for text readability */}
-        <div className="absolute inset-0 bg-gradient-to-b from-black/10 via-transparent to-black/30" />
+        {/* Gradient overlays */}
+        <div className="absolute inset-0 bg-gradient-to-r from-background/80 via-background/30 to-transparent hidden md:block" />
+        <div className="absolute inset-0 bg-gradient-to-b from-black/10 via-transparent to-black/30 md:hidden" />
 
+        {/* Desktop: left-aligned content */}
+        <motion.div
+          initial={{ opacity: 0, x: -40 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.8, delay: 0.2, ease: "easeOut" }}
+          className="absolute inset-0 hidden md:flex items-center px-16 lg:px-24"
+        >
+          <div className="max-w-md">
+            <motion.span
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.4 }}
+              className="inline-block text-xs font-semibold tracking-[0.2em] uppercase text-foreground/80 border border-foreground/30 px-5 py-1.5 mb-5"
+            >
+              Maquiagem & Cosméticos
+            </motion.span>
+
+            <motion.h1
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.5 }}
+              className="text-5xl lg:text-7xl font-bold leading-[0.9] text-foreground mb-8 tracking-tight"
+            >
+              ELLE<br />MAKE
+            </motion.h1>
+
+            <motion.div
+              initial={{ opacity: 0, y: 15 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.8 }}
+            >
+              <Button asChild className="bg-primary text-primary-foreground hover:bg-primary/90 min-h-[44px] px-8 rounded-sm font-semibold tracking-[0.15em] uppercase text-xs shadow-lg relative overflow-hidden group">
+                <Link to="/explorar">
+                  <span className="relative z-10">Aproveite!</span>
+                  <span className="absolute inset-0 bg-gradient-to-r from-transparent via-primary-foreground/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700" />
+                </Link>
+              </Button>
+            </motion.div>
+          </div>
+        </motion.div>
+
+        {/* Mobile: centered content */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.2, ease: "easeOut" }}
-          className="absolute inset-0 flex flex-col items-center justify-center text-center px-6"
+          className="absolute inset-0 flex flex-col items-center justify-center text-center px-6 md:hidden"
         >
-          {/* Category label */}
           <motion.span
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.4 }}
-            className="inline-block text-[11px] md:text-xs font-semibold tracking-[0.2em] uppercase text-white/90 border border-white/40 px-4 py-1.5 rounded-sm mb-4 backdrop-blur-sm"
+            className="inline-block text-[11px] font-semibold tracking-[0.2em] uppercase text-white/90 border border-white/40 px-4 py-1.5 rounded-sm mb-4 backdrop-blur-sm"
           >
             Maquiagem & Cosméticos
           </motion.span>
 
-          {/* Large product name */}
           <motion.h1
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.6, delay: 0.5 }}
-            className="text-4xl md:text-6xl lg:text-7xl font-bold leading-none text-white mb-6 tracking-tight"
+            className="text-4xl font-bold leading-none text-white mb-6 tracking-tight"
             style={{ textShadow: '0 2px 30px rgba(0,0,0,0.3)' }}
           >
             ELLE<br />MAKE
           </motion.h1>
 
-          {/* CTA Button */}
           <motion.div
             initial={{ opacity: 0, y: 15 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.8 }}
           >
-            <Button asChild className="bg-primary text-primary-foreground hover:bg-primary/90 min-h-[44px] px-8 rounded-sm font-semibold tracking-wider uppercase text-xs shadow-lg relative overflow-hidden group">
-              <Link to="/explorar">
-                <span className="relative z-10">Aproveite!</span>
-                <span className="absolute inset-0 bg-gradient-to-r from-transparent via-primary-foreground/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700" />
-              </Link>
+            <Button asChild className="bg-primary text-primary-foreground hover:bg-primary/90 min-h-[44px] px-8 rounded-sm font-semibold tracking-wider uppercase text-xs shadow-lg">
+              <Link to="/explorar">Aproveite!</Link>
             </Button>
           </motion.div>
-
-          {/* Dot indicators */}
-          <div className="flex gap-2 mt-6">
-            <span className="w-2 h-2 rounded-full bg-white/50" />
-            <span className="w-2 h-2 rounded-full bg-white/50" />
-            <span className="w-2 h-2 rounded-full bg-white" />
-          </div>
         </motion.div>
+
+        {/* Side arrows (desktop) */}
+        <button className="hidden md:flex absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-card/80 backdrop-blur-sm items-center justify-center shadow-lg hover:bg-card transition-colors z-10">
+          <ChevronLeft className="w-5 h-5 text-foreground" />
+        </button>
+        <button className="hidden md:flex absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-card/80 backdrop-blur-sm items-center justify-center shadow-lg hover:bg-card transition-colors z-10">
+          <ChevronRight className="w-5 h-5 text-foreground" />
+        </button>
+
+        {/* Dot indicators */}
+        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2 z-10">
+          <span className="w-2 h-2 rounded-full bg-foreground/30" />
+          <span className="w-2 h-2 rounded-full bg-foreground/30" />
+          <span className="w-2.5 h-2.5 rounded-full bg-foreground" />
+        </div>
       </section>
 
       {/* Benefits bar — removed individual whileInView, single container animation */}
