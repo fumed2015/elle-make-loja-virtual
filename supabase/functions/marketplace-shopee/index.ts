@@ -34,14 +34,14 @@ function getPartnerKey(): string {
   return key;
 }
 
-function generateSign(path: string, timestamp: number, accessToken?: string, shopId?: number): string {
+async function generateSign(path: string, timestamp: number, accessToken?: string, shopId?: number): Promise<string> {
   const partnerId = getPartnerId();
   const partnerKey = getPartnerKey();
   let baseString = `${partnerId}${path}${timestamp}`;
   if (accessToken && shopId) {
     baseString += `${accessToken}${shopId}`;
   }
-  return hmac("sha256", partnerKey, baseString, "utf8", "hex") as string;
+  return await hmacSHA256(partnerKey, baseString);
 }
 
 async function getToken(sb: ReturnType<typeof supabaseAdmin>) {
