@@ -33,7 +33,7 @@ serve(async (req) => {
       }
     }
 
-    const { action, product_id, product_ids, force_all } = await req.json();
+    const { action, product_id, product_ids, force_all, product_name, brand, barcode, ref_code } = await req.json();
 
     // Action: generate - Generate content for a single product
     if (action === "generate") {
