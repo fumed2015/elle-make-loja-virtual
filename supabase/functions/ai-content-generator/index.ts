@@ -33,7 +33,7 @@ serve(async (req) => {
       }
     }
 
-    const { action, product_id, product_ids, force_all, product_name, brand, barcode, ref_code } = await req.json();
+    const { action, product_id, product_ids, force_all, product_name, brand, barcode, ref_code, offset = 0, chunk_size = 3 } = await req.json();
 
     // Action: generate - Generate content for a single product
     if (action === "generate") {
@@ -239,18 +239,21 @@ Gere EXATAMENTE o seguinte conteúdo usando a function tool:
       }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
-    // Action: bulk-complete - Generate descriptions + images for all products
+    // Action: bulk-complete - Generate descriptions + images for all products (chunked)
     if (action === "bulk-complete") {
+      const limit = Math.min(chunk_size, 5);
+      const limit = Math.min(chunk_size, 5);
+
       let query = supabase
         .from("products")
         .select("id, name, brand, slug, price, tags, ingredients, description, sensorial_description, how_to_use, images, categories(name)")
         .eq("is_active", true);
 
       if (!force_all) {
-        query = query.or("description.is.null,description.eq.,images.eq.{}");
+        query = query.or("description.is.null,description.eq.,images.is.null");
       }
 
-      const { data: products, error } = await query.order("name");
+      const { data: products, error } = await query.order("name").range(offset, offset + limit - 1);
       if (error) throw error;
       if (!products || products.length === 0) {
         return new Response(JSON.stringify({ message: "Todos os produtos já estão completos!", updated: 0 }), {
@@ -399,16 +402,20 @@ Gere: description (150-250 palavras, sensorial, SEO), sensorial_description (2-3
         }
       }
 
+      const hasMore = products.length === limit;
       return new Response(JSON.stringify({
         message: `Processados ${results.length} produtos`,
         results,
         updated: results.filter(r => r.status === "updated").length,
+        has_more: hasMore,
+        next_offset: offset + limit,
       }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
     // Action: bulk-seo - Auto-optimize products missing content (text only)
     if (action === "bulk-seo") {
       const targetIds = product_ids as string[] | undefined;
+      const seoLimit = Math.min(chunk_size, 10);
       
       let query = supabase
         .from("products")
@@ -419,13 +426,12 @@ Gere: description (150-250 palavras, sensorial, SEO), sensorial_description (2-3
         query = query.in("id", targetIds);
       } else if (!force_all) {
         query = query.or("description.is.null,description.eq.,sensorial_description.is.null,how_to_use.is.null");
-        query = query.limit(10);
       }
 
-      const { data: products, error } = await query;
+      const { data: products, error } = await query.order("name").range(offset, offset + seoLimit - 1);
       if (error) throw error;
       if (!products || products.length === 0) {
-        return new Response(JSON.stringify({ message: "Todos os produtos já possuem descrições!", updated: 0 }), {
+        return new Response(JSON.stringify({ message: "Todos os produtos já possuem descrições!", updated: 0, has_more: false }), {
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
@@ -518,10 +524,13 @@ Gere: description (150-250 palavras, sensorial, SEO), sensorial_description (2-3
         }
       }
 
+      const seoHasMore = products.length === seoLimit;
       return new Response(JSON.stringify({
         message: `Processados ${results.length} produtos`,
         results,
         updated: results.filter(r => r.status === "updated").length,
+        has_more: seoHasMore,
+        next_offset: offset + seoLimit,
       }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
