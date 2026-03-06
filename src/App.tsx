@@ -4,7 +4,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { ThemeProvider } from "@/hooks/useTheme";
-import { lazy, Suspense, forwardRef } from "react";
+import { lazy, Suspense } from "react";
 import { ScrollToTop } from "@/components/ScrollToTop";
 
 import AppLayout from "@/components/layout/AppLayout";
@@ -39,7 +39,7 @@ const PageLoader = () => (
 );
 
 
-const App = forwardRef<HTMLDivElement>((_props, _ref) => (
+const App = () => (
   <QueryClientProvider client={queryClient}>
     <ThemeProvider>
       <TooltipProvider>
@@ -78,8 +78,6 @@ const App = forwardRef<HTMLDivElement>((_props, _ref) => (
       </TooltipProvider>
     </ThemeProvider>
   </QueryClientProvider>
-));
-
-App.displayName = "App";
+);
 
 export default App;
