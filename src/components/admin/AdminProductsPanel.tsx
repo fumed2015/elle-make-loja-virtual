@@ -720,8 +720,7 @@ const AdminProductsPanel = () => {
             {bulkGenerating ? "Processando em lotes — não feche esta página." : `✅ ${bulkProgress.done} produtos atualizados com sucesso!`}
           </p>
         </motion.div>
-      )
-      </div>
+      )}
 
       {/* Search & Filters */}
       <div className="space-y-2">
