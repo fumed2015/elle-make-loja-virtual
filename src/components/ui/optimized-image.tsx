@@ -58,7 +58,7 @@ const OptimizedImage = ({
       {/* Actual image - only render src when in viewport */}
       {inView && (
         <picture>
-          {src.match(/\.(jpe?g|png)$/i) && (
+          {src.match(/\.(jpe?g|png)$/i) && !src.includes('supabase.co') && (
             <source
               srcSet={src.replace(/\.(jpe?g|png)$/i, '.webp')}
               type="image/webp"
@@ -70,6 +70,7 @@ const OptimizedImage = ({
             loading="lazy"
             decoding="async"
             onLoad={() => setLoaded(true)}
+            onError={() => setLoaded(true)}
             className={cn(
               "w-full h-full object-cover transition-opacity duration-500",
               loaded ? "opacity-100" : "opacity-0"
