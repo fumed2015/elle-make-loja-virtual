@@ -377,7 +377,8 @@ const AdminProductsPanel = () => {
       const { data, error } = await supabase.functions.invoke("ai-content-generator", {
         body: { action: "generate-reviews", product_id: productId },
       });
-      if (error) throw error;
+      if (error) throw new Error(data?.error || error.message);
+      if (data?.error) throw new Error(data.error);
       toast.success(data?.message || "Reviews geradas!");
     } catch (e: any) {
       toast.error(e.message || "Erro ao gerar reviews");
