@@ -1013,9 +1013,15 @@ const AuditDashboard = ({ products, costMap, premises, orders, commissions, frei
               size="sm"
               variant={editingCosts ? "default" : "outline"}
               className="h-6 text-[9px] gap-1 px-2"
-              onClick={() => setEditingCosts(!editingCosts)}
+              disabled={editingCosts && savePremises.isPending}
+              onClick={() => {
+                if (editingCosts && premisesForm) {
+                  savePremises.mutate();
+                }
+                setEditingCosts(!editingCosts);
+              }}
             >
-              {editingCosts ? <CheckCircle className="w-3 h-3" /> : <Pencil className="w-3 h-3" />}
+              {editingCosts ? (savePremises.isPending ? <Loader2 className="w-3 h-3 animate-spin" /> : <CheckCircle className="w-3 h-3" />) : <Pencil className="w-3 h-3" />}
               {editingCosts ? "Concluir" : "Editar"}
             </Button>
           </div>
