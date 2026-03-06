@@ -6,6 +6,7 @@ interface OptimizedImageProps extends React.ImgHTMLAttributes<HTMLImageElement> 
   alt: string;
   aspectRatio?: string;
   placeholderColor?: string;
+  priority?: boolean; // skip lazy loading for above-the-fold images
 }
 
 const OptimizedImage = ({
@@ -14,13 +15,15 @@ const OptimizedImage = ({
   className,
   aspectRatio = "1/1",
   placeholderColor,
+  priority = false,
   ...props
 }: OptimizedImageProps) => {
   const [loaded, setLoaded] = useState(false);
-  const [inView, setInView] = useState(false);
+  const [inView, setInView] = useState(priority);
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    if (priority) return;
     const el = ref.current;
     if (!el) return;
 
@@ -31,12 +34,12 @@ const OptimizedImage = ({
           observer.disconnect();
         }
       },
-      { rootMargin: "200px" }
+      { rootMargin: "600px" }
     );
 
     observer.observe(el);
     return () => observer.disconnect();
-  }, []);
+  }, [priority]);
 
   return (
     <div
@@ -45,39 +48,31 @@ const OptimizedImage = ({
       style={{ aspectRatio }}
     >
       {/* Shimmer placeholder */}
-      <div
-        className={cn(
-          "absolute inset-0 transition-opacity duration-500",
-          loaded ? "opacity-0" : "opacity-100"
-        )}
-        style={{ backgroundColor: placeholderColor }}
-      >
-        <div className="w-full h-full bg-gradient-to-r from-muted via-muted-foreground/5 to-muted animate-pulse" />
-      </div>
+      {!loaded && (
+        <div
+          className="absolute inset-0"
+          style={{ backgroundColor: placeholderColor }}
+        >
+          <div className="w-full h-full bg-gradient-to-r from-muted via-muted-foreground/5 to-muted animate-pulse" />
+        </div>
+      )}
 
-      {/* Actual image - only render src when in viewport */}
+      {/* Actual image */}
       {inView && (
-        <picture>
-          {src.match(/\.(jpe?g|png)$/i) && !src.includes('supabase.co') && (
-            <source
-              srcSet={src.replace(/\.(jpe?g|png)$/i, '.webp')}
-              type="image/webp"
-            />
+        <img
+          src={src}
+          alt={alt}
+          loading={priority ? "eager" : "lazy"}
+          decoding="async"
+          fetchPriority={priority ? "high" : "auto"}
+          onLoad={() => setLoaded(true)}
+          onError={() => setLoaded(true)}
+          className={cn(
+            "w-full h-full object-cover transition-opacity duration-300",
+            loaded ? "opacity-100" : "opacity-0"
           )}
-          <img
-            src={src}
-            alt={alt}
-            loading="lazy"
-            decoding="async"
-            onLoad={() => setLoaded(true)}
-            onError={() => setLoaded(true)}
-            className={cn(
-              "w-full h-full object-cover transition-opacity duration-500",
-              loaded ? "opacity-100" : "opacity-0"
-            )}
-            {...props}
-          />
-        </picture>
+          {...props}
+        />
       )}
     </div>
   );
