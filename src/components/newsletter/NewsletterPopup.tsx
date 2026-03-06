@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { X, Sparkles, Loader2 } from "lucide-react";
+import { X, Sparkles, Loader2, Copy, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { supabase } from "@/integrations/supabase/client";
@@ -8,12 +8,14 @@ import { toast } from "sonner";
 
 const STORAGE_KEY = "ellemake_newsletter_dismissed";
 const POPUP_DELAY_MS = 8000;
+const COUPON_CODE = "BELEM10";
 
 const NewsletterPopup = () => {
   const [visible, setVisible] = useState(false);
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
+  const [copied, setCopied] = useState(false);
 
   useEffect(() => {
     try {
@@ -26,6 +28,17 @@ const NewsletterPopup = () => {
   const handleDismiss = () => {
     setVisible(false);
     try { localStorage.setItem(STORAGE_KEY, Date.now().toString()); } catch {}
+  };
+
+  const handleCopyCoupon = async () => {
+    try {
+      await navigator.clipboard.writeText(COUPON_CODE);
+      setCopied(true);
+      toast.success("Cupom copiado!");
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      toast.info(`Use o cupom: ${COUPON_CODE}`);
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -42,11 +55,10 @@ const NewsletterPopup = () => {
         if (error.code === "23505") toast.info("Você já está cadastrado! 💕");
         else throw error;
       } else {
-        toast.success("Cadastro realizado! Você receberá nossas novidades 🎉");
+        toast.success("Cadastro realizado com sucesso! 🎉");
       }
       setSuccess(true);
       try { localStorage.setItem(STORAGE_KEY, Date.now().toString()); } catch {}
-      setTimeout(() => setVisible(false), 2500);
     } catch {
       toast.error("Erro ao cadastrar. Tente novamente.");
     } finally {
@@ -67,7 +79,7 @@ const NewsletterPopup = () => {
             className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50"
           />
 
-          {/* Popup — true center on all screens */}
+          {/* Popup — true center */}
           <motion.div
             initial={{ opacity: 0, scale: 0.85, y: 30 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
@@ -103,15 +115,47 @@ const NewsletterPopup = () => {
                   <motion.div
                     initial={{ opacity: 0, scale: 0.9 }}
                     animate={{ opacity: 1, scale: 1 }}
-                    className="py-6"
+                    className="py-4"
                   >
-                    <div className="text-4xl mb-3">💕</div>
-                    <p className="text-lg font-bold text-foreground" style={{ fontFamily: '"Playfair Display", serif' }}>
-                      Obrigada!
+                    <div className="text-4xl mb-3">🎉</div>
+                    <p
+                      className="text-xl font-bold text-foreground mb-1"
+                      style={{ fontFamily: '"Playfair Display", serif' }}
+                    >
+                      Você ganhou 10% OFF!
                     </p>
-                    <p className="text-sm text-muted-foreground mt-1">
-                      Fique de olho no seu e-mail
+                    <p className="text-sm text-muted-foreground mb-5">
+                      Use o cupom abaixo na sua próxima compra:
                     </p>
+
+                    {/* Coupon code display */}
+                    <button
+                      onClick={handleCopyCoupon}
+                      className="mx-auto flex items-center gap-2 px-6 py-3 rounded-xl border-2 border-dashed border-primary/40 bg-primary/5 hover:bg-primary/10 transition-colors group"
+                    >
+                      <span
+                        className="text-2xl font-black tracking-[0.15em] text-primary"
+                        style={{ fontFamily: 'Montserrat, sans-serif' }}
+                      >
+                        {COUPON_CODE}
+                      </span>
+                      {copied ? (
+                        <Check className="w-5 h-5 text-green-600" />
+                      ) : (
+                        <Copy className="w-4 h-4 text-primary/60 group-hover:text-primary transition-colors" />
+                      )}
+                    </button>
+
+                    <p className="text-[11px] text-muted-foreground/60 mt-4">
+                      Válido para sua primeira compra • Toque para copiar
+                    </p>
+
+                    <Button
+                      onClick={handleDismiss}
+                      className="mt-5 w-full bg-primary text-primary-foreground hover:bg-primary/90 min-h-[48px] rounded-xl font-semibold text-sm"
+                    >
+                      Começar a Comprar ✨
+                    </Button>
                   </motion.div>
                 ) : (
                   <>
@@ -137,10 +181,10 @@ const NewsletterPopup = () => {
                       10% OFF
                     </h2>
                     <p className="text-base font-medium text-foreground/80 mb-1">
-                      na sua primeira compra
+                      na sua primeira compra!
                     </p>
-                    <p className="text-xs text-muted-foreground mb-6 max-w-[260px] mx-auto leading-relaxed">
-                      Cadastre-se e receba ofertas exclusivas, lançamentos e dicas de beleza.
+                    <p className="text-xs text-muted-foreground mb-6 max-w-[280px] mx-auto leading-relaxed">
+                      Cadastre seu e-mail e ganhe um cupom exclusivo de desconto. Além disso, receba novidades, ofertas e dicas de beleza em primeira mão! 💄
                     </p>
 
                     {/* Form */}
@@ -162,7 +206,7 @@ const NewsletterPopup = () => {
                         {loading ? (
                           <Loader2 className="w-4 h-4 animate-spin" />
                         ) : (
-                          "QUERO MEU DESCONTO ✨"
+                          "QUERO MEU CUPOM DE 10% 🎁"
                         )}
                       </Button>
                     </form>
