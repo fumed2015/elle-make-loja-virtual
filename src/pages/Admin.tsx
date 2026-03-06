@@ -39,6 +39,7 @@ import InfluencersTab from "@/components/admin/InfluencersTab";
 import SEOReportTab from "@/components/admin/SEOReportTab";
 import AIContentTab from "@/components/admin/AIContentTab";
 import { LeadsTab, BirthdaysTab } from "@/components/admin/LeadsBirthdaysTab";
+import NewsletterTab from "@/components/admin/NewsletterTab";
 
 const Admin = () => {
   const navigate = useNavigate();
@@ -122,6 +123,7 @@ const Admin = () => {
       case "influencers": return <InfluencersTab />;
       case "categories": return <CategoriesTab />;
       case "leads": return <LeadsTab />;
+      case "newsletter": return <NewsletterTab />;
       case "birthdays": return <BirthdaysTab />;
       case "seo": return <SEOReportTab />;
       case "pixels": return <TrackingPixelsTab />;
