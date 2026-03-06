@@ -1239,7 +1239,9 @@ const AuditDashboard = ({ products, costMap, premises, orders, commissions, frei
               </div>
             </div>
           ))}
-        </div>
+      </div>
+      </motion.div>
+
       {/* Audit History */}
       {auditLog && auditLog.length > 0 && (
         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}
