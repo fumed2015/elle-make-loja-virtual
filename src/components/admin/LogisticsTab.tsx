@@ -19,6 +19,30 @@ const LogisticsTab = () => {
   const [statusFilter, setStatusFilter] = useState("all");
   const [updatingId, setUpdatingId] = useState<string | null>(null);
   const [editingNotes, setEditingNotes] = useState<Record<string, string>>({});
+  const [localFee, setLocalFee] = useState<number>(15);
+  const [savingFee, setSavingFee] = useState(false);
+
+  // Fetch local shipping fee
+  const { data: premises } = useQuery({
+    queryKey: ["premises-shipping-fee"],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("financial_premises").select("local_shipping_fee").limit(1).single();
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  useState(() => {
+    if (premises?.local_shipping_fee != null) setLocalFee(Number(premises.local_shipping_fee));
+  });
+
+  const handleSaveFee = async () => {
+    setSavingFee(true);
+    const { error } = await supabase.from("financial_premises").update({ local_shipping_fee: localFee } as any).eq("id", (await supabase.from("financial_premises").select("id").limit(1).single()).data?.id!);
+    if (error) toast.error(error.message);
+    else { toast.success("Taxa de entrega local atualizada!"); queryClient.invalidateQueries({ queryKey: ["premises-shipping-fee"] }); }
+    setSavingFee(false);
+  };
 
   const { data: returns, refetch: refetchReturns } = useQuery({
     queryKey: ["admin-returns"],

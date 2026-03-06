@@ -171,7 +171,7 @@ export const useShipping = () => {
     } catch (err: any) {
       setState((s) => ({ ...s, loading: false, error: err.message || "Erro ao calcular frete" }));
     }
-  }, [state.cep]);
+  }, [state.cep, localFee]);
 
   const selectedShipping = state.options.find((o) => o.id === state.selectedOption) || null;
 
