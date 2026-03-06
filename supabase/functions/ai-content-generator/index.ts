@@ -415,6 +415,7 @@ Gere: description (150-250 palavras, sensorial, SEO), sensorial_description (2-3
     // Action: bulk-seo - Auto-optimize products missing content (text only)
     if (action === "bulk-seo") {
       const targetIds = product_ids as string[] | undefined;
+      const seoLimit = Math.min(chunk_size, 10);
       
       let query = supabase
         .from("products")
@@ -425,13 +426,12 @@ Gere: description (150-250 palavras, sensorial, SEO), sensorial_description (2-3
         query = query.in("id", targetIds);
       } else if (!force_all) {
         query = query.or("description.is.null,description.eq.,sensorial_description.is.null,how_to_use.is.null");
-        query = query.limit(10);
       }
 
-      const { data: products, error } = await query;
+      const { data: products, error } = await query.order("name").range(offset, offset + seoLimit - 1);
       if (error) throw error;
       if (!products || products.length === 0) {
-        return new Response(JSON.stringify({ message: "Todos os produtos já possuem descrições!", updated: 0 }), {
+        return new Response(JSON.stringify({ message: "Todos os produtos já possuem descrições!", updated: 0, has_more: false }), {
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
