@@ -1068,6 +1068,36 @@ export type Database = {
           },
         ]
       }
+      premises_audit_log: {
+        Row: {
+          changed_fields: Json
+          created_at: string
+          id: string
+          new_values: Json
+          old_values: Json
+          user_email: string | null
+          user_id: string
+        }
+        Insert: {
+          changed_fields?: Json
+          created_at?: string
+          id?: string
+          new_values?: Json
+          old_values?: Json
+          user_email?: string | null
+          user_id: string
+        }
+        Update: {
+          changed_fields?: Json
+          created_at?: string
+          id?: string
+          new_values?: Json
+          old_values?: Json
+          user_email?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       product_costs: {
         Row: {
           cost_base: number

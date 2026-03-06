@@ -85,6 +85,32 @@ const DEFAULT_PREMISES: Omit<FinancialPremises, "id"> = {
 const fmt = (v: number) => `R$ ${v.toFixed(2).replace(".", ",")}`;
 const fmtPct = (v: number) => `${v.toFixed(1)}%`;
 
+const FIELD_LABELS: Record<string, string> = {
+  packaging_cost: "Embalagem",
+  gateway_rate_credit: "Taxa Crédito (%)",
+  gateway_rate_credit_fixed: "Taxa Crédito Fixa (R$)",
+  gateway_rate_pix: "Taxa Pix (%)",
+  gateway_rate_debit: "Taxa Débito (%)",
+  gateway_rate_physical: "Taxa Presencial (%)",
+  influencer_commission_rate: "Comissão Influenciadoras (%)",
+  desired_margin: "Margem Desejada (%)",
+  marketing_budget: "Orçamento Marketing",
+  order_target: "Meta de Pedidos",
+  fixed_cost_platform: "Custo Plataforma",
+  fixed_cost_platform_label: "Nome Plataforma",
+  fixed_cost_whatsgw: "Custo WhatsGW",
+  fixed_cost_whatsgw_label: "Nome WhatsGW",
+  fixed_cost_other: "Custo Outros",
+  fixed_cost_extra1: "Custo Extra 1",
+  fixed_cost_extra2: "Custo Extra 2",
+  fixed_cost_extra3: "Custo Extra 3",
+  fixed_cost_extra1_label: "Nome Extra 1",
+  fixed_cost_extra2_label: "Nome Extra 2",
+  fixed_cost_extra3_label: "Nome Extra 3",
+  freight_batch_total: "Frete Lote Total",
+  freight_batch_items: "Itens no Lote",
+};
+
 const getGatewayRate = (premises: FinancialPremises, method: string | null): { pct: number; fixed: number } => {
   switch (method) {
     case "pix": return { pct: Number(premises.gateway_rate_pix), fixed: 0 };
@@ -203,6 +229,19 @@ const FinanceiroTab = () => {
     },
   });
 
+  const { data: auditLog } = useQuery({
+    queryKey: ["premises-audit-log"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("premises_audit_log")
+        .select("*")
+        .order("created_at", { ascending: false })
+        .limit(50);
+      if (error) throw error;
+      return data as any[];
+    },
+  });
+
   // ── Premises form state ──
   const [premisesForm, setPremisesForm] = useState<Partial<FinancialPremises> | null>(null);
   const activePremises = premisesForm || premises;
@@ -221,11 +260,39 @@ const FinanceiroTab = () => {
     mutationFn: async () => {
       if (!premisesForm || !premises?.id) return;
       const { id, ...updates } = premisesForm as FinancialPremises;
+
+      // Detect changed fields for audit log
+      const changedFields: string[] = [];
+      const oldValues: Record<string, any> = {};
+      const newValues: Record<string, any> = {};
+      for (const key of Object.keys(updates) as Array<keyof typeof updates>) {
+        const oldVal = (premises as any)[key];
+        const newVal = (updates as any)[key];
+        if (oldVal !== undefined && String(oldVal) !== String(newVal)) {
+          changedFields.push(key);
+          oldValues[key] = oldVal;
+          newValues[key] = newVal;
+        }
+      }
+
       const { error } = await supabase.from("financial_premises").update(updates as any).eq("id", premises.id);
       if (error) throw error;
+
+      // Log audit entry if there were changes
+      if (changedFields.length > 0) {
+        const { data: { user } } = await supabase.auth.getUser();
+        await supabase.from("premises_audit_log").insert({
+          user_id: user?.id || "",
+          user_email: user?.email || "desconhecido",
+          changed_fields: changedFields,
+          old_values: oldValues,
+          new_values: newValues,
+        } as any);
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["financial-premises"] });
+      queryClient.invalidateQueries({ queryKey: ["premises-audit-log"] });
       setPremisesForm(null);
       toast.success("Premissas salvas!");
     },
@@ -388,7 +455,7 @@ const FinanceiroTab = () => {
 
         {/* ══════════════════ AUDIT DASHBOARD TAB ══════════════════ */}
         <TabsContent value="audit" className="space-y-4 mt-4">
-          <AuditDashboard products={products} costMap={costMap} premises={p as FinancialPremises} orders={orders} commissions={commissions} freightPerUnit={freightPerUnit} cacUnitario={cacUnitario} totalFixedCosts={totalFixedCosts} calcAtPrice={calcAtPrice} activePremises={activePremises} updatePremisesField={updatePremisesField} savePremises={savePremises} premisesForm={premisesForm} />
+          <AuditDashboard products={products} costMap={costMap} premises={p as FinancialPremises} orders={orders} commissions={commissions} freightPerUnit={freightPerUnit} cacUnitario={cacUnitario} totalFixedCosts={totalFixedCosts} calcAtPrice={calcAtPrice} activePremises={activePremises} updatePremisesField={updatePremisesField} savePremises={savePremises} premisesForm={premisesForm} auditLog={auditLog} />
         </TabsContent>
 
         {/* ══════════════════ CMV TAB ══════════════════ */}
@@ -836,7 +903,7 @@ const FinanceiroTab = () => {
 };
 
 // ── Audit Dashboard Component ──
-const AuditDashboard = ({ products, costMap, premises, orders, commissions, freightPerUnit, cacUnitario, totalFixedCosts, calcAtPrice, activePremises, updatePremisesField, savePremises, premisesForm }: {
+const AuditDashboard = ({ products, costMap, premises, orders, commissions, freightPerUnit, cacUnitario, totalFixedCosts, calcAtPrice, activePremises, updatePremisesField, savePremises, premisesForm, auditLog }: {
   products: any[] | undefined;
   costMap: Record<string, ProductCost>;
   premises: FinancialPremises;
@@ -850,6 +917,7 @@ const AuditDashboard = ({ products, costMap, premises, orders, commissions, frei
   updatePremisesField: (field: keyof FinancialPremises, value: string) => void;
   savePremises: { mutate: () => void; isPending: boolean };
   premisesForm: Partial<FinancialPremises> | null;
+  auditLog: any[] | undefined;
 }) => {
   const [editingCosts, setEditingCosts] = useState(false);
   const audit = useMemo(() => {
@@ -1197,8 +1265,50 @@ const AuditDashboard = ({ products, costMap, premises, orders, commissions, frei
               </div>
             </div>
           ))}
-        </div>
+      </div>
       </motion.div>
+
+      {/* Audit History */}
+      {auditLog && auditLog.length > 0 && (
+        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}
+          className="bg-card rounded-xl p-4 border border-border space-y-3">
+          <h3 className="text-xs font-bold flex items-center gap-2">
+            📝 Histórico de Alterações
+            <Badge variant="secondary" className="text-[8px]">{auditLog.length}</Badge>
+          </h3>
+          <div className="space-y-2 max-h-[350px] overflow-y-auto">
+            {auditLog.map((entry) => {
+              const changedFields = (entry.changed_fields as string[]) || [];
+              const oldVals = entry.old_values as Record<string, any>;
+              const newVals = entry.new_values as Record<string, any>;
+              const date = new Date(entry.created_at);
+              const timeStr = date.toLocaleDateString("pt-BR") + " " + date.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
+
+              return (
+                <div key={entry.id} className="bg-muted rounded-lg p-3 space-y-1.5">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[10px] font-medium">{entry.user_email || "Admin"}</span>
+                    <span className="text-[9px] text-muted-foreground">{timeStr}</span>
+                  </div>
+                  <div className="space-y-0.5">
+                    {changedFields.map((field: string) => {
+                      const label = FIELD_LABELS[field] || field;
+                      return (
+                        <div key={field} className="flex items-center gap-1.5 text-[9px]">
+                          <span className="text-muted-foreground">{label}:</span>
+                          <span className="line-through text-destructive/70">{String(oldVals[field] ?? "—")}</span>
+                          <span>→</span>
+                          <span className="font-medium text-accent">{String(newVals[field] ?? "—")}</span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </motion.div>
+      )}
     </div>
   );
 };
