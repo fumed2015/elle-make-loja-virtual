@@ -440,11 +440,23 @@ const MarketplacesTab = () => {
 
                           <Button
                             className="w-full text-xs gap-1.5"
+                            disabled={saveConfigMutation.isPending}
                             onClick={() => {
-                              toast.success(`Configurações do ${mp.name} salvas!`);
+                              saveConfigMutation.mutate(
+                                { mpId: mp.id, config },
+                                {
+                                  onSuccess: () => toast.success(`Configurações do ${mp.name} salvas!`),
+                                  onError: (err: any) => toast.error("Erro ao salvar: " + err.message),
+                                }
+                              );
                             }}
                           >
-                            <Settings2 className="w-3.5 h-3.5" /> Salvar Configurações
+                            {saveConfigMutation.isPending ? (
+                              <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                            ) : (
+                              <Settings2 className="w-3.5 h-3.5" />
+                            )}
+                            Salvar Configurações
                           </Button>
                         </TabsContent>
 
