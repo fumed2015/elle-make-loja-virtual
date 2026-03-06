@@ -293,7 +293,7 @@ const MarketplacesTab = () => {
       <div className="space-y-3">
         {MARKETPLACES.map((mp, i) => {
           const config = configs[mp.id];
-          const metrics = mockMetrics[mp.id];
+          const status = mpStatus[mp.id];
           const isSelected = selectedMp === mp.id;
 
           return (
