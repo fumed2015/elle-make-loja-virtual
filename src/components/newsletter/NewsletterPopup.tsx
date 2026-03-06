@@ -8,7 +8,33 @@ import { toast } from "sonner";
 
 const STORAGE_KEY = "ellemake_newsletter_dismissed";
 const POPUP_DELAY_MS = 8000;
-const COUPON_CODE = "BELEM10";
+
+interface PopupConfig {
+  headline: string;
+  subtitle: string;
+  description: string;
+  couponCode: string;
+  discountText: string;
+  buttonText: string;
+}
+
+const DEFAULTS: PopupConfig = {
+  headline: "10% OFF",
+  subtitle: "na sua primeira compra!",
+  description: "Cadastre seu e-mail e ganhe um cupom exclusivo de desconto. Além disso, receba novidades, ofertas e dicas de beleza em primeira mão! 💄",
+  couponCode: "BELEM10",
+  discountText: "10%",
+  buttonText: "QUERO MEU CUPOM DE 10% 🎁",
+};
+
+const KEY_MAP: Record<string, keyof PopupConfig> = {
+  newsletter_popup_headline: "headline",
+  newsletter_popup_subtitle: "subtitle",
+  newsletter_popup_description: "description",
+  newsletter_popup_coupon_code: "couponCode",
+  newsletter_popup_discount_text: "discountText",
+  newsletter_popup_button_text: "buttonText",
+};
 
 const NewsletterPopup = () => {
   const [visible, setVisible] = useState(false);
@@ -16,24 +42,35 @@ const NewsletterPopup = () => {
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [config, setConfig] = useState<PopupConfig>(DEFAULTS);
 
   useEffect(() => {
     try {
       if (localStorage.getItem(STORAGE_KEY)) return;
     } catch {}
 
-    // Check if popup is enabled in site_settings
     const checkAndShow = async () => {
       try {
         const { data } = await supabase
           .from("site_settings" as any)
-          .select("value")
-          .eq("key", "newsletter_popup_enabled")
-          .single();
-        if ((data as any)?.value === false) return;
-      } catch {
-        // If query fails, show popup by default
-      }
+          .select("key, value")
+          .in("key", ["newsletter_popup_enabled", ...Object.keys(KEY_MAP)]);
+
+        const rows = data as any[] | null;
+        if (rows) {
+          const enabledRow = rows.find((r: any) => r.key === "newsletter_popup_enabled");
+          if (enabledRow?.value === false) return;
+
+          const newConfig = { ...DEFAULTS };
+          rows.forEach((r: any) => {
+            const field = KEY_MAP[r.key];
+            if (field && r.value) {
+              newConfig[field] = typeof r.value === "string" ? r.value : String(r.value);
+            }
+          });
+          setConfig(newConfig);
+        }
+      } catch {}
       setTimeout(() => setVisible(true), POPUP_DELAY_MS);
     };
 
@@ -47,12 +84,12 @@ const NewsletterPopup = () => {
 
   const handleCopyCoupon = async () => {
     try {
-      await navigator.clipboard.writeText(COUPON_CODE);
+      await navigator.clipboard.writeText(config.couponCode);
       setCopied(true);
       toast.success("Cupom copiado!");
       setTimeout(() => setCopied(false), 2000);
     } catch {
-      toast.info(`Use o cupom: ${COUPON_CODE}`);
+      toast.info(`Use o cupom: ${config.couponCode}`);
     }
   };
 
@@ -85,7 +122,6 @@ const NewsletterPopup = () => {
     <AnimatePresence>
       {visible && (
         <>
-          {/* Backdrop */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -94,7 +130,6 @@ const NewsletterPopup = () => {
             className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50"
           />
 
-          {/* Popup — true center */}
           <motion.div
             initial={{ opacity: 0, scale: 0.85, y: 30 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
@@ -109,13 +144,11 @@ const NewsletterPopup = () => {
                 border: '1px solid hsl(var(--border))',
               }}
             >
-              {/* Decorative marsala accent strip */}
               <div
                 className="absolute top-0 left-0 right-0 h-1.5"
                 style={{ background: 'linear-gradient(90deg, hsl(var(--primary)), hsl(var(--primary) / 0.4), hsl(var(--primary)))' }}
               />
 
-              {/* Close button */}
               <button
                 onClick={handleDismiss}
                 className="absolute top-4 right-4 w-8 h-8 rounded-full bg-muted/60 backdrop-blur-sm flex items-center justify-center hover:bg-muted transition-colors z-10"
@@ -124,7 +157,6 @@ const NewsletterPopup = () => {
                 <X className="w-4 h-4 text-muted-foreground" />
               </button>
 
-              {/* Content area */}
               <div className="px-7 pt-10 pb-7 text-center">
                 {success ? (
                   <motion.div
@@ -137,13 +169,12 @@ const NewsletterPopup = () => {
                       className="text-xl font-bold text-foreground mb-1"
                       style={{ fontFamily: '"Playfair Display", serif' }}
                     >
-                      Você ganhou 10% OFF!
+                      Você ganhou {config.discountText} OFF!
                     </p>
                     <p className="text-sm text-muted-foreground mb-5">
                       Use o cupom abaixo na sua próxima compra:
                     </p>
 
-                    {/* Coupon code display */}
                     <button
                       onClick={handleCopyCoupon}
                       className="mx-auto flex items-center gap-2 px-6 py-3 rounded-xl border-2 border-dashed border-primary/40 bg-primary/5 hover:bg-primary/10 transition-colors group"
@@ -152,7 +183,7 @@ const NewsletterPopup = () => {
                         className="text-2xl font-black tracking-[0.15em] text-primary"
                         style={{ fontFamily: 'Montserrat, sans-serif' }}
                       >
-                        {COUPON_CODE}
+                        {config.couponCode}
                       </span>
                       {copied ? (
                         <Check className="w-5 h-5 text-green-600" />
@@ -174,7 +205,6 @@ const NewsletterPopup = () => {
                   </motion.div>
                 ) : (
                   <>
-                    {/* Icon */}
                     <motion.div
                       initial={{ rotate: -10, scale: 0 }}
                       animate={{ rotate: 0, scale: 1 }}
@@ -188,21 +218,19 @@ const NewsletterPopup = () => {
                       <Sparkles className="w-7 h-7 text-primary" />
                     </motion.div>
 
-                    {/* Headline */}
                     <h2
                       className="text-3xl font-bold text-foreground mb-1"
                       style={{ fontFamily: '"Playfair Display", Didot, Georgia, serif' }}
                     >
-                      10% OFF
+                      {config.headline}
                     </h2>
                     <p className="text-base font-medium text-foreground/80 mb-1">
-                      na sua primeira compra!
+                      {config.subtitle}
                     </p>
                     <p className="text-xs text-muted-foreground mb-6 max-w-[280px] mx-auto leading-relaxed">
-                      Cadastre seu e-mail e ganhe um cupom exclusivo de desconto. Além disso, receba novidades, ofertas e dicas de beleza em primeira mão! 💄
+                      {config.description}
                     </p>
 
-                    {/* Form */}
                     <form onSubmit={handleSubmit} className="space-y-3">
                       <Input
                         type="email"
@@ -221,7 +249,7 @@ const NewsletterPopup = () => {
                         {loading ? (
                           <Loader2 className="w-4 h-4 animate-spin" />
                         ) : (
-                          "QUERO MEU CUPOM DE 10% 🎁"
+                          config.buttonText
                         )}
                       </Button>
                     </form>

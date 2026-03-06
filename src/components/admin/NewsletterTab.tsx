@@ -1,12 +1,13 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Mail, Download, Search } from "lucide-react";
+import { Mail, Download, Search, Save } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { format } from "date-fns";
@@ -16,6 +17,54 @@ import { toast } from "sonner";
 const NewsletterTab = () => {
   const [search, setSearch] = useState("");
   const queryClient = useQueryClient();
+
+  // Popup customization fields
+  const popupFields = [
+    { key: "newsletter_popup_headline", label: "Título principal", placeholder: "10% OFF" },
+    { key: "newsletter_popup_subtitle", label: "Subtítulo", placeholder: "na sua primeira compra!" },
+    { key: "newsletter_popup_description", label: "Descrição", placeholder: "Cadastre seu e-mail...", textarea: true },
+    { key: "newsletter_popup_coupon_code", label: "Código do cupom", placeholder: "BELEM10" },
+    { key: "newsletter_popup_discount_text", label: "Texto do desconto (exibido após cadastro)", placeholder: "10%" },
+    { key: "newsletter_popup_button_text", label: "Texto do botão", placeholder: "QUERO MEU CUPOM DE 10% 🎁" },
+  ];
+
+  const { data: popupSettings, isLoading: settingsLoading } = useQuery({
+    queryKey: ["popup-settings"],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("site_settings" as any)
+        .select("key, value")
+        .in("key", popupFields.map((f) => f.key));
+      const map: Record<string, string> = {};
+      (data as any[])?.forEach((row: any) => {
+        map[row.key] = typeof row.value === "string" ? row.value : JSON.stringify(row.value);
+      });
+      return map;
+    },
+  });
+
+  const [editedSettings, setEditedSettings] = useState<Record<string, string>>({});
+  const currentSettings = { ...popupSettings, ...editedSettings };
+
+  const saveSettingsMutation = useMutation({
+    mutationFn: async () => {
+      const entries = Object.entries(editedSettings);
+      if (!entries.length) return;
+      for (const [key, value] of entries) {
+        const { error } = await supabase
+          .from("site_settings" as any)
+          .update({ value: JSON.parse(JSON.stringify(value)), updated_at: new Date().toISOString() } as any)
+          .eq("key", key);
+        if (error) throw error;
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["popup-settings"] });
+      setEditedSettings({});
+      toast.success("Configurações do pop-up salvas!");
+    },
+    onError: () => toast.error("Erro ao salvar configurações"),
+  });
 
   // Popup toggle
   const { data: popupEnabled, isLoading: toggleLoading } = useQuery({
@@ -109,6 +158,42 @@ const NewsletterTab = () => {
             disabled={toggleLoading || toggleMutation.isPending}
             onCheckedChange={(checked) => toggleMutation.mutate(checked)}
           />
+        </CardContent>
+      </Card>
+
+      {/* Popup customization */}
+      <Card>
+        <CardHeader className="pb-3">
+          <CardTitle className="text-sm font-semibold text-foreground">Personalizar Pop-up</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {popupFields.map((field) => (
+            <div key={field.key} className="space-y-1.5">
+              <Label className="text-xs text-muted-foreground">{field.label}</Label>
+              {field.textarea ? (
+                <Textarea
+                  value={currentSettings[field.key] ?? ""}
+                  onChange={(e) => setEditedSettings((prev) => ({ ...prev, [field.key]: e.target.value }))}
+                  placeholder={field.placeholder}
+                  rows={3}
+                />
+              ) : (
+                <Input
+                  value={currentSettings[field.key] ?? ""}
+                  onChange={(e) => setEditedSettings((prev) => ({ ...prev, [field.key]: e.target.value }))}
+                  placeholder={field.placeholder}
+                />
+              )}
+            </div>
+          ))}
+          <Button
+            onClick={() => saveSettingsMutation.mutate()}
+            disabled={!Object.keys(editedSettings).length || saveSettingsMutation.isPending}
+            size="sm"
+            className="gap-2"
+          >
+            <Save className="w-4 h-4" /> Salvar Configurações
+          </Button>
         </CardContent>
       </Card>
 
