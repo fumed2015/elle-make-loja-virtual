@@ -52,7 +52,7 @@ const Footer = () => {
       </section>
 
       {/* Footer */}
-      <footer className="bg-primary [--primary-foreground:0_0%_100%] text-primary-foreground/70 px-4 pt-10 pb-24 md:pb-10">
+      <footer className="bg-primary [--primary-foreground:0_0%_100%] text-primary-foreground px-4 pt-10 pb-24 md:pb-10 font-bold">
         <div className="max-w-5xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-8">
           {/* Brand */}
           <div className="space-y-3">
