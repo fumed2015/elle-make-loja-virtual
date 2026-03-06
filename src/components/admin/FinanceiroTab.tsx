@@ -85,6 +85,32 @@ const DEFAULT_PREMISES: Omit<FinancialPremises, "id"> = {
 const fmt = (v: number) => `R$ ${v.toFixed(2).replace(".", ",")}`;
 const fmtPct = (v: number) => `${v.toFixed(1)}%`;
 
+const FIELD_LABELS: Record<string, string> = {
+  packaging_cost: "Embalagem",
+  gateway_rate_credit: "Taxa Crédito (%)",
+  gateway_rate_credit_fixed: "Taxa Crédito Fixa (R$)",
+  gateway_rate_pix: "Taxa Pix (%)",
+  gateway_rate_debit: "Taxa Débito (%)",
+  gateway_rate_physical: "Taxa Presencial (%)",
+  influencer_commission_rate: "Comissão Influenciadoras (%)",
+  desired_margin: "Margem Desejada (%)",
+  marketing_budget: "Orçamento Marketing",
+  order_target: "Meta de Pedidos",
+  fixed_cost_platform: "Custo Plataforma",
+  fixed_cost_platform_label: "Nome Plataforma",
+  fixed_cost_whatsgw: "Custo WhatsGW",
+  fixed_cost_whatsgw_label: "Nome WhatsGW",
+  fixed_cost_other: "Custo Outros",
+  fixed_cost_extra1: "Custo Extra 1",
+  fixed_cost_extra2: "Custo Extra 2",
+  fixed_cost_extra3: "Custo Extra 3",
+  fixed_cost_extra1_label: "Nome Extra 1",
+  fixed_cost_extra2_label: "Nome Extra 2",
+  fixed_cost_extra3_label: "Nome Extra 3",
+  freight_batch_total: "Frete Lote Total",
+  freight_batch_items: "Itens no Lote",
+};
+
 const getGatewayRate = (premises: FinancialPremises, method: string | null): { pct: number; fixed: number } => {
   switch (method) {
     case "pix": return { pct: Number(premises.gateway_rate_pix), fixed: 0 };
