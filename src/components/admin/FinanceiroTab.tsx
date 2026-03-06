@@ -687,12 +687,16 @@ const FinanceiroTab = () => {
             </div>
             <div className="bg-muted rounded-lg p-3 space-y-1">
               <div className="flex justify-between items-center">
-                <span className="text-xs text-muted-foreground">CAC Unitário (Fixos + Marketing / Pedidos)</span>
-                <span className="text-sm font-bold text-primary">{fmt(cacUnitario)}</span>
+                <span className="text-xs text-muted-foreground">CAC por Pedido (Fixos + Marketing / Pedidos)</span>
+                <span className="text-sm font-bold text-primary">{fmt(cacPorPedido)}</span>
               </div>
               <p className="text-[9px] text-muted-foreground">
                 ({fmt(totalFixedCosts)} + {fmt(Number(activePremises?.marketing_budget || 0))}) ÷ {activePremises?.order_target || 1} pedidos
               </p>
+              <div className="flex justify-between items-center mt-1">
+                <span className="text-xs text-muted-foreground">CAC como % do preço (ticket médio R$30)</span>
+                <span className="text-sm font-bold text-primary">{(cacRate * 100).toFixed(2)}%</span>
+              </div>
             </div>
           </div>
 
