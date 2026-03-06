@@ -349,19 +349,37 @@ const MarketplacesTab = () => {
 
                         {/* Overview */}
                         <TabsContent value="overview" className="space-y-3 mt-3">
-                          <div className="grid grid-cols-4 gap-2">
-                            {[
-                              { label: "Listagens", value: metrics.listings, icon: Package },
-                              { label: "Pedidos", value: metrics.orders, icon: ShoppingCart },
-                              { label: "Receita", value: `R$ ${metrics.revenue.toFixed(0)}`, icon: DollarSign },
-                              { label: "Visualizações", value: metrics.views, icon: Eye },
-                            ].map((s) => (
-                              <div key={s.label} className="bg-muted rounded-lg p-2 text-center">
-                                <s.icon className="w-3.5 h-3.5 mx-auto mb-1 text-muted-foreground" />
-                                <p className="text-sm font-bold">{s.value}</p>
-                                <p className="text-[8px] text-muted-foreground">{s.label}</p>
+                          {/* Connection status & actions */}
+                          <div className="bg-muted rounded-lg p-3 space-y-2">
+                            <div className="flex items-center justify-between">
+                              <p className="text-[10px] font-bold text-muted-foreground uppercase">Status da Conexão</p>
+                              <div className="flex gap-1.5">
+                                <Button size="sm" variant="outline" className="text-[10px] h-7 gap-1" disabled={checkingStatus === mp.id} onClick={() => handleCheckStatus(mp.id)}>
+                                  {checkingStatus === mp.id ? <Loader2 className="w-3 h-3 animate-spin" /> : <Search className="w-3 h-3" />} Verificar
+                                </Button>
                               </div>
-                            ))}
+                            </div>
+                            {status && (
+                              <div className="flex items-center gap-2 text-xs">
+                                {status.connected ? (
+                                  <><CheckCircle className="w-3.5 h-3.5 text-accent" /><span className="text-accent font-medium">Conectado</span></>
+                                ) : (
+                                  <><AlertTriangle className="w-3.5 h-3.5 text-destructive" /><span className="text-destructive font-medium">Não conectado</span></>
+                                )}
+                                {status.seller_id && <span className="text-muted-foreground">• Seller: {status.seller_id}</span>}
+                                {status.shop_id && <span className="text-muted-foreground">• Shop: {status.shop_id}</span>}
+                              </div>
+                            )}
+                          </div>
+
+                          {/* Action buttons */}
+                          <div className="grid grid-cols-2 gap-2">
+                            <Button size="sm" variant="outline" className="text-[10px] h-8 gap-1" disabled={syncingMp === mp.id} onClick={() => handleSyncProducts(mp.id)}>
+                              {syncingMp === mp.id ? <Loader2 className="w-3 h-3 animate-spin" /> : <RefreshCw className="w-3 h-3" />} Sincronizar Produtos
+                            </Button>
+                            <Button size="sm" variant="outline" className="text-[10px] h-8 gap-1" disabled={syncingMp === mp.id} onClick={() => handleImportOrders(mp.id)}>
+                              {syncingMp === mp.id ? <Loader2 className="w-3 h-3 animate-spin" /> : <ShoppingCart className="w-3 h-3" />} Importar Pedidos
+                            </Button>
                           </div>
 
                           {/* Features */}
