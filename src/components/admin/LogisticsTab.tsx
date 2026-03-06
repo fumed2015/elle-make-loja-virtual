@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAllOrders } from "@/hooks/useOrders";
@@ -32,9 +32,9 @@ const LogisticsTab = () => {
     },
   });
 
-  useState(() => {
+  useEffect(() => {
     if (premises?.local_shipping_fee != null) setLocalFee(Number(premises.local_shipping_fee));
-  });
+  }, [premises]);
 
   const handleSaveFee = async () => {
     setSavingFee(true);
