@@ -72,6 +72,33 @@ const Index = () => {
     staleTime: 1000 * 60 * 5,
   });
 
+  // Fetch best-selling product IDs from orders
+  const { data: bestSellerIds } = useQuery({
+    queryKey: ["best-seller-ids"],
+    queryFn: async () => {
+      const { data: orders } = await supabase
+        .from("orders")
+        .select("items")
+        .not("status", "in", '("cancelled","refunded")');
+      if (!orders) return [];
+      // Count sales per product_id
+      const counts: Record<string, number> = {};
+      for (const order of orders) {
+        const items = order.items as any[];
+        if (!Array.isArray(items)) continue;
+        for (const item of items) {
+          const pid = item.product_id;
+          if (pid) counts[pid] = (counts[pid] || 0) + (item.quantity || 1);
+        }
+      }
+      // Sort by count descending
+      return Object.entries(counts)
+        .sort((a, b) => b[1] - a[1])
+        .map(([id]) => id);
+    },
+    staleTime: 1000 * 60 * 10,
+  });
+
   // Helper: get curated products for a section, respecting order
   const getCuratedProducts = (sectionKey: string, fallbackFn: () => typeof allProducts) => {
     const config = sectionConfigs?.find((c) => c.position === sectionKey);
@@ -83,20 +110,48 @@ const Index = () => {
     return fallbackFn();
   };
 
+  // Novidades: curated > best sellers > featured > newest
   const featured = useMemo(() => getCuratedProducts(
     "novidades",
-    () => allProducts?.filter(p => p.is_featured).slice(0, 5) || []
-  ), [allProducts, sectionConfigs]);
+    () => {
+      if (!allProducts?.length) return [];
+      // Try best sellers first
+      if (bestSellerIds?.length) {
+        const bestSellers = bestSellerIds
+          .map(id => allProducts.find(p => p.id === id))
+          .filter(Boolean)
+          .slice(0, 5);
+        if (bestSellers.length >= 3) return bestSellers;
+      }
+      // Fallback: featured products, then newest
+      const feat = allProducts.filter(p => p.is_featured);
+      return feat.length > 0 ? feat.slice(0, 5) : allProducts.slice(0, 5);
+    }
+  ), [allProducts, sectionConfigs, bestSellerIds]);
 
+  // Super Ofertas: curated > products with discount > random selection
   const offers = useMemo(() => getCuratedProducts(
     "super_ofertas",
-    () => allProducts?.filter(p => p.compare_at_price && p.compare_at_price > p.price).slice(0, 5) || []
+    () => {
+      if (!allProducts?.length) return [];
+      const withDiscount = allProducts.filter(p => p.compare_at_price && p.compare_at_price > p.price);
+      if (withDiscount.length > 0) return withDiscount.slice(0, 5);
+      // Fallback: cheapest products as "ofertas"
+      const sorted = [...allProducts].sort((a, b) => a.price - b.price);
+      return sorted.slice(0, 5);
+    }
   ), [allProducts, sectionConfigs]);
 
+  // Mais Produtos: curated > remaining products
   const moreProducts = useMemo(() => getCuratedProducts(
     "mais_produtos",
-    () => allProducts?.filter(p => !p.is_featured).slice(0, 10) || []
-  ), [allProducts, sectionConfigs]);
+    () => {
+      if (!allProducts?.length) return [];
+      const usedIds = new Set([...featured, ...offers].map((p: any) => p?.id).filter(Boolean));
+      const remaining = allProducts.filter(p => !usedIds.has(p.id));
+      return remaining.length > 0 ? remaining.slice(0, 10) : allProducts.slice(0, 10);
+    }
+  ), [allProducts, sectionConfigs, featured, offers]);
 
   useEffect(() => {
     // Immediate scroll
