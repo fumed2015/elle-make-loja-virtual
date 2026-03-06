@@ -242,7 +242,6 @@ Gere EXATAMENTE o seguinte conteúdo usando a function tool:
     // Action: bulk-complete - Generate descriptions + images for all products (chunked)
     if (action === "bulk-complete") {
       const limit = Math.min(chunk_size, 5);
-      const limit = Math.min(chunk_size, 5);
 
       let query = supabase
         .from("products")
