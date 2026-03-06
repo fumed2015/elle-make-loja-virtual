@@ -1,7 +1,8 @@
-import { Instagram, MapPin, Phone, Mail, Clock, Truck, ShieldCheck, CreditCard, Gift } from "lucide-react";
+import { Instagram, MapPin, Phone, Mail, Clock, Truck, ShieldCheck, CreditCard, Gift, Lock, Globe, Award } from "lucide-react";
 import WhatsAppIcon from "@/components/icons/WhatsAppIcon";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+import mercadopagoSelos from "@/assets/mercadopago-selos.png";
 
 const Footer = () => {
   return (
@@ -30,7 +31,7 @@ const Footer = () => {
 
       {/* WhatsApp CTA */}
       <section className="bg-gradient-whatsapp px-4 py-10 text-center">
-        <div className="max-w-md mx-auto space-y-4">
+        <div className="max-md mx-auto space-y-4">
           <WhatsAppIcon className="w-10 h-10 text-accent-foreground mx-auto" />
           <h2 className="text-xl font-bold text-accent-foreground">
             Precisa de ajuda? Fale com a gente!
@@ -137,8 +138,40 @@ const Footer = () => {
           </div>
         </div>
 
+        {/* Security Badges + Payment */}
+        <div className="max-w-5xl mx-auto mt-8 pt-6 border-t border-background/10">
+          <div className="flex flex-col md:flex-row items-center justify-between gap-6">
+            {/* Security seals */}
+            <div className="flex items-center gap-5">
+              {[
+                { icon: ShieldCheck, label: "Site Protegido" },
+                { icon: Lock, label: "Transações Seguras" },
+                { icon: Globe, label: "Certificado SSL" },
+              ].map((seal) => (
+                <div key={seal.label} className="flex flex-col items-center gap-1.5">
+                  <div className="w-11 h-11 rounded-full bg-accent/20 flex items-center justify-center">
+                    <seal.icon className="w-5 h-5 text-accent" />
+                  </div>
+                  <span className="text-[9px] font-semibold text-background/60 text-center leading-tight">{seal.label}</span>
+                </div>
+              ))}
+            </div>
+
+            {/* Mercado Pago seals */}
+            <div className="flex flex-col items-center gap-1.5">
+              <img
+                src={mercadopagoSelos}
+                alt="Selos Mercado Pago - Compra Garantida, Visa, MasterCard, American Express, Boleto"
+                className="h-14 md:h-16 w-auto object-contain"
+                loading="lazy"
+              />
+              <span className="text-[9px] text-background/40">Pagamentos processados pelo Mercado Pago</span>
+            </div>
+          </div>
+        </div>
+
         {/* Bottom bar */}
-        <div className="max-w-5xl mx-auto mt-8 pt-5 border-t border-background/10 flex flex-col md:flex-row items-center justify-between gap-3">
+        <div className="max-w-5xl mx-auto mt-5 pt-5 border-t border-background/10 flex flex-col md:flex-row items-center justify-between gap-3">
           <p className="text-[10px] text-background/40">© 2026 Elle Make. Todos os direitos reservados.</p>
           <div className="flex gap-3 text-[10px] text-background/30">
             <Link to="/privacidade" className="hover:text-background/50 transition-colors">Privacidade</Link>
