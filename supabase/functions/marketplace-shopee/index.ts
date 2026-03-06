@@ -425,7 +425,7 @@ Deno.serve(async (req) => {
           result = await importOrders();
           break;
         case "get_auth_url":
-          result = { url: getAuthUrl() };
+          result = { url: await getAuthUrl() };
           break;
         case "status": {
           const sb = supabaseAdmin();
