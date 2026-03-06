@@ -1,5 +1,5 @@
+import { memo } from "react";
 import { Link } from "react-router-dom";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ShoppingBag, Heart, Eye } from "lucide-react";
 import { useCart } from "@/hooks/useCart";
@@ -15,7 +15,7 @@ interface ProductCardProps {
   index?: number;
 }
 
-const ProductCard = ({ product, index = 0 }: ProductCardProps) => {
+const ProductCard = memo(({ product, index = 0 }: ProductCardProps) => {
   const navigate = useNavigate();
   const hasDiscount = product.compare_at_price && product.compare_at_price > product.price;
   const discountPercent = hasDiscount
@@ -156,6 +156,8 @@ const ProductCard = ({ product, index = 0 }: ProductCardProps) => {
       </motion.div>
     </Link>
   );
-};
+});
+
+ProductCard.displayName = "ProductCard";
 
 export default ProductCard;
