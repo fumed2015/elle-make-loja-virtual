@@ -203,6 +203,19 @@ const FinanceiroTab = () => {
     },
   });
 
+  const { data: auditLog } = useQuery({
+    queryKey: ["premises-audit-log"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("premises_audit_log")
+        .select("*")
+        .order("created_at", { ascending: false })
+        .limit(50);
+      if (error) throw error;
+      return data as any[];
+    },
+  });
+
   // ── Premises form state ──
   const [premisesForm, setPremisesForm] = useState<Partial<FinancialPremises> | null>(null);
   const activePremises = premisesForm || premises;
