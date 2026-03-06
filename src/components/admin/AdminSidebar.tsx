@@ -152,7 +152,7 @@ export function AdminSidebar({ activeTab, onTabChange, badges = {} }: AdminSideb
 
       <SidebarContent className="py-2">
         {SIDEBAR_SECTIONS.map((section) => (
-          <SidebarGroup key={section.label} defaultOpen>
+          <SidebarGroup key={section.label}>
             <SidebarGroupLabel className="text-[10px] uppercase tracking-wider text-muted-foreground font-bold px-4 py-1">
               {collapsed ? section.emoji : `${section.emoji} ${section.label}`}
             </SidebarGroupLabel>
