@@ -391,13 +391,12 @@ const FinanceiroTab = () => {
     const packaging = Number(p.packaging_cost);
     const creditFixed = Number(p.gateway_rate_credit_fixed);
     const gatewayRate = Number(p.gateway_rate_credit) / 100;
-    const commissionRate = Number(p.influencer_commission_rate) / 100;
     const desiredMargin = Number(p.desired_margin) / 100;
-    // CAC entra como % do preço (rateado pelo ticket médio de R$30)
-    const divisor = 1 - (gatewayRate + commissionRate + desiredMargin + cacRate);
+    // Comissão NÃO entra no markup — só é cobrada em vendas com cupom de influenciadora
+    const divisor = 1 - (gatewayRate + desiredMargin + cacRate);
     const suggestedPrice = divisor > 0 ? (cmvTotal + packaging + creditFixed) / divisor : 0;
     const cacShare = suggestedPrice * cacRate;
-    const variableCosts = packaging + (suggestedPrice * gatewayRate) + creditFixed + (suggestedPrice * commissionRate);
+    const variableCosts = packaging + (suggestedPrice * gatewayRate) + creditFixed;
     const totalCost = cmvTotal + variableCosts + cacShare;
     const profit = suggestedPrice - totalCost;
     const marginPct = suggestedPrice > 0 ? (profit / suggestedPrice) * 100 : 0;
@@ -411,9 +410,9 @@ const FinanceiroTab = () => {
     const packaging = Number(p.packaging_cost);
     const gatewayRate = Number(p.gateway_rate_credit) / 100;
     const creditFixed = Number(p.gateway_rate_credit_fixed);
-    const commissionRate = Number(p.influencer_commission_rate) / 100;
+    // Comissão só em vendas com cupom — não incluída no custo padrão
     const cacShare = sellingPrice * cacRate;
-    const variableCosts = packaging + (sellingPrice * gatewayRate) + creditFixed + (sellingPrice * commissionRate);
+    const variableCosts = packaging + (sellingPrice * gatewayRate) + creditFixed;
     const totalCost = cmvTotal + variableCosts + cacShare;
     const profit = sellingPrice - totalCost;
     const marginPct = (profit / sellingPrice) * 100;
