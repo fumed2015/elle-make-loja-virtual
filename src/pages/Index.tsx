@@ -277,12 +277,24 @@ const HeroCarousel = () => {
               {slide.title}
             </h1>
 
-            <Button asChild className="bg-primary hover:bg-primary/90 min-h-[48px] px-10 rounded-sm shadow-xl relative overflow-hidden group border-0">
-              <Link to={slide.link}>
-                <span className="relative z-10 font-medium text-sm uppercase tracking-[0.1em]" style={{ color: '#FAF3E8', fontFamily: 'Montserrat, sans-serif' }}>{slide.cta}</span>
-                <span className="absolute inset-0 bg-gradient-to-r from-transparent via-primary-foreground/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700" />
-              </Link>
-            </Button>
+            <div className="flex gap-3">
+              <Button asChild className="bg-primary hover:bg-primary/90 min-h-[48px] px-10 rounded-sm shadow-xl relative overflow-hidden group border-0">
+                <Link to={slide.link}>
+                  <span className="relative z-10 font-medium text-sm uppercase tracking-[0.1em]" style={{ color: '#FAF3E8', fontFamily: 'Montserrat, sans-serif' }}>{slide.cta}</span>
+                  <span className="absolute inset-0 bg-gradient-to-r from-transparent via-primary-foreground/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700" />
+                </Link>
+              </Button>
+              <a
+                href="https://wa.me/5591983045531?text=Ol%C3%A1!%20Vim%20pelo%20site%20e%20gostaria%20de%20comprar!"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="min-h-[48px] px-6 rounded-sm shadow-xl flex items-center gap-2 transition-colors hover:brightness-110"
+                style={{ backgroundColor: '#25D366', color: '#fff', fontFamily: 'Montserrat, sans-serif' }}
+              >
+                <WhatsAppIcon className="w-5 h-5" />
+                <span className="font-medium text-sm uppercase tracking-[0.05em]">WhatsApp</span>
+              </a>
+            </div>
           </div>
         </motion.div>
       </AnimatePresence>
@@ -322,11 +334,23 @@ const HeroCarousel = () => {
             {slide.title}
           </h1>
 
-          <Button asChild className="bg-primary hover:bg-primary/90 min-h-[44px] px-8 rounded-sm shadow-lg border-0">
-            <Link to={slide.link}>
-              <span className="font-medium text-xs uppercase tracking-[0.1em]" style={{ color: '#FAF3E8', fontFamily: 'Montserrat, sans-serif' }}>{slide.cta}</span>
-            </Link>
-          </Button>
+          <div className="flex flex-col gap-3 items-center">
+            <Button asChild className="bg-primary hover:bg-primary/90 min-h-[44px] px-8 rounded-sm shadow-lg border-0">
+              <Link to={slide.link}>
+                <span className="font-medium text-xs uppercase tracking-[0.1em]" style={{ color: '#FAF3E8', fontFamily: 'Montserrat, sans-serif' }}>{slide.cta}</span>
+              </Link>
+            </Button>
+            <a
+              href="https://wa.me/5591983045531?text=Ol%C3%A1!%20Vim%20pelo%20site%20e%20gostaria%20de%20comprar!"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="min-h-[40px] px-6 rounded-sm shadow-lg flex items-center gap-2"
+              style={{ backgroundColor: '#25D366', color: '#fff', fontFamily: 'Montserrat, sans-serif' }}
+            >
+              <WhatsAppIcon className="w-4 h-4" />
+              <span className="font-medium text-xs uppercase tracking-[0.05em]">Comprar pelo WhatsApp</span>
+            </a>
+          </div>
         </motion.div>
       </AnimatePresence>
 
