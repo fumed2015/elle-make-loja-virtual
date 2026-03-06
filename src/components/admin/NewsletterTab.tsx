@@ -197,6 +197,7 @@ const NewsletterTab = () => {
         </CardContent>
       </Card>
 
+      <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
         <Card>
           <CardHeader className="pb-2"><CardTitle className="text-xs text-muted-foreground">Total</CardTitle></CardHeader>
           <CardContent><p className="text-2xl font-bold text-foreground">{subscribers?.length || 0}</p></CardContent>
