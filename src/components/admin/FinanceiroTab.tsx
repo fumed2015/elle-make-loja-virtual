@@ -388,7 +388,7 @@ const FinanceiroTab = () => {
 
         {/* ══════════════════ AUDIT DASHBOARD TAB ══════════════════ */}
         <TabsContent value="audit" className="space-y-4 mt-4">
-          <AuditDashboard products={products} costMap={costMap} premises={p as FinancialPremises} orders={orders} commissions={commissions} freightPerUnit={freightPerUnit} cacUnitario={cacUnitario} totalFixedCosts={totalFixedCosts} calcAtPrice={calcAtPrice} />
+          <AuditDashboard products={products} costMap={costMap} premises={p as FinancialPremises} orders={orders} commissions={commissions} freightPerUnit={freightPerUnit} cacUnitario={cacUnitario} totalFixedCosts={totalFixedCosts} calcAtPrice={calcAtPrice} activePremises={activePremises} updatePremisesField={updatePremisesField} savePremises={savePremises} premisesForm={premisesForm} />
         </TabsContent>
 
         {/* ══════════════════ CMV TAB ══════════════════ */}
