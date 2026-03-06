@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Plus, Box, Search, Pencil, Trash2, Eye, EyeOff, Wand2, Loader2, Star, ChevronDown, ChevronUp, ImageIcon, X, Save, ArrowLeft, MessageSquare } from "lucide-react";
+import { Plus, Box, Search, Pencil, Trash2, Eye, EyeOff, Wand2, Loader2, Star, ChevronDown, ChevronUp, ImageIcon, X, Save, ArrowLeft, MessageSquare, Sparkles, Image as ImageLucide } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -98,6 +98,8 @@ const AdminProductsPanel = () => {
   const [filterStatus, setFilterStatus] = useState("all");
   const [generatingId, setGeneratingId] = useState<string | null>(null);
   const [generatingReviewsId, setGeneratingReviewsId] = useState<string | null>(null);
+  const [generatingImageId, setGeneratingImageId] = useState<string | null>(null);
+  const [bulkGenerating, setBulkGenerating] = useState<string | null>(null); // "seo" | "complete" | null
   const [expandedId, setExpandedId] = useState<string | null>(null);
 
   // Filter products
