@@ -536,8 +536,8 @@ const MarketplacesTab = () => {
                         <TabsContent value="products" className="space-y-3 mt-3">
                           <div className="flex items-center justify-between">
                             <p className="text-xs font-semibold">{totalProducts} produtos disponíveis</p>
-                            <Button size="sm" variant="outline" className="text-[10px] h-7 gap-1">
-                              <RefreshCw className="w-3 h-3" /> Sincronizar Todos
+                            <Button size="sm" variant="outline" className="text-[10px] h-7 gap-1" disabled={syncingMp === mp.id} onClick={() => handleSyncProducts(mp.id)}>
+                              {syncingMp === mp.id ? <Loader2 className="w-3 h-3 animate-spin" /> : <RefreshCw className="w-3 h-3" />} Sincronizar Todos
                             </Button>
                           </div>
 
