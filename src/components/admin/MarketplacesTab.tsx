@@ -201,16 +201,63 @@ const MarketplacesTab = () => {
     },
   });
 
+  // ── Check connection status ──
+  const handleCheckStatus = async (mpId: MarketplaceId) => {
+    const mp = MARKETPLACES.find(m => m.id === mpId);
+    if (!mp) return;
+    setCheckingStatus(mpId);
+    try {
+      const { data, error } = await supabase.functions.invoke(mp.edgeFunction, {
+        body: { action: "status" },
+      });
+      if (error) throw error;
+      setMpStatus(prev => ({ ...prev, [mpId]: data }));
+      toast.success(`${mp.name}: ${data?.connected ? "Conectado ✓" : "Não conectado"}`);
+    } catch (e: any) {
+      toast.error(`Erro ao verificar ${mp.name}: ${e.message}`);
+    } finally {
+      setCheckingStatus(null);
+    }
+  };
+
+  // ── Sync products to marketplace ──
+  const handleSyncProducts = async (mpId: MarketplaceId) => {
+    const mp = MARKETPLACES.find(m => m.id === mpId);
+    if (!mp) return;
+    setSyncingMp(mpId);
+    try {
+      const { data, error } = await supabase.functions.invoke(mp.edgeFunction, {
+        body: { action: "sync_products" },
+      });
+      if (error) throw error;
+      toast.success(`${mp.name}: ${data?.processed || 0} sincronizados, ${data?.failed || 0} falhas`);
+    } catch (e: any) {
+      toast.error(`Erro ao sincronizar ${mp.name}: ${e.message}`);
+    } finally {
+      setSyncingMp(null);
+    }
+  };
+
+  // ── Import orders from marketplace ──
+  const handleImportOrders = async (mpId: MarketplaceId) => {
+    const mp = MARKETPLACES.find(m => m.id === mpId);
+    if (!mp) return;
+    setSyncingMp(mpId);
+    try {
+      const { data, error } = await supabase.functions.invoke(mp.edgeFunction, {
+        body: { action: "import_orders" },
+      });
+      if (error) throw error;
+      toast.success(`${mp.name}: ${data?.processed || 0} pedidos importados`);
+    } catch (e: any) {
+      toast.error(`Erro ao importar pedidos ${mp.name}: ${e.message}`);
+    } finally {
+      setSyncingMp(null);
+    }
+  };
+
   const totalProducts = products?.length || 0;
   const activeMarketplaces = Object.values(configs).filter((c) => c.enabled).length;
-
-  // ── Mock metrics for demo ──
-  const mockMetrics: Record<MarketplaceId, { listings: number; orders: number; revenue: number; views: number }> = {
-    mercadolivre: { listings: 0, orders: 0, revenue: 0, views: 0 },
-    amazon: { listings: 0, orders: 0, revenue: 0, views: 0 },
-    shopee: { listings: 0, orders: 0, revenue: 0, views: 0 },
-    tiktokshop: { listings: 0, orders: 0, revenue: 0, views: 0 },
-  };
 
   return (
     <div className="space-y-6">
