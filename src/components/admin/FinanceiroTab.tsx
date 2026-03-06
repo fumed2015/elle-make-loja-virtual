@@ -836,7 +836,7 @@ const FinanceiroTab = () => {
 };
 
 // ── Audit Dashboard Component ──
-const AuditDashboard = ({ products, costMap, premises, orders, commissions, freightPerUnit, cacUnitario, totalFixedCosts, calcAtPrice }: {
+const AuditDashboard = ({ products, costMap, premises, orders, commissions, freightPerUnit, cacUnitario, totalFixedCosts, calcAtPrice, activePremises, updatePremisesField, savePremises, premisesForm }: {
   products: any[] | undefined;
   costMap: Record<string, ProductCost>;
   premises: FinancialPremises;
@@ -846,7 +846,12 @@ const AuditDashboard = ({ products, costMap, premises, orders, commissions, frei
   cacUnitario: number;
   totalFixedCosts: number;
   calcAtPrice: (price: number, costBase: number, freight: number) => { totalCost: number; profit: number; marginPct: number; contributionMargin: number };
+  activePremises: Partial<FinancialPremises> | undefined;
+  updatePremisesField: (field: keyof FinancialPremises, value: string) => void;
+  savePremises: { mutate: () => void; isPending: boolean };
+  premisesForm: Partial<FinancialPremises> | null;
 }) => {
+  const [editingCosts, setEditingCosts] = useState(false);
   const audit = useMemo(() => {
     if (!products || !premises) return null;
 
