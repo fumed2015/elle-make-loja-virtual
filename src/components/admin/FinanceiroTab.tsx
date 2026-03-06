@@ -1007,15 +1007,129 @@ const AuditDashboard = ({ products, costMap, premises, orders, commissions, frei
         </div>
 
         <div className="bg-muted rounded-lg p-3 space-y-1.5 text-[11px]">
-          <div className="flex justify-between"><span className="text-muted-foreground">Embalagens</span><span>{fmt(audit.packagingTotal)}</span></div>
-          <div className="flex justify-between"><span className="text-muted-foreground">Taxas Gateway</span><span>{fmt(audit.gatewayTotal)}</span></div>
-          <div className="flex justify-between"><span className="text-muted-foreground">Comissões</span><span>{fmt(audit.commTotal)}</span></div>
-          <div className="flex justify-between"><span className="text-muted-foreground">Custos Fixos</span><span>{fmt(totalFixedCosts)}</span></div>
-          <div className="flex justify-between"><span className="text-muted-foreground">Marketing</span><span>{fmt(Number(premises.marketing_budget || 0))}</span></div>
-          <div className="flex justify-between border-t border-border pt-1.5 font-bold">
-            <span>Lucro Líquido</span>
-            <span className={audit.netProfit >= 0 ? "text-accent" : "text-destructive"}>{fmt(audit.netProfit)}</span>
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-[10px] font-bold text-muted-foreground uppercase">Detalhamento de Custos</span>
+            <Button
+              size="sm"
+              variant={editingCosts ? "default" : "outline"}
+              className="h-6 text-[9px] gap-1 px-2"
+              onClick={() => setEditingCosts(!editingCosts)}
+            >
+              {editingCosts ? <CheckCircle className="w-3 h-3" /> : <Pencil className="w-3 h-3" />}
+              {editingCosts ? "Concluir" : "Editar"}
+            </Button>
           </div>
+
+          {editingCosts ? (
+            <div className="space-y-3">
+              {/* Embalagem */}
+              <div className="space-y-1">
+                <Label className="text-[10px]">Custo Embalagem (por pedido)</Label>
+                <Input type="number" step="0.01" className="h-8 text-xs"
+                  value={activePremises?.packaging_cost ?? 0}
+                  onChange={e => updatePremisesField("packaging_cost", e.target.value)} />
+              </div>
+
+              {/* Gateway */}
+              <div className="space-y-1">
+                <Label className="text-[10px] font-semibold">Taxas de Gateway</Label>
+                <div className="grid grid-cols-2 gap-2">
+                  <div className="space-y-0.5">
+                    <Label className="text-[9px] text-muted-foreground">Crédito (%)</Label>
+                    <Input type="number" step="0.01" className="h-7 text-[10px]"
+                      value={activePremises?.gateway_rate_credit ?? 0}
+                      onChange={e => updatePremisesField("gateway_rate_credit", e.target.value)} />
+                  </div>
+                  <div className="space-y-0.5">
+                    <Label className="text-[9px] text-muted-foreground">Crédito Fixa (R$)</Label>
+                    <Input type="number" step="0.01" className="h-7 text-[10px]"
+                      value={activePremises?.gateway_rate_credit_fixed ?? 0}
+                      onChange={e => updatePremisesField("gateway_rate_credit_fixed", e.target.value)} />
+                  </div>
+                  <div className="space-y-0.5">
+                    <Label className="text-[9px] text-muted-foreground">Pix (%)</Label>
+                    <Input type="number" step="0.01" className="h-7 text-[10px]"
+                      value={activePremises?.gateway_rate_pix ?? 0}
+                      onChange={e => updatePremisesField("gateway_rate_pix", e.target.value)} />
+                  </div>
+                  <div className="space-y-0.5">
+                    <Label className="text-[9px] text-muted-foreground">Débito (%)</Label>
+                    <Input type="number" step="0.01" className="h-7 text-[10px]"
+                      value={activePremises?.gateway_rate_debit ?? 0}
+                      onChange={e => updatePremisesField("gateway_rate_debit", e.target.value)} />
+                  </div>
+                </div>
+              </div>
+
+              {/* Comissão */}
+              <div className="space-y-1">
+                <Label className="text-[10px]">Comissão Influenciadoras (%)</Label>
+                <Input type="number" step="0.1" className="h-8 text-xs"
+                  value={activePremises?.influencer_commission_rate ?? 0}
+                  onChange={e => updatePremisesField("influencer_commission_rate", e.target.value)} />
+              </div>
+
+              {/* Custos Fixos */}
+              <div className="space-y-1">
+                <Label className="text-[10px] font-semibold">Custos Fixos Mensais</Label>
+                <div className="grid grid-cols-2 gap-2">
+                  {[
+                    { labelField: "fixed_cost_platform_label" as const, valueField: "fixed_cost_platform" as const, defaultLabel: "Plataforma" },
+                    { labelField: "fixed_cost_whatsgw_label" as const, valueField: "fixed_cost_whatsgw" as const, defaultLabel: "WhatsGW" },
+                    { labelField: "fixed_cost_extra1_label" as const, valueField: "fixed_cost_extra1" as const, defaultLabel: "Extra 1" },
+                    { labelField: "fixed_cost_extra2_label" as const, valueField: "fixed_cost_extra2" as const, defaultLabel: "Extra 2" },
+                    { labelField: "fixed_cost_extra3_label" as const, valueField: "fixed_cost_extra3" as const, defaultLabel: "Extra 3" },
+                    { labelField: "fixed_cost_other_label" as const, valueField: "fixed_cost_other" as const, defaultLabel: "Outros" },
+                  ].map(item => (
+                    <EditableCostRow
+                      key={item.valueField}
+                      label={item.defaultLabel}
+                      labelField={item.labelField}
+                      valueField={item.valueField}
+                      premises={activePremises}
+                      onUpdate={updatePremisesField}
+                    />
+                  ))}
+                </div>
+              </div>
+
+              {/* Marketing */}
+              <div className="space-y-1">
+                <Label className="text-[10px]">Orçamento Marketing Mensal</Label>
+                <Input type="number" step="1" className="h-8 text-xs"
+                  value={activePremises?.marketing_budget ?? 0}
+                  onChange={e => updatePremisesField("marketing_budget", e.target.value)} />
+              </div>
+
+              {/* Margem Desejada */}
+              <div className="space-y-1">
+                <Label className="text-[10px]">Margem Desejada (%)</Label>
+                <Input type="number" step="0.5" className="h-8 text-xs"
+                  value={activePremises?.desired_margin ?? 30}
+                  onChange={e => updatePremisesField("desired_margin", e.target.value)} />
+              </div>
+
+              {premisesForm && (
+                <Button onClick={() => savePremises.mutate()} disabled={savePremises.isPending}
+                  className="w-full h-9 text-xs gap-1.5">
+                  {savePremises.isPending ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5" />}
+                  Salvar Premissas
+                </Button>
+              )}
+            </div>
+          ) : (
+            <>
+              <div className="flex justify-between"><span className="text-muted-foreground">Embalagens</span><span>{fmt(audit.packagingTotal)}</span></div>
+              <div className="flex justify-between"><span className="text-muted-foreground">Taxas Gateway</span><span>{fmt(audit.gatewayTotal)}</span></div>
+              <div className="flex justify-between"><span className="text-muted-foreground">Comissões</span><span>{fmt(audit.commTotal)}</span></div>
+              <div className="flex justify-between"><span className="text-muted-foreground">Custos Fixos</span><span>{fmt(totalFixedCosts)}</span></div>
+              <div className="flex justify-between"><span className="text-muted-foreground">Marketing</span><span>{fmt(Number(premises.marketing_budget || 0))}</span></div>
+              <div className="flex justify-between border-t border-border pt-1.5 font-bold">
+                <span>Lucro Líquido</span>
+                <span className={audit.netProfit >= 0 ? "text-accent" : "text-destructive"}>{fmt(audit.netProfit)}</span>
+              </div>
+            </>
+          )}
         </div>
       </motion.div>
 
