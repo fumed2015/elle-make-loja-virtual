@@ -188,23 +188,10 @@ const heroSlides = [
   },
 ];
 
+// Moved OUTSIDE Index to prevent re-creation on parent re-renders
 const HeroCarousel = () => {
   const [current, setCurrent] = useState(0);
-  const [loadedImages, setLoadedImages] = useState<Set<number>>(new Set([0]));
   const navigate = useNavigate();
-
-  // Preload next slides after first paint
-  useEffect(() => {
-    const timeout = setTimeout(() => {
-      heroSlides.forEach((s, i) => {
-        if (i === 0) return;
-        const img = new Image();
-        img.src = s.image;
-        img.onload = () => setLoadedImages(prev => new Set(prev).add(i));
-      });
-    }, 2000);
-    return () => clearTimeout(timeout);
-  }, []);
 
   useEffect(() => {
     const timer = setInterval(() => setCurrent(c => (c + 1) % heroSlides.length), 15000);
@@ -218,29 +205,30 @@ const HeroCarousel = () => {
 
   return (
     <section className="relative overflow-hidden -mt-[88px] md:-mt-[120px]" style={{ backgroundColor: 'hsl(20 30% 88%)' }}>
-      <AnimatePresence mode="wait">
-        <motion.img
-          key={slide.image}
-          src={slide.image}
-          alt={slide.label}
-          initial={{ opacity: 0, scale: 1.05 }}
-          animate={{ opacity: 1, scale: 1 }}
-          exit={{ opacity: 0 }}
-          transition={{ duration: 0.7 }}
-          className="w-full h-[520px] md:h-[620px] lg:h-[660px] object-cover"
-          style={{ objectPosition: "center" }}
-          loading={current === 0 ? "eager" : "lazy"}
-          fetchPriority={current === 0 ? "high" : "auto"}
-          decoding={current === 0 ? "sync" : "async"}
+      {/* All images stay mounted — toggle opacity instead of AnimatePresence to avoid duplicate loads */}
+      {heroSlides.map((s, i) => (
+        <img
+          key={s.image}
+          src={s.image}
+          alt={s.label}
+          className={`w-full h-[520px] md:h-[620px] lg:h-[660px] object-cover transition-opacity duration-700 ${i === 0 ? '' : 'absolute inset-0'}`}
+          style={{
+            objectPosition: "center",
+            opacity: i === current ? 1 : 0,
+            zIndex: i === current ? 1 : 0,
+          }}
+          loading={i === 0 ? "eager" : "lazy"}
+          fetchPriority={i === 0 ? "high" : "auto"}
+          decoding={i === 0 ? "sync" : "async"}
         />
-      </AnimatePresence>
+      ))}
 
       {/* Gradient overlays */}
-      <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-black/20 to-transparent hidden md:block pointer-events-none" />
-      <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-transparent to-black/40 md:hidden pointer-events-none" />
+      <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-black/20 to-transparent hidden md:block pointer-events-none z-[2]" />
+      <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-transparent to-black/40 md:hidden pointer-events-none z-[2]" />
 
       {/* Clickable banner overlay */}
-      <Link to={slide.link} className="absolute inset-0 z-[1]" aria-label={slide.label} />
+      <Link to={slide.link} className="absolute inset-0 z-[3]" aria-label={slide.label} />
 
       {/* Desktop: left-aligned content */}
       <AnimatePresence mode="wait">
@@ -250,7 +238,7 @@ const HeroCarousel = () => {
           animate={{ opacity: 1, x: 0 }}
           exit={{ opacity: 0, x: 40 }}
           transition={{ duration: 0.6 }}
-          className="absolute inset-0 hidden md:flex items-center px-16 lg:px-24 pt-[100px] z-[2]"
+          className="absolute inset-0 hidden md:flex items-center px-16 lg:px-24 pt-[100px] z-[4]"
         >
           <div className="max-w-lg">
             <span
@@ -308,7 +296,7 @@ const HeroCarousel = () => {
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -20 }}
           transition={{ duration: 0.6 }}
-          className="absolute inset-0 flex flex-col items-center justify-center text-center px-6 pt-[80px] md:hidden z-[2]"
+          className="absolute inset-0 flex flex-col items-center justify-center text-center px-6 pt-[80px] md:hidden z-[4]"
         >
           <span
             className="inline-block text-[11px] font-medium tracking-[0.3em] uppercase px-4 py-2 rounded-md mb-4"
