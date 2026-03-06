@@ -524,10 +524,13 @@ Gere: description (150-250 palavras, sensorial, SEO), sensorial_description (2-3
         }
       }
 
+      const seoHasMore = products.length === seoLimit;
       return new Response(JSON.stringify({
         message: `Processados ${results.length} produtos`,
         results,
         updated: results.filter(r => r.status === "updated").length,
+        has_more: seoHasMore,
+        next_offset: offset + seoLimit,
       }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
