@@ -295,6 +295,7 @@ const HeroCarousel = () => {
                 <span className="font-medium text-sm uppercase tracking-[0.05em]">WhatsApp</span>
               </a>
             </div>
+          </div>
         </motion.div>
       </AnimatePresence>
 
