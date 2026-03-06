@@ -100,6 +100,7 @@ const AdminProductsPanel = () => {
   const [generatingReviewsId, setGeneratingReviewsId] = useState<string | null>(null);
   const [generatingImageId, setGeneratingImageId] = useState<string | null>(null);
   const [bulkGenerating, setBulkGenerating] = useState<string | null>(null); // "seo" | "complete" | null
+  const [bulkProgress, setBulkProgress] = useState<{ done: number; total: number } | null>(null);
   const [expandedId, setExpandedId] = useState<string | null>(null);
 
   // Filter products
@@ -402,6 +403,8 @@ const AdminProductsPanel = () => {
 
   const handleBulkSEO = async (forceAll = false) => {
     setBulkGenerating("seo");
+    const totalProducts = products?.filter(p => forceAll || !p.description)?.length || 0;
+    setBulkProgress({ done: 0, total: totalProducts || 45 });
     let totalUpdated = 0;
     let currentOffset = 0;
     let hasMore = true;
@@ -414,9 +417,10 @@ const AdminProductsPanel = () => {
         totalUpdated += (data?.updated || 0);
         hasMore = data?.has_more === true;
         currentOffset = data?.next_offset || currentOffset + 5;
-        toast.success(`Lote processado: ${totalUpdated} produtos atualizados...`);
+        setBulkProgress({ done: currentOffset, total: Math.max(totalProducts, currentOffset + (hasMore ? 1 : 0)) });
         refetch();
       }
+      setBulkProgress({ done: totalUpdated, total: totalUpdated });
       toast.success(`Concluído! ${totalUpdated} produtos atualizados.`);
       queryClient.invalidateQueries({ queryKey: ["products"] });
       queryClient.invalidateQueries({ queryKey: ["products-unified"] });
@@ -424,11 +428,14 @@ const AdminProductsPanel = () => {
       toast.error(e.message || "Erro ao gerar conteúdo em lote");
     } finally {
       setBulkGenerating(null);
+      setTimeout(() => setBulkProgress(null), 3000);
     }
   };
 
   const handleBulkComplete = async (forceAll = false) => {
     setBulkGenerating("complete");
+    const totalProducts = products?.filter(p => forceAll || !p.description || !p.images?.length)?.length || 0;
+    setBulkProgress({ done: 0, total: totalProducts || 45 });
     let totalUpdated = 0;
     let currentOffset = 0;
     let hasMore = true;
@@ -441,9 +448,10 @@ const AdminProductsPanel = () => {
         totalUpdated += (data?.updated || 0);
         hasMore = data?.has_more === true;
         currentOffset = data?.next_offset || currentOffset + 3;
-        toast.success(`Lote processado: ${totalUpdated} produtos atualizados...`);
+        setBulkProgress({ done: currentOffset, total: Math.max(totalProducts, currentOffset + (hasMore ? 1 : 0)) });
         refetch();
       }
+      setBulkProgress({ done: totalUpdated, total: totalUpdated });
       toast.success(`Concluído! ${totalUpdated} produtos atualizados.`);
       queryClient.invalidateQueries({ queryKey: ["products"] });
       queryClient.invalidateQueries({ queryKey: ["products-unified"] });
@@ -451,6 +459,7 @@ const AdminProductsPanel = () => {
       toast.error(e.message || "Erro ao gerar conteúdo completo");
     } finally {
       setBulkGenerating(null);
+      setTimeout(() => setBulkProgress(null), 3000);
     }
   };
 
@@ -688,6 +697,30 @@ const AdminProductsPanel = () => {
         <div className="flex-1" />
         <Badge variant="secondary" className="text-[10px]">{filteredProducts.length} produtos</Badge>
       </div>
+
+      {/* Progress Bar */}
+      {bulkProgress && (
+        <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="bg-card border border-border rounded-xl p-3 space-y-2">
+          <div className="flex items-center justify-between text-xs">
+            <span className="font-medium text-foreground flex items-center gap-1.5">
+              <Loader2 className={cn("w-3.5 h-3.5", bulkGenerating ? "animate-spin" : "")} />
+              {bulkGenerating === "seo" ? "Gerando textos SEO..." : bulkGenerating === "complete" ? "Gerando textos + imagens..." : "Concluído!"}
+            </span>
+            <span className="text-muted-foreground font-mono">{Math.min(bulkProgress.done, bulkProgress.total)} / {bulkProgress.total}</span>
+          </div>
+          <div className="w-full h-2 bg-muted rounded-full overflow-hidden">
+            <motion.div
+              className="h-full bg-primary rounded-full"
+              initial={{ width: 0 }}
+              animate={{ width: `${Math.min(100, (bulkProgress.done / Math.max(bulkProgress.total, 1)) * 100)}%` }}
+              transition={{ duration: 0.4, ease: "easeOut" }}
+            />
+          </div>
+          <p className="text-[10px] text-muted-foreground">
+            {bulkGenerating ? "Processando em lotes — não feche esta página." : `✅ ${bulkProgress.done} produtos atualizados com sucesso!`}
+          </p>
+        </motion.div>
+      )}
 
       {/* Search & Filters */}
       <div className="space-y-2">
