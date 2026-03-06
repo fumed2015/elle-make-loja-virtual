@@ -329,10 +329,17 @@ const FinanceiroTab = () => {
       Number(p.fixed_cost_extra2 || 0) + Number(p.fixed_cost_extra3 || 0);
   }, [p]);
 
-  const cacUnitario = useMemo(() => {
+  const cacPorPedido = useMemo(() => {
     if (!p || Number(p.order_target) <= 0) return 0;
     return (totalFixedCosts + Number(p.marketing_budget)) / Number(p.order_target);
   }, [p, totalFixedCosts]);
+
+  // Ticket médio de referência para rateio do CAC por produto
+  const ticketMedioRef = 30;
+  // CAC como % do preço de venda (para usar no markup divisor)
+  const cacRate = ticketMedioRef > 0 ? cacPorPedido / ticketMedioRef : 0;
+  // Manter cacUnitario para compatibilidade (agora = custo por pedido)
+  const cacUnitario = cacPorPedido;
 
   const freightPerUnit = useMemo(() => {
     if (!p || Number(p.freight_batch_items) <= 0) return 0;
