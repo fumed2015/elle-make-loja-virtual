@@ -105,8 +105,13 @@ const defaultConfig: MarketplaceConfig = {
   status: "disconnected",
 };
 
+  const [syncingMp, setSyncingMp] = useState<MarketplaceId | null>(null);
+  const [checkingStatus, setCheckingStatus] = useState<MarketplaceId | null>(null);
+  const [mpStatus, setMpStatus] = useState<Record<string, any>>({});
+
 // ── Main Component ──
 const MarketplacesTab = () => {
+  // ... existing code below moved here
   const { data: products } = useProducts({});
   const queryClient = useQueryClient();
   const [configs, setConfigs] = useState<Record<MarketplaceId, MarketplaceConfig>>(
