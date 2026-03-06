@@ -48,7 +48,38 @@ const Admin = () => {
 
   // Data for badges
   const { data: orders } = useAllOrders();
+  const { data: products } = useProducts({});
   const pendingOrders = orders?.filter((o) => o.status === "pending").length || 0;
+
+  // Low stock badge (stock <= 5)
+  const lowStockCount = products?.filter((p) => p.stock <= 5 && p.is_active).length || 0;
+
+  // Pending reviews badge
+  const { data: pendingReviewsCount } = useQuery({
+    queryKey: ["admin-pending-reviews-count"],
+    queryFn: async () => {
+      const { count, error } = await supabase
+        .from("reviews")
+        .select("*", { count: "exact", head: true })
+        .eq("is_approved", false);
+      if (error) throw error;
+      return count || 0;
+    },
+  });
+
+  // New leads (last 7 days)
+  const { data: newLeadsCount } = useQuery({
+    queryKey: ["admin-new-leads-count"],
+    queryFn: async () => {
+      const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
+      const { count, error } = await supabase
+        .from("profiles")
+        .select("*", { count: "exact", head: true })
+        .gte("created_at", sevenDaysAgo);
+      if (error) throw error;
+      return count || 0;
+    },
+  });
 
   if (!user || adminLoading) {
     return <div className="min-h-screen flex items-center justify-center"><div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" /></div>;
@@ -67,6 +98,9 @@ const Admin = () => {
 
   const badges: Partial<Record<AdminTab, number>> = {};
   if (pendingOrders > 0) badges.orders = pendingOrders;
+  if (lowStockCount > 0) badges.stock = lowStockCount;
+  if (pendingReviewsCount && pendingReviewsCount > 0) badges.reviews = pendingReviewsCount;
+  if (newLeadsCount && newLeadsCount > 0) badges.leads = newLeadsCount;
 
   const renderTab = () => {
     switch (tab) {
