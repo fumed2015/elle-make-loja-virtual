@@ -131,130 +131,18 @@ Gere EXATAMENTE o seguinte conteúdo usando a function tool:
       });
     }
 
-    // Action: generate-image - Generate AI product image and upload to storage
-    if (action === "generate-image") {
-      const { data: product, error } = await supabase
-        .from("products")
-        .select("name, brand, slug, categories(name)")
-        .eq("id", product_id)
-        .single();
 
-      if (error || !product) {
-        return new Response(JSON.stringify({ error: "Produto não encontrado" }), {
-          status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
-      }
-
-      const categoryName = (product.categories as any)?.name || "Maquiagem";
-      const imagePrompt = `Professional product photography of a ${categoryName.toLowerCase()} cosmetic product: "${product.name}" by ${product.brand || "beauty brand"}. Clean white background, studio lighting, high-end beauty product shot, elegant composition, ultra high resolution, commercial quality e-commerce photo.`;
-
-      const imageResp = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${LOVABLE_API_KEY}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          model: "google/gemini-2.5-flash-image",
-          messages: [{ role: "user", content: imagePrompt }],
-          modalities: ["image", "text"],
-        }),
-      });
-
-      if (!imageResp.ok) {
-        const t = await imageResp.text();
-        console.error("Image AI error:", imageResp.status, t);
-        if (imageResp.status === 429) {
-          return new Response(JSON.stringify({ error: "Limite de requisições atingido. Aguarde alguns minutos." }), {
-            status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" },
-          });
-        }
-        if (imageResp.status === 402) {
-          return new Response(JSON.stringify({ error: "Créditos de IA esgotados. Aguarde a renovação." }), {
-            status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" },
-          });
-        }
-        throw new Error("Image AI error: " + imageResp.status);
-      }
-
-      const imageData = await imageResp.json();
-      console.log("Image AI response structure:", JSON.stringify(imageData).substring(0, 500));
-      
-      // Try multiple response formats
-      let imageUrl: string | undefined;
-      const msg = imageData.choices?.[0]?.message;
-      
-      // Format 1: images array
-      imageUrl = msg?.images?.[0]?.image_url?.url;
-      
-      // Format 2: content as array with image_url parts
-      if (!imageUrl && Array.isArray(msg?.content)) {
-        const imgPart = msg.content.find((p: any) => p.type === "image_url" || p.image_url);
-        imageUrl = imgPart?.image_url?.url;
-      }
-      
-      // Format 3: inline_data in content parts
-      if (!imageUrl && Array.isArray(msg?.content)) {
-        const imgPart = msg.content.find((p: any) => p.type === "image" || p.inline_data);
-        if (imgPart?.inline_data?.data) {
-          imageUrl = `data:${imgPart.inline_data.mime_type || "image/png"};base64,${imgPart.inline_data.data}`;
-        }
-      }
-      
-      // Format 4: content string that is a data URI
-      if (!imageUrl && typeof msg?.content === "string" && msg.content.startsWith("data:image")) {
-        imageUrl = msg.content;
-      }
-      
-      if (!imageUrl) {
-        console.error("Could not extract image from response:", JSON.stringify(imageData).substring(0, 1000));
-        throw new Error("IA não retornou imagem. Formato de resposta inesperado.");
-      }
-
-      // Extract base64 data and upload to storage
-      const base64Data = imageUrl.replace(/^data:image\/\w+;base64,/, "");
-      const imageBytes = Uint8Array.from(atob(base64Data), c => c.charCodeAt(0));
-      const filePath = `${product.slug}-${Date.now()}.png`;
-
-      const { error: uploadError } = await supabase.storage
-        .from("product-images")
-        .upload(filePath, imageBytes, { contentType: "image/png", upsert: true });
-
-      if (uploadError) throw new Error("Erro ao salvar imagem: " + uploadError.message);
-
-      const { data: publicUrlData } = supabase.storage.from("product-images").getPublicUrl(filePath);
-      const publicUrl = publicUrlData.publicUrl;
-
-      // Get current images and add the new one
-      const { data: currentProduct } = await supabase.from("products").select("images").eq("id", product_id).single();
-      const currentImages = (currentProduct?.images as string[]) || [];
-      const updatedImages = [...currentImages, publicUrl];
-
-      const { error: updateError } = await supabase
-        .from("products")
-        .update({ images: updatedImages })
-        .eq("id", product_id);
-
-      if (updateError) throw new Error("Erro ao atualizar produto: " + updateError.message);
-
-      return new Response(JSON.stringify({
-        message: "Imagem gerada com sucesso!",
-        image_url: publicUrl,
-        product_id,
-      }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
-    }
-
-    // Action: bulk-complete - Generate descriptions + images for all products (chunked)
+    // Action: bulk-complete - Generate descriptions for all products (chunked, text only)
     if (action === "bulk-complete") {
       const limit = Math.min(chunk_size, 5);
 
       let query = supabase
         .from("products")
-        .select("id, name, brand, slug, price, tags, ingredients, description, sensorial_description, how_to_use, images, categories(name)")
+        .select("id, name, brand, slug, price, tags, ingredients, description, sensorial_description, how_to_use, categories(name)")
         .eq("is_active", true);
 
       if (!force_all) {
-        query = query.or("description.is.null,description.eq.,images.is.null");
+        query = query.or("description.is.null,description.eq.");
       }
 
       const { data: products, error } = await query.order("name").range(offset, offset + limit - 1);
@@ -270,7 +158,6 @@ Gere EXATAMENTE o seguinte conteúdo usando a function tool:
       for (const product of products) {
         try {
           const needsDescription = force_all || !product.description || product.description.length < 50;
-          const needsImage = force_all || !product.images || (product.images as string[]).length === 0;
 
           const updateData: any = {};
 
@@ -334,59 +221,6 @@ Gere: description (150-250 palavras, sensorial, SEO), sensorial_description (2-3
             await new Promise(r => setTimeout(r, 800));
           }
 
-          // Generate image if needed
-          if (needsImage) {
-            try {
-              const categoryName = (product.categories as any)?.name || "Maquiagem";
-              const imagePrompt = `Professional product photography of a ${categoryName.toLowerCase()} cosmetic product: "${product.name}" by ${product.brand || "beauty brand"}. Clean white background, studio lighting, high-end beauty product shot, elegant composition, ultra high resolution, commercial quality e-commerce photo.`;
-
-              const imageResp = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-                method: "POST",
-                headers: {
-                  Authorization: `Bearer ${LOVABLE_API_KEY}`,
-                  "Content-Type": "application/json",
-                },
-                body: JSON.stringify({
-                  model: "google/gemini-2.5-flash-image",
-                  messages: [{ role: "user", content: imagePrompt }],
-                  modalities: ["image", "text"],
-                }),
-              });
-
-              if (imageResp.ok) {
-                const imageData = await imageResp.json();
-                const msg2 = imageData.choices?.[0]?.message;
-                let imgUrl = msg2?.images?.[0]?.image_url?.url;
-                if (!imgUrl && Array.isArray(msg2?.content)) {
-                  const ip = msg2.content.find((p: any) => p.type === "image_url" || p.image_url);
-                  imgUrl = ip?.image_url?.url;
-                  if (!imgUrl) {
-                    const ip2 = msg2.content.find((p: any) => p.inline_data);
-                    if (ip2?.inline_data?.data) imgUrl = `data:${ip2.inline_data.mime_type || "image/png"};base64,${ip2.inline_data.data}`;
-                  }
-                }
-                if (!imgUrl && typeof msg2?.content === "string" && msg2.content.startsWith("data:image")) imgUrl = msg2.content;
-                if (imgUrl) {
-                  const base64Data = imgUrl.replace(/^data:image\/\w+;base64,/, "");
-                  const imageBytes = Uint8Array.from(atob(base64Data), c => c.charCodeAt(0));
-                  const filePath = `${product.slug}-${Date.now()}.png`;
-
-                  const { error: uploadError } = await supabase.storage
-                    .from("product-images")
-                    .upload(filePath, imageBytes, { contentType: "image/png", upsert: true });
-
-                  if (!uploadError) {
-                    const { data: publicUrlData } = supabase.storage.from("product-images").getPublicUrl(filePath);
-                    const currentImages = (product.images as string[]) || [];
-                    updateData.images = [...currentImages, publicUrlData.publicUrl];
-                  }
-                }
-              }
-              await new Promise(r => setTimeout(r, 1500));
-            } catch (imgErr) {
-              console.error(`Image error for ${product.id}:`, imgErr);
-            }
-          }
 
           if (Object.keys(updateData).length > 0) {
             const { error: updateError } = await supabase

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Plus, Box, Search, Pencil, Trash2, Eye, EyeOff, Wand2, Loader2, Star, ChevronDown, ChevronUp, ImageIcon, X, Save, ArrowLeft, MessageSquare, Sparkles, Image as ImageLucide } from "lucide-react";
+import { Plus, Box, Search, Pencil, Trash2, Eye, EyeOff, Wand2, Loader2, Star, ChevronDown, ChevronUp, ImageIcon, X, Save, ArrowLeft, MessageSquare, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -98,7 +98,7 @@ const AdminProductsPanel = () => {
   const [filterStatus, setFilterStatus] = useState("all");
   const [generatingId, setGeneratingId] = useState<string | null>(null);
   const [generatingReviewsId, setGeneratingReviewsId] = useState<string | null>(null);
-  const [generatingImageId, setGeneratingImageId] = useState<string | null>(null);
+  
   const [bulkGenerating, setBulkGenerating] = useState<string | null>(null); // "seo" | "complete" | null
   const [bulkProgress, setBulkProgress] = useState<{ done: number; total: number } | null>(null);
   const [expandedId, setExpandedId] = useState<string | null>(null);
@@ -387,22 +387,6 @@ const AdminProductsPanel = () => {
     }
   };
 
-  const handleGenerateImage = async (productId: string) => {
-    setGeneratingImageId(productId);
-    try {
-      const { data, error } = await supabase.functions.invoke("ai-content-generator", {
-        body: { action: "generate-image", product_id: productId },
-      });
-      if (error) throw new Error(data?.error || error.message);
-      if (data?.error) throw new Error(data.error);
-      toast.success(data?.message || "Imagem gerada!");
-      refetch();
-    } catch (e: any) {
-      toast.error(e.message || "Erro ao gerar imagem");
-    } finally {
-      setGeneratingImageId(null);
-    }
-  };
 
   const handleBulkSEO = async (forceAll = false) => {
     setBulkGenerating("seo");
@@ -435,36 +419,6 @@ const AdminProductsPanel = () => {
     }
   };
 
-  const handleBulkComplete = async (forceAll = false) => {
-    setBulkGenerating("complete");
-    const totalProducts = products?.filter(p => forceAll || !p.description || !p.images?.length)?.length || 0;
-    setBulkProgress({ done: 0, total: totalProducts || 45 });
-    let totalUpdated = 0;
-    let currentOffset = 0;
-    let hasMore = true;
-    try {
-      while (hasMore) {
-        const { data, error } = await supabase.functions.invoke("ai-content-generator", {
-          body: { action: "bulk-complete", force_all: forceAll, offset: currentOffset, chunk_size: 3 },
-        });
-        if (error) throw error;
-        totalUpdated += (data?.updated || 0);
-        hasMore = data?.has_more === true;
-        currentOffset = data?.next_offset || currentOffset + 3;
-        setBulkProgress({ done: currentOffset, total: Math.max(totalProducts, currentOffset + (hasMore ? 1 : 0)) });
-        refetch();
-      }
-      setBulkProgress({ done: totalUpdated, total: totalUpdated });
-      toast.success(`Concluído! ${totalUpdated} produtos atualizados.`);
-      queryClient.invalidateQueries({ queryKey: ["products"] });
-      queryClient.invalidateQueries({ queryKey: ["products-unified"] });
-    } catch (e: any) {
-      toast.error(e.message || "Erro ao gerar conteúdo completo");
-    } finally {
-      setBulkGenerating(null);
-      setTimeout(() => setBulkProgress(null), 3000);
-    }
-  };
 
   // ============ FORM VIEW ============
   if (view === "add" || view === "edit") {
@@ -693,10 +647,6 @@ const AdminProductsPanel = () => {
           {bulkGenerating === "seo" ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Sparkles className="w-3.5 h-3.5" />}
           Gerar Títulos & Descrições
         </Button>
-        <Button onClick={() => handleBulkComplete(true)} size="sm" variant="outline" disabled={!!bulkGenerating} className="text-xs gap-1.5">
-          {bulkGenerating === "complete" ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <ImageLucide className="w-3.5 h-3.5" />}
-          Gerar Tudo (Textos + Imagens)
-        </Button>
         <div className="flex-1" />
         <Badge variant="secondary" className="text-[10px]">{filteredProducts.length} produtos</Badge>
       </div>
@@ -814,9 +764,6 @@ const AdminProductsPanel = () => {
                           </Button>
                           <Button size="sm" variant="outline" onClick={() => handleGenerateReviews(product.id)} disabled={generatingReviewsId === product.id} className="text-xs h-7 gap-1">
                             {generatingReviewsId === product.id ? <Loader2 className="w-3 h-3 animate-spin" /> : <MessageSquare className="w-3 h-3" />}Reviews IA
-                          </Button>
-                          <Button size="sm" variant="outline" onClick={() => handleGenerateImage(product.id)} disabled={generatingImageId === product.id} className="text-xs h-7 gap-1">
-                            {generatingImageId === product.id ? <Loader2 className="w-3 h-3 animate-spin" /> : <ImageLucide className="w-3 h-3" />}Imagem IA
                           </Button>
                           <Button size="sm" variant="outline" onClick={() => handleDelete(product.id, product.name)} className="text-xs h-7 gap-1 text-destructive hover:text-destructive">
                             <Trash2 className="w-3 h-3" />Excluir
