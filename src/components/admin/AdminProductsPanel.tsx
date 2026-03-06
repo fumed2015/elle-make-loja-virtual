@@ -724,6 +724,9 @@ const AdminProductsPanel = () => {
                           <Button size="sm" variant="outline" onClick={() => handleGenerateReviews(product.id)} disabled={generatingReviewsId === product.id} className="text-xs h-7 gap-1">
                             {generatingReviewsId === product.id ? <Loader2 className="w-3 h-3 animate-spin" /> : <MessageSquare className="w-3 h-3" />}Reviews IA
                           </Button>
+                          <Button size="sm" variant="outline" onClick={() => handleGenerateImage(product.id)} disabled={generatingImageId === product.id} className="text-xs h-7 gap-1">
+                            {generatingImageId === product.id ? <Loader2 className="w-3 h-3 animate-spin" /> : <ImageLucide className="w-3 h-3" />}Imagem IA
+                          </Button>
                           <Button size="sm" variant="outline" onClick={() => handleDelete(product.id, product.name)} className="text-xs h-7 gap-1 text-destructive hover:text-destructive">
                             <Trash2 className="w-3 h-3" />Excluir
                           </Button>
