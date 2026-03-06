@@ -81,7 +81,9 @@ const Produto = () => {
 
   const handleAddToCart = () => {
     addToCart.mutate({ productId: product.id, quantity: qty, swatch: selectedSwatch });
-    trackAddToCart({ id: product.id, name: product.name, price: Number(product.price), quantity: qty });
+    const atcParams = { id: product.id, name: product.name, price: Number(product.price), quantity: qty };
+    trackAddToCart(atcParams);
+    fbTrackAddToCart(atcParams);
   };
 
   const handleToggleFavorite = () => {
