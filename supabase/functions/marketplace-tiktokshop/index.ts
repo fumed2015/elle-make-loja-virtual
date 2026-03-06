@@ -61,11 +61,6 @@ async function refreshAccessToken(sb: ReturnType<typeof supabaseAdmin>, refreshT
   const appKey = getAppKey();
   const appSecret = getAppSecret();
 
-  const res = await fetch(`${TIKTOK_API}/api/v2/token/refresh`, {
-    method: "GET",
-    headers: { "Content-Type": "application/json" },
-  });
-
   // TikTok uses query params for token refresh
   const url = new URL(`${TIKTOK_API}/api/v2/token/refresh`);
   url.searchParams.set("app_key", appKey);
@@ -73,8 +68,8 @@ async function refreshAccessToken(sb: ReturnType<typeof supabaseAdmin>, refreshT
   url.searchParams.set("refresh_token", refreshToken);
   url.searchParams.set("grant_type", "refresh_token");
 
-  const refreshRes = await fetch(url.toString(), { method: "GET" });
-  const body = await refreshRes.json();
+  const res = await fetch(url.toString(), { method: "GET" });
+  const body = await res.json();
   if (body.code !== 0) throw new Error(`TikTok token refresh error: ${body.message || JSON.stringify(body)}`);
 
   const tokenData = body.data;
@@ -89,9 +84,6 @@ async function refreshAccessToken(sb: ReturnType<typeof supabaseAdmin>, refreshT
     updated_at: new Date().toISOString(),
     extra: { shop_cipher: tokenData.shop_cipher || null },
   }, { onConflict: "marketplace" });
-
-  // Consume initial response body
-  await res.text().catch(() => {});
 
   return tokenData.access_token;
 }
