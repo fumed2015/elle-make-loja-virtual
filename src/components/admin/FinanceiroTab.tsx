@@ -860,19 +860,18 @@ const FinanceiroTab = () => {
                       <span className="text-muted-foreground">Taxa Gateway ({p?.gateway_rate_credit}%)</span>
                       <span>{fmt(Number(prod.price) * Number(p?.gateway_rate_credit || 0) / 100)}</span>
                     </div>
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Comissão ({p?.influencer_commission_rate}%)</span>
-                      <span>{fmt(Number(prod.price) * Number(p?.influencer_commission_rate || 0) / 100)}</span>
+                    <div className="flex justify-between text-muted-foreground/60 italic">
+                      <span>Comissão ({p?.influencer_commission_rate}%) — só com cupom</span>
+                      <span>+{fmt(Number(prod.price) * Number(p?.influencer_commission_rate || 0) / 100)}</span>
                     </div>
                     <div className="flex justify-between border-t border-border pt-1.5 font-semibold">
-                      <span>Custo Total</span>
+                      <span>Custo Total (sem comissão)</span>
                       <span>{fmt(
                         (costBase + freightU) + 
                         Number(p?.packaging_cost || 0) + 
                         (Number(prod.price) * cacRate) + 
                         Number(p?.gateway_rate_credit_fixed || 0) + 
-                        (Number(prod.price) * Number(p?.gateway_rate_credit || 0) / 100) + 
-                        (Number(prod.price) * Number(p?.influencer_commission_rate || 0) / 100)
+                        (Number(prod.price) * Number(p?.gateway_rate_credit || 0) / 100)
                       )}</span>
                     </div>
                   </div>
