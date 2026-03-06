@@ -33,8 +33,9 @@ import MarketingConversionTab from "@/components/admin/MarketingConversionTab";
 import SEOContentTab from "@/components/admin/SEOContentTab";
 import CatalogDriveTab from "@/components/admin/CatalogDriveTab";
 import HomepageSectionsTab from "@/components/admin/HomepageSectionsTab";
+import MarketplacesTab from "@/components/admin/MarketplacesTab";
 
-type Tab = "dashboard" | "products" | "orders" | "add-product" | "coupons" | "reviews" | "influencers" | "seo" | "categories" | "ai-content" | "leads" | "birthdays" | "financeiro" | "comercial" | "operacional" | "marketing" | "pixels" | "whatsapp" | "stock" | "sales-intelligence" | "crm" | "logistics" | "marketing-conversion" | "seo-content" | "catalog-drive" | "homepage-sections";
+type Tab = "dashboard" | "products" | "orders" | "add-product" | "coupons" | "reviews" | "influencers" | "seo" | "categories" | "ai-content" | "leads" | "birthdays" | "financeiro" | "comercial" | "operacional" | "marketing" | "pixels" | "whatsapp" | "stock" | "sales-intelligence" | "crm" | "logistics" | "marketing-conversion" | "seo-content" | "catalog-drive" | "homepage-sections" | "marketplaces";
 
 const statusLabels: Record<string, string> = {
   pending: "Pendente", confirmed: "Confirmado", approved: "Pago",
@@ -89,6 +90,7 @@ const Admin = () => {
     { id: "ai-content" as Tab, label: "IA Conteúdo", icon: Wand2 },
     { id: "homepage-sections" as Tab, label: "Página Inicial", icon: LayoutDashboard },
     { id: "catalog-drive" as Tab, label: "Catálogo Drive", icon: FolderOpen },
+    { id: "marketplaces" as Tab, label: "Marketplaces", icon: Store },
   ];
 
   return (
@@ -134,6 +136,7 @@ const Admin = () => {
       {tab === "ai-content" && <AIContentTab />}
       {tab === "homepage-sections" && <HomepageSectionsTab />}
       {tab === "catalog-drive" && <CatalogDriveTab />}
+      {tab === "marketplaces" && <MarketplacesTab />}
     </div>
   );
 };
