@@ -2,6 +2,7 @@ import { Home, Search, ShoppingBag, User, Heart } from "lucide-react";
 import { NavLink } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
+import { useCart } from "@/hooks/useCart";
 
 const navItems = [
   { to: "/", icon: Home, label: "Início" },
@@ -12,6 +13,8 @@ const navItems = [
 ];
 
 const BottomNav = () => {
+  const { cartCount } = useCart();
+
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-50 border-t border-border glass safe-area-bottom md:hidden">
       <div className="flex items-center justify-around h-16 max-w-lg mx-auto px-2">
@@ -39,9 +42,20 @@ const BottomNav = () => {
                 <motion.div
                   whileTap={{ scale: 0.8 }}
                   whileHover={{ y: -1 }}
-                  className="flex flex-col items-center gap-0.5 no-theme-transition"
+                  className="flex flex-col items-center gap-0.5 no-theme-transition relative"
                 >
                   <item.icon className="w-5 h-5" />
+                  {item.to === "/carrinho" && cartCount > 0 && (
+                    <motion.span
+                      key={`bottom-badge-${cartCount}`}
+                      initial={{ scale: 0 }}
+                      animate={{ scale: 1 }}
+                      transition={{ type: "spring", stiffness: 500, damping: 15 }}
+                      className="absolute -top-1.5 -right-2 w-4 h-4 rounded-full bg-primary text-primary-foreground text-[9px] font-bold flex items-center justify-center"
+                    >
+                      {cartCount > 9 ? "9+" : cartCount}
+                    </motion.span>
+                  )}
                   <span className="text-[10px] font-medium">{item.label}</span>
                 </motion.div>
               </>
