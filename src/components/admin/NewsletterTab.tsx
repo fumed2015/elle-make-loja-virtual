@@ -161,7 +161,42 @@ const NewsletterTab = () => {
         </CardContent>
       </Card>
 
-      <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+      {/* Popup customization */}
+      <Card>
+        <CardHeader className="pb-3">
+          <CardTitle className="text-sm font-semibold text-foreground">Personalizar Pop-up</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {popupFields.map((field) => (
+            <div key={field.key} className="space-y-1.5">
+              <Label className="text-xs text-muted-foreground">{field.label}</Label>
+              {field.textarea ? (
+                <Textarea
+                  value={currentSettings[field.key] ?? ""}
+                  onChange={(e) => setEditedSettings((prev) => ({ ...prev, [field.key]: e.target.value }))}
+                  placeholder={field.placeholder}
+                  rows={3}
+                />
+              ) : (
+                <Input
+                  value={currentSettings[field.key] ?? ""}
+                  onChange={(e) => setEditedSettings((prev) => ({ ...prev, [field.key]: e.target.value }))}
+                  placeholder={field.placeholder}
+                />
+              )}
+            </div>
+          ))}
+          <Button
+            onClick={() => saveSettingsMutation.mutate()}
+            disabled={!Object.keys(editedSettings).length || saveSettingsMutation.isPending}
+            size="sm"
+            className="gap-2"
+          >
+            <Save className="w-4 h-4" /> Salvar Configurações
+          </Button>
+        </CardContent>
+      </Card>
+
         <Card>
           <CardHeader className="pb-2"><CardTitle className="text-xs text-muted-foreground">Total</CardTitle></CardHeader>
           <CardContent><p className="text-2xl font-bold text-foreground">{subscribers?.length || 0}</p></CardContent>
