@@ -1,0 +1,1 @@
+ALTER TABLE public.financial_premises ADD COLUMN IF NOT EXISTS local_shipping_fee numeric NOT NULL DEFAULT 15;
