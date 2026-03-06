@@ -70,7 +70,7 @@ const DEFAULT_PREMISES: Omit<FinancialPremises, "id"> = {
   fixed_cost_extra3_label: "",
   marketing_budget: 0,
   order_target: 100,
-  packaging_cost: 2.5,
+  packaging_cost: 1.92,
   gateway_rate_credit: 4.19,
   gateway_rate_credit_fixed: 0.35,
   gateway_rate_pix: 0.99,
@@ -692,9 +692,9 @@ const FinanceiroTab = () => {
             <h3 className="text-xs font-bold">📦 Custos Variáveis (por pedido)</h3>
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1">
-                <Label className="text-[10px]">Embalagem + Brindes</Label>
+                <Label className="text-[10px]">Embalagem por Pedido (Sacola R$0,92 + Adesivo/Cartão R$1,00)</Label>
                 <Input type="number" step="0.01"
-                  value={activePremises?.packaging_cost ?? 2.50}
+                  value={activePremises?.packaging_cost ?? 1.92}
                   onChange={e => updatePremisesField("packaging_cost", e.target.value)}
                   className="h-9 text-xs" />
               </div>
@@ -1098,7 +1098,7 @@ const AuditDashboard = ({ products, costMap, premises, orders, commissions, frei
             <div className="space-y-3">
               {/* Embalagem */}
               <div className="space-y-1">
-                <Label className="text-[10px]">Custo Embalagem (por pedido)</Label>
+                <Label className="text-[10px]">Embalagem por Pedido (Sacola + Adesivo/Cartão)</Label>
                 <Input type="number" step="0.01" className="h-8 text-xs"
                   value={activePremises?.packaging_cost ?? 0}
                   onChange={e => updatePremisesField("packaging_cost", e.target.value)} />
