@@ -599,8 +599,8 @@ const Checkout = () => {
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-2"><Label>Bairro</Label><Input value={address.neighborhood} onChange={(e) => setAddress({ ...address, neighborhood: e.target.value })} placeholder="Bairro" className="bg-muted border-none min-h-[44px]" required /></div>
               <div className="grid grid-cols-2 gap-2">
-                <div className="space-y-2"><Label>Cidade</Label><Input value={address.city} disabled className="bg-muted border-none min-h-[44px]" /></div>
-                <div className="space-y-2"><Label>UF</Label><Input value={address.state} disabled className="bg-muted border-none min-h-[44px]" /></div>
+                <div className="space-y-2"><Label>Cidade</Label><Input value={address.city} onChange={(e) => setAddress({ ...address, city: e.target.value })} placeholder="Cidade" className="bg-muted border-none min-h-[44px]" required /></div>
+                <div className="space-y-2"><Label>UF</Label><Input value={address.state} onChange={(e) => setAddress({ ...address, state: e.target.value.toUpperCase().slice(0, 2) })} placeholder="UF" maxLength={2} className="bg-muted border-none min-h-[44px]" required /></div>
               </div>
             </div>
             <div className="grid grid-cols-2 gap-3">
