@@ -900,9 +900,12 @@ const FinanceiroTab = () => {
                         {fmt(actual.profit)}
                       </p>
                     </div>
-                    <div>
-                      <p className="text-[9px] text-muted-foreground">Contribuição</p>
+                    <div className="group relative">
+                      <p className="text-[9px] text-muted-foreground cursor-help border-b border-dotted border-muted-foreground/40">Margem de Contribuição</p>
                       <p className="text-xs font-bold">{fmt(actual.contributionMargin)}</p>
+                      <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1.5 w-48 rounded-md bg-popover border border-border p-2 text-[10px] text-popover-foreground shadow-md opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto transition-opacity z-50">
+                        Valor que sobra após descontar CMV e custos variáveis (embalagem, taxas). Indica quanto o produto contribui para cobrir custos fixos e gerar lucro.
+                      </div>
                     </div>
                     <div>
                       <p className="text-[9px] text-muted-foreground">Custo Total</p>
