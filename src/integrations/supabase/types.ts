@@ -685,6 +685,54 @@ export type Database = {
         }
         Relationships: []
       }
+      marketplace_configs: {
+        Row: {
+          api_key: string | null
+          auto_sync: boolean
+          created_at: string
+          enabled: boolean
+          id: string
+          marketplace_id: string
+          markup_percent: number
+          price_rule: string
+          seller_id: string | null
+          shipping_mode: string
+          status: string
+          sync_frequency: string
+          updated_at: string
+        }
+        Insert: {
+          api_key?: string | null
+          auto_sync?: boolean
+          created_at?: string
+          enabled?: boolean
+          id?: string
+          marketplace_id: string
+          markup_percent?: number
+          price_rule?: string
+          seller_id?: string | null
+          shipping_mode?: string
+          status?: string
+          sync_frequency?: string
+          updated_at?: string
+        }
+        Update: {
+          api_key?: string | null
+          auto_sync?: boolean
+          created_at?: string
+          enabled?: boolean
+          id?: string
+          marketplace_id?: string
+          markup_percent?: number
+          price_rule?: string
+          seller_id?: string | null
+          shipping_mode?: string
+          status?: string
+          sync_frequency?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       message_templates: {
         Row: {
           created_at: string
