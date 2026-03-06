@@ -4,8 +4,25 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Search, Plus, X, Save, Loader2 } from "lucide-react";
+import { Search, Plus, X, Save, Loader2, GripVertical } from "lucide-react";
 import { toast } from "sonner";
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+} from "@dnd-kit/core";
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  useSortable,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 
 const SECTIONS = [
   { key: "novidades", label: "✨ Novidades", description: "Produtos em destaque no topo da página" },
@@ -13,12 +30,74 @@ const SECTIONS = [
   { key: "mais_produtos", label: "🛍️ Mais Produtos", description: "Produtos adicionais exibidos abaixo" },
 ];
 
+interface SortableProductProps {
+  product: { id: string; name: string; brand: string | null; price: number; images: string[] | null };
+  index: number;
+  onRemove: (id: string) => void;
+}
+
+function SortableProduct({ product, index, onRemove }: SortableProductProps) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: product.id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+    zIndex: isDragging ? 50 : "auto" as any,
+  };
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      className={`flex items-center gap-2 bg-card border rounded-lg p-2 ${isDragging ? "border-primary shadow-lg" : "border-border"}`}
+    >
+      <button
+        {...attributes}
+        {...listeners}
+        className="cursor-grab active:cursor-grabbing text-muted-foreground hover:text-foreground touch-none"
+        aria-label="Arrastar para reordenar"
+      >
+        <GripVertical className="w-4 h-4" />
+      </button>
+      <img
+        src={product.images?.[0] || "/placeholder.svg"}
+        alt={product.name}
+        className="w-10 h-10 object-cover rounded"
+      />
+      <div className="flex-1 min-w-0">
+        <p className="text-xs font-medium truncate">{product.name}</p>
+        <p className="text-[10px] text-muted-foreground">{product.brand} · R$ {Number(product.price).toFixed(2)}</p>
+      </div>
+      <span className="text-[10px] text-muted-foreground font-mono">#{index + 1}</span>
+      <button
+        onClick={() => onRemove(product.id)}
+        className="w-7 h-7 rounded-full bg-destructive/10 text-destructive flex items-center justify-center hover:bg-destructive/20"
+      >
+        <X className="w-3.5 h-3.5" />
+      </button>
+    </div>
+  );
+}
+
 const HomepageSectionsTab = () => {
   const queryClient = useQueryClient();
   const [activeSection, setActiveSection] = useState("super_ofertas");
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedIds, setSelectedIds] = useState<Record<string, string[]>>({});
   const [isDirty, setIsDirty] = useState(false);
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
+  );
 
   // Load existing section configs from promotions
   const { data: sectionConfigs, isLoading: loadingConfigs } = useQuery({
@@ -88,13 +167,18 @@ const HomepageSectionsTab = () => {
     }));
   };
 
-  const moveProduct = (index: number, direction: -1 | 1) => {
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
+
     const ids = [...(selectedIds[activeSection] || [])];
-    const newIndex = index + direction;
-    if (newIndex < 0 || newIndex >= ids.length) return;
-    [ids[index], ids[newIndex]] = [ids[newIndex], ids[index]];
+    const oldIndex = ids.indexOf(String(active.id));
+    const newIndex = ids.indexOf(String(over.id));
+    if (oldIndex === -1 || newIndex === -1) return;
+
+    const newIds = arrayMove(ids, oldIndex, newIndex);
     setIsDirty(true);
-    setSelectedIds((prev) => ({ ...prev, [activeSection]: ids }));
+    setSelectedIds((prev) => ({ ...prev, [activeSection]: newIds }));
   };
 
   // Save mutation
@@ -179,10 +263,12 @@ const HomepageSectionsTab = () => {
 
       <p className="text-sm text-muted-foreground">
         {SECTIONS.find((s) => s.key === activeSection)?.description}
+        {" — "}
+        <span className="text-xs italic">arraste para reordenar</span>
       </p>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Selected products */}
+        {/* Selected products with drag-and-drop */}
         <div className="space-y-3">
           <h3 className="text-sm font-semibold flex items-center justify-between">
             Produtos selecionados ({sortedProducts.length})
@@ -204,43 +290,24 @@ const HomepageSectionsTab = () => {
               <p className="text-xs text-muted-foreground mt-1">Adicione produtos da lista ao lado</p>
             </div>
           ) : (
-            <div className="space-y-1.5 max-h-[500px] overflow-y-auto">
-              {sortedProducts.map((product, idx) => (
-                <div
-                  key={product.id}
-                  className="flex items-center gap-2 bg-card border border-border rounded-lg p-2"
-                >
-                  <div className="flex flex-col gap-0.5">
-                    <button
-                      onClick={() => moveProduct(idx, -1)}
-                      disabled={idx === 0}
-                      className="text-muted-foreground hover:text-foreground disabled:opacity-30 text-xs"
-                    >▲</button>
-                    <button
-                      onClick={() => moveProduct(idx, 1)}
-                      disabled={idx === sortedProducts.length - 1}
-                      className="text-muted-foreground hover:text-foreground disabled:opacity-30 text-xs"
-                    >▼</button>
-                  </div>
-                  <img
-                    src={product.images?.[0] || "/placeholder.svg"}
-                    alt={product.name}
-                    className="w-10 h-10 object-cover rounded"
-                  />
-                  <div className="flex-1 min-w-0">
-                    <p className="text-xs font-medium truncate">{product.name}</p>
-                    <p className="text-[10px] text-muted-foreground">{product.brand} · R$ {Number(product.price).toFixed(2)}</p>
-                  </div>
-                  <span className="text-[10px] text-muted-foreground font-mono">#{idx + 1}</span>
-                  <button
-                    onClick={() => removeProduct(product.id)}
-                    className="w-7 h-7 rounded-full bg-destructive/10 text-destructive flex items-center justify-center hover:bg-destructive/20"
-                  >
-                    <X className="w-3.5 h-3.5" />
-                  </button>
+            <DndContext
+              sensors={sensors}
+              collisionDetection={closestCenter}
+              onDragEnd={handleDragEnd}
+            >
+              <SortableContext items={currentIds} strategy={verticalListSortingStrategy}>
+                <div className="space-y-1.5 max-h-[500px] overflow-y-auto">
+                  {sortedProducts.map((product, idx) => (
+                    <SortableProduct
+                      key={product.id}
+                      product={product}
+                      index={idx}
+                      onRemove={removeProduct}
+                    />
+                  ))}
                 </div>
-              ))}
-            </div>
+              </SortableContext>
+            </DndContext>
           )}
         </div>
 
