@@ -441,7 +441,7 @@ const FinanceiroTab = () => {
           { label: "Receita 30d", value: fmt(revenueStats.revenue), icon: DollarSign },
           { label: "Receita Líquida", value: fmt(revenueStats.netRevenue), icon: TrendingUp, accent: true },
           { label: "Ticket Médio", value: fmt(revenueStats.avgTicket), icon: ShoppingCart },
-          { label: "CAC Unitário", value: fmt(cacUnitario), icon: Calculator },
+          { label: "CAC/Pedido", value: fmt(cacPorPedido), icon: Calculator },
         ].map((kpi, i) => (
           <motion.div key={kpi.label} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}
             className="bg-card rounded-xl p-4 border border-border">
