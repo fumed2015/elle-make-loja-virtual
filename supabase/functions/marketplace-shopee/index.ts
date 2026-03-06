@@ -1,5 +1,13 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { hmac } from "https://deno.land/x/hmac@v2.0.1/mod.ts";
+
+async function hmacSHA256(key: string, message: string): Promise<string> {
+  const encoder = new TextEncoder();
+  const cryptoKey = await crypto.subtle.importKey(
+    "raw", encoder.encode(key), { name: "HMAC", hash: "SHA-256" }, false, ["sign"]
+  );
+  const sig = await crypto.subtle.sign("HMAC", cryptoKey, encoder.encode(message));
+  return [...new Uint8Array(sig)].map(b => b.toString(16).padStart(2, "0")).join("");
+}
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -26,14 +34,14 @@ function getPartnerKey(): string {
   return key;
 }
 
-function generateSign(path: string, timestamp: number, accessToken?: string, shopId?: number): string {
+async function generateSign(path: string, timestamp: number, accessToken?: string, shopId?: number): Promise<string> {
   const partnerId = getPartnerId();
   const partnerKey = getPartnerKey();
   let baseString = `${partnerId}${path}${timestamp}`;
   if (accessToken && shopId) {
     baseString += `${accessToken}${shopId}`;
   }
-  return hmac("sha256", partnerKey, baseString, "utf8", "hex") as string;
+  return await hmacSHA256(partnerKey, baseString);
 }
 
 async function getToken(sb: ReturnType<typeof supabaseAdmin>) {
@@ -49,7 +57,7 @@ async function refreshAccessToken(sb: ReturnType<typeof supabaseAdmin>, refreshT
   const partnerId = getPartnerId();
   const path = "/api/v2/auth/access_token/get";
   const timestamp = Math.floor(Date.now() / 1000);
-  const sign = generateSign(path, timestamp);
+  const sign = await generateSign(path, timestamp);
 
   const res = await fetch(`${SHOPEE_API}/auth/access_token/get?partner_id=${partnerId}&timestamp=${timestamp}&sign=${sign}`, {
     method: "POST",
@@ -99,11 +107,11 @@ async function logSync(sb: ReturnType<typeof supabaseAdmin>, operation: string, 
 }
 
 // ── OAuth: Generate auth URL ──
-function getAuthUrl() {
+async function getAuthUrl() {
   const partnerId = getPartnerId();
   const path = "/api/v2/shop/auth_partner";
   const timestamp = Math.floor(Date.now() / 1000);
-  const sign = generateSign(path, timestamp);
+  const sign = await generateSign(path, timestamp);
   const redirectUrl = Deno.env.get("SHOPEE_REDIRECT_URI") || `${Deno.env.get("SUPABASE_URL")}/functions/v1/marketplace-shopee?action=oauth_callback`;
 
   return `${SHOPEE_API}/shop/auth_partner?partner_id=${partnerId}&timestamp=${timestamp}&sign=${sign}&redirect=${encodeURIComponent(redirectUrl)}`;
@@ -115,7 +123,7 @@ async function handleOAuthCallback(code: string, shopId: number) {
   const partnerId = getPartnerId();
   const path = "/api/v2/auth/token/get";
   const timestamp = Math.floor(Date.now() / 1000);
-  const sign = generateSign(path, timestamp);
+  const sign = await generateSign(path, timestamp);
 
   const res = await fetch(`${SHOPEE_API}/auth/token/get?partner_id=${partnerId}&timestamp=${timestamp}&sign=${sign}`, {
     method: "POST",
@@ -175,7 +183,7 @@ async function syncProducts() {
         // Update existing: price + stock
         const timestamp = Math.floor(Date.now() / 1000);
         const path = "/api/v2/product/update_price";
-        const sign = generateSign(path, timestamp, accessToken, shopId);
+        const sign = await generateSign(path, timestamp, accessToken, shopId);
 
         await fetch(`${SHOPEE_API}/product/update_price?partner_id=${partnerId}&timestamp=${timestamp}&sign=${sign}&access_token=${accessToken}&shop_id=${shopId}`, {
           method: "POST",
@@ -189,7 +197,7 @@ async function syncProducts() {
         // Update stock
         const stockPath = "/api/v2/product/update_stock";
         const stockTimestamp = Math.floor(Date.now() / 1000);
-        const stockSign = generateSign(stockPath, stockTimestamp, accessToken, shopId);
+        const stockSign = await generateSign(stockPath, stockTimestamp, accessToken, shopId);
 
         await fetch(`${SHOPEE_API}/product/update_stock?partner_id=${partnerId}&timestamp=${stockTimestamp}&sign=${stockSign}&access_token=${accessToken}&shop_id=${shopId}`, {
           method: "POST",
@@ -210,7 +218,7 @@ async function syncProducts() {
         // Create new item
         const timestamp = Math.floor(Date.now() / 1000);
         const path = "/api/v2/product/add_item";
-        const sign = generateSign(path, timestamp, accessToken, shopId);
+        const sign = await generateSign(path, timestamp, accessToken, shopId);
 
         const shopeeItem = {
           original_price: price,
@@ -274,7 +282,7 @@ async function importOrders() {
   const partnerId = getPartnerId();
   const timestamp = Math.floor(Date.now() / 1000);
   const path = "/api/v2/order/get_order_list";
-  const sign = generateSign(path, timestamp, accessToken, shopId);
+  const sign = await generateSign(path, timestamp, accessToken, shopId);
 
   const timeFrom = Math.floor((Date.now() - 7 * 86400000) / 1000);
   const timeTo = Math.floor(Date.now() / 1000);
@@ -293,7 +301,7 @@ async function importOrders() {
       // Get order detail
       const detailTimestamp = Math.floor(Date.now() / 1000);
       const detailPath = "/api/v2/order/get_order_detail";
-      const detailSign = generateSign(detailPath, detailTimestamp, accessToken, shopId);
+      const detailSign = await generateSign(detailPath, detailTimestamp, accessToken, shopId);
 
       const detailRes = await fetch(
         `${SHOPEE_API}/order/get_order_detail?partner_id=${partnerId}&timestamp=${detailTimestamp}&sign=${detailSign}&access_token=${accessToken}&shop_id=${shopId}&order_sn_list=${order.order_sn}&response_optional_fields=buyer_user_id,buyer_username,item_list,recipient_address,total_amount`,
@@ -345,7 +353,7 @@ async function handleWebhook(body: any) {
         const partnerId = getPartnerId();
         const timestamp = Math.floor(Date.now() / 1000);
         const path = "/api/v2/order/get_order_detail";
-        const sign = generateSign(path, timestamp, accessToken, shopId);
+        const sign = await generateSign(path, timestamp, accessToken, shopId);
 
         const res = await fetch(
           `${SHOPEE_API}/order/get_order_detail?partner_id=${partnerId}&timestamp=${timestamp}&sign=${sign}&access_token=${accessToken}&shop_id=${shopId}&order_sn_list=${orderSn}&response_optional_fields=buyer_username,item_list,total_amount`,
@@ -417,7 +425,7 @@ Deno.serve(async (req) => {
           result = await importOrders();
           break;
         case "get_auth_url":
-          result = { url: getAuthUrl() };
+          result = { url: await getAuthUrl() };
           break;
         case "status": {
           const sb = supabaseAdmin();
