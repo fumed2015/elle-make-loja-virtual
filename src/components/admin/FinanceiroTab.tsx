@@ -329,10 +329,17 @@ const FinanceiroTab = () => {
       Number(p.fixed_cost_extra2 || 0) + Number(p.fixed_cost_extra3 || 0);
   }, [p]);
 
-  const cacUnitario = useMemo(() => {
+  const cacPorPedido = useMemo(() => {
     if (!p || Number(p.order_target) <= 0) return 0;
     return (totalFixedCosts + Number(p.marketing_budget)) / Number(p.order_target);
   }, [p, totalFixedCosts]);
+
+  // Ticket médio de referência para rateio do CAC por produto
+  const ticketMedioRef = 30;
+  // CAC como % do preço de venda (para usar no markup divisor)
+  const cacRate = ticketMedioRef > 0 ? cacPorPedido / ticketMedioRef : 0;
+  // Manter cacUnitario para compatibilidade (agora = custo por pedido)
+  const cacUnitario = cacPorPedido;
 
   const freightPerUnit = useMemo(() => {
     if (!p || Number(p.freight_batch_items) <= 0) return 0;
@@ -382,20 +389,21 @@ const FinanceiroTab = () => {
     if (!p) return { suggestedPrice: 0, totalCost: 0, margin: 0, profit: 0, marginPct: 0, contributionMargin: 0, cmvTotal: 0, variableCosts: 0 };
     const cmvTotal = costBase + freightUnit;
     const packaging = Number(p.packaging_cost);
-    const fixedUnit = cacUnitario;
     const creditFixed = Number(p.gateway_rate_credit_fixed);
     const gatewayRate = Number(p.gateway_rate_credit) / 100;
     const commissionRate = Number(p.influencer_commission_rate) / 100;
     const desiredMargin = Number(p.desired_margin) / 100;
-    const divisor = 1 - (gatewayRate + commissionRate + desiredMargin);
-    const suggestedPrice = divisor > 0 ? (cmvTotal + packaging + fixedUnit + creditFixed) / divisor : 0;
+    // CAC entra como % do preço (rateado pelo ticket médio de R$30)
+    const divisor = 1 - (gatewayRate + commissionRate + desiredMargin + cacRate);
+    const suggestedPrice = divisor > 0 ? (cmvTotal + packaging + creditFixed) / divisor : 0;
+    const cacShare = suggestedPrice * cacRate;
     const variableCosts = packaging + (suggestedPrice * gatewayRate) + creditFixed + (suggestedPrice * commissionRate);
-    const totalCost = cmvTotal + variableCosts + fixedUnit;
+    const totalCost = cmvTotal + variableCosts + cacShare;
     const profit = suggestedPrice - totalCost;
     const marginPct = suggestedPrice > 0 ? (profit / suggestedPrice) * 100 : 0;
     const contributionMargin = suggestedPrice - (cmvTotal + variableCosts);
     return { suggestedPrice, totalCost, profit, marginPct, contributionMargin, cmvTotal, variableCosts };
-  }, [p, cacUnitario]);
+  }, [p, cacRate]);
 
   const calcAtPrice = useCallback((sellingPrice: number, costBase: number, freightUnit: number) => {
     if (!p || sellingPrice <= 0) return { totalCost: 0, profit: 0, marginPct: 0, contributionMargin: 0 };
@@ -404,13 +412,14 @@ const FinanceiroTab = () => {
     const gatewayRate = Number(p.gateway_rate_credit) / 100;
     const creditFixed = Number(p.gateway_rate_credit_fixed);
     const commissionRate = Number(p.influencer_commission_rate) / 100;
+    const cacShare = sellingPrice * cacRate;
     const variableCosts = packaging + (sellingPrice * gatewayRate) + creditFixed + (sellingPrice * commissionRate);
-    const totalCost = cmvTotal + variableCosts + cacUnitario;
+    const totalCost = cmvTotal + variableCosts + cacShare;
     const profit = sellingPrice - totalCost;
     const marginPct = (profit / sellingPrice) * 100;
     const contributionMargin = sellingPrice - (cmvTotal + variableCosts);
     return { totalCost, profit, marginPct, contributionMargin };
-  }, [p, cacUnitario]);
+  }, [p, cacRate]);
 
   if (premisesLoading) {
     return (
@@ -432,7 +441,7 @@ const FinanceiroTab = () => {
           { label: "Receita 30d", value: fmt(revenueStats.revenue), icon: DollarSign },
           { label: "Receita Líquida", value: fmt(revenueStats.netRevenue), icon: TrendingUp, accent: true },
           { label: "Ticket Médio", value: fmt(revenueStats.avgTicket), icon: ShoppingCart },
-          { label: "CAC Unitário", value: fmt(cacUnitario), icon: Calculator },
+          { label: "CAC/Pedido", value: fmt(cacPorPedido), icon: Calculator },
         ].map((kpi, i) => (
           <motion.div key={kpi.label} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}
             className="bg-card rounded-xl p-4 border border-border">
@@ -678,12 +687,16 @@ const FinanceiroTab = () => {
             </div>
             <div className="bg-muted rounded-lg p-3 space-y-1">
               <div className="flex justify-between items-center">
-                <span className="text-xs text-muted-foreground">CAC Unitário (Fixos + Marketing / Pedidos)</span>
-                <span className="text-sm font-bold text-primary">{fmt(cacUnitario)}</span>
+                <span className="text-xs text-muted-foreground">CAC por Pedido (Fixos + Marketing / Pedidos)</span>
+                <span className="text-sm font-bold text-primary">{fmt(cacPorPedido)}</span>
               </div>
               <p className="text-[9px] text-muted-foreground">
                 ({fmt(totalFixedCosts)} + {fmt(Number(activePremises?.marketing_budget || 0))}) ÷ {activePremises?.order_target || 1} pedidos
               </p>
+              <div className="flex justify-between items-center mt-1">
+                <span className="text-xs text-muted-foreground">CAC como % do preço (ticket médio R$30)</span>
+                <span className="text-sm font-bold text-primary">{(cacRate * 100).toFixed(2)}%</span>
+              </div>
             </div>
           </div>
 
@@ -837,8 +850,8 @@ const FinanceiroTab = () => {
                       <span>{fmt(Number(p?.packaging_cost || 0))}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-muted-foreground">CAC Unitário</span>
-                      <span>{fmt(cacUnitario)}</span>
+                      <span className="text-muted-foreground">CAC (rateio por pedido)</span>
+                      <span>{fmt(Number(p?.packaging_cost || 0) > 0 ? cacPorPedido : cacUnitario)} ({(cacRate * 100).toFixed(1)}%)</span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">Taxa Fixa Gateway</span>
