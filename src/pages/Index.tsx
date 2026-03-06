@@ -233,7 +233,7 @@ const HeroCarousel = () => {
       <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-transparent to-black/40 md:hidden pointer-events-none" />
 
       {/* Clickable banner overlay */}
-      <Link to={slide.link} className="absolute inset-0 z-[1]" aria-label={slide.label} />
+      <a href="https://wa.me/5591983045531?text=Ol%C3%A1!%20Vim%20pelo%20site%20e%20gostaria%20de%20comprar!" target="_blank" rel="noopener noreferrer" className="absolute inset-0 z-[1]" aria-label={slide.label} />
 
       {/* Desktop: left-aligned content */}
       <AnimatePresence mode="wait">
