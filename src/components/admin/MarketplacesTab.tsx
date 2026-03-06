@@ -104,15 +104,95 @@ const defaultConfig: MarketplaceConfig = {
 // ── Main Component ──
 const MarketplacesTab = () => {
   const { data: products } = useProducts({});
+  const queryClient = useQueryClient();
   const [configs, setConfigs] = useState<Record<MarketplaceId, MarketplaceConfig>>(
     Object.fromEntries(MARKETPLACES.map((m) => [m.id, { ...defaultConfig }])) as any
   );
+  const [initialized, setInitialized] = useState(false);
   const [selectedMp, setSelectedMp] = useState<MarketplaceId | null>(null);
   const [innerTab, setInnerTab] = useState("overview");
+
+  // Load configs from DB
+  const { data: dbConfigs, isLoading: loadingConfigs } = useQuery({
+    queryKey: ["marketplace-configs"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("marketplace_configs")
+        .select("*");
+      if (error) throw error;
+      return data || [];
+    },
+  });
+
+  // Initialize local state from DB
+  useEffect(() => {
+    if (dbConfigs && !initialized) {
+      const map = { ...configs };
+      for (const row of dbConfigs) {
+        const id = row.marketplace_id as MarketplaceId;
+        if (map[id]) {
+          map[id] = {
+            enabled: row.enabled,
+            apiKey: row.api_key || "",
+            sellerId: row.seller_id || "",
+            autoSync: row.auto_sync,
+            syncFrequency: (row.sync_frequency || "daily") as any,
+            priceRule: (row.price_rule || "same") as any,
+            markupPercent: Number(row.markup_percent) || 0,
+            shippingMode: (row.shipping_mode || "marketplace") as any,
+            status: (row.status || "disconnected") as any,
+          };
+        }
+      }
+      setConfigs(map);
+      setInitialized(true);
+    }
+  }, [dbConfigs, initialized]);
 
   const updateConfig = (id: MarketplaceId, patch: Partial<MarketplaceConfig>) => {
     setConfigs((prev) => ({ ...prev, [id]: { ...prev[id], ...patch } }));
   };
+
+  // Save a single marketplace config to DB
+  const saveConfigMutation = useMutation({
+    mutationFn: async ({ mpId, config }: { mpId: MarketplaceId; config: MarketplaceConfig }) => {
+      const row = {
+        marketplace_id: mpId,
+        enabled: config.enabled,
+        seller_id: config.sellerId,
+        api_key: config.apiKey,
+        auto_sync: config.autoSync,
+        sync_frequency: config.syncFrequency,
+        price_rule: config.priceRule,
+        markup_percent: config.markupPercent,
+        shipping_mode: config.shippingMode,
+        status: config.status,
+        updated_at: new Date().toISOString(),
+      };
+
+      const { data: existing } = await supabase
+        .from("marketplace_configs")
+        .select("id")
+        .eq("marketplace_id", mpId)
+        .maybeSingle();
+
+      if (existing) {
+        const { error } = await supabase
+          .from("marketplace_configs")
+          .update(row)
+          .eq("marketplace_id", mpId);
+        if (error) throw error;
+      } else {
+        const { error } = await supabase
+          .from("marketplace_configs")
+          .insert(row);
+        if (error) throw error;
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["marketplace-configs"] });
+    },
+  });
 
   const totalProducts = products?.length || 0;
   const activeMarketplaces = Object.values(configs).filter((c) => c.enabled).length;
