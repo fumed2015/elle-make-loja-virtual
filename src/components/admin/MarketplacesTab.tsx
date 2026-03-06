@@ -73,6 +73,19 @@ const MARKETPLACES = [
     features: ["Frete grátis Shopee", "Shopee Ads", "Live commerce", "Shopee Coins"],
     requiredFields: ["Título", "Categoria", "Preço", "Estoque", "Imagens (até 9)", "Descrição", "Variações", "Peso e dimensões"],
   },
+  {
+    id: "tiktokshop",
+    name: "TikTok Shop",
+    color: "hsl(340, 80%, 50%)",
+    bgClass: "bg-[hsl(340,80%,95%)]",
+    textClass: "text-[hsl(340,80%,25%)]",
+    borderClass: "border-[hsl(340,80%,75%)]",
+    icon: "🎵",
+    description: "Social commerce integrado ao TikTok",
+    apiUrl: "https://partner.tiktokshop.com",
+    features: ["Live Shopping", "Vitrine no perfil", "Affiliate Program", "TikTok Ads integrado"],
+    requiredFields: ["Título", "Categoria", "Preço", "Estoque", "Imagens (até 9)", "Descrição", "Variações", "Peso e dimensões"],
+  },
 ] as const;
 
 type MarketplaceId = typeof MARKETPLACES[number]["id"];
