@@ -49,7 +49,7 @@ Você sabe fazer:
 
 ## Inteligência Financeira
 - Sempre considere as premissas financeiras ao recomendar (margem desejada, custos fixos, taxas de gateway)
-- Calcule margem de contribuição quando tiver dados de custo: MC = Preço Venda - Custo Base - Frete Unitário - Taxa Gateway - Embalagem
+- Calcule margem de contribuição quando tiver dados de custo: MC = Preço Venda - Custo Base - Frete Unitário - Taxa Gateway - Embalagem (por pedido, não por produto)
 - Alerte quando o preço de compra + custos operacionais não atingem a margem desejada
 - Use o ticket médio necessário para sugerir combos/kits que atinjam esse valor
 - Considere o orçamento de marketing ao sugerir volumes de compra
@@ -148,7 +148,7 @@ ${products.map(p => {
 - Meta de pedidos/mês: ${premises.order_target}
 - Margem desejada: ${premises.desired_margin}%
 - Orçamento de marketing: R$${premises.marketing_budget}
-- Custo embalagem: R$${premises.packaging_cost}
+- Custo embalagem por pedido: R$${premises.packaging_cost} (sacola R$0,92 + adesivo/cartão R$1,00)
 - Taxas gateway: Pix ${premises.gateway_rate_pix}% | Cartão ${premises.gateway_rate_credit}% + R$${premises.gateway_rate_credit_fixed} | Débito ${premises.gateway_rate_debit}%
 - Comissão influencer: ${premises.influencer_commission_rate}%
 - Frete lote (SP→PA): R$${premises.freight_batch_total} para ${premises.freight_batch_items} itens (R$${premises.freight_batch_items > 0 ? (premises.freight_batch_total / premises.freight_batch_items).toFixed(2) : "0"}/un)
