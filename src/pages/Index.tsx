@@ -445,7 +445,7 @@ const HeroCarousel = () => {
       {categories && categories.length > 0 && (
         <section className="px-4 py-8 max-w-5xl mx-auto">
           <h2 className="text-lg font-bold text-foreground mb-4">Categorias</h2>
-          <div className="flex gap-5 overflow-x-auto scrollbar-hide pb-2 justify-center">
+          <div className="flex gap-5 overflow-x-auto scrollbar-hide pb-2 px-2 md:justify-center">
             {categories.map((cat) => {
                const categoryImage = `/categories/${cat.slug}.png`;
               return (

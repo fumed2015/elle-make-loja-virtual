@@ -8,11 +8,14 @@ import { motion } from "framer-motion";
 
 const statusConfig: Record<string, { label: string; icon: any; color: string }> = {
   pending: { label: "Pendente", icon: Clock, color: "text-yellow-500" },
+  approved: { label: "Pago", icon: CheckCircle, color: "text-accent" },
   confirmed: { label: "Confirmado", icon: CheckCircle, color: "text-secondary" },
+  processing: { label: "Preparando", icon: Package, color: "text-blue-400" },
   preparing: { label: "Preparando", icon: Package, color: "text-blue-400" },
   shipped: { label: "Enviado", icon: Truck, color: "text-purple-400" },
   delivered: { label: "Entregue", icon: CheckCircle, color: "text-green-500" },
   cancelled: { label: "Cancelado", icon: XCircle, color: "text-destructive" },
+  refunded: { label: "Reembolsado", icon: XCircle, color: "text-muted-foreground" },
 };
 
 const Pedidos = () => {
