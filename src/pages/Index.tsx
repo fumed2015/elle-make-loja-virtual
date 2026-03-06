@@ -427,7 +427,7 @@ const HeroCarousel = () => {
           <h2 className="text-lg font-bold text-foreground mb-4">Categorias</h2>
           <div className="flex gap-5 overflow-x-auto scrollbar-hide pb-2 justify-center">
             {categories.map((cat) => {
-              const categoryImage = `/categories/${cat.slug}.png`;
+               const categoryImage = `/categories/${cat.slug}.webp`;
               return (
                 <div key={cat.id} className="flex-shrink-0">
                   <Link
@@ -438,6 +438,8 @@ const HeroCarousel = () => {
                       <img
                         src={categoryImage}
                         alt={cat.name}
+                        width={96}
+                        height={96}
                         className="w-[80px] h-[80px] md:w-[96px] md:h-[96px] object-contain drop-shadow-lg -mt-2"
                         loading="lazy"
                       />
