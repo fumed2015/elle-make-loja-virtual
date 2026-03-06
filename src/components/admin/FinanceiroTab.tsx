@@ -389,20 +389,21 @@ const FinanceiroTab = () => {
     if (!p) return { suggestedPrice: 0, totalCost: 0, margin: 0, profit: 0, marginPct: 0, contributionMargin: 0, cmvTotal: 0, variableCosts: 0 };
     const cmvTotal = costBase + freightUnit;
     const packaging = Number(p.packaging_cost);
-    const fixedUnit = cacUnitario;
     const creditFixed = Number(p.gateway_rate_credit_fixed);
     const gatewayRate = Number(p.gateway_rate_credit) / 100;
     const commissionRate = Number(p.influencer_commission_rate) / 100;
     const desiredMargin = Number(p.desired_margin) / 100;
-    const divisor = 1 - (gatewayRate + commissionRate + desiredMargin);
-    const suggestedPrice = divisor > 0 ? (cmvTotal + packaging + fixedUnit + creditFixed) / divisor : 0;
+    // CAC entra como % do preço (rateado pelo ticket médio de R$30)
+    const divisor = 1 - (gatewayRate + commissionRate + desiredMargin + cacRate);
+    const suggestedPrice = divisor > 0 ? (cmvTotal + packaging + creditFixed) / divisor : 0;
+    const cacShare = suggestedPrice * cacRate;
     const variableCosts = packaging + (suggestedPrice * gatewayRate) + creditFixed + (suggestedPrice * commissionRate);
-    const totalCost = cmvTotal + variableCosts + fixedUnit;
+    const totalCost = cmvTotal + variableCosts + cacShare;
     const profit = suggestedPrice - totalCost;
     const marginPct = suggestedPrice > 0 ? (profit / suggestedPrice) * 100 : 0;
     const contributionMargin = suggestedPrice - (cmvTotal + variableCosts);
     return { suggestedPrice, totalCost, profit, marginPct, contributionMargin, cmvTotal, variableCosts };
-  }, [p, cacUnitario]);
+  }, [p, cacRate]);
 
   const calcAtPrice = useCallback((sellingPrice: number, costBase: number, freightUnit: number) => {
     if (!p || sellingPrice <= 0) return { totalCost: 0, profit: 0, marginPct: 0, contributionMargin: 0 };
@@ -411,13 +412,14 @@ const FinanceiroTab = () => {
     const gatewayRate = Number(p.gateway_rate_credit) / 100;
     const creditFixed = Number(p.gateway_rate_credit_fixed);
     const commissionRate = Number(p.influencer_commission_rate) / 100;
+    const cacShare = sellingPrice * cacRate;
     const variableCosts = packaging + (sellingPrice * gatewayRate) + creditFixed + (sellingPrice * commissionRate);
-    const totalCost = cmvTotal + variableCosts + cacUnitario;
+    const totalCost = cmvTotal + variableCosts + cacShare;
     const profit = sellingPrice - totalCost;
     const marginPct = (profit / sellingPrice) * 100;
     const contributionMargin = sellingPrice - (cmvTotal + variableCosts);
     return { totalCost, profit, marginPct, contributionMargin };
-  }, [p, cacUnitario]);
+  }, [p, cacRate]);
 
   if (premisesLoading) {
     return (
