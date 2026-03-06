@@ -1240,7 +1240,47 @@ const AuditDashboard = ({ products, costMap, premises, orders, commissions, frei
             </div>
           ))}
         </div>
-      </motion.div>
+      {/* Audit History */}
+      {auditLog && auditLog.length > 0 && (
+        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}
+          className="bg-card rounded-xl p-4 border border-border space-y-3">
+          <h3 className="text-xs font-bold flex items-center gap-2">
+            📝 Histórico de Alterações
+            <Badge variant="secondary" className="text-[8px]">{auditLog.length}</Badge>
+          </h3>
+          <div className="space-y-2 max-h-[350px] overflow-y-auto">
+            {auditLog.map((entry) => {
+              const changedFields = (entry.changed_fields as string[]) || [];
+              const oldVals = entry.old_values as Record<string, any>;
+              const newVals = entry.new_values as Record<string, any>;
+              const date = new Date(entry.created_at);
+              const timeStr = date.toLocaleDateString("pt-BR") + " " + date.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
+
+              return (
+                <div key={entry.id} className="bg-muted rounded-lg p-3 space-y-1.5">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[10px] font-medium">{entry.user_email || "Admin"}</span>
+                    <span className="text-[9px] text-muted-foreground">{timeStr}</span>
+                  </div>
+                  <div className="space-y-0.5">
+                    {changedFields.map((field: string) => {
+                      const label = FIELD_LABELS[field] || field;
+                      return (
+                        <div key={field} className="flex items-center gap-1.5 text-[9px]">
+                          <span className="text-muted-foreground">{label}:</span>
+                          <span className="line-through text-destructive/70">{String(oldVals[field] ?? "—")}</span>
+                          <span>→</span>
+                          <span className="font-medium text-accent">{String(newVals[field] ?? "—")}</span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </motion.div>
+      )}
     </div>
   );
 };
