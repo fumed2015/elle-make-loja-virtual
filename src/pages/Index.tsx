@@ -1,5 +1,5 @@
 import { motion, AnimatePresence } from "framer-motion";
-import { useEffect, lazy, Suspense, useMemo } from "react";
+import { useEffect, lazy, Suspense, useMemo, useRef, useCallback } from "react";
 import { ArrowRight, Truck, CreditCard, ShieldCheck, Star, ChevronDown, ChevronLeft, ChevronRight, Heart, Eye, Sparkles, Tag } from "lucide-react";
 import WhatsAppIcon from "@/components/icons/WhatsAppIcon";
 import { Link, useNavigate } from "react-router-dom";
@@ -189,7 +189,21 @@ const heroSlides = [
 
 const HeroCarousel = () => {
   const [current, setCurrent] = useState(0);
+  const [loadedImages, setLoadedImages] = useState<Set<number>>(new Set([0]));
   const navigate = useNavigate();
+
+  // Preload next slides after first paint
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      heroSlides.forEach((s, i) => {
+        if (i === 0) return;
+        const img = new Image();
+        img.src = s.image;
+        img.onload = () => setLoadedImages(prev => new Set(prev).add(i));
+      });
+    }, 2000);
+    return () => clearTimeout(timeout);
+  }, []);
 
   useEffect(() => {
     const timer = setInterval(() => setCurrent(c => (c + 1) % heroSlides.length), 15000);
@@ -214,8 +228,9 @@ const HeroCarousel = () => {
           transition={{ duration: 0.7 }}
           className="w-full h-[520px] md:h-[620px] lg:h-[660px] object-cover"
           style={{ objectPosition: "center" }}
-          loading="eager"
-          fetchPriority="high"
+          loading={current === 0 ? "eager" : "lazy"}
+          fetchPriority={current === 0 ? "high" : "auto"}
+          decoding={current === 0 ? "sync" : "async"}
         />
       </AnimatePresence>
 
