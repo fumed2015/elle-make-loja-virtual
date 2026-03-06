@@ -733,6 +733,205 @@ export type Database = {
         }
         Relationships: []
       }
+      marketplace_listings: {
+        Row: {
+          created_at: string
+          external_id: string | null
+          external_url: string | null
+          id: string
+          last_synced_at: string | null
+          marketplace: string
+          metadata: Json | null
+          product_id: string
+          status: string
+          sync_error: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          external_id?: string | null
+          external_url?: string | null
+          id?: string
+          last_synced_at?: string | null
+          marketplace: string
+          metadata?: Json | null
+          product_id: string
+          status?: string
+          sync_error?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          external_id?: string | null
+          external_url?: string | null
+          id?: string
+          last_synced_at?: string | null
+          marketplace?: string
+          metadata?: Json | null
+          product_id?: string
+          status?: string
+          sync_error?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "marketplace_listings_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      marketplace_orders: {
+        Row: {
+          buyer_email: string | null
+          buyer_name: string | null
+          buyer_phone: string | null
+          created_at: string
+          external_order_id: string
+          id: string
+          internal_order_id: string | null
+          items: Json
+          marketplace: string
+          marketplace_fee: number | null
+          raw_data: Json | null
+          shipping_address: Json | null
+          shipping_cost: number | null
+          shipping_status: string | null
+          status: string
+          total: number
+          tracking_code: string | null
+          updated_at: string
+        }
+        Insert: {
+          buyer_email?: string | null
+          buyer_name?: string | null
+          buyer_phone?: string | null
+          created_at?: string
+          external_order_id: string
+          id?: string
+          internal_order_id?: string | null
+          items?: Json
+          marketplace: string
+          marketplace_fee?: number | null
+          raw_data?: Json | null
+          shipping_address?: Json | null
+          shipping_cost?: number | null
+          shipping_status?: string | null
+          status?: string
+          total?: number
+          tracking_code?: string | null
+          updated_at?: string
+        }
+        Update: {
+          buyer_email?: string | null
+          buyer_name?: string | null
+          buyer_phone?: string | null
+          created_at?: string
+          external_order_id?: string
+          id?: string
+          internal_order_id?: string | null
+          items?: Json
+          marketplace?: string
+          marketplace_fee?: number | null
+          raw_data?: Json | null
+          shipping_address?: Json | null
+          shipping_cost?: number | null
+          shipping_status?: string | null
+          status?: string
+          total?: number
+          tracking_code?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "marketplace_orders_internal_order_id_fkey"
+            columns: ["internal_order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      marketplace_sync_logs: {
+        Row: {
+          completed_at: string | null
+          details: Json | null
+          error_message: string | null
+          id: string
+          items_failed: number | null
+          items_processed: number | null
+          marketplace: string
+          operation: string
+          started_at: string
+          status: string
+        }
+        Insert: {
+          completed_at?: string | null
+          details?: Json | null
+          error_message?: string | null
+          id?: string
+          items_failed?: number | null
+          items_processed?: number | null
+          marketplace: string
+          operation: string
+          started_at?: string
+          status?: string
+        }
+        Update: {
+          completed_at?: string | null
+          details?: Json | null
+          error_message?: string | null
+          id?: string
+          items_failed?: number | null
+          items_processed?: number | null
+          marketplace?: string
+          operation?: string
+          started_at?: string
+          status?: string
+        }
+        Relationships: []
+      }
+      marketplace_tokens: {
+        Row: {
+          access_token: string | null
+          created_at: string
+          expires_at: string | null
+          extra: Json | null
+          id: string
+          marketplace: string
+          refresh_token: string | null
+          seller_id: string | null
+          token_type: string | null
+          updated_at: string
+        }
+        Insert: {
+          access_token?: string | null
+          created_at?: string
+          expires_at?: string | null
+          extra?: Json | null
+          id?: string
+          marketplace: string
+          refresh_token?: string | null
+          seller_id?: string | null
+          token_type?: string | null
+          updated_at?: string
+        }
+        Update: {
+          access_token?: string | null
+          created_at?: string
+          expires_at?: string | null
+          extra?: Json | null
+          id?: string
+          marketplace?: string
+          refresh_token?: string | null
+          seller_id?: string | null
+          token_type?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       message_templates: {
         Row: {
           created_at: string

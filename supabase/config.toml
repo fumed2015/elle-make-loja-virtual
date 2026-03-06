@@ -29,3 +29,12 @@ verify_jwt = false
 
 [functions.catalog-consultant]
 verify_jwt = false
+
+[functions.marketplace-mercadolivre]
+verify_jwt = false
+
+[functions.marketplace-amazon]
+verify_jwt = false
+
+[functions.marketplace-shopee]
+verify_jwt = false
