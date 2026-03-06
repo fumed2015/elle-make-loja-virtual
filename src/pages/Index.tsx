@@ -681,6 +681,11 @@ const HeroCarousel = () => {
 
       {/* Footer */}
       <Footer />
+
+      {/* Newsletter Popup */}
+      <Suspense fallback={null}>
+        <NewsletterPopup />
+      </Suspense>
     </div>
   );
 };
