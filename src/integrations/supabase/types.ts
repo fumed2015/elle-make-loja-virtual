@@ -435,6 +435,7 @@ export type Database = {
           gateway_rate_pix: number
           id: string
           influencer_commission_rate: number
+          local_shipping_fee: number
           marketing_budget: number
           monthly_revenue_goal: number
           order_target: number
@@ -465,6 +466,7 @@ export type Database = {
           gateway_rate_pix?: number
           id?: string
           influencer_commission_rate?: number
+          local_shipping_fee?: number
           marketing_budget?: number
           monthly_revenue_goal?: number
           order_target?: number
@@ -495,6 +497,7 @@ export type Database = {
           gateway_rate_pix?: number
           id?: string
           influencer_commission_rate?: number
+          local_shipping_fee?: number
           marketing_budget?: number
           monthly_revenue_goal?: number
           order_target?: number

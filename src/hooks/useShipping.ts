@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 
 export interface ShippingOption {
@@ -90,6 +90,15 @@ export interface ShippingState {
 }
 
 export const useShipping = () => {
+  const [localFee, setLocalFee] = useState<number>(15);
+
+  useEffect(() => {
+    supabase.from("financial_premises").select("local_shipping_fee").limit(1).single()
+      .then(({ data }) => {
+        if (data?.local_shipping_fee != null) setLocalFee(Number(data.local_shipping_fee));
+      });
+  }, []);
+
   const [state, setState] = useState<ShippingState>({
     cep: formatCep(getSavedCep()),
     loading: false,
@@ -136,7 +145,7 @@ export const useShipping = () => {
             id: "express",
             name: "🛵 Entrega Expressa",
             description: "Motoboy em até 3 horas • Belém e Ananindeua",
-            price: 20,
+            price: localFee,
             estimatedDays: "Até 3 horas",
           },
           {
@@ -162,7 +171,7 @@ export const useShipping = () => {
     } catch (err: any) {
       setState((s) => ({ ...s, loading: false, error: err.message || "Erro ao calcular frete" }));
     }
-  }, [state.cep]);
+  }, [state.cep, localFee]);
 
   const selectedShipping = state.options.find((o) => o.id === state.selectedOption) || null;
 
