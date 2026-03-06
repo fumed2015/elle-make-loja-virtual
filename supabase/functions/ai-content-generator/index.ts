@@ -173,8 +173,38 @@ Gere EXATAMENTE o seguinte conteúdo usando a function tool:
       }
 
       const imageData = await imageResp.json();
-      const imageUrl = imageData.choices?.[0]?.message?.images?.[0]?.image_url?.url;
-      if (!imageUrl) throw new Error("IA não retornou imagem");
+      console.log("Image AI response structure:", JSON.stringify(imageData).substring(0, 500));
+      
+      // Try multiple response formats
+      let imageUrl: string | undefined;
+      const msg = imageData.choices?.[0]?.message;
+      
+      // Format 1: images array
+      imageUrl = msg?.images?.[0]?.image_url?.url;
+      
+      // Format 2: content as array with image_url parts
+      if (!imageUrl && Array.isArray(msg?.content)) {
+        const imgPart = msg.content.find((p: any) => p.type === "image_url" || p.image_url);
+        imageUrl = imgPart?.image_url?.url;
+      }
+      
+      // Format 3: inline_data in content parts
+      if (!imageUrl && Array.isArray(msg?.content)) {
+        const imgPart = msg.content.find((p: any) => p.type === "image" || p.inline_data);
+        if (imgPart?.inline_data?.data) {
+          imageUrl = `data:${imgPart.inline_data.mime_type || "image/png"};base64,${imgPart.inline_data.data}`;
+        }
+      }
+      
+      // Format 4: content string that is a data URI
+      if (!imageUrl && typeof msg?.content === "string" && msg.content.startsWith("data:image")) {
+        imageUrl = msg.content;
+      }
+      
+      if (!imageUrl) {
+        console.error("Could not extract image from response:", JSON.stringify(imageData).substring(0, 1000));
+        throw new Error("IA não retornou imagem. Formato de resposta inesperado.");
+      }
 
       // Extract base64 data and upload to storage
       const base64Data = imageUrl.replace(/^data:image\/\w+;base64,/, "");
@@ -318,7 +348,17 @@ Gere: description (150-250 palavras, sensorial, SEO), sensorial_description (2-3
 
               if (imageResp.ok) {
                 const imageData = await imageResp.json();
-                const imgUrl = imageData.choices?.[0]?.message?.images?.[0]?.image_url?.url;
+                const msg2 = imageData.choices?.[0]?.message;
+                let imgUrl = msg2?.images?.[0]?.image_url?.url;
+                if (!imgUrl && Array.isArray(msg2?.content)) {
+                  const ip = msg2.content.find((p: any) => p.type === "image_url" || p.image_url);
+                  imgUrl = ip?.image_url?.url;
+                  if (!imgUrl) {
+                    const ip2 = msg2.content.find((p: any) => p.inline_data);
+                    if (ip2?.inline_data?.data) imgUrl = `data:${ip2.inline_data.mime_type || "image/png"};base64,${ip2.inline_data.data}`;
+                  }
+                }
+                if (!imgUrl && typeof msg2?.content === "string" && msg2.content.startsWith("data:image")) imgUrl = msg2.content;
                 if (imgUrl) {
                   const base64Data = imgUrl.replace(/^data:image\/\w+;base64,/, "");
                   const imageBytes = Uint8Array.from(atob(base64Data), c => c.charCodeAt(0));
