@@ -131,6 +131,47 @@ const MarketplacesTab = () => {
     },
   });
 
+  // Real metrics: listings per marketplace
+  const { data: listings } = useQuery({
+    queryKey: ["marketplace-listings-metrics"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("marketplace_listings")
+        .select("marketplace, status");
+      if (error) throw error;
+      return data || [];
+    },
+  });
+
+  // Real metrics: orders per marketplace
+  const { data: mpOrders } = useQuery({
+    queryKey: ["marketplace-orders-metrics"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("marketplace_orders")
+        .select("marketplace, total, status");
+      if (error) throw error;
+      return data || [];
+    },
+  });
+
+  // Aggregate metrics per marketplace
+  const metricsPerMp = MARKETPLACES.reduce((acc, mp) => {
+    const mpListings = listings?.filter(l => l.marketplace === mp.id) || [];
+    const mpOrd = mpOrders?.filter(o => o.marketplace === mp.id) || [];
+    acc[mp.id] = {
+      totalListings: mpListings.length,
+      activeListings: mpListings.filter(l => l.status === "active").length,
+      totalOrders: mpOrd.length,
+      revenue: mpOrd.reduce((s, o) => s + Number(o.total || 0), 0),
+    };
+    return acc;
+  }, {} as Record<string, { totalListings: number; activeListings: number; totalOrders: number; revenue: number }>);
+
+  const totalListings = listings?.length || 0;
+  const totalMpOrders = mpOrders?.length || 0;
+  const totalMpRevenue = mpOrders?.reduce((s, o) => s + Number(o.total || 0), 0) || 0;
+
   // Initialize local state from DB
   useEffect(() => {
     if (dbConfigs && !initialized) {
@@ -231,6 +272,7 @@ const MarketplacesTab = () => {
       });
       if (error) throw error;
       toast.success(`${mp.name}: ${data?.processed || 0} sincronizados, ${data?.failed || 0} falhas`);
+      queryClient.invalidateQueries({ queryKey: ["marketplace-listings-metrics"] });
     } catch (e: any) {
       toast.error(`Erro ao sincronizar ${mp.name}: ${e.message}`);
     } finally {
@@ -249,6 +291,7 @@ const MarketplacesTab = () => {
       });
       if (error) throw error;
       toast.success(`${mp.name}: ${data?.processed || 0} pedidos importados`);
+      queryClient.invalidateQueries({ queryKey: ["marketplace-orders-metrics"] });
     } catch (e: any) {
       toast.error(`Erro ao importar pedidos ${mp.name}: ${e.message}`);
     } finally {
@@ -258,6 +301,8 @@ const MarketplacesTab = () => {
 
   const totalProducts = products?.length || 0;
   const activeMarketplaces = Object.values(configs).filter((c) => c.enabled).length;
+
+  const fmt = (v: number) => `R$ ${v.toFixed(2).replace(".", ",")}`;
 
   return (
     <div className="space-y-6">
@@ -274,7 +319,7 @@ const MarketplacesTab = () => {
       </motion.div>
 
       {/* Overview Cards */}
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }}
           className="bg-card rounded-xl p-4 border border-border">
           <Globe2 className="w-5 h-5 text-primary mb-2" />
@@ -283,9 +328,21 @@ const MarketplacesTab = () => {
         </motion.div>
         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}
           className="bg-card rounded-xl p-4 border border-border">
-          <Box className="w-5 h-5 text-primary mb-2" />
-          <p className="text-lg font-bold">{totalProducts}</p>
-          <p className="text-[10px] text-muted-foreground">Produtos Disponíveis</p>
+          <Tag className="w-5 h-5 text-primary mb-2" />
+          <p className="text-lg font-bold">{totalListings}</p>
+          <p className="text-[10px] text-muted-foreground">Listagens Totais</p>
+        </motion.div>
+        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}
+          className="bg-card rounded-xl p-4 border border-border">
+          <ShoppingCart className="w-5 h-5 text-primary mb-2" />
+          <p className="text-lg font-bold">{totalMpOrders}</p>
+          <p className="text-[10px] text-muted-foreground">Pedidos Importados</p>
+        </motion.div>
+        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}
+          className="bg-card rounded-xl p-4 border border-border">
+          <DollarSign className="w-5 h-5 text-primary mb-2" />
+          <p className="text-lg font-bold">{fmt(totalMpRevenue)}</p>
+          <p className="text-[10px] text-muted-foreground">Receita Marketplaces</p>
         </motion.div>
       </div>
 
@@ -295,6 +352,7 @@ const MarketplacesTab = () => {
           const config = configs[mp.id];
           const status = mpStatus[mp.id];
           const isSelected = selectedMp === mp.id;
+          const metrics = metricsPerMp[mp.id];
 
           return (
             <motion.div
@@ -322,7 +380,13 @@ const MarketplacesTab = () => {
                         <Badge variant="outline" className="text-[9px]">Inativo</Badge>
                       )}
                     </div>
-                    <p className="text-[10px] text-muted-foreground">{mp.description}</p>
+                    <div className="flex items-center gap-2 mt-0.5">
+                      <span className="text-[10px] text-muted-foreground">{metrics.totalListings} listagens</span>
+                      <span className="text-[10px] text-muted-foreground">•</span>
+                      <span className="text-[10px] text-muted-foreground">{metrics.totalOrders} pedidos</span>
+                      <span className="text-[10px] text-muted-foreground">•</span>
+                      <span className="text-[10px] text-muted-foreground">{fmt(metrics.revenue)}</span>
+                    </div>
                   </div>
                 </div>
                 <ArrowUpRight className={`w-4 h-4 text-muted-foreground transition-transform ${isSelected ? "rotate-90" : ""}`} />
