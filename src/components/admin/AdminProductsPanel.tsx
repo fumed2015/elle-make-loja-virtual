@@ -618,9 +618,17 @@ const AdminProductsPanel = () => {
   return (
     <div className="space-y-4">
       {/* Header */}
-      <div className="flex items-center gap-2">
+      <div className="flex flex-wrap items-center gap-2">
         <Button onClick={openAdd} size="sm" className="bg-primary text-primary-foreground text-xs gap-1.5">
           <Plus className="w-3.5 h-3.5" />Novo Produto
+        </Button>
+        <Button onClick={() => handleBulkSEO(true)} size="sm" variant="outline" disabled={!!bulkGenerating} className="text-xs gap-1.5">
+          {bulkGenerating === "seo" ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Sparkles className="w-3.5 h-3.5" />}
+          Gerar Títulos & Descrições
+        </Button>
+        <Button onClick={() => handleBulkComplete(true)} size="sm" variant="outline" disabled={!!bulkGenerating} className="text-xs gap-1.5">
+          {bulkGenerating === "complete" ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <ImageLucide className="w-3.5 h-3.5" />}
+          Gerar Tudo (Textos + Imagens)
         </Button>
         <div className="flex-1" />
         <Badge variant="secondary" className="text-[10px]">{filteredProducts.length} produtos</Badge>
