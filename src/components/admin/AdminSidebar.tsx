@@ -25,7 +25,7 @@ export type AdminTab =
   | "orders" | "coupons" | "reviews"
   | "influencers" | "leads" | "birthdays"
   | "pixels" | "whatsapp" | "seo" | "ai-content"
-  | "marketplaces";
+  | "marketplaces" | "newsletter";
 
 interface SidebarItem {
   id: AdminTab;
@@ -83,6 +83,7 @@ const SIDEBAR_SECTIONS: SidebarSection[] = [
     items: [
       { id: "crm", label: "CRM", icon: Heart },
       { id: "leads", label: "Leads", icon: UserPlus },
+      { id: "newsletter", label: "Newsletter", icon: UserPlus },
       { id: "birthdays", label: "Aniversários", icon: Cake },
       { id: "influencers", label: "Influencers", icon: Users },
       { id: "reviews", label: "Reviews", icon: Star },
