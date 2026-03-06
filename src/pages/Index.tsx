@@ -7,6 +7,8 @@ import SEOHead from "@/components/SEOHead";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useAllProductsUnified, useCategories } from "@/hooks/useProducts";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 import ProductCard from "@/components/product/ProductCard";
 
 import Footer from "@/components/layout/Footer";
@@ -51,16 +53,50 @@ const faqs = [
 
 
 const Index = () => {
-  // Single unified query instead of 2 separate ones
   const { data: allProducts, isLoading } = useAllProductsUnified();
   const { data: categories } = useCategories();
   const [couponCode, setCouponCode] = useState("");
   const [openFaq, setOpenFaq] = useState<number | null>(null);
 
-  // Derive featured + offers from single query (no extra network calls)
-  const featured = useMemo(() => allProducts?.filter(p => p.is_featured).slice(0, 5) || [], [allProducts]);
-  const offers = useMemo(() => allProducts?.filter(p => p.compare_at_price && p.compare_at_price > p.price).slice(0, 5) || [], [allProducts]);
-  const moreProducts = useMemo(() => allProducts?.filter(p => !p.is_featured).slice(0, 10) || [], [allProducts]);
+  // Fetch curated section configs from promotions
+  const { data: sectionConfigs } = useQuery({
+    queryKey: ["homepage-section-products"],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("promotions")
+        .select("position, product_ids")
+        .eq("type", "homepage_section")
+        .eq("is_active", true);
+      return data || [];
+    },
+    staleTime: 1000 * 60 * 5,
+  });
+
+  // Helper: get curated products for a section, respecting order
+  const getCuratedProducts = (sectionKey: string, fallbackFn: () => typeof allProducts) => {
+    const config = sectionConfigs?.find((c) => c.position === sectionKey);
+    if (config?.product_ids && config.product_ids.length > 0 && allProducts) {
+      return config.product_ids
+        .map((id: string) => allProducts.find((p) => p.id === id))
+        .filter(Boolean);
+    }
+    return fallbackFn();
+  };
+
+  const featured = useMemo(() => getCuratedProducts(
+    "novidades",
+    () => allProducts?.filter(p => p.is_featured).slice(0, 5) || []
+  ), [allProducts, sectionConfigs]);
+
+  const offers = useMemo(() => getCuratedProducts(
+    "super_ofertas",
+    () => allProducts?.filter(p => p.compare_at_price && p.compare_at_price > p.price).slice(0, 5) || []
+  ), [allProducts, sectionConfigs]);
+
+  const moreProducts = useMemo(() => getCuratedProducts(
+    "mais_produtos",
+    () => allProducts?.filter(p => !p.is_featured).slice(0, 10) || []
+  ), [allProducts, sectionConfigs]);
 
   useEffect(() => {
     // Immediate scroll
