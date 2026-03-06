@@ -1,10 +1,10 @@
-import { useState } from "react";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useState, useEffect } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Search, Plus, X, GripVertical, Save, Loader2 } from "lucide-react";
+import { Search, Plus, X, Save, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
 const SECTIONS = [
@@ -17,9 +17,8 @@ const HomepageSectionsTab = () => {
   const queryClient = useQueryClient();
   const [activeSection, setActiveSection] = useState("super_ofertas");
   const [searchQuery, setSearchQuery] = useState("");
-  const [saving, setSaving] = useState(false);
   const [selectedIds, setSelectedIds] = useState<Record<string, string[]>>({});
-  const [initialized, setInitialized] = useState(false);
+  const [isDirty, setIsDirty] = useState(false);
 
   // Load existing section configs from promotions
   const { data: sectionConfigs, isLoading: loadingConfigs } = useQuery({
@@ -48,20 +47,19 @@ const HomepageSectionsTab = () => {
     },
   });
 
-  // Initialize selectedIds from DB once loaded
-  if (sectionConfigs && !initialized) {
+  // Initialize selectedIds from DB when data loads
+  useEffect(() => {
+    if (!sectionConfigs || isDirty) return;
     const map: Record<string, string[]> = {};
     for (const sec of SECTIONS) {
       const config = sectionConfigs.find((c) => c.position === sec.key);
       map[sec.key] = config?.product_ids || [];
     }
     setSelectedIds(map);
-    setInitialized(true);
-  }
+  }, [sectionConfigs]);
 
   const currentIds = selectedIds[activeSection] || [];
   const currentProducts = allProducts?.filter((p) => currentIds.includes(p.id)) || [];
-  // Sort to match order in currentIds
   const sortedProducts = currentIds
     .map((id) => currentProducts.find((p) => p.id === id))
     .filter(Boolean) as typeof currentProducts;
@@ -75,6 +73,7 @@ const HomepageSectionsTab = () => {
   ) || [];
 
   const addProduct = (productId: string) => {
+    setIsDirty(true);
     setSelectedIds((prev) => ({
       ...prev,
       [activeSection]: [...(prev[activeSection] || []), productId],
@@ -82,6 +81,7 @@ const HomepageSectionsTab = () => {
   };
 
   const removeProduct = (productId: string) => {
+    setIsDirty(true);
     setSelectedIds((prev) => ({
       ...prev,
       [activeSection]: (prev[activeSection] || []).filter((id) => id !== productId),
@@ -93,50 +93,48 @@ const HomepageSectionsTab = () => {
     const newIndex = index + direction;
     if (newIndex < 0 || newIndex >= ids.length) return;
     [ids[index], ids[newIndex]] = [ids[newIndex], ids[index]];
+    setIsDirty(true);
     setSelectedIds((prev) => ({ ...prev, [activeSection]: ids }));
   };
 
-  const saveSection = async (sectionKey: string) => {
-    setSaving(true);
-    try {
-      const ids = selectedIds[sectionKey] || [];
-      const existing = sectionConfigs?.find((c) => c.position === sectionKey);
+  // Save mutation
+  const saveMutation = useMutation({
+    mutationFn: async (sectionsToSave: string[]) => {
+      for (const sectionKey of sectionsToSave) {
+        const ids = selectedIds[sectionKey] || [];
+        const existing = sectionConfigs?.find((c) => c.position === sectionKey);
 
-      if (existing) {
-        const { error } = await supabase
-          .from("promotions")
-          .update({ product_ids: ids, updated_at: new Date().toISOString() })
-          .eq("id", existing.id);
-        if (error) throw error;
-      } else {
-        const { error } = await supabase.from("promotions").insert({
-          title: SECTIONS.find((s) => s.key === sectionKey)?.label || sectionKey,
-          type: "homepage_section",
-          position: sectionKey,
-          product_ids: ids,
-          is_active: true,
-        });
-        if (error) throw error;
+        if (existing) {
+          const { error } = await supabase
+            .from("promotions")
+            .update({ product_ids: ids, updated_at: new Date().toISOString() })
+            .eq("id", existing.id);
+          if (error) throw error;
+        } else {
+          const { error } = await supabase.from("promotions").insert({
+            title: SECTIONS.find((s) => s.key === sectionKey)?.label || sectionKey,
+            type: "homepage_section",
+            position: sectionKey,
+            product_ids: ids,
+            is_active: true,
+          });
+          if (error) throw error;
+        }
       }
-
+    },
+    onSuccess: () => {
+      setIsDirty(false);
       queryClient.invalidateQueries({ queryKey: ["homepage-sections"] });
       queryClient.invalidateQueries({ queryKey: ["homepage-section-products"] });
-      setInitialized(false);
       toast.success("Seção salva com sucesso!");
-    } catch (err: any) {
+    },
+    onError: (err: any) => {
       toast.error("Erro ao salvar: " + err.message);
-    } finally {
-      setSaving(false);
-    }
-  };
+    },
+  });
 
-  const saveAll = async () => {
-    setSaving(true);
-    for (const sec of SECTIONS) {
-      await saveSection(sec.key);
-    }
-    setSaving(false);
-  };
+  const saveSection = () => saveMutation.mutate([activeSection]);
+  const saveAll = () => saveMutation.mutate(SECTIONS.map((s) => s.key));
 
   if (loadingConfigs) {
     return (
@@ -153,8 +151,8 @@ const HomepageSectionsTab = () => {
           <h2 className="text-lg font-bold">Seções da Página Inicial</h2>
           <p className="text-xs text-muted-foreground">Escolha quais produtos aparecem em cada seção</p>
         </div>
-        <Button onClick={saveAll} disabled={saving} className="gap-2">
-          {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+        <Button onClick={saveAll} disabled={saveMutation.isPending} className="gap-2">
+          {saveMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
           Salvar Tudo
         </Button>
       </div>
@@ -179,7 +177,6 @@ const HomepageSectionsTab = () => {
         ))}
       </div>
 
-      {/* Current section description */}
       <p className="text-sm text-muted-foreground">
         {SECTIONS.find((s) => s.key === activeSection)?.description}
       </p>
@@ -192,11 +189,11 @@ const HomepageSectionsTab = () => {
             <Button
               size="sm"
               variant="outline"
-              onClick={() => saveSection(activeSection)}
-              disabled={saving}
+              onClick={saveSection}
+              disabled={saveMutation.isPending}
               className="h-7 text-xs gap-1"
             >
-              {saving ? <Loader2 className="w-3 h-3 animate-spin" /> : <Save className="w-3 h-3" />}
+              {saveMutation.isPending ? <Loader2 className="w-3 h-3 animate-spin" /> : <Save className="w-3 h-3" />}
               Salvar seção
             </Button>
           </h3>
