@@ -1,10 +1,12 @@
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Mail, Download, Search, Users } from "lucide-react";
+import { Mail, Download, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { format } from "date-fns";
@@ -13,6 +15,36 @@ import { toast } from "sonner";
 
 const NewsletterTab = () => {
   const [search, setSearch] = useState("");
+  const queryClient = useQueryClient();
+
+  // Popup toggle
+  const { data: popupEnabled, isLoading: toggleLoading } = useQuery({
+    queryKey: ["site-setting-newsletter-popup"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("site_settings" as any)
+        .select("value")
+        .eq("key", "newsletter_popup_enabled")
+        .single();
+      if (error) return true;
+      return (data as any)?.value === true;
+    },
+  });
+
+  const toggleMutation = useMutation({
+    mutationFn: async (enabled: boolean) => {
+      const { error } = await supabase
+        .from("site_settings" as any)
+        .update({ value: enabled, updated_at: new Date().toISOString() } as any)
+        .eq("key", "newsletter_popup_enabled");
+      if (error) throw error;
+    },
+    onSuccess: (_, enabled) => {
+      queryClient.invalidateQueries({ queryKey: ["site-setting-newsletter-popup"] });
+      toast.success(enabled ? "Pop-up de newsletter ativado" : "Pop-up de newsletter desativado");
+    },
+    onError: () => toast.error("Erro ao atualizar configuração"),
+  });
 
   const { data: subscribers, isLoading } = useQuery({
     queryKey: ["admin-newsletter-subscribers"],
@@ -59,6 +91,26 @@ const NewsletterTab = () => {
           <Download className="w-4 h-4" /> Exportar CSV
         </Button>
       </div>
+
+      {/* Toggle pop-up */}
+      <Card>
+        <CardContent className="flex items-center justify-between py-4 px-5">
+          <div className="space-y-0.5">
+            <Label htmlFor="popup-toggle" className="text-sm font-semibold text-foreground cursor-pointer">
+              Pop-up de Newsletter
+            </Label>
+            <p className="text-xs text-muted-foreground">
+              {popupEnabled ? "Ativo — o pop-up será exibido para novos visitantes" : "Desativado — o pop-up não será exibido"}
+            </p>
+          </div>
+          <Switch
+            id="popup-toggle"
+            checked={!!popupEnabled}
+            disabled={toggleLoading || toggleMutation.isPending}
+            onCheckedChange={(checked) => toggleMutation.mutate(checked)}
+          />
+        </CardContent>
+      </Card>
 
       <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
         <Card>
