@@ -165,8 +165,13 @@ Gere EXATAMENTE o seguinte conteúdo usando a function tool:
         const t = await imageResp.text();
         console.error("Image AI error:", imageResp.status, t);
         if (imageResp.status === 429) {
-          return new Response(JSON.stringify({ error: "Limite de requisições atingido." }), {
+          return new Response(JSON.stringify({ error: "Limite de requisições atingido. Aguarde alguns minutos." }), {
             status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" },
+          });
+        }
+        if (imageResp.status === 402) {
+          return new Response(JSON.stringify({ error: "Créditos de IA esgotados. Aguarde a renovação." }), {
+            status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" },
           });
         }
         throw new Error("Image AI error: " + imageResp.status);

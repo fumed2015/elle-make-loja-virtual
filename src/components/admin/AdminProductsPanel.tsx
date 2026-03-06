@@ -350,7 +350,8 @@ const AdminProductsPanel = () => {
       const { data, error } = await supabase.functions.invoke("ai-content-generator", {
         body: { action: "generate", product_id: productId },
       });
-      if (error) throw error;
+      if (error) throw new Error(data?.error || error.message);
+      if (data?.error) throw new Error(data.error);
       if (data?.content) {
         const updateData: any = {};
         if (data.content.description) updateData.description = data.content.description;
@@ -391,7 +392,8 @@ const AdminProductsPanel = () => {
       const { data, error } = await supabase.functions.invoke("ai-content-generator", {
         body: { action: "generate-image", product_id: productId },
       });
-      if (error) throw error;
+      if (error) throw new Error(data?.error || error.message);
+      if (data?.error) throw new Error(data.error);
       toast.success(data?.message || "Imagem gerada!");
       refetch();
     } catch (e: any) {
