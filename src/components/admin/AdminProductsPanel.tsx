@@ -180,12 +180,48 @@ const AdminProductsPanel = () => {
   const handleSwatchStockChange = (idx: number, stock: number) => {
     setSwatches(swatches.map((s, i) => i === idx ? { ...s, stock, available: stock > 0 ? s.available : false } : s));
   };
-  const handleAutoGenerateSwatches = () => {
+  const handleAutoGenerateSwatches = async () => {
     if (!form.name) { toast.error("Preencha o nome do produto primeiro"); return; }
+    
+    // First try local detection
     const generated = autoGenerateSwatches(form.name);
-    if (generated.length === 0) { toast.info("Não foi possível detectar cores no título. Adicione manualmente."); return; }
-    setSwatches(prev => [...prev, ...generated]);
-    toast.success(`${generated.length} cor(es) adicionada(s) automaticamente!`);
+    if (generated.length > 0) {
+      setSwatches(prev => [...prev, ...generated]);
+      toast.success(`${generated.length} cor(es) adicionada(s) automaticamente!`);
+      return;
+    }
+    
+    // Fallback: use AI to detect colors
+    setAiGenerating(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("ai-content-generator", {
+        body: {
+          action: "generate-swatches",
+          product_name: form.name,
+          brand: form.brand,
+          barcode: swatches.map(s => s.barcode).filter(Boolean).join(", "),
+          ref_code: swatches.map(s => s.ref_code).filter(Boolean).join(", "),
+        },
+      });
+      if (error) throw error;
+      if (data?.swatches && data.swatches.length > 0) {
+        setSwatches(prev => [...prev, ...data.swatches.map((s: any) => ({
+          name: s.name,
+          color: s.color,
+          barcode: s.barcode || "",
+          ref_code: s.ref_code || "",
+          stock: 0,
+          available: true,
+        }))]);
+        toast.success(`${data.swatches.length} cor(es) detectada(s) pela IA!`);
+      } else {
+        toast.info("IA não conseguiu detectar cores. Adicione manualmente.");
+      }
+    } catch (e: any) {
+      toast.error(e.message || "Erro ao detectar cores com IA");
+    } finally {
+      setAiGenerating(false);
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -494,8 +530,9 @@ const AdminProductsPanel = () => {
         <fieldset className="bg-card rounded-xl p-4 border border-border space-y-3">
           <div className="flex items-center justify-between">
             <legend className="text-xs font-bold text-foreground px-2">Variações / Cores ({swatches.length})</legend>
-            <Button type="button" onClick={handleAutoGenerateSwatches} size="sm" variant="ghost" className="text-xs gap-1 text-primary h-7">
-              <Wand2 className="w-3 h-3" />Auto-gerar cores
+            <Button type="button" onClick={handleAutoGenerateSwatches} disabled={aiGenerating} size="sm" variant="ghost" className="text-xs gap-1 text-primary h-7">
+              {aiGenerating ? <Loader2 className="w-3 h-3 animate-spin" /> : <Wand2 className="w-3 h-3" />}
+              {aiGenerating ? "Detectando cores..." : "Auto-gerar cores (IA)"}
             </Button>
           </div>
           {swatches.length > 0 && (

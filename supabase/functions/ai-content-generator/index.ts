@@ -33,7 +33,7 @@ serve(async (req) => {
       }
     }
 
-    const { action, product_id, product_ids, force_all } = await req.json();
+    const { action, product_id, product_ids, force_all, product_name, brand, barcode, ref_code } = await req.json();
 
     // Action: generate - Generate content for a single product
     if (action === "generate") {
@@ -636,7 +636,92 @@ Gere exatamente 5 avaliações REALISTAS de clientes brasileiras. Cada avaliaç�
       }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
-    return new Response(JSON.stringify({ error: "Ação inválida. Use 'generate', 'bulk-seo', 'bulk-complete', 'generate-image' ou 'generate-reviews'." }), {
+    // Action: generate-swatches - AI-powered color detection from product info
+    if (action === "generate-swatches") {
+      const prompt = `Você é um especialista em catálogo de cosméticos e maquiagem brasileiros. Analise as informações abaixo e identifique TODAS as variações de cores disponíveis para este produto.
+
+Nome do produto: ${product_name || "N/A"}
+Marca: ${brand || "N/A"}
+Códigos de barras conhecidos: ${barcode || "nenhum"}
+Códigos de referência conhecidos: ${ref_code || "nenhum"}
+
+IMPORTANTE:
+- Produtos de maquiagem geralmente vêm em múltiplas cores/tons (nude, rosa, vermelho, marrom, etc.)
+- Se o nome mencionar "kit", "paleta" ou número de cores, gere essa quantidade de tons
+- Se o nome contém uma categoria (batom, blush, sombra, base, corretivo), gere cores típicas dessa categoria
+- Para batons: nude, rosa, vermelho, vinho, coral, marsala, etc.
+- Para bases/corretivos: bege claro, bege médio, bege escuro, caramelo, etc.
+- Para blush: rosa, pêssego, coral, malva, etc.
+- Para sombras: marrom, dourado, bronze, preto, cinza, etc.
+- Gere cores HEX realistas para cada tom
+- Se houver códigos de referência, use-os para nomear as variações
+
+Gere entre 3 e 12 variações de cores típicas para este tipo de produto.`;
+
+      const aiResp = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${LOVABLE_API_KEY}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          model: "google/gemini-3-flash-preview",
+          messages: [
+            { role: "system", content: "Especialista em catálogo de cosméticos. Retorne cores realistas." },
+            { role: "user", content: prompt },
+          ],
+          tools: [{
+            type: "function",
+            function: {
+              name: "save_swatches",
+              description: "Save detected color swatches",
+              parameters: {
+                type: "object",
+                properties: {
+                  swatches: {
+                    type: "array",
+                    items: {
+                      type: "object",
+                      properties: {
+                        name: { type: "string", description: "Color name in Portuguese (e.g. Nude Claro, Rosa Médio)" },
+                        color: { type: "string", description: "HEX color code (e.g. #c8a98a)" },
+                        ref_code: { type: "string", description: "Reference code if detectable" },
+                        barcode: { type: "string", description: "Barcode if detectable" },
+                      },
+                      required: ["name", "color"],
+                      additionalProperties: false,
+                    },
+                  },
+                },
+                required: ["swatches"],
+                additionalProperties: false,
+              },
+            },
+          }],
+          tool_choice: { type: "function", function: { name: "save_swatches" } },
+        }),
+      });
+
+      if (!aiResp.ok) {
+        if (aiResp.status === 429) {
+          return new Response(JSON.stringify({ error: "Limite de requisições atingido." }), {
+            status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" },
+          });
+        }
+        throw new Error("AI error: " + aiResp.status);
+      }
+
+      const aiData = await aiResp.json();
+      const tc = aiData.choices?.[0]?.message?.tool_calls?.[0];
+      if (!tc) throw new Error("AI não retornou cores");
+
+      const { swatches } = JSON.parse(tc.function.arguments);
+      return new Response(JSON.stringify({ swatches }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    return new Response(JSON.stringify({ error: "Ação inválida." }), {
       status: 400,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
