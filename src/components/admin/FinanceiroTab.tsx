@@ -850,8 +850,8 @@ const FinanceiroTab = () => {
                       <span>{fmt(Number(p?.packaging_cost || 0))}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-muted-foreground">CAC Unitário</span>
-                      <span>{fmt(cacUnitario)}</span>
+                      <span className="text-muted-foreground">CAC (rateio por pedido)</span>
+                      <span>{fmt(Number(p?.packaging_cost || 0) > 0 ? cacPorPedido : cacUnitario)} ({(cacRate * 100).toFixed(1)}%)</span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">Taxa Fixa Gateway</span>
