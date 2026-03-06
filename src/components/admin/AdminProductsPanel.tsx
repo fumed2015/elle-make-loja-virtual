@@ -348,6 +348,58 @@ const AdminProductsPanel = () => {
     }
   };
 
+  const handleGenerateImage = async (productId: string) => {
+    setGeneratingImageId(productId);
+    try {
+      const { data, error } = await supabase.functions.invoke("ai-content-generator", {
+        body: { action: "generate-image", product_id: productId },
+      });
+      if (error) throw error;
+      toast.success(data?.message || "Imagem gerada!");
+      refetch();
+    } catch (e: any) {
+      toast.error(e.message || "Erro ao gerar imagem");
+    } finally {
+      setGeneratingImageId(null);
+    }
+  };
+
+  const handleBulkSEO = async (forceAll = false) => {
+    setBulkGenerating("seo");
+    try {
+      const { data, error } = await supabase.functions.invoke("ai-content-generator", {
+        body: { action: "bulk-seo", force_all: forceAll },
+      });
+      if (error) throw error;
+      toast.success(data?.message || `${data?.updated || 0} produtos atualizados!`);
+      queryClient.invalidateQueries({ queryKey: ["products"] });
+      queryClient.invalidateQueries({ queryKey: ["products-unified"] });
+      refetch();
+    } catch (e: any) {
+      toast.error(e.message || "Erro ao gerar conteúdo em lote");
+    } finally {
+      setBulkGenerating(null);
+    }
+  };
+
+  const handleBulkComplete = async (forceAll = false) => {
+    setBulkGenerating("complete");
+    try {
+      const { data, error } = await supabase.functions.invoke("ai-content-generator", {
+        body: { action: "bulk-complete", force_all: forceAll },
+      });
+      if (error) throw error;
+      toast.success(data?.message || `${data?.updated || 0} produtos atualizados!`);
+      queryClient.invalidateQueries({ queryKey: ["products"] });
+      queryClient.invalidateQueries({ queryKey: ["products-unified"] });
+      refetch();
+    } catch (e: any) {
+      toast.error(e.message || "Erro ao gerar conteúdo completo");
+    } finally {
+      setBulkGenerating(null);
+    }
+  };
+
   // ============ FORM VIEW ============
   if (view === "add" || view === "edit") {
     return (
