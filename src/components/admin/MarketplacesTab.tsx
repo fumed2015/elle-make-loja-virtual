@@ -216,6 +216,7 @@ const MarketplacesTab = () => {
     amazon: { listings: 0, orders: 0, revenue: 0, views: 0 },
     olx: { listings: 0, orders: 0, revenue: 0, views: 0 },
     shopee: { listings: 0, orders: 0, revenue: 0, views: 0 },
+    tiktokshop: { listings: 0, orders: 0, revenue: 0, views: 0 },
   };
 
   return (
