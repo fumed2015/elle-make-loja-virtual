@@ -530,8 +530,9 @@ const AdminProductsPanel = () => {
         <fieldset className="bg-card rounded-xl p-4 border border-border space-y-3">
           <div className="flex items-center justify-between">
             <legend className="text-xs font-bold text-foreground px-2">Variações / Cores ({swatches.length})</legend>
-            <Button type="button" onClick={handleAutoGenerateSwatches} size="sm" variant="ghost" className="text-xs gap-1 text-primary h-7">
-              <Wand2 className="w-3 h-3" />Auto-gerar cores
+            <Button type="button" onClick={handleAutoGenerateSwatches} disabled={aiGenerating} size="sm" variant="ghost" className="text-xs gap-1 text-primary h-7">
+              {aiGenerating ? <Loader2 className="w-3 h-3 animate-spin" /> : <Wand2 className="w-3 h-3" />}
+              {aiGenerating ? "Detectando cores..." : "Auto-gerar cores (IA)"}
             </Button>
           </div>
           {swatches.length > 0 && (
