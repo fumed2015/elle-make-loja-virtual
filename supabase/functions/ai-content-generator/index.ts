@@ -132,17 +132,17 @@ Gere EXATAMENTE o seguinte conteúdo usando a function tool:
     }
 
 
-    // Action: bulk-complete - Generate descriptions + images for all products (chunked)
+    // Action: bulk-complete - Generate descriptions for all products (chunked, text only)
     if (action === "bulk-complete") {
       const limit = Math.min(chunk_size, 5);
 
       let query = supabase
         .from("products")
-        .select("id, name, brand, slug, price, tags, ingredients, description, sensorial_description, how_to_use, images, categories(name)")
+        .select("id, name, brand, slug, price, tags, ingredients, description, sensorial_description, how_to_use, categories(name)")
         .eq("is_active", true);
 
       if (!force_all) {
-        query = query.or("description.is.null,description.eq.,images.is.null");
+        query = query.or("description.is.null,description.eq.");
       }
 
       const { data: products, error } = await query.order("name").range(offset, offset + limit - 1);
@@ -158,7 +158,6 @@ Gere EXATAMENTE o seguinte conteúdo usando a function tool:
       for (const product of products) {
         try {
           const needsDescription = force_all || !product.description || product.description.length < 50;
-          const needsImage = force_all || !product.images || (product.images as string[]).length === 0;
 
           const updateData: any = {};
 
