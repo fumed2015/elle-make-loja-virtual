@@ -292,7 +292,7 @@ const HeroCarousel = () => {
                 style={{ backgroundColor: '#25D366', color: '#fff', fontFamily: 'Montserrat, sans-serif' }}
               >
                 <WhatsAppIcon className="w-5 h-5" />
-                <span className="font-medium text-sm uppercase tracking-[0.05em]">WhatsApp</span>
+                <span className="font-medium text-sm uppercase tracking-[0.05em]">Comprar no WhatsApp</span>
               </a>
             </div>
           </div>
@@ -348,7 +348,7 @@ const HeroCarousel = () => {
               style={{ backgroundColor: '#25D366', color: '#fff', fontFamily: 'Montserrat, sans-serif' }}
             >
               <WhatsAppIcon className="w-4 h-4" />
-              <span className="font-medium text-xs uppercase tracking-[0.05em]">Comprar pelo WhatsApp</span>
+              <span className="font-medium text-xs uppercase tracking-[0.05em]">Comprar no WhatsApp</span>
             </a>
           </div>
         </motion.div>
