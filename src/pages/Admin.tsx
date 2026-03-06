@@ -307,7 +307,7 @@ const AIContentTab = () => {
   const [bulkCompleteRunning, setBulkCompleteRunning] = useState(false);
   const [results, setResults] = useState<any[] | null>(null);
   const [generatingId, setGeneratingId] = useState<string | null>(null);
-  const [generatingImageId, setGeneratingImageId] = useState<string | null>(null);
+  
   const [preview, setPreview] = useState<any>(null);
 
   const productsNoDesc = products?.filter(p => !p.description || p.description.length < 30) || [];
@@ -369,21 +369,6 @@ const AIContentTab = () => {
     }
   };
 
-  const handleGenerateImage = async (productId: string) => {
-    setGeneratingImageId(productId);
-    try {
-      const { data, error } = await supabase.functions.invoke("ai-content-generator", {
-        body: { action: "generate-image", product_id: productId },
-      });
-      if (error) throw error;
-      toast.success("Imagem gerada com sucesso!");
-      refetch();
-    } catch (e: any) {
-      toast.error(e.message || "Erro ao gerar imagem");
-    } finally {
-      setGeneratingImageId(null);
-    }
-  };
 
   const handleApplyPreview = async () => {
     if (!preview) return;
@@ -519,16 +504,6 @@ const AIContentTab = () => {
                 >
                   {generatingId === p.id ? <Loader2 className="w-3 h-3 animate-spin" /> : <Wand2 className="w-3 h-3" />}
                   Texto
-                </Button>
-                <Button
-                  size="sm" variant="ghost"
-                  onClick={() => handleGenerateImage(p.id)}
-                  disabled={generatingImageId === p.id}
-                  className="text-xs h-7 gap-1 px-2"
-                  title="Gerar imagem"
-                >
-                  {generatingImageId === p.id ? <Loader2 className="w-3 h-3 animate-spin" /> : <ImageIcon className="w-3 h-3" />}
-                  Foto
                 </Button>
               </div>
             </div>
