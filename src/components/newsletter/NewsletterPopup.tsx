@@ -21,8 +21,23 @@ const NewsletterPopup = () => {
     try {
       if (localStorage.getItem(STORAGE_KEY)) return;
     } catch {}
-    const timer = setTimeout(() => setVisible(true), POPUP_DELAY_MS);
-    return () => clearTimeout(timer);
+
+    // Check if popup is enabled in site_settings
+    const checkAndShow = async () => {
+      try {
+        const { data } = await supabase
+          .from("site_settings" as any)
+          .select("value")
+          .eq("key", "newsletter_popup_enabled")
+          .single();
+        if ((data as any)?.value === false) return;
+      } catch {
+        // If query fails, show popup by default
+      }
+      setTimeout(() => setVisible(true), POPUP_DELAY_MS);
+    };
+
+    checkAndShow();
   }, []);
 
   const handleDismiss = () => {
