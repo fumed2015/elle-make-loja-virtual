@@ -31,6 +31,7 @@ const MARKETPLACES = [
     icon: "🟡",
     description: "Maior marketplace da América Latina",
     apiUrl: "https://developers.mercadolivre.com.br",
+    edgeFunction: "marketplace-mercadolivre",
     features: ["Mercado Envios", "Mercado Pago integrado", "Fulfillment (Full)", "Anúncios patrocinados"],
     requiredFields: ["Título (até 60 chars)", "Categoria MLB", "Preço", "Estoque", "Imagens (até 10)", "Descrição", "Condição (novo/usado)", "Tipo de anúncio"],
   },
@@ -44,21 +45,9 @@ const MARKETPLACES = [
     icon: "🟠",
     description: "Marketplace global com presença no Brasil",
     apiUrl: "https://developer-docs.amazon.com/sp-api",
+    edgeFunction: "marketplace-amazon",
     features: ["FBA (Fulfillment by Amazon)", "Prime elegível", "Buy Box", "A+ Content"],
     requiredFields: ["Título", "EAN/GTIN", "Marca", "Preço", "Estoque", "Imagens (principal + variações)", "Bullet points (5)", "Descrição HTML"],
-  },
-  {
-    id: "olx",
-    name: "OLX",
-    color: "hsl(270, 60%, 55%)",
-    bgClass: "bg-[hsl(270,60%,95%)]",
-    textClass: "text-[hsl(270,60%,30%)]",
-    borderClass: "border-[hsl(270,60%,75%)]",
-    icon: "🟣",
-    description: "Classificados e marketplace C2C/B2C",
-    apiUrl: "https://developers.olx.com.br",
-    features: ["Destaque de anúncios", "Chat integrado", "Localização geográfica", "Categorias regionais"],
-    requiredFields: ["Título", "Categoria", "Preço", "Imagens (até 20)", "Descrição", "CEP/Localização", "Condição"],
   },
   {
     id: "shopee",
@@ -70,6 +59,7 @@ const MARKETPLACES = [
     icon: "🔴",
     description: "Marketplace asiático em forte expansão no BR",
     apiUrl: "https://open.shopee.com",
+    edgeFunction: "marketplace-shopee",
     features: ["Frete grátis Shopee", "Shopee Ads", "Live commerce", "Shopee Coins"],
     requiredFields: ["Título", "Categoria", "Preço", "Estoque", "Imagens (até 9)", "Descrição", "Variações", "Peso e dimensões"],
   },
@@ -83,6 +73,7 @@ const MARKETPLACES = [
     icon: "🎵",
     description: "Social commerce integrado ao TikTok",
     apiUrl: "https://partner.tiktokshop.com",
+    edgeFunction: "marketplace-tiktokshop",
     features: ["Live Shopping", "Vitrine no perfil", "Affiliate Program", "TikTok Ads integrado"],
     requiredFields: ["Título", "Categoria", "Preço", "Estoque", "Imagens (até 9)", "Descrição", "Variações", "Peso e dimensões"],
   },
@@ -124,6 +115,9 @@ const MarketplacesTab = () => {
   const [initialized, setInitialized] = useState(false);
   const [selectedMp, setSelectedMp] = useState<MarketplaceId | null>(null);
   const [innerTab, setInnerTab] = useState("overview");
+  const [syncingMp, setSyncingMp] = useState<MarketplaceId | null>(null);
+  const [checkingStatus, setCheckingStatus] = useState<MarketplaceId | null>(null);
+  const [mpStatus, setMpStatus] = useState<Record<string, any>>({});
 
   // Load configs from DB
   const { data: dbConfigs, isLoading: loadingConfigs } = useQuery({
@@ -207,17 +201,63 @@ const MarketplacesTab = () => {
     },
   });
 
+  // ── Check connection status ──
+  const handleCheckStatus = async (mpId: MarketplaceId) => {
+    const mp = MARKETPLACES.find(m => m.id === mpId);
+    if (!mp) return;
+    setCheckingStatus(mpId);
+    try {
+      const { data, error } = await supabase.functions.invoke(mp.edgeFunction, {
+        body: { action: "status" },
+      });
+      if (error) throw error;
+      setMpStatus(prev => ({ ...prev, [mpId]: data }));
+      toast.success(`${mp.name}: ${data?.connected ? "Conectado ✓" : "Não conectado"}`);
+    } catch (e: any) {
+      toast.error(`Erro ao verificar ${mp.name}: ${e.message}`);
+    } finally {
+      setCheckingStatus(null);
+    }
+  };
+
+  // ── Sync products to marketplace ──
+  const handleSyncProducts = async (mpId: MarketplaceId) => {
+    const mp = MARKETPLACES.find(m => m.id === mpId);
+    if (!mp) return;
+    setSyncingMp(mpId);
+    try {
+      const { data, error } = await supabase.functions.invoke(mp.edgeFunction, {
+        body: { action: "sync_products" },
+      });
+      if (error) throw error;
+      toast.success(`${mp.name}: ${data?.processed || 0} sincronizados, ${data?.failed || 0} falhas`);
+    } catch (e: any) {
+      toast.error(`Erro ao sincronizar ${mp.name}: ${e.message}`);
+    } finally {
+      setSyncingMp(null);
+    }
+  };
+
+  // ── Import orders from marketplace ──
+  const handleImportOrders = async (mpId: MarketplaceId) => {
+    const mp = MARKETPLACES.find(m => m.id === mpId);
+    if (!mp) return;
+    setSyncingMp(mpId);
+    try {
+      const { data, error } = await supabase.functions.invoke(mp.edgeFunction, {
+        body: { action: "import_orders" },
+      });
+      if (error) throw error;
+      toast.success(`${mp.name}: ${data?.processed || 0} pedidos importados`);
+    } catch (e: any) {
+      toast.error(`Erro ao importar pedidos ${mp.name}: ${e.message}`);
+    } finally {
+      setSyncingMp(null);
+    }
+  };
+
   const totalProducts = products?.length || 0;
   const activeMarketplaces = Object.values(configs).filter((c) => c.enabled).length;
-
-  // ── Mock metrics for demo ──
-  const mockMetrics: Record<MarketplaceId, { listings: number; orders: number; revenue: number; views: number }> = {
-    mercadolivre: { listings: 0, orders: 0, revenue: 0, views: 0 },
-    amazon: { listings: 0, orders: 0, revenue: 0, views: 0 },
-    olx: { listings: 0, orders: 0, revenue: 0, views: 0 },
-    shopee: { listings: 0, orders: 0, revenue: 0, views: 0 },
-    tiktokshop: { listings: 0, orders: 0, revenue: 0, views: 0 },
-  };
 
   return (
     <div className="space-y-6">
@@ -253,7 +293,7 @@ const MarketplacesTab = () => {
       <div className="space-y-3">
         {MARKETPLACES.map((mp, i) => {
           const config = configs[mp.id];
-          const metrics = mockMetrics[mp.id];
+          const status = mpStatus[mp.id];
           const isSelected = selectedMp === mp.id;
 
           return (
@@ -309,19 +349,37 @@ const MarketplacesTab = () => {
 
                         {/* Overview */}
                         <TabsContent value="overview" className="space-y-3 mt-3">
-                          <div className="grid grid-cols-4 gap-2">
-                            {[
-                              { label: "Listagens", value: metrics.listings, icon: Package },
-                              { label: "Pedidos", value: metrics.orders, icon: ShoppingCart },
-                              { label: "Receita", value: `R$ ${metrics.revenue.toFixed(0)}`, icon: DollarSign },
-                              { label: "Visualizações", value: metrics.views, icon: Eye },
-                            ].map((s) => (
-                              <div key={s.label} className="bg-muted rounded-lg p-2 text-center">
-                                <s.icon className="w-3.5 h-3.5 mx-auto mb-1 text-muted-foreground" />
-                                <p className="text-sm font-bold">{s.value}</p>
-                                <p className="text-[8px] text-muted-foreground">{s.label}</p>
+                          {/* Connection status & actions */}
+                          <div className="bg-muted rounded-lg p-3 space-y-2">
+                            <div className="flex items-center justify-between">
+                              <p className="text-[10px] font-bold text-muted-foreground uppercase">Status da Conexão</p>
+                              <div className="flex gap-1.5">
+                                <Button size="sm" variant="outline" className="text-[10px] h-7 gap-1" disabled={checkingStatus === mp.id} onClick={() => handleCheckStatus(mp.id)}>
+                                  {checkingStatus === mp.id ? <Loader2 className="w-3 h-3 animate-spin" /> : <Search className="w-3 h-3" />} Verificar
+                                </Button>
                               </div>
-                            ))}
+                            </div>
+                            {status && (
+                              <div className="flex items-center gap-2 text-xs">
+                                {status.connected ? (
+                                  <><CheckCircle className="w-3.5 h-3.5 text-accent" /><span className="text-accent font-medium">Conectado</span></>
+                                ) : (
+                                  <><AlertTriangle className="w-3.5 h-3.5 text-destructive" /><span className="text-destructive font-medium">Não conectado</span></>
+                                )}
+                                {status.seller_id && <span className="text-muted-foreground">• Seller: {status.seller_id}</span>}
+                                {status.shop_id && <span className="text-muted-foreground">• Shop: {status.shop_id}</span>}
+                              </div>
+                            )}
+                          </div>
+
+                          {/* Action buttons */}
+                          <div className="grid grid-cols-2 gap-2">
+                            <Button size="sm" variant="outline" className="text-[10px] h-8 gap-1" disabled={syncingMp === mp.id} onClick={() => handleSyncProducts(mp.id)}>
+                              {syncingMp === mp.id ? <Loader2 className="w-3 h-3 animate-spin" /> : <RefreshCw className="w-3 h-3" />} Sincronizar Produtos
+                            </Button>
+                            <Button size="sm" variant="outline" className="text-[10px] h-8 gap-1" disabled={syncingMp === mp.id} onClick={() => handleImportOrders(mp.id)}>
+                              {syncingMp === mp.id ? <Loader2 className="w-3 h-3 animate-spin" /> : <ShoppingCart className="w-3 h-3" />} Importar Pedidos
+                            </Button>
                           </div>
 
                           {/* Features */}
@@ -478,8 +536,8 @@ const MarketplacesTab = () => {
                         <TabsContent value="products" className="space-y-3 mt-3">
                           <div className="flex items-center justify-between">
                             <p className="text-xs font-semibold">{totalProducts} produtos disponíveis</p>
-                            <Button size="sm" variant="outline" className="text-[10px] h-7 gap-1">
-                              <RefreshCw className="w-3 h-3" /> Sincronizar Todos
+                            <Button size="sm" variant="outline" className="text-[10px] h-7 gap-1" disabled={syncingMp === mp.id} onClick={() => handleSyncProducts(mp.id)}>
+                              {syncingMp === mp.id ? <Loader2 className="w-3 h-3 animate-spin" /> : <RefreshCw className="w-3 h-3" />} Sincronizar Todos
                             </Button>
                           </div>
 
@@ -584,18 +642,6 @@ const MarketplacesTab = () => {
                                 <div className="flex items-start gap-1.5">
                                   <CheckCircle className="w-3 h-3 text-accent mt-0.5 flex-shrink-0" />
                                   <span><strong>DBA:</strong> Delivery by Amazon. Amazon coleta e entrega.</span>
-                                </div>
-                              </div>
-                            )}
-                            {mp.id === "olx" && (
-                              <div className="space-y-1.5 text-[10px]">
-                                <div className="flex items-start gap-1.5">
-                                  <CheckCircle className="w-3 h-3 text-accent mt-0.5 flex-shrink-0" />
-                                  <span><strong>Retirada pessoal:</strong> Comprador busca o produto. Sem custo de frete.</span>
-                                </div>
-                                <div className="flex items-start gap-1.5">
-                                  <CheckCircle className="w-3 h-3 text-accent mt-0.5 flex-shrink-0" />
-                                  <span><strong>Envio por conta do vendedor:</strong> Você organiza e envia (Correios, transportadora).</span>
                                 </div>
                               </div>
                             )}
