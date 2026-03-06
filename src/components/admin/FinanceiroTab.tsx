@@ -86,7 +86,7 @@ const fmt = (v: number) => `R$ ${v.toFixed(2).replace(".", ",")}`;
 const fmtPct = (v: number) => `${v.toFixed(1)}%`;
 
 const FIELD_LABELS: Record<string, string> = {
-  packaging_cost: "Embalagem",
+  packaging_cost: "Embalagem (por pedido)",
   gateway_rate_credit: "Taxa Crédito (%)",
   gateway_rate_credit_fixed: "Taxa Crédito Fixa (R$)",
   gateway_rate_pix: "Taxa Pix (%)",
@@ -833,7 +833,7 @@ const FinanceiroTab = () => {
                       <span>{fmt(costBase)} + {fmt(freightU)} = <strong>{fmt(costBase + freightU)}</strong></span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-muted-foreground">Embalagem</span>
+                      <span className="text-muted-foreground">Embalagem (por pedido)</span>
                       <span>{fmt(Number(p?.packaging_cost || 0))}</span>
                     </div>
                     <div className="flex justify-between">
