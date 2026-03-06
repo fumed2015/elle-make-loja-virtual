@@ -1,0 +1,1 @@
+ALTER TABLE public.marketplace_tokens ADD CONSTRAINT marketplace_tokens_marketplace_unique UNIQUE (marketplace);
