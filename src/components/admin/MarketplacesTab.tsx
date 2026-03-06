@@ -205,7 +205,6 @@ const MarketplacesTab = () => {
   const mockMetrics: Record<MarketplaceId, { listings: number; orders: number; revenue: number; views: number }> = {
     mercadolivre: { listings: 0, orders: 0, revenue: 0, views: 0 },
     amazon: { listings: 0, orders: 0, revenue: 0, views: 0 },
-    olx: { listings: 0, orders: 0, revenue: 0, views: 0 },
     shopee: { listings: 0, orders: 0, revenue: 0, views: 0 },
     tiktokshop: { listings: 0, orders: 0, revenue: 0, views: 0 },
   };
@@ -575,18 +574,6 @@ const MarketplacesTab = () => {
                                 <div className="flex items-start gap-1.5">
                                   <CheckCircle className="w-3 h-3 text-accent mt-0.5 flex-shrink-0" />
                                   <span><strong>DBA:</strong> Delivery by Amazon. Amazon coleta e entrega.</span>
-                                </div>
-                              </div>
-                            )}
-                            {mp.id === "olx" && (
-                              <div className="space-y-1.5 text-[10px]">
-                                <div className="flex items-start gap-1.5">
-                                  <CheckCircle className="w-3 h-3 text-accent mt-0.5 flex-shrink-0" />
-                                  <span><strong>Retirada pessoal:</strong> Comprador busca o produto. Sem custo de frete.</span>
-                                </div>
-                                <div className="flex items-start gap-1.5">
-                                  <CheckCircle className="w-3 h-3 text-accent mt-0.5 flex-shrink-0" />
-                                  <span><strong>Envio por conta do vendedor:</strong> Você organiza e envia (Correios, transportadora).</span>
                                 </div>
                               </div>
                             )}
