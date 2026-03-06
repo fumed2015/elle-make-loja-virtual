@@ -33,7 +33,7 @@ serve(async (req) => {
       }
     }
 
-    const { action, product_id, product_ids, force_all, product_name, brand, barcode, ref_code } = await req.json();
+    const { action, product_id, product_ids, force_all, product_name, brand, barcode, ref_code, offset = 0, chunk_size = 3 } = await req.json();
 
     // Action: generate - Generate content for a single product
     if (action === "generate") {
@@ -241,7 +241,7 @@ Gere EXATAMENTE o seguinte conteúdo usando a function tool:
 
     // Action: bulk-complete - Generate descriptions + images for all products (chunked)
     if (action === "bulk-complete") {
-      const { offset = 0, chunk_size = 3 } = await req.json().catch(() => ({}));
+      const limit = Math.min(chunk_size, 5);
       const limit = Math.min(chunk_size, 5);
 
       let query = supabase
