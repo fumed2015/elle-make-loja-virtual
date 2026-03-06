@@ -232,14 +232,6 @@ const Produto = () => {
               </div>
             )}
 
-            {/* Tags */}
-            {tags.length > 0 && (
-              <div className="flex flex-wrap gap-1.5">
-                {tags.map((tag: string) => (
-                  <Badge key={tag} variant="secondary" className="text-[10px]">{tag}</Badge>
-                ))}
-              </div>
-            )}
 
             {/* Quantity + Stock */}
             <div className="flex items-center gap-3">
@@ -326,6 +318,13 @@ const Produto = () => {
                 <div className="bg-card rounded-xl p-4 border border-border mt-4">
                   <p className="text-xs font-medium text-primary mb-1">✨ Experiência Sensorial</p>
                   <p className="text-xs text-muted-foreground leading-relaxed">{product.sensorial_description}</p>
+                </div>
+              )}
+              {tags.length > 0 && (
+                <div className="flex flex-wrap gap-1.5 mt-4">
+                  {tags.map((tag: string) => (
+                    <Badge key={tag} variant="secondary" className="text-[10px]">{tag}</Badge>
+                  ))}
                 </div>
               )}
             </TabsContent>
