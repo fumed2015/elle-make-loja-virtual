@@ -19,6 +19,7 @@ import WhatsAppIcon from "@/components/icons/WhatsAppIcon";
 import CardPaymentForm from "@/components/payment/CardPaymentForm";
 import OrderBump from "@/components/checkout/OrderBump";
 import TrustBadges from "@/components/checkout/TrustBadges";
+import { trackInitiateCheckout, trackPurchase } from "@/hooks/useTikTokPixel";
 
 type Step = "address" | "review" | "payment" | "processing" | "success";
 
@@ -115,6 +116,13 @@ const Checkout = () => {
   const [boletoData, setBoletoData] = useState<{ barcode: string; boleto_url: string } | null>(null);
   const [copied, setCopied] = useState(false);
   const [paymentId, setPaymentId] = useState<string | null>(null);
+
+  // TikTok Pixel: InitiateCheckout
+  useEffect(() => {
+    if (cartTotal > 0) {
+      trackInitiateCheckout({ value: cartTotal, itemCount: cartCount });
+    }
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Cart abandonment tracking
   useEffect(() => {
@@ -366,6 +374,10 @@ const Checkout = () => {
     }
 
     await saveDataAfterOrder();
+
+    // TikTok Pixel: Purchase
+    trackPurchase({ orderId: orderData.id, value: finalTotal, itemCount: cartCount });
+
     return orderData.id;
   };
 

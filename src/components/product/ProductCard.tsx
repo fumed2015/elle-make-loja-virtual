@@ -10,6 +10,7 @@ import { motion } from "framer-motion";
 import OptimizedImage from "@/components/ui/optimized-image";
 import { cn } from "@/lib/utils";
 import { useNavigate } from "react-router-dom";
+import { trackAddToCart } from "@/hooks/useTikTokPixel";
 
 interface ProductCardProps {
   product: any;
@@ -40,6 +41,7 @@ const ProductCard = memo(({ product, index = 0 }: ProductCardProps) => {
       return;
     }
     addToCart.mutate({ productId: product.id, quantity: 1 });
+    trackAddToCart({ id: product.id, name: product.name, price: Number(product.price), quantity: 1 });
   };
 
   const handleToggleFav = (e: React.MouseEvent) => {
