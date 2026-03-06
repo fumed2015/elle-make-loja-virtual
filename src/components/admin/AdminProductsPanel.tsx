@@ -402,15 +402,24 @@ const AdminProductsPanel = () => {
 
   const handleBulkSEO = async (forceAll = false) => {
     setBulkGenerating("seo");
+    let totalUpdated = 0;
+    let currentOffset = 0;
+    let hasMore = true;
     try {
-      const { data, error } = await supabase.functions.invoke("ai-content-generator", {
-        body: { action: "bulk-seo", force_all: forceAll },
-      });
-      if (error) throw error;
-      toast.success(data?.message || `${data?.updated || 0} produtos atualizados!`);
+      while (hasMore) {
+        const { data, error } = await supabase.functions.invoke("ai-content-generator", {
+          body: { action: "bulk-seo", force_all: forceAll, offset: currentOffset, chunk_size: 5 },
+        });
+        if (error) throw error;
+        totalUpdated += (data?.updated || 0);
+        hasMore = data?.has_more === true;
+        currentOffset = data?.next_offset || currentOffset + 5;
+        toast.success(`Lote processado: ${totalUpdated} produtos atualizados...`);
+        refetch();
+      }
+      toast.success(`Concluído! ${totalUpdated} produtos atualizados.`);
       queryClient.invalidateQueries({ queryKey: ["products"] });
       queryClient.invalidateQueries({ queryKey: ["products-unified"] });
-      refetch();
     } catch (e: any) {
       toast.error(e.message || "Erro ao gerar conteúdo em lote");
     } finally {
