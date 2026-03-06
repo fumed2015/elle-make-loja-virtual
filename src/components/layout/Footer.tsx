@@ -139,33 +139,33 @@ const Footer = () => {
         </div>
 
         {/* Security Badges + Payment */}
-        <div className="max-w-5xl mx-auto mt-8 pt-6 border-t border-background/10">
-          <div className="flex flex-col md:flex-row items-center justify-between gap-6">
+        <div className="max-w-5xl mx-auto mt-10 pt-8 border-t border-background/10">
+          <div className="flex flex-col items-center gap-8">
             {/* Security seals */}
-            <div className="flex items-center gap-5">
+            <div className="flex items-center gap-8 md:gap-12">
               {[
                 { icon: ShieldCheck, label: "Site Protegido" },
                 { icon: Lock, label: "Transações Seguras" },
                 { icon: Globe, label: "Certificado SSL" },
               ].map((seal) => (
-                <div key={seal.label} className="flex flex-col items-center gap-1.5">
-                  <div className="w-11 h-11 rounded-full bg-accent/20 flex items-center justify-center">
-                    <seal.icon className="w-5 h-5 text-accent" />
+                <div key={seal.label} className="flex flex-col items-center gap-2">
+                  <div className="w-16 h-16 md:w-20 md:h-20 rounded-full bg-accent/15 border border-accent/30 flex items-center justify-center">
+                    <seal.icon className="w-7 h-7 md:w-9 md:h-9 text-accent" />
                   </div>
-                  <span className="text-[9px] font-semibold text-background/60 text-center leading-tight">{seal.label}</span>
+                  <span className="text-[11px] md:text-xs font-bold text-background/70 text-center leading-tight tracking-wide uppercase">{seal.label}</span>
                 </div>
               ))}
             </div>
 
             {/* Mercado Pago seals */}
-            <div className="flex flex-col items-center gap-1.5">
+            <div className="flex flex-col items-center gap-2">
               <img
                 src={mercadopagoSelos}
                 alt="Selos Mercado Pago - Compra Garantida, Visa, MasterCard, American Express, Boleto"
-                className="h-14 md:h-16 w-auto object-contain"
+                className="h-20 md:h-24 w-auto object-contain"
                 loading="lazy"
               />
-              <span className="text-[9px] text-background/40">Pagamentos processados pelo Mercado Pago</span>
+              <span className="text-[10px] text-background/50">Pagamentos processados pelo Mercado Pago</span>
             </div>
           </div>
         </div>
