@@ -20,6 +20,7 @@ import CardPaymentForm from "@/components/payment/CardPaymentForm";
 import OrderBump from "@/components/checkout/OrderBump";
 import TrustBadges from "@/components/checkout/TrustBadges";
 import { trackInitiateCheckout, trackPurchase } from "@/hooks/useTikTokPixel";
+import { fbTrackInitiateCheckout, fbTrackPurchase } from "@/hooks/useMetaPixel";
 
 type Step = "address" | "review" | "payment" | "processing" | "success";
 
@@ -117,10 +118,12 @@ const Checkout = () => {
   const [copied, setCopied] = useState(false);
   const [paymentId, setPaymentId] = useState<string | null>(null);
 
-  // TikTok Pixel: InitiateCheckout
+  // Pixels: InitiateCheckout
   useEffect(() => {
     if (cartTotal > 0) {
       trackInitiateCheckout({ value: cartTotal, itemCount: cartCount });
+      const contentIds = items.map((item: any) => (item.products as any)?.id).filter(Boolean);
+      fbTrackInitiateCheckout({ value: cartTotal, itemCount: cartCount, contentIds });
     }
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -375,8 +378,10 @@ const Checkout = () => {
 
     await saveDataAfterOrder();
 
-    // TikTok Pixel: Purchase
+    // Pixels: Purchase
     trackPurchase({ orderId: orderData.id, value: finalTotal, itemCount: cartCount });
+    const contentIds = items.map((item: any) => (item.products as any)?.id).filter(Boolean);
+    fbTrackPurchase({ orderId: orderData.id, value: finalTotal, itemCount: cartCount, contentIds });
 
     return orderData.id;
   };

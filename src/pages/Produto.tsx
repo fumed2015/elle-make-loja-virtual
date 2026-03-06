@@ -18,6 +18,7 @@ import { cn } from "@/lib/utils";
 import SEOHead from "@/components/SEOHead";
 import UrgencyBadge from "@/components/product/UrgencyBadge";
 import { trackViewContent, trackAddToCart } from "@/hooks/useTikTokPixel";
+import { fbTrackViewContent, fbTrackAddToCart } from "@/hooks/useMetaPixel";
 
 const trustBadges = [
   { icon: ShieldCheck, text: "Entrega Segura", sub: "Embalagem protegida" },
@@ -47,15 +48,12 @@ const Produto = () => {
     }
   }, [product?.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // TikTok Pixel: ViewContent
+  // Pixels: ViewContent
   useEffect(() => {
     if (!product) return;
-    trackViewContent({
-      id: product.id,
-      name: product.name,
-      price: Number(product.price),
-      brand: product.brand || undefined,
-    });
+    const params = { id: product.id, name: product.name, price: Number(product.price), brand: product.brand || undefined };
+    trackViewContent(params);
+    fbTrackViewContent(params);
   }, [product?.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
   if (isLoading) {
@@ -83,7 +81,9 @@ const Produto = () => {
 
   const handleAddToCart = () => {
     addToCart.mutate({ productId: product.id, quantity: qty, swatch: selectedSwatch });
-    trackAddToCart({ id: product.id, name: product.name, price: Number(product.price), quantity: qty });
+    const atcParams = { id: product.id, name: product.name, price: Number(product.price), quantity: qty };
+    trackAddToCart(atcParams);
+    fbTrackAddToCart(atcParams);
   };
 
   const handleToggleFavorite = () => {
