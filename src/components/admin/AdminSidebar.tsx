@@ -128,7 +128,7 @@ export function AdminSidebar({ activeTab, onTabChange, badges = {} }: AdminSideb
   const collapsed = state === "collapsed";
 
   return (
-    <Sidebar collapsible="icon" className="border-r border-border">
+    <Sidebar collapsible="icon" className="border-r border-border [&_*]:text-white [&_*]:font-semibold">
       <SidebarHeader className="p-4 border-b border-border">
         {!collapsed && (
           <div className="flex items-center gap-2">
