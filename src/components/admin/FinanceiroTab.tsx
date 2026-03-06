@@ -221,11 +221,39 @@ const FinanceiroTab = () => {
     mutationFn: async () => {
       if (!premisesForm || !premises?.id) return;
       const { id, ...updates } = premisesForm as FinancialPremises;
+
+      // Detect changed fields for audit log
+      const changedFields: string[] = [];
+      const oldValues: Record<string, any> = {};
+      const newValues: Record<string, any> = {};
+      for (const key of Object.keys(updates) as Array<keyof typeof updates>) {
+        const oldVal = (premises as any)[key];
+        const newVal = (updates as any)[key];
+        if (oldVal !== undefined && String(oldVal) !== String(newVal)) {
+          changedFields.push(key);
+          oldValues[key] = oldVal;
+          newValues[key] = newVal;
+        }
+      }
+
       const { error } = await supabase.from("financial_premises").update(updates as any).eq("id", premises.id);
       if (error) throw error;
+
+      // Log audit entry if there were changes
+      if (changedFields.length > 0) {
+        const { data: { user } } = await supabase.auth.getUser();
+        await supabase.from("premises_audit_log").insert({
+          user_id: user?.id || "",
+          user_email: user?.email || "desconhecido",
+          changed_fields: changedFields,
+          old_values: oldValues,
+          new_values: newValues,
+        } as any);
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["financial-premises"] });
+      queryClient.invalidateQueries({ queryKey: ["premises-audit-log"] });
       setPremisesForm(null);
       toast.success("Premissas salvas!");
     },
