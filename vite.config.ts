@@ -43,11 +43,11 @@ export default defineConfig(({ mode }) => ({
         
       },
       manifest: {
-        name: "Beleza Phygital Belém",
-        short_name: "Beleza Phygital",
-        description: "Loja de maquiagem com ativos amazônicos – Belém do Pará",
-        theme_color: "#0a0a0a",
-        background_color: "#0a0a0a",
+        name: "Elle Make",
+        short_name: "Elle Make",
+        description: "Loja de maquiagem e cosméticos com delivery rápido em Belém do Pará",
+        theme_color: "#f5f0eb",
+        background_color: "#f5f0eb",
         display: "standalone",
         orientation: "portrait",
         scope: "/",
