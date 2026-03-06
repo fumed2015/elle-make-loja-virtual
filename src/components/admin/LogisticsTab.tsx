@@ -150,7 +150,34 @@ const LogisticsTab = () => {
         ))}
       </div>
 
-      {/* Smart Restock Alerts */}
+      {/* Local Shipping Fee Config */}
+      <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.08 }}
+        className="bg-card rounded-xl p-4 border border-border">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Package className="w-4 h-4 text-primary" />
+            <div>
+              <p className="text-xs font-bold">Taxa de Entrega Local (Motoboy)</p>
+              <p className="text-[10px] text-muted-foreground">Belém e Ananindeua • Entrega Expressa</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="text-xs text-muted-foreground">R$</span>
+            <Input
+              type="number"
+              min={0}
+              step={0.5}
+              value={localFee}
+              onChange={(e) => setLocalFee(Number(e.target.value))}
+              className="w-20 h-8 text-sm bg-muted border-none text-center"
+            />
+            <Button size="sm" onClick={handleSaveFee} disabled={savingFee} className="h-8 text-xs">
+              {savingFee ? <Loader2 className="w-3 h-3 animate-spin" /> : "Salvar"}
+            </Button>
+          </div>
+        </div>
+      </motion.div>
+
       <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}
         className="bg-card rounded-xl p-4 border border-border space-y-3">
         <div className="flex items-center gap-2">
