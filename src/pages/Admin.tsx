@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { LayoutDashboard, Package, ShoppingCart, Plus, ArrowLeft, TrendingUp, Box, Tag, Star, Users, ImageIcon, Eye, EyeOff, Percent, Trash2, Search, AlertTriangle, CheckCircle, Info, FolderOpen, Pencil, Wand2, Sparkles, Loader2, RefreshCw, UserPlus, Cake, MessageCircle, Calendar, Gift, DollarSign, Target, Settings2, Megaphone, Code, BarChart3, Heart, Truck, Globe2 } from "lucide-react";
+import { LayoutDashboard, Package, ShoppingCart, Plus, ArrowLeft, TrendingUp, Box, Tag, Star, Users, ImageIcon, Eye, EyeOff, Percent, Trash2, Search, AlertTriangle, CheckCircle, Info, FolderOpen, Pencil, Wand2, Sparkles, Loader2, RefreshCw, UserPlus, Cake, MessageCircle, Calendar, Gift, DollarSign, Target, Settings2, Megaphone, Code, BarChart3, Heart, Truck, Globe2, Store } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -33,8 +33,9 @@ import MarketingConversionTab from "@/components/admin/MarketingConversionTab";
 import SEOContentTab from "@/components/admin/SEOContentTab";
 import CatalogDriveTab from "@/components/admin/CatalogDriveTab";
 import HomepageSectionsTab from "@/components/admin/HomepageSectionsTab";
+import MarketplacesTab from "@/components/admin/MarketplacesTab";
 
-type Tab = "dashboard" | "products" | "orders" | "add-product" | "coupons" | "reviews" | "influencers" | "seo" | "categories" | "ai-content" | "leads" | "birthdays" | "financeiro" | "comercial" | "operacional" | "marketing" | "pixels" | "whatsapp" | "stock" | "sales-intelligence" | "crm" | "logistics" | "marketing-conversion" | "seo-content" | "catalog-drive" | "homepage-sections";
+type Tab = "dashboard" | "products" | "orders" | "add-product" | "coupons" | "reviews" | "influencers" | "seo" | "categories" | "ai-content" | "leads" | "birthdays" | "financeiro" | "comercial" | "operacional" | "marketing" | "pixels" | "whatsapp" | "stock" | "sales-intelligence" | "crm" | "logistics" | "marketing-conversion" | "seo-content" | "catalog-drive" | "homepage-sections" | "marketplaces";
 
 const statusLabels: Record<string, string> = {
   pending: "Pendente", confirmed: "Confirmado", approved: "Pago",
@@ -89,6 +90,7 @@ const Admin = () => {
     { id: "ai-content" as Tab, label: "IA Conteúdo", icon: Wand2 },
     { id: "homepage-sections" as Tab, label: "Página Inicial", icon: LayoutDashboard },
     { id: "catalog-drive" as Tab, label: "Catálogo Drive", icon: FolderOpen },
+    { id: "marketplaces" as Tab, label: "Marketplaces", icon: Store },
   ];
 
   return (
@@ -134,6 +136,7 @@ const Admin = () => {
       {tab === "ai-content" && <AIContentTab />}
       {tab === "homepage-sections" && <HomepageSectionsTab />}
       {tab === "catalog-drive" && <CatalogDriveTab />}
+      {tab === "marketplaces" && <MarketplacesTab />}
     </div>
   );
 };
