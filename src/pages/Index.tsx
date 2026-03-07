@@ -432,7 +432,7 @@ const HeroCarousel = () => {
 
       {/* Categories — right after hero */}
       {categories && categories.length > 0 && (
-        <section className="px-4 py-8 max-w-5xl mx-auto">
+        <section className="px-4 py-8 max-w-7xl mx-auto">
           <h2 className="text-lg font-bold text-foreground mb-4">Categorias</h2>
           <div className="flex gap-5 overflow-x-auto scrollbar-hide pb-2 px-2 md:justify-center">
             {categories.map((cat) => {
@@ -464,7 +464,7 @@ const HeroCarousel = () => {
 
       {/* Benefits bar — trust strip */}
       <section className="bg-background py-6 px-4 border-b border-border">
-        <div className="max-w-5xl mx-auto">
+        <div className="max-w-7xl mx-auto">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-0 border border-border rounded-xl overflow-hidden">
             {benefits.map((b, i) => (
               <div
@@ -485,7 +485,7 @@ const HeroCarousel = () => {
       </section>
 
       {/* Featured / Novidades */}
-      <section className="px-4 py-8 max-w-5xl mx-auto">
+      <section className="px-4 py-8 max-w-7xl mx-auto">
         <div className="flex items-center justify-between mb-5">
           <div>
             <h2 className="text-xl font-bold text-foreground">✨ Novidades</h2>
@@ -494,7 +494,7 @@ const HeroCarousel = () => {
           <Link to="/explorar" className="text-xs text-primary font-semibold hover:underline flex items-center gap-1">Ver tudo <ArrowRight className="w-3 h-3" /></Link>
         </div>
         {isLoading ? (
-          <div className="grid grid-cols-2 md:grid-cols-5 gap-2">
+          <div className="grid grid-cols-2 md:grid-cols-5 lg:grid-cols-6 gap-3">
             {[...Array(5)].map((_, i) => (
               <div key={i} className="aspect-[3/4] rounded-lg bg-muted overflow-hidden">
                 <div className="w-full h-full bg-gradient-to-r from-muted via-muted-foreground/5 to-muted animate-shimmer bg-[length:200%_100%]" />
@@ -502,7 +502,7 @@ const HeroCarousel = () => {
             ))}
           </div>
         ) : (
-          <motion.div variants={container} initial="hidden" whileInView="show" viewport={{ once: true }} className="grid grid-cols-2 md:grid-cols-5 gap-2">
+          <motion.div variants={container} initial="hidden" whileInView="show" viewport={{ once: true }} className="grid grid-cols-2 md:grid-cols-5 lg:grid-cols-6 gap-3">
             {featured.map((product, i) => (
               <motion.div key={product.id} variants={item}>
                 <ProductCard product={product} index={i} />
@@ -513,7 +513,7 @@ const HeroCarousel = () => {
       </section>
 
       {/* Free shipping bar */}
-      <section className="px-4 py-3 max-w-5xl mx-auto">
+      <section className="px-4 py-3 max-w-7xl mx-auto">
         <div className="bg-accent/10 border border-accent/20 rounded-xl p-4 flex items-center gap-3">
           <Truck className="w-6 h-6 text-accent flex-shrink-0" />
           <div className="flex-1">
@@ -529,7 +529,7 @@ const HeroCarousel = () => {
       </section>
 
       {/* Super Ofertas */}
-      <section className="px-4 py-8 max-w-5xl mx-auto">
+      <section className="px-4 py-8 max-w-7xl mx-auto">
         <div className="flex items-center justify-between mb-5">
           <div>
             <h2 className="text-xl font-bold text-primary">🔥 Super Ofertas</h2>
@@ -538,13 +538,13 @@ const HeroCarousel = () => {
           <Link to="/explorar" className="text-xs text-primary font-semibold hover:underline flex items-center gap-1">Ver tudo <ArrowRight className="w-3 h-3" /></Link>
         </div>
         {isLoading ? (
-          <div className="grid grid-cols-2 md:grid-cols-5 gap-2">
+          <div className="grid grid-cols-2 md:grid-cols-5 lg:grid-cols-6 gap-3">
             {[...Array(5)].map((_, i) => (
               <div key={i} className="aspect-[3/4] rounded-lg bg-muted animate-shimmer" />
             ))}
           </div>
         ) : (
-          <motion.div variants={container} initial="hidden" whileInView="show" viewport={{ once: true }} className="grid grid-cols-2 md:grid-cols-5 gap-2">
+          <motion.div variants={container} initial="hidden" whileInView="show" viewport={{ once: true }} className="grid grid-cols-2 md:grid-cols-5 lg:grid-cols-6 gap-3">
             {offers.map((product, i) => (
               <motion.div key={product.id} variants={item}>
                 <ProductCard product={product} index={i} />
@@ -555,7 +555,7 @@ const HeroCarousel = () => {
       </section>
 
       {/* Mais Produtos */}
-      <section className="px-4 py-8 max-w-5xl mx-auto">
+      <section className="px-4 py-8 max-w-7xl mx-auto">
         <div className="flex items-center justify-between mb-5">
           <div>
             <h2 className="text-xl font-bold text-foreground">🛍️ Mais Produtos</h2>
@@ -564,7 +564,7 @@ const HeroCarousel = () => {
           <Link to="/explorar" className="text-xs text-primary font-semibold hover:underline flex items-center gap-1">Ver catálogo <ArrowRight className="w-3 h-3" /></Link>
         </div>
         {!isLoading && (
-          <motion.div variants={container} initial="hidden" whileInView="show" viewport={{ once: true }} className="grid grid-cols-2 md:grid-cols-5 gap-2">
+          <motion.div variants={container} initial="hidden" whileInView="show" viewport={{ once: true }} className="grid grid-cols-2 md:grid-cols-5 lg:grid-cols-6 gap-3">
             {moreProducts.map((product, i) => (
               <motion.div key={product.id} variants={item}>
                 <ProductCard product={product} index={i} />
@@ -615,7 +615,7 @@ const HeroCarousel = () => {
       </section>
 
       {/* Testimonials — removed individual whileInView, CSS animation */}
-      <section className="px-4 py-8 max-w-5xl mx-auto">
+      <section className="px-4 py-8 max-w-7xl mx-auto">
         <h2 className="text-xl font-bold text-foreground mb-5 text-center">Veja a opinião de quem já comprou</h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {testimonials.map((t, i) => (
@@ -637,7 +637,7 @@ const HeroCarousel = () => {
       </section>
 
       {/* FAQ — removed individual whileInView */}
-      <section className="px-4 py-8 max-w-2xl mx-auto">
+      <section className="px-4 py-8 max-w-3xl mx-auto">
         <h2 className="text-xl font-bold text-foreground mb-5 text-center">Perguntas Frequentes</h2>
         <div className="space-y-2">
           {faqs.map((faq, i) => (

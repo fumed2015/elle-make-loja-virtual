@@ -153,7 +153,7 @@ const Admin = () => {
 
           {/* Content */}
           <main className="flex-1 p-4 md:p-6 overflow-y-auto">
-            <div className="max-w-5xl">
+            <div className="max-w-7xl">
               {renderTab()}
             </div>
           </main>
