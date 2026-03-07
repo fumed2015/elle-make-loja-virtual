@@ -183,7 +183,7 @@ const heroSlides = [
     image: "/hero-banner-3.jpg",
     label: "Base & Skincare",
     title: "PELE\nPERFEITA",
-    cta: "Compre Agora",
+    cta: "Ver Catálogo",
     link: "/categoria/rosto",
   },
 ];
