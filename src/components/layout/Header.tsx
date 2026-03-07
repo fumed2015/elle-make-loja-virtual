@@ -289,7 +289,7 @@ const Header = () => {
 
       {/* Main header */}
       <div className={`border-b px-3 md:px-4 py-3 md:py-4 transition-all duration-500 ease-in-out ${!isTransparent ? 'bg-card/95 backdrop-blur-md border-border shadow-sm' : 'bg-transparent border-transparent shadow-none backdrop-blur-none'}`}>
-        <div className="max-w-6xl mx-auto flex items-center min-w-0">
+        <div className="max-w-6xl mx-auto flex items-center min-w-0 relative">
           {/* Left: hamburger (mobile only) + Logo */}
           <div className="flex items-center gap-1 flex-shrink-0 md:w-auto">
             <Sheet>
@@ -335,8 +335,8 @@ const Header = () => {
             </Sheet>
           </div>
 
-          {/* Center: Logo (centered on mobile, left on desktop) */}
-          <div className="flex-1 flex justify-center md:justify-start md:flex-none md:mr-8">
+          {/* Center: Logo (absolutely centered on mobile, left-aligned on desktop) */}
+          <div className="absolute left-1/2 -translate-x-1/2 md:static md:translate-x-0 md:flex-none md:mr-8">
             <Link to="/">
               <motion.div
                 whileHover={{ scale: 1.02 }}
