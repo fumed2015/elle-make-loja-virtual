@@ -215,7 +215,7 @@ const Explorar = () => {
 
       {/* Breadcrumb */}
       <div className="bg-muted/50 border-b border-border">
-        <div className="max-w-6xl mx-auto px-4 py-3">
+        <div className="max-w-7xl mx-auto px-4 py-3">
           <nav className="flex items-center gap-1.5 text-xs text-muted-foreground">
             <Link to="/" className="hover:text-primary transition-colors">Início</Link>
             <ChevronRight className="w-3 h-3" />
@@ -228,7 +228,7 @@ const Explorar = () => {
 
       {/* Header area */}
       <div className="bg-background border-b border-border">
-        <div className="max-w-6xl mx-auto px-4 py-6 md:py-8">
+        <div className="max-w-7xl mx-auto px-4 py-6 md:py-8">
           <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4">
             <div>
               <h1 className="text-2xl md:text-3xl font-bold text-foreground">
@@ -287,7 +287,7 @@ const Explorar = () => {
       </div>
 
       {/* Main content */}
-      <div className="max-w-6xl mx-auto px-4 py-6 flex-1">
+      <div className="max-w-7xl mx-auto px-4 py-6 flex-1">
         <div className="flex gap-8">
           {/* Desktop sidebar */}
           <aside className="hidden lg:block w-56 flex-shrink-0">

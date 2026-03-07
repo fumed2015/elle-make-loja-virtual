@@ -101,7 +101,7 @@ const Categoria = () => {
 
       {/* Breadcrumb */}
       <div className="bg-muted/50 border-b border-border">
-        <div className="max-w-6xl mx-auto px-4 py-3">
+        <div className="max-w-7xl mx-auto px-4 py-3">
           <nav className="flex items-center gap-1.5 text-xs text-muted-foreground">
             <Link to="/" className="hover:text-primary transition-colors">Início</Link>
             <ChevronRight className="w-3 h-3" />
@@ -114,7 +114,7 @@ const Categoria = () => {
 
       {/* Category header */}
       <div className="bg-background border-b border-border">
-        <div className="max-w-6xl mx-auto px-4 py-6 md:py-8">
+        <div className="max-w-7xl mx-auto px-4 py-6 md:py-8">
           <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}>
             <div className="flex items-start gap-3 mb-2">
               <span className="text-3xl">{meta.emoji}</span>
@@ -131,7 +131,7 @@ const Categoria = () => {
       </div>
 
       {/* Main content */}
-      <div className="max-w-6xl mx-auto px-4 py-6 flex-1">
+      <div className="max-w-7xl mx-auto px-4 py-6 flex-1">
         <div className="flex gap-8">
           {/* Desktop sidebar */}
           <aside className="hidden lg:block w-56 flex-shrink-0">

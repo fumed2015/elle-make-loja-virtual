@@ -148,7 +148,7 @@ const Produto = () => {
       />
 
       {/* Breadcrumb */}
-      <div className="max-w-5xl mx-auto px-4 py-3">
+      <div className="max-w-7xl mx-auto px-4 py-3">
         <nav className="flex items-center gap-1.5 text-xs text-muted-foreground">
           <Link to="/" className="hover:text-primary transition-colors">Home</Link>
           <span>/</span>
@@ -159,7 +159,7 @@ const Produto = () => {
       </div>
 
       {/* Main content — side by side on desktop */}
-      <div className="max-w-5xl mx-auto px-4 pb-8">
+      <div className="max-w-7xl mx-auto px-4 pb-8">
         <div className="grid grid-cols-1 md:grid-cols-[minmax(0,2fr)_minmax(0,3fr)] gap-6 md:gap-10">
           {/* Left: Image */}
           <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} className="relative md:max-w-[380px]">

@@ -37,7 +37,7 @@ const Marca = () => {
     : products;
 
   return (
-    <div className="px-4 pt-8 pb-4 max-w-5xl mx-auto">
+    <div className="px-4 pt-8 pb-4 max-w-7xl mx-auto">
       <SEOHead title={brandName} description={`Produtos ${brandName} com entrega rápida em Belém. Confira toda a linha.`} />
 
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}>
