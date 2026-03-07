@@ -1,6 +1,7 @@
 import { Search, User, ShoppingBag, ChevronDown, LogIn, LogOut, Settings, Menu, ChevronLeft, ChevronRight, X, Mail, Phone, Instagram, Facebook, Youtube } from "lucide-react";
 
 import WhatsAppIcon from "@/components/icons/WhatsAppIcon";
+import logoEllemake from "@/assets/logo-ellemake.png";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { Input } from "@/components/ui/input";
 import { useCart } from "@/hooks/useCart";
@@ -299,7 +300,7 @@ const Header = () => {
               </SheetTrigger>
               <SheetContent side="left" className="w-72 p-0">
                 <div className="p-4 border-b border-border">
-                  <h2 className="text-lg font-bold text-primary tracking-wider">ELLE MAKE</h2>
+                  <img src={logoEllemake} alt="Elle Make" className="h-8 object-contain" />
                 </div>
                 <nav className="py-2">
                   {navLinks.map((link) => (
@@ -337,13 +338,16 @@ const Header = () => {
           {/* Center: Logo (centered on mobile, left on desktop) */}
           <div className="flex-1 flex justify-center md:justify-start md:flex-none md:mr-8">
             <Link to="/">
-              <motion.h1
+              <motion.div
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
-                className={`text-2xl md:text-3xl font-bold tracking-[0.18em] transition-colors duration-300 ${!isTransparent ? 'text-primary md:text-foreground' : 'text-white drop-shadow-sm'}`}
               >
-                ELLE MAKE
-              </motion.h1>
+                <img 
+                  src={logoEllemake} 
+                  alt="Elle Make" 
+                  className={`h-10 md:h-12 object-contain transition-all duration-300 ${isTransparent ? 'brightness-0 invert drop-shadow-sm' : ''}`}
+                />
+              </motion.div>
             </Link>
           </div>
 
