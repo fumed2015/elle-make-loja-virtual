@@ -10,7 +10,7 @@ const Footer = () => {
     <>
       {/* Trust badges */}
       <section className="border-t border-border bg-card px-4 py-6">
-        <div className="max-w-5xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="max-w-7xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-4">
           {[
             { icon: Truck, title: "Entrega Rápida", sub: "Motoboy express em Belém" },
             { icon: ShieldCheck, title: "100% Original", sub: "Registro ANVISA" },
@@ -54,7 +54,7 @@ const Footer = () => {
 
       {/* Footer */}
       <footer className="bg-primary [--primary-foreground:0_0%_100%] text-primary-foreground px-4 pt-10 pb-24 md:pb-10 font-bold">
-        <div className="max-w-5xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-8">
+        <div className="max-w-7xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-8">
           {/* Brand */}
           <div className="space-y-3">
             <span className="text-2xl font-bold tracking-[0.12em] text-primary-foreground" style={{ fontFamily: "'Playfair Display', serif" }}>Elle Make</span>
@@ -140,7 +140,7 @@ const Footer = () => {
         </div>
 
         {/* Security Badges + Payment */}
-        <div className="max-w-5xl mx-auto mt-10 pt-8 border-t border-primary-foreground/10">
+        <div className="max-w-7xl mx-auto mt-10 pt-8 border-t border-primary-foreground/10">
           <div className="flex flex-col items-center gap-8">
             {/* Security seals */}
             <div className="flex items-center gap-8 md:gap-12">
@@ -172,7 +172,7 @@ const Footer = () => {
         </div>
 
         {/* Bottom bar */}
-        <div className="max-w-5xl mx-auto mt-5 pt-5 border-t border-primary-foreground/10 flex flex-col md:flex-row items-center justify-between gap-3">
+        <div className="max-w-7xl mx-auto mt-5 pt-5 border-t border-primary-foreground/10 flex flex-col md:flex-row items-center justify-between gap-3">
           <p className="text-[10px] text-primary-foreground/40">© 2026 Elle Make. Todos os direitos reservados.</p>
           <div className="flex gap-3 text-[10px] text-primary-foreground/30">
             <Link to="/privacidade" className="hover:text-primary-foreground/50 transition-colors">Privacidade</Link>
