@@ -341,12 +341,14 @@ const Header = () => {
               <motion.div
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
+                className="flex items-center gap-0"
               >
-                <img 
-                  src={logoEllemake} 
-                  alt="Elle Make" 
-                  className={`h-14 md:h-16 object-contain transition-all duration-300 ${isTransparent ? 'brightness-0 invert drop-shadow-lg' : ''}`}
-                />
+                <span 
+                  className={`text-3xl md:text-4xl font-bold tracking-[0.12em] transition-colors duration-300 ${!isTransparent ? 'text-primary md:text-foreground' : 'text-white drop-shadow-lg'}`}
+                  style={{ fontFamily: "'Playfair Display', serif" }}
+                >
+                  Elle Make
+                </span>
               </motion.div>
             </Link>
           </div>
