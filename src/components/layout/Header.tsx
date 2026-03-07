@@ -344,7 +344,7 @@ const Header = () => {
                 className="flex items-center gap-0"
               >
                 <span 
-                  className={`text-3xl md:text-4xl font-bold tracking-[0.12em] transition-colors duration-300 ${!isTransparent ? 'text-primary md:text-foreground' : 'text-white drop-shadow-lg'}`}
+                  className={`text-3xl md:text-4xl font-bold tracking-[0.12em] transition-colors duration-300 ${!isTransparent ? 'text-[#800020]' : 'text-white drop-shadow-lg'}`}
                   style={{ fontFamily: "'Playfair Display', serif" }}
                 >
                   Elle Make
