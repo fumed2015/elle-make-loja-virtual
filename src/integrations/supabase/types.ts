@@ -1428,6 +1428,60 @@ export type Database = {
           },
         ]
       }
+      revenue_reports: {
+        Row: {
+          cnpj: string | null
+          created_at: string
+          entrepreneur: string | null
+          id: string
+          item_i: number
+          item_ii: number
+          item_iv: number
+          item_v: number
+          item_vii: number
+          item_viii: number
+          local_date: string | null
+          month: number
+          total: number
+          updated_at: string
+          year: number
+        }
+        Insert: {
+          cnpj?: string | null
+          created_at?: string
+          entrepreneur?: string | null
+          id?: string
+          item_i?: number
+          item_ii?: number
+          item_iv?: number
+          item_v?: number
+          item_vii?: number
+          item_viii?: number
+          local_date?: string | null
+          month: number
+          total?: number
+          updated_at?: string
+          year: number
+        }
+        Update: {
+          cnpj?: string | null
+          created_at?: string
+          entrepreneur?: string | null
+          id?: string
+          item_i?: number
+          item_ii?: number
+          item_iv?: number
+          item_v?: number
+          item_vii?: number
+          item_viii?: number
+          local_date?: string | null
+          month?: number
+          total?: number
+          updated_at?: string
+          year?: number
+        }
+        Relationships: []
+      }
       reviews: {
         Row: {
           comment: string | null

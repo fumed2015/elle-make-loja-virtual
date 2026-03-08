@@ -2,10 +2,10 @@ import { useState, useEffect, useRef } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { FileText, Printer, Save } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { FileText, Printer, Save, History, Check } from "lucide-react";
 import { toast } from "sonner";
 
 const MONTHS = [
@@ -23,7 +23,7 @@ export default function MonthlyRevenueReportTab() {
   const queryClient = useQueryClient();
   const printRef = useRef<HTMLDivElement>(null);
 
-  const [month, setMonth] = useState(now.getMonth()); // 0-based
+  const [month, setMonth] = useState(now.getMonth());
   const [year, setYear] = useState(now.getFullYear());
 
   // MEI settings persistence
@@ -76,13 +76,57 @@ export default function MonthlyRevenueReportTab() {
     },
   });
 
-  // Auto-fill item I with monthly total whenever data changes
+  // Load saved report for selected month/year
+  const { data: savedReport } = useQuery({
+    queryKey: ["saved-revenue-report", year, month],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("revenue_reports")
+        .select("*")
+        .eq("month", month)
+        .eq("year", year)
+        .maybeSingle();
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  // Load saved report history
+  const { data: reportHistory } = useQuery({
+    queryKey: ["revenue-reports-history"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("revenue_reports")
+        .select("id, month, year, total, updated_at")
+        .order("year", { ascending: false })
+        .order("month", { ascending: false })
+        .limit(24);
+      if (error) throw error;
+      return data || [];
+    },
+  });
+
+  // When saved report exists, load its values; otherwise auto-fill from orders
   useEffect(() => {
-    if (monthlyTotal !== undefined) {
+    if (savedReport) {
+      setItemI(Number(savedReport.item_i));
+      setItemII(Number(savedReport.item_ii));
+      setItemIV(Number(savedReport.item_iv));
+      setItemV(Number(savedReport.item_v));
+      setItemVII(Number(savedReport.item_vii));
+      setItemVIII(Number(savedReport.item_viii));
+      if (savedReport.cnpj) setCnpj(savedReport.cnpj);
+      if (savedReport.entrepreneur) setEntrepreneur(savedReport.entrepreneur);
+      if (savedReport.local_date) setLocalDate(savedReport.local_date);
+    } else if (monthlyTotal !== undefined) {
       setItemI(monthlyTotal);
       setItemII(0);
+      setItemIV(0);
+      setItemV(0);
+      setItemVII(0);
+      setItemVIII(0);
     }
-  }, [monthlyTotal]);
+  }, [savedReport, monthlyTotal]);
 
   const itemIII = itemI + itemII;
   const itemVI = itemIV + itemV;
@@ -102,12 +146,50 @@ export default function MonthlyRevenueReportTab() {
     },
   });
 
+  // Save report to database
+  const saveReport = useMutation({
+    mutationFn: async () => {
+      const payload = {
+        month,
+        year,
+        cnpj,
+        entrepreneur,
+        local_date: localDate,
+        item_i: itemI,
+        item_ii: itemII,
+        item_iv: itemIV,
+        item_v: itemV,
+        item_vii: itemVII,
+        item_viii: itemVIII,
+        total: itemX,
+        updated_at: new Date().toISOString(),
+      };
+
+      const { error } = await supabase
+        .from("revenue_reports")
+        .upsert(payload, { onConflict: "month,year" });
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["saved-revenue-report", year, month] });
+      queryClient.invalidateQueries({ queryKey: ["revenue-reports-history"] });
+      toast.success(`Relatório de ${MONTHS[month]}/${year} salvo com sucesso!`);
+    },
+    onError: () => {
+      toast.error("Erro ao salvar relatório.");
+    },
+  });
+
   const handlePrint = () => {
     window.print();
   };
 
-  const periodLabel = `${MONTHS[month]} / ${year}`;
+  const loadReport = (m: number, y: number) => {
+    setMonth(m);
+    setYear(y);
+  };
 
+  const periodLabel = `${MONTHS[month]} / ${year}`;
   const years = Array.from({ length: 6 }, (_, i) => now.getFullYear() - i);
 
   return (
@@ -139,10 +221,45 @@ export default function MonthlyRevenueReportTab() {
         <Button variant="outline" size="sm" onClick={() => saveMeiSettings.mutate()} className="gap-1.5">
           <Save className="w-3.5 h-3.5" /> Salvar Dados MEI
         </Button>
-        <Button size="sm" onClick={handlePrint} className="gap-1.5">
+        <Button size="sm" onClick={() => saveReport.mutate()} className="gap-1.5" disabled={saveReport.isPending}>
+          <Check className="w-3.5 h-3.5" /> Salvar Relatório
+        </Button>
+        <Button variant="outline" size="sm" onClick={handlePrint} className="gap-1.5">
           <Printer className="w-3.5 h-3.5" /> Exportar PDF
         </Button>
       </div>
+
+      {/* Saved report indicator */}
+      {savedReport && (
+        <div className="print:hidden">
+          <Badge variant="secondary" className="text-xs gap-1">
+            <Check className="w-3 h-3" />
+            Relatório salvo em {new Date(savedReport.updated_at).toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" })}
+          </Badge>
+        </div>
+      )}
+
+      {/* Report History */}
+      {reportHistory && reportHistory.length > 0 && (
+        <div className="print:hidden">
+          <h3 className="text-sm font-semibold flex items-center gap-1.5 mb-2">
+            <History className="w-4 h-4" /> Relatórios Salvos
+          </h3>
+          <div className="flex flex-wrap gap-2">
+            {reportHistory.map((r: any) => (
+              <Button
+                key={r.id}
+                variant={r.month === month && r.year === year ? "default" : "outline"}
+                size="sm"
+                className="text-xs h-7"
+                onClick={() => loadReport(r.month, r.year)}
+              >
+                {MONTHS[r.month].slice(0, 3)}/{r.year} — R$ {fmt(Number(r.total))}
+              </Button>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Report Document */}
       <div
@@ -184,21 +301,9 @@ export default function MonthlyRevenueReportTab() {
         <ReportSection
           title="RECEITA BRUTA MENSAL – REVENDA DE MERCADORIAS (COMÉRCIO)"
           rows={[
-            {
-              label: "I – Revenda de mercadorias com dispensa de emissão de documento fiscal",
-              value: itemI,
-              onChange: setItemI,
-            },
-            {
-              label: "II – Revenda de mercadorias com documento fiscal emitido",
-              value: itemII,
-              onChange: setItemII,
-            },
-            {
-              label: "III – Total das receitas com revenda de mercadorias (I + II)",
-              value: itemIII,
-              isTotal: true,
-            },
+            { label: "I – Revenda de mercadorias com dispensa de emissão de documento fiscal", value: itemI, onChange: setItemI },
+            { label: "II – Revenda de mercadorias com documento fiscal emitido", value: itemII, onChange: setItemII },
+            { label: "III – Total das receitas com revenda de mercadorias (I + II)", value: itemIII, isTotal: true },
           ]}
         />
 
@@ -206,21 +311,9 @@ export default function MonthlyRevenueReportTab() {
         <ReportSection
           title="RECEITA BRUTA MENSAL – VENDA DE PRODUTOS INDUSTRIALIZADOS (INDÚSTRIA)"
           rows={[
-            {
-              label: "IV – Venda de produtos industrializados com dispensa de emissão de documento fiscal",
-              value: itemIV,
-              onChange: setItemIV,
-            },
-            {
-              label: "V – Venda de produtos industrializados com documento fiscal emitido",
-              value: itemV,
-              onChange: setItemV,
-            },
-            {
-              label: "VI – Total das receitas com venda de produtos industrializados (IV + V)",
-              value: itemVI,
-              isTotal: true,
-            },
+            { label: "IV – Venda de produtos industrializados com dispensa de emissão de documento fiscal", value: itemIV, onChange: setItemIV },
+            { label: "V – Venda de produtos industrializados com documento fiscal emitido", value: itemV, onChange: setItemV },
+            { label: "VI – Total das receitas com venda de produtos industrializados (IV + V)", value: itemVI, isTotal: true },
           ]}
         />
 
@@ -228,21 +321,9 @@ export default function MonthlyRevenueReportTab() {
         <ReportSection
           title="RECEITA BRUTA MENSAL – PRESTAÇÃO DE SERVIÇOS"
           rows={[
-            {
-              label: "VII – Receita com prestação de serviços com dispensa de emissão de documento fiscal",
-              value: itemVII,
-              onChange: setItemVII,
-            },
-            {
-              label: "VIII – Receita com prestação de serviços com documento fiscal emitido",
-              value: itemVIII,
-              onChange: setItemVIII,
-            },
-            {
-              label: "IX – Total das receitas com prestação de serviços (VII + VIII)",
-              value: itemIX,
-              isTotal: true,
-            },
+            { label: "VII – Receita com prestação de serviços com dispensa de emissão de documento fiscal", value: itemVII, onChange: setItemVII },
+            { label: "VIII – Receita com prestação de serviços com documento fiscal emitido", value: itemVIII, onChange: setItemVIII },
+            { label: "IX – Total das receitas com prestação de serviços (VII + VIII)", value: itemIX, isTotal: true },
           ]}
         />
 
