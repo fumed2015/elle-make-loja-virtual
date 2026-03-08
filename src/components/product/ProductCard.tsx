@@ -75,7 +75,7 @@ const ProductCard = memo(({ product, index = 0 }: ProductCardProps) => {
               displayWidth={400}
             />
           ) : (
-            <div className="aspect-square bg-muted flex items-center justify-center text-muted-foreground text-[9px]">
+            <div className="aspect-square bg-white flex items-center justify-center text-muted-foreground text-[9px]">
               Sem imagem
             </div>
           )}
