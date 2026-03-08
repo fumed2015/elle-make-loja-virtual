@@ -41,6 +41,7 @@ const ProductImageGallery = ({ images, alt, children }: ProductImageGalleryProps
             src={validImages[current]}
             alt={`${alt} - Imagem ${current + 1}`}
             aspectRatio="4/5"
+            displayWidth={800}
           />
         </motion.div>
       </AnimatePresence>

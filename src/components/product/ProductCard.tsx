@@ -72,6 +72,7 @@ const ProductCard = memo(({ product, index = 0 }: ProductCardProps) => {
               alt={product.name}
               className="group-hover:scale-105 transition-transform duration-700 ease-out"
               aspectRatio="1/1"
+              displayWidth={400}
             />
           ) : (
             <div className="aspect-square bg-muted flex items-center justify-center text-muted-foreground text-[9px]">
