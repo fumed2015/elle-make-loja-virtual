@@ -190,7 +190,7 @@ const Produto = () => {
             </div>
 
             {/* Pricing */}
-            <div className="space-y-1">
+            <div className="space-y-1.5">
               <div className="flex items-baseline gap-3">
                 {hasDiscount && (
                   <span className="text-sm text-muted-foreground line-through">De R$ {Number(product.compare_at_price).toFixed(2).replace(".", ",")}</span>
@@ -199,13 +199,15 @@ const Produto = () => {
               <p className="text-2xl md:text-3xl font-bold text-foreground">
                 R$ {Number(product.price).toFixed(2).replace(".", ",")}
               </p>
-              {Number(product.price) >= 30 && (
-                <p className="text-sm text-muted-foreground">
-                  ou 3x de <span className="font-semibold text-foreground">R$ {(Number(product.price) / 3).toFixed(2).replace(".", ",")}</span> sem juros
-                </p>
+              {Number(product.price) >= 10 && (
+                <div className="bg-muted/50 rounded-lg px-3 py-1.5 inline-block">
+                  <p className="text-sm text-foreground">
+                    ou <span className="font-bold text-primary text-base">3x de R$ {(Number(product.price) / 3).toFixed(2).replace(".", ",")}</span> <span className="text-muted-foreground">sem juros</span>
+                  </p>
+                </div>
               )}
               <p className="text-sm text-accent font-semibold">
-                R$ {pixPrice} no Pix (5% off)
+                💰 R$ {pixPrice} no Pix (5% off)
               </p>
             </div>
 

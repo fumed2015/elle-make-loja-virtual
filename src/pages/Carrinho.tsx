@@ -170,6 +170,11 @@ const Carrinho = () => {
           <p className="text-xs font-semibold text-accent">
             💰 No Pix: R$ {((cartTotal >= 199 && shipping.isLocal ? cartTotal : total) * 0.95).toFixed(2).replace(".", ",")} (5% off)
           </p>
+          {(cartTotal >= 199 && shipping.isLocal ? cartTotal : total) >= 10 && (
+            <p className="text-xs text-foreground/70">
+              ou <span className="font-bold text-foreground">3x de R$ {((cartTotal >= 199 && shipping.isLocal ? cartTotal : total) / 3).toFixed(2).replace(".", ",")}</span> sem juros no cartão
+            </p>
+          )}
         </div>
         <div className="bg-primary/10 rounded-lg p-2.5 text-center">
           <p className="text-xs font-semibold text-primary">🛵 Belém e Ananindeua: entrega em até 3 horas!</p>

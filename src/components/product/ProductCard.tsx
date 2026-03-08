@@ -140,9 +140,9 @@ const ProductCard = memo(({ product, index = 0 }: ProductCardProps) => {
             <p className="text-[10px] text-accent font-semibold leading-none mt-0.5">
               R$ {pixPrice} no Pix
             </p>
-            {Number(product.price) >= 30 && (
-              <p className="text-[10px] text-muted-foreground leading-none mt-0.5">
-                ou 3x de R$ {(Number(product.price) / 3).toFixed(2).replace(".", ",")}
+            {Number(product.price) >= 10 && (
+              <p className="text-[10px] text-foreground/70 font-medium leading-none mt-0.5">
+                ou <span className="font-bold text-foreground">3x de R$ {(Number(product.price) / 3).toFixed(2).replace(".", ",")}</span> s/ juros
               </p>
             )}
           </div>
