@@ -1,12 +1,15 @@
 import { useState, useRef, useEffect } from "react";
 import { cn } from "@/lib/utils";
+import { getOptimizedImageUrl } from "@/lib/image-utils";
 
 interface OptimizedImageProps extends React.ImgHTMLAttributes<HTMLImageElement> {
   src: string;
   alt: string;
   aspectRatio?: string;
   placeholderColor?: string;
-  priority?: boolean; // skip lazy loading for above-the-fold images
+  priority?: boolean;
+  /** Max display width in px — used to request a smaller image from Supabase */
+  displayWidth?: number;
 }
 
 const OptimizedImage = ({
@@ -16,6 +19,7 @@ const OptimizedImage = ({
   aspectRatio = "1/1",
   placeholderColor,
   priority = false,
+  displayWidth,
   ...props
 }: OptimizedImageProps) => {
   const [loaded, setLoaded] = useState(false);
@@ -34,12 +38,20 @@ const OptimizedImage = ({
           observer.disconnect();
         }
       },
-      { rootMargin: "600px" }
+      { rootMargin: "300px" }
     );
 
     observer.observe(el);
     return () => observer.disconnect();
   }, [priority]);
+
+  // Optimize Supabase images: resize + compress
+  const optimizedSrc = inView
+    ? getOptimizedImageUrl(src, {
+        width: displayWidth || 600,
+        quality: 75,
+      })
+    : "";
 
   return (
     <div
@@ -60,7 +72,7 @@ const OptimizedImage = ({
       {/* Actual image */}
       {inView && (
         <img
-          src={src}
+          src={optimizedSrc}
           alt={alt}
           loading={priority ? "eager" : "lazy"}
           decoding="async"
