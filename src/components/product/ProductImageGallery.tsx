@@ -16,7 +16,7 @@ const ProductImageGallery = ({ images, alt, children }: ProductImageGalleryProps
 
   if (validImages.length === 0) {
     return (
-      <div className="aspect-[4/5] bg-muted flex items-center justify-center text-muted-foreground rounded-xl">
+      <div className="aspect-[4/5] bg-white flex items-center justify-center text-muted-foreground rounded-xl">
         Sem imagem
       </div>
     );
@@ -27,7 +27,7 @@ const ProductImageGallery = ({ images, alt, children }: ProductImageGalleryProps
   };
 
   return (
-    <div className="relative rounded-xl overflow-hidden bg-muted">
+    <div className="relative rounded-xl overflow-hidden bg-white">
       {/* Main image */}
       <AnimatePresence mode="wait">
         <motion.div

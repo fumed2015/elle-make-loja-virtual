@@ -56,16 +56,16 @@ const OptimizedImage = ({
   return (
     <div
       ref={ref}
-      className={cn("relative overflow-hidden bg-muted", className)}
+      className={cn("relative overflow-hidden bg-white", className)}
       style={{ aspectRatio }}
     >
       {/* Shimmer placeholder */}
       {!loaded && (
         <div
-          className="absolute inset-0"
+           className="absolute inset-0 bg-white"
           style={{ backgroundColor: placeholderColor }}
         >
-          <div className="w-full h-full bg-gradient-to-r from-muted via-muted-foreground/5 to-muted animate-pulse" />
+          <div className="w-full h-full bg-gradient-to-r from-gray-100 via-gray-50 to-gray-100 animate-pulse" />
         </div>
       )}
 
