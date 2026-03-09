@@ -287,7 +287,7 @@ const Produto = () => {
               </Button>
 
               <a
-                href={`https://wa.me/5591983045531?text=${whatsappMsg}`}
+                href={`https://wa.me/5591920048471?text=${whatsappMsg}`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="w-full min-h-[48px] text-base font-semibold border-2 border-border rounded-md flex items-center justify-center gap-2 hover:bg-muted transition-colors"
