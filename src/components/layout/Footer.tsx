@@ -44,7 +44,7 @@ const Footer = () => {
             asChild
             className="bg-card text-accent hover:bg-card/90 font-bold px-8 min-h-[48px] rounded-full shadow-whatsapp"
           >
-            <a href="https://wa.me/5591983045531?text=Olá! Gostaria de saber mais sobre os produtos" target="_blank" rel="noopener noreferrer">
+            <a href="https://wa.me/5591920048471?text=Olá! Gostaria de saber mais sobre os produtos" target="_blank" rel="noopener noreferrer">
               <WhatsAppIcon className="w-4 h-4 mr-2" />
               Falar no WhatsApp
             </a>
