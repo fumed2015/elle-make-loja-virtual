@@ -300,7 +300,7 @@ const Header = () => {
               </SheetTrigger>
               <SheetContent side="left" className="w-72 p-0">
                 <div className="p-4 border-b border-border">
-                  <span className="text-xl font-bold tracking-[0.12em] text-[#800020]" style={{ fontFamily: "'Playfair Display', serif" }}>Elle Make</span>
+                  <img src={logoEllemake} alt="Elle Make" className="h-8 object-contain" />
                 </div>
                 <nav className="py-2">
                   {navLinks.map((link) => (
