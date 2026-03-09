@@ -44,7 +44,7 @@ const Footer = () => {
             asChild
             className="bg-card text-accent hover:bg-card/90 font-bold px-8 min-h-[48px] rounded-full shadow-whatsapp"
           >
-            <a href="https://wa.me/5591983045531?text=Olá! Gostaria de saber mais sobre os produtos" target="_blank" rel="noopener noreferrer">
+            <a href="https://wa.me/5591920048471?text=Olá! Gostaria de saber mais sobre os produtos" target="_blank" rel="noopener noreferrer">
               <WhatsAppIcon className="w-4 h-4 mr-2" />
               Falar no WhatsApp
             </a>
@@ -57,12 +57,12 @@ const Footer = () => {
         <div className="max-w-7xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-8">
           {/* Brand */}
           <div className="space-y-3">
-            <span className="text-2xl font-bold tracking-[0.12em] text-primary-foreground" style={{ fontFamily: "'Playfair Display', serif" }}>Elle Make</span>
+            <img src={logoEllemake} alt="Elle Make" className="h-8 object-contain brightness-0 invert" />
             <p className="text-xs leading-relaxed text-primary-foreground/50">
               Maquiagem e cosméticos com entrega rápida em Belém do Pará.
             </p>
             <div className="flex gap-3">
-              <a href="https://wa.me/5591983045531" target="_blank" rel="noopener noreferrer" className="w-9 h-9 rounded-full bg-primary-foreground/10 flex items-center justify-center hover:bg-primary-foreground/20 transition-colors" aria-label="WhatsApp">
+              <a href="https://wa.me/5591920048471" target="_blank" rel="noopener noreferrer" className="w-9 h-9 rounded-full bg-primary-foreground/10 flex items-center justify-center hover:bg-primary-foreground/20 transition-colors" aria-label="WhatsApp">
                 <WhatsAppIcon className="w-4 h-4" />
               </a>
               <a href="https://instagram.com/ellemake" target="_blank" rel="noopener noreferrer" className="w-9 h-9 rounded-full bg-primary-foreground/10 flex items-center justify-center hover:bg-primary-foreground/20 transition-colors" aria-label="Instagram">
@@ -121,11 +121,11 @@ const Footer = () => {
               </li>
               <li className="flex items-center gap-2.5 text-xs">
                 <Phone className="w-3.5 h-3.5 flex-shrink-0 text-primary-foreground/50" />
-                <a href="tel:+5591983045531" className="hover:text-primary-foreground transition-colors">(91) 98304-5531</a>
+                <a href="tel:+5591920048471" className="hover:text-primary-foreground transition-colors">(91) 92004-8471</a>
               </li>
               <li className="flex items-center gap-2.5 text-xs">
                 <Mail className="w-3.5 h-3.5 flex-shrink-0 text-primary-foreground/50" />
-                contato@ellemake.com
+                ellemakeloja@gmail.com
               </li>
               <li className="flex items-start gap-2.5 text-xs mt-2">
                 <Clock className="w-3.5 h-3.5 flex-shrink-0 mt-0.5 text-primary-foreground/50" />
