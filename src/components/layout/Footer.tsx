@@ -57,7 +57,7 @@ const Footer = () => {
         <div className="max-w-7xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-8">
           {/* Brand */}
           <div className="space-y-3">
-            <span className="text-2xl font-bold tracking-[0.12em] text-primary-foreground" style={{ fontFamily: "'Playfair Display', serif" }}>Elle Make</span>
+            <img src={logoEllemake} alt="Elle Make" className="h-8 object-contain brightness-0 invert" />
             <p className="text-xs leading-relaxed text-primary-foreground/50">
               Maquiagem e cosméticos com entrega rápida em Belém do Pará.
             </p>
