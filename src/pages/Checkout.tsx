@@ -370,7 +370,7 @@ const Checkout = () => {
           `🛒 *Novo Pedido #${newOrderId.slice(0, 8)}*\n\n${itemsList}\n\n💰 Total: R$ ${finalTotal.toFixed(2).replace(".", ",")}\n📍 ${address.street}, ${address.number} - ${address.neighborhood}, ${address.city}\n\nForma de pagamento: Combinar pelo WhatsApp`
         );
         await clearCart();
-        window.open(`https://wa.me/5591983045531?text=${msg}`, '_blank');
+        window.open(`https://wa.me/5591920048471?text=${msg}`, '_blank');
         setStep("success");
         toast.success("Pedido enviado pelo WhatsApp! 🎉");
         return;

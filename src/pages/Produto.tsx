@@ -287,7 +287,7 @@ const Produto = () => {
               </Button>
 
               <a
-                href={`https://wa.me/5591983045531?text=${whatsappMsg}`}
+                href={`https://wa.me/5591920048471?text=${whatsappMsg}`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="w-full min-h-[48px] text-base font-semibold border-2 border-border rounded-md flex items-center justify-center gap-2 hover:bg-muted transition-colors"
@@ -383,13 +383,13 @@ const Produto = () => {
           <h3 className="text-lg font-bold text-foreground mb-1">Dúvidas sobre este produto?</h3>
           <p className="text-sm text-muted-foreground mb-4">Fale com nossa consultora de beleza pelo WhatsApp</p>
           <a
-            href={`https://wa.me/5591983045531?text=${encodeURIComponent(`Olá! Tenho dúvidas sobre: ${product.name}`)}`}
+            href={`https://wa.me/5591920048471?text=${encodeURIComponent(`Olá! Tenho dúvidas sobre: ${product.name}`)}`}
             target="_blank"
             rel="noopener noreferrer"
           >
             <Button className="bg-accent text-accent-foreground hover:bg-accent/90 min-h-[44px] px-6">
               <WhatsAppIcon className="w-5 h-5 mr-2" />
-              WhatsApp (91) 98304-5531
+              WhatsApp (91) 92004-8471
             </Button>
           </a>
         </div>

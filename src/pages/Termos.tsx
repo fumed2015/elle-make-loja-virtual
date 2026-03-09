@@ -44,7 +44,7 @@ const Termos = () => (
           <li>Prazo de 7 dias após o recebimento para solicitar troca ou devolução</li>
           <li>Produto deve estar lacrado/sem uso para devolução</li>
           <li>Produtos com defeito são substituídos sem custo adicional</li>
-          <li>Solicite pelo WhatsApp (91) 98304-5531</li>
+          <li>Solicite pelo WhatsApp (91) 92004-8471</li>
         </ul>
       </section>
 

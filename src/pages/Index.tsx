@@ -274,7 +274,7 @@ const HeroCarousel = () => {
                 </Link>
               </Button>
               <a
-                href="https://wa.me/5591983045531?text=Ol%C3%A1!%20Vim%20pelo%20site%20e%20gostaria%20de%20comprar!"
+                href="https://wa.me/5591920048471?text=Ol%C3%A1!%20Vim%20pelo%20site%20e%20gostaria%20de%20comprar!"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="min-h-[48px] px-6 rounded-sm shadow-xl flex items-center gap-2 transition-colors hover:brightness-110"
@@ -330,7 +330,7 @@ const HeroCarousel = () => {
               </Link>
             </Button>
             <a
-              href="https://wa.me/5591983045531?text=Ol%C3%A1!%20Vim%20pelo%20site%20e%20gostaria%20de%20comprar!"
+              href="https://wa.me/5591920048471?text=Ol%C3%A1!%20Vim%20pelo%20site%20e%20gostaria%20de%20comprar!"
               target="_blank"
               rel="noopener noreferrer"
               className="min-h-[40px] px-6 rounded-sm shadow-lg flex items-center gap-2"
@@ -390,7 +390,7 @@ const HeroCarousel = () => {
             logo: `${window.location.origin}/pwa-512x512.png`,
             contactPoint: {
               "@type": "ContactPoint",
-              telephone: "+55-91-98304-5531",
+              telephone: "+55-91-92004-8471",
               contactType: "customer service",
               areaServed: "BR",
               availableLanguage: "Portuguese",
