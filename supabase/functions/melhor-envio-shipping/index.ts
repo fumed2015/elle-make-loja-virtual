@@ -55,7 +55,7 @@ serve(async (req) => {
         "Accept": "application/json",
         "Content-Type": "application/json",
         "Authorization": `Bearer ${token}`,
-        "User-Agent": "ElleMake (contato@ellemake.com.br)",
+        "User-Agent": "ElleMake (ellemakeloja@gmail.com)",
       },
       body: JSON.stringify(payload),
     });

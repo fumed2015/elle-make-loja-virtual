@@ -107,7 +107,7 @@ const FALLBACK_TEMPLATES: Record<string, string> = {
     `━━━━━━━━━━━━━━━━━━\n\n` +
     `Esperamos que você ame tudo! 😍\n\n` +
     `⭐ *Avalie seus produtos:* {link}\n` +
-    `📸 Mostra pra gente! Marca *@ellemake* no Instagram 🤳\n\n` +
+    `📸 Mostra pra gente! Marca *@ellemakebelem* no Instagram 🤳\n\n` +
     `Obrigada por comprar com a gente! 💕`,
 
   "order.cancelled":

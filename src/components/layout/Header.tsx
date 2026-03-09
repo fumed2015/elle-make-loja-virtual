@@ -280,7 +280,7 @@ const Header = () => {
             </span>
           </div>
           <div className={`flex items-center gap-3 transition-colors duration-300 ${!isTransparent ? 'text-foreground' : 'text-white'}`}>
-            <a href="https://instagram.com/ellemake" target="_blank" rel="noopener noreferrer" className={`transition-colors ${!isTransparent ? 'hover:text-primary' : 'hover:text-white/80'}`} aria-label="Instagram">
+            <a href="https://instagram.com/ellemakebelem" target="_blank" rel="noopener noreferrer" className={`transition-colors ${!isTransparent ? 'hover:text-primary' : 'hover:text-white/80'}`} aria-label="Instagram">
               <Instagram className="w-4 h-4" />
             </a>
           </div>
