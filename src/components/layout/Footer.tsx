@@ -62,7 +62,7 @@ const Footer = () => {
               Maquiagem e cosméticos com entrega rápida em Belém do Pará.
             </p>
             <div className="flex gap-3">
-              <a href="https://wa.me/5591983045531" target="_blank" rel="noopener noreferrer" className="w-9 h-9 rounded-full bg-primary-foreground/10 flex items-center justify-center hover:bg-primary-foreground/20 transition-colors" aria-label="WhatsApp">
+              <a href="https://wa.me/5591920048471" target="_blank" rel="noopener noreferrer" className="w-9 h-9 rounded-full bg-primary-foreground/10 flex items-center justify-center hover:bg-primary-foreground/20 transition-colors" aria-label="WhatsApp">
                 <WhatsAppIcon className="w-4 h-4" />
               </a>
               <a href="https://instagram.com/ellemake" target="_blank" rel="noopener noreferrer" className="w-9 h-9 rounded-full bg-primary-foreground/10 flex items-center justify-center hover:bg-primary-foreground/20 transition-colors" aria-label="Instagram">
