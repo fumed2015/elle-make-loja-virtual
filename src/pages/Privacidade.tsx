@@ -56,7 +56,7 @@ const Privacidade = () => (
           <li>Solicitar exclusão dos seus dados</li>
           <li>Revogar consentimento para comunicações</li>
         </ul>
-        <p>Para exercer seus direitos, entre em contato pelo WhatsApp (91) 98304-5531 ou pelo e-mail contato@ellemake.com.</p>
+        <p>Para exercer seus direitos, entre em contato pelo WhatsApp (91) 92004-8471 ou pelo e-mail ellemakeloja@gmail.com.</p>
       </section>
 
       <section>

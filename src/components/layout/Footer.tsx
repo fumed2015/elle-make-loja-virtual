@@ -65,7 +65,7 @@ const Footer = () => {
               <a href="https://wa.me/5591920048471" target="_blank" rel="noopener noreferrer" className="w-9 h-9 rounded-full bg-primary-foreground/10 flex items-center justify-center hover:bg-primary-foreground/20 transition-colors" aria-label="WhatsApp">
                 <WhatsAppIcon className="w-4 h-4" />
               </a>
-              <a href="https://instagram.com/ellemake" target="_blank" rel="noopener noreferrer" className="w-9 h-9 rounded-full bg-primary-foreground/10 flex items-center justify-center hover:bg-primary-foreground/20 transition-colors" aria-label="Instagram">
+              <a href="https://instagram.com/ellemakebelem" target="_blank" rel="noopener noreferrer" className="w-9 h-9 rounded-full bg-primary-foreground/10 flex items-center justify-center hover:bg-primary-foreground/20 transition-colors" aria-label="Instagram">
                 <Instagram className="w-4 h-4" />
               </a>
             </div>
