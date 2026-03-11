@@ -95,7 +95,7 @@ const ProductImageGallery = ({ images, alt, children }: ProductImageGalleryProps
                 i === current ? "border-primary" : "border-transparent opacity-60 hover:opacity-100"
               )}
             >
-              <img src={img} alt="" className="w-full h-full object-cover" />
+              <img src={img} alt="" className="w-full h-full object-contain bg-white" />
             </button>
           ))}
         </div>
