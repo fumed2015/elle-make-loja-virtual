@@ -534,7 +534,7 @@ const AdminProductsPanel = () => {
             <div className="grid grid-cols-4 gap-2">
               {images.map((img, i) => (
                 <div key={i} className="relative group aspect-square rounded-lg overflow-hidden bg-muted border border-border">
-                  <img src={img} alt="" className="w-full h-full object-cover" />
+                  <img src={img} alt="" className="w-full h-full object-contain" />
                   {i === 0 && <Badge className="absolute top-1 left-1 text-[7px] px-1 py-0 bg-primary text-primary-foreground">Principal</Badge>}
                   <div className="absolute inset-0 bg-background/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-1">
                     {i > 0 && <button type="button" onClick={() => handleMoveImage(i, -1)} className="w-6 h-6 rounded bg-card flex items-center justify-center"><ChevronUp className="w-3 h-3" /></button>}

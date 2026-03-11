@@ -70,7 +70,7 @@ function SortableProduct({ product, index, onRemove }: SortableProductProps) {
       <img
         src={product.images?.[0] || "/placeholder.svg"}
         alt={product.name}
-        className="w-10 h-10 object-cover rounded"
+        className="w-10 h-10 object-contain rounded"
       />
       <div className="flex-1 min-w-0">
         <p className="text-xs font-medium truncate">{product.name}</p>
