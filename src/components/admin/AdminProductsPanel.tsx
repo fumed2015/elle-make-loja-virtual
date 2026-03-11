@@ -93,6 +93,7 @@ const AdminProductsPanel = () => {
   const [newSwatch, setNewSwatch] = useState<Swatch>({ name: "", color: "#c45a5a", barcode: "", ref_code: "", stock: 0, available: true });
   const [submitting, setSubmitting] = useState(false);
   const [aiGenerating, setAiGenerating] = useState(false);
+  const [uploading, setUploading] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [filterCategory, setFilterCategory] = useState("all");
   const [filterStatus, setFilterStatus] = useState("all");
@@ -157,6 +158,46 @@ const AdminProductsPanel = () => {
     if (newImageUrl.trim() && !images.includes(newImageUrl.trim())) {
       setImages([...images, newImageUrl.trim()]);
       setNewImageUrl("");
+    }
+  };
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+    setUploading(true);
+    const newUrls: string[] = [];
+    try {
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+        const ext = file.name.split(".").pop()?.toLowerCase() || "jpg";
+        const fileName = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
+        
+        const { error: upErr } = await supabase.storage
+          .from("product-images")
+          .upload(fileName, file, { contentType: file.type, upsert: true });
+        
+        if (upErr) {
+          toast.error(`Erro ao enviar ${file.name}: ${upErr.message}`);
+          continue;
+        }
+        
+        const { data: urlData } = supabase.storage
+          .from("product-images")
+          .getPublicUrl(fileName);
+        
+        if (urlData?.publicUrl) {
+          newUrls.push(urlData.publicUrl);
+        }
+      }
+      if (newUrls.length > 0) {
+        setImages(prev => [...prev, ...newUrls]);
+        toast.success(`${newUrls.length} imagem(ns) enviada(s)!`);
+      }
+    } catch (err: any) {
+      toast.error(err.message || "Erro ao enviar imagens");
+    } finally {
+      setUploading(false);
+      e.target.value = "";
     }
   };
 
@@ -505,9 +546,18 @@ const AdminProductsPanel = () => {
             </div>
           )}
           <div className="flex gap-2">
-            <Input value={newImageUrl} onChange={(e) => setNewImageUrl(e.target.value)} placeholder="https://url-da-imagem.jpg" className="bg-muted border-none min-h-[36px] text-xs flex-1" onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), handleAddImage())} />
-            <Button type="button" onClick={handleAddImage} size="sm" variant="outline" className="text-xs gap-1 h-9"><ImageIcon className="w-3 h-3" />Adicionar</Button>
+            <label className={cn(
+              "flex items-center justify-center gap-1.5 px-3 h-9 rounded-md border border-dashed border-primary/40 bg-primary/5 text-primary text-xs font-medium cursor-pointer hover:bg-primary/10 transition-colors",
+              uploading && "opacity-60 pointer-events-none"
+            )}>
+              {uploading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <ImageIcon className="w-3.5 h-3.5" />}
+              {uploading ? "Enviando..." : "📷 Upload"}
+              <input type="file" accept="image/*" multiple onChange={handleFileUpload} className="hidden" />
+            </label>
+            <Input value={newImageUrl} onChange={(e) => setNewImageUrl(e.target.value)} placeholder="ou cole a URL da imagem..." className="bg-muted border-none min-h-[36px] text-xs flex-1" onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), handleAddImage())} />
+            <Button type="button" onClick={handleAddImage} size="sm" variant="outline" className="text-xs gap-1 h-9"><Plus className="w-3 h-3" />URL</Button>
           </div>
+          <p className="text-[10px] text-muted-foreground">Arraste e solte ou clique em Upload para enviar fotos do seu dispositivo. Aceita JPG, PNG e WebP.</p>
         </fieldset>
 
         {/* Swatches / Variações */}
