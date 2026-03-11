@@ -57,7 +57,7 @@ const OptimizedImage = ({
     <div
       ref={ref}
       className={cn("relative overflow-hidden bg-white", className)}
-      style={{ aspectRatio }}
+      style={aspectRatio !== "auto" ? { aspectRatio } : undefined}
     >
       {/* Shimmer placeholder */}
       {!loaded && (
@@ -80,7 +80,8 @@ const OptimizedImage = ({
           onLoad={() => setLoaded(true)}
           onError={() => setLoaded(true)}
           className={cn(
-            "w-full h-full object-contain transition-opacity duration-300",
+            "w-full h-full transition-opacity duration-300",
+            aspectRatio === "auto" ? "object-contain" : "object-cover",
             loaded ? "opacity-100" : "opacity-0"
           )}
           {...props}
