@@ -46,7 +46,7 @@ const OrderBump = ({ cartProductIds }: { cartProductIds: string[] }) => {
       <div className="flex items-center gap-3">
         <div className="w-14 h-14 rounded-lg overflow-hidden bg-muted flex-shrink-0">
           {bumpProduct.images?.[0] && (
-            <img src={bumpProduct.images[0]} alt={bumpProduct.name} className="w-full h-full object-cover" />
+            <img src={bumpProduct.images[0]} alt={bumpProduct.name} className="w-full h-full object-contain" />
           )}
         </div>
         <div className="flex-1 min-w-0">

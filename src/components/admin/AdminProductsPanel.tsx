@@ -771,7 +771,7 @@ const AdminProductsPanel = () => {
                 {/* Compact row */}
                 <div className="flex items-center gap-2.5 p-3 cursor-pointer" onClick={() => setExpandedId(isExpanded ? null : product.id)}>
                   <div className="w-12 h-12 rounded-lg bg-muted overflow-hidden flex-shrink-0">
-                    {product.images?.[0] ? <img src={product.images[0]} alt="" className="w-full h-full object-cover" /> :
+                    {product.images?.[0] ? <img src={product.images[0]} alt="" className="w-full h-full object-contain" /> :
                       <div className="w-full h-full flex items-center justify-center"><Box className="w-4 h-4 text-muted-foreground" /></div>}
                   </div>
                   <div className="flex-1 min-w-0">

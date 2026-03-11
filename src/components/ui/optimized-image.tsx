@@ -80,8 +80,7 @@ const OptimizedImage = ({
           onLoad={() => setLoaded(true)}
           onError={() => setLoaded(true)}
           className={cn(
-            "w-full h-full transition-opacity duration-300",
-            aspectRatio === "auto" ? "object-contain" : "object-cover",
+            "w-full h-full object-contain transition-opacity duration-300",
             loaded ? "opacity-100" : "opacity-0"
           )}
           {...props}
