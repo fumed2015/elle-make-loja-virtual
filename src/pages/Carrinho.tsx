@@ -59,7 +59,7 @@ const Carrinho = () => {
               >
                 <Link to={`/produto/${product?.slug}`} className="w-20 h-20 rounded-lg overflow-hidden bg-muted flex-shrink-0">
                   {product?.images?.[0] && (
-                    <img src={product.images[0]} alt={product.name} className="w-full h-full object-cover" />
+                    <img src={product.images[0]} alt={product.name} className="w-full h-full object-contain" />
                   )}
                 </Link>
                 <div className="flex-1 min-w-0">

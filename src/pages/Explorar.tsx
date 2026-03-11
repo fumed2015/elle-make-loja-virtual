@@ -270,7 +270,7 @@ const Explorar = () => {
                         className="w-full text-left px-3 py-2.5 hover:bg-muted transition-colors flex items-center gap-3"
                       >
                         <div className="w-10 h-10 rounded-lg overflow-hidden bg-muted flex-shrink-0">
-                          {s.images?.[0] && <img src={s.images[0]} alt="" className="w-full h-full object-cover" loading="lazy" />}
+                          {s.images?.[0] && <img src={s.images[0]} alt="" className="w-full h-full object-contain" loading="lazy" />}
                         </div>
                         <div className="min-w-0 flex-1">
                           <p className="text-sm font-medium truncate text-foreground">{s.name}</p>

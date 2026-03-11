@@ -70,7 +70,7 @@ const ProductCard = memo(({ product, index = 0 }: ProductCardProps) => {
             <OptimizedImage
               src={product.images[0]}
               alt={product.name}
-              className="group-hover:scale-105 transition-transform duration-700 ease-out"
+              className="transition-opacity duration-300"
               aspectRatio="1/1"
               displayWidth={400}
             />

@@ -47,7 +47,7 @@ const AddressStep = ({
             const product = item.products as any;
             return (
               <div key={item.id} className="w-10 h-10 rounded-md bg-muted overflow-hidden flex-shrink-0">
-                {product?.images?.[0] && <img src={product.images[0]} alt="" className="w-full h-full object-cover" />}
+                {product?.images?.[0] && <img src={product.images[0]} alt="" className="w-full h-full object-contain" />}
               </div>
             );
           })}

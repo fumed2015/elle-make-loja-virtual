@@ -74,7 +74,7 @@ const CrossSellSection = ({ cartProductIds }: { cartProductIds: string[] }) => {
           <div key={p.id} className="flex-1 bg-muted rounded-md p-2 flex items-center gap-2">
             <div className="w-12 h-12 rounded-md overflow-hidden bg-background flex-shrink-0">
               {p.images?.[0] && (
-                <img src={p.images[0]} alt={p.name} className="w-full h-full object-cover" loading="lazy" />
+                <img src={p.images[0]} alt={p.name} className="w-full h-full object-contain" loading="lazy" />
               )}
             </div>
             <div className="flex-1 min-w-0">
