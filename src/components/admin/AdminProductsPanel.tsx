@@ -93,6 +93,7 @@ const AdminProductsPanel = () => {
   const [newSwatch, setNewSwatch] = useState<Swatch>({ name: "", color: "#c45a5a", barcode: "", ref_code: "", stock: 0, available: true });
   const [submitting, setSubmitting] = useState(false);
   const [aiGenerating, setAiGenerating] = useState(false);
+  const [uploading, setUploading] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [filterCategory, setFilterCategory] = useState("all");
   const [filterStatus, setFilterStatus] = useState("all");
