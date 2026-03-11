@@ -212,7 +212,7 @@ const Header = () => {
               className="w-full text-left px-3 py-2 hover:bg-muted transition-colors flex items-center gap-2.5"
             >
               <div className="w-8 h-8 rounded-md overflow-hidden bg-muted flex-shrink-0">
-                {p.images?.[0] && <img src={p.images[0]} alt="" className="w-full h-full object-cover" loading="lazy" />}
+                {p.images?.[0] && <img src={p.images[0]} alt="" className="w-full h-full object-contain" loading="lazy" />}
               </div>
               <div className="min-w-0 flex-1">
                 <p className="text-xs font-medium truncate">{p.name}</p>
