@@ -634,7 +634,7 @@ const MarketplacesTab = () => {
                               return (
                                 <div key={p.id} className="flex items-center gap-3 bg-muted/50 rounded-lg p-2">
                                   {hasImage ? (
-                                    <img src={p.images![0]} alt={p.name} className="w-10 h-10 rounded object-cover" />
+                                    <img src={p.images![0]} alt={p.name} className="w-10 h-10 rounded object-contain" />
                                   ) : (
                                     <div className="w-10 h-10 rounded bg-muted flex items-center justify-center">
                                       <ImageIcon className="w-4 h-4 text-muted-foreground" />

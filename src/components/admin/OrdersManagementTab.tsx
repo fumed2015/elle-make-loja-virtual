@@ -406,7 +406,7 @@ const OrdersManagementTab = () => {
                             {items.map((item: any, j: number) => (
                               <div key={j} className="flex items-center gap-2 bg-muted rounded-lg p-2">
                                 <div className="w-10 h-10 rounded-lg bg-background overflow-hidden flex-shrink-0">
-                                  {item.image && <img src={item.image} alt="" className="w-full h-full object-cover" />}
+                                  {item.image && <img src={item.image} alt="" className="w-full h-full object-contain" />}
                                 </div>
                                 <div className="flex-1 min-w-0">
                                   <p className="text-[11px] font-medium line-clamp-1">{item.name}</p>

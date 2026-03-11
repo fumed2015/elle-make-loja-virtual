@@ -78,7 +78,7 @@ const Pedidos = () => {
               <div className="flex gap-2 overflow-x-auto">
                 {items.slice(0, 4).map((item: any, j: number) => (
                   <div key={j} className="w-12 h-12 rounded-lg bg-muted overflow-hidden flex-shrink-0">
-                    {item.image && <img src={item.image} alt="" className="w-full h-full object-cover" />}
+                    {item.image && <img src={item.image} alt="" className="w-full h-full object-contain" />}
                   </div>
                 ))}
                 {items.length > 4 && (
