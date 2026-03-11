@@ -40,8 +40,9 @@ const ProductImageGallery = ({ images, alt, children }: ProductImageGalleryProps
           <OptimizedImage
             src={validImages[current]}
             alt={`${alt} - Imagem ${current + 1}`}
-            aspectRatio="4/5"
+            aspectRatio="auto"
             displayWidth={800}
+            className="w-full"
           />
         </motion.div>
       </AnimatePresence>
