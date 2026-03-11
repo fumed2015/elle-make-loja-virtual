@@ -161,6 +161,46 @@ const AdminProductsPanel = () => {
     }
   };
 
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+    setUploading(true);
+    const newUrls: string[] = [];
+    try {
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+        const ext = file.name.split(".").pop()?.toLowerCase() || "jpg";
+        const fileName = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
+        
+        const { error: upErr } = await supabase.storage
+          .from("product-images")
+          .upload(fileName, file, { contentType: file.type, upsert: true });
+        
+        if (upErr) {
+          toast.error(`Erro ao enviar ${file.name}: ${upErr.message}`);
+          continue;
+        }
+        
+        const { data: urlData } = supabase.storage
+          .from("product-images")
+          .getPublicUrl(fileName);
+        
+        if (urlData?.publicUrl) {
+          newUrls.push(urlData.publicUrl);
+        }
+      }
+      if (newUrls.length > 0) {
+        setImages(prev => [...prev, ...newUrls]);
+        toast.success(`${newUrls.length} imagem(ns) enviada(s)!`);
+      }
+    } catch (err: any) {
+      toast.error(err.message || "Erro ao enviar imagens");
+    } finally {
+      setUploading(false);
+      e.target.value = "";
+    }
+  };
+
   const handleRemoveImage = (idx: number) => setImages(images.filter((_, i) => i !== idx));
   const handleMoveImage = (idx: number, dir: -1 | 1) => {
     const newImages = [...images];
