@@ -57,7 +57,7 @@ const OptimizedImage = ({
     <div
       ref={ref}
       className={cn("relative overflow-hidden bg-white", className)}
-      style={{ aspectRatio }}
+      style={aspectRatio !== "auto" ? { aspectRatio } : undefined}
     >
       {/* Shimmer placeholder */}
       {!loaded && (
