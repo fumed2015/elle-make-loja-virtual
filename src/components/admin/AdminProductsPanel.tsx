@@ -546,9 +546,18 @@ const AdminProductsPanel = () => {
             </div>
           )}
           <div className="flex gap-2">
-            <Input value={newImageUrl} onChange={(e) => setNewImageUrl(e.target.value)} placeholder="https://url-da-imagem.jpg" className="bg-muted border-none min-h-[36px] text-xs flex-1" onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), handleAddImage())} />
-            <Button type="button" onClick={handleAddImage} size="sm" variant="outline" className="text-xs gap-1 h-9"><ImageIcon className="w-3 h-3" />Adicionar</Button>
+            <label className={cn(
+              "flex items-center justify-center gap-1.5 px-3 h-9 rounded-md border border-dashed border-primary/40 bg-primary/5 text-primary text-xs font-medium cursor-pointer hover:bg-primary/10 transition-colors",
+              uploading && "opacity-60 pointer-events-none"
+            )}>
+              {uploading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <ImageIcon className="w-3.5 h-3.5" />}
+              {uploading ? "Enviando..." : "📷 Upload"}
+              <input type="file" accept="image/*" multiple onChange={handleFileUpload} className="hidden" />
+            </label>
+            <Input value={newImageUrl} onChange={(e) => setNewImageUrl(e.target.value)} placeholder="ou cole a URL da imagem..." className="bg-muted border-none min-h-[36px] text-xs flex-1" onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), handleAddImage())} />
+            <Button type="button" onClick={handleAddImage} size="sm" variant="outline" className="text-xs gap-1 h-9"><Plus className="w-3 h-3" />URL</Button>
           </div>
+          <p className="text-[10px] text-muted-foreground">Arraste e solte ou clique em Upload para enviar fotos do seu dispositivo. Aceita JPG, PNG e WebP.</p>
         </fieldset>
 
         {/* Swatches / Variações */}
