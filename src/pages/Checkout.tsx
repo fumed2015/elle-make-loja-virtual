@@ -299,20 +299,16 @@ const Checkout = () => {
 
     if (orderError) throw orderError;
 
-    if (appliedCoupon?.code) {
+    if (appliedCoupon?.influencer_id) {
       try {
-        const { data: couponData } = await supabase.from("coupons").select("influencer_id").eq("code", appliedCoupon.code).maybeSingle();
-        if (couponData && (couponData as any).influencer_id) {
-          const influencerId = (couponData as any).influencer_id;
-          const { data: infData } = await supabase.from("influencers").select("commission_percent").eq("id", influencerId).single();
-          if (infData) {
-            const commissionValue = finalTotal * (infData.commission_percent / 100);
-            await supabase.from("influencer_commissions").insert({
-              influencer_id: influencerId, order_id: orderData.id,
-              order_total: finalTotal, commission_percent: infData.commission_percent,
-              commission_value: commissionValue,
-            });
-          }
+        const { data: infData } = await supabase.from("influencers").select("commission_percent").eq("id", appliedCoupon.influencer_id).single();
+        if (infData) {
+          const commissionValue = finalTotal * (infData.commission_percent / 100);
+          await supabase.from("influencer_commissions").insert({
+            influencer_id: appliedCoupon.influencer_id, order_id: orderData.id,
+            order_total: finalTotal, commission_percent: infData.commission_percent,
+            commission_value: commissionValue,
+          });
         }
       } catch (commErr) {
         console.error("Commission tracking error:", commErr);
