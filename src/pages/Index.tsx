@@ -390,7 +390,7 @@ const HeroCarousel = () => {
             logo: `${window.location.origin}/pwa-512x512.png`,
             contactPoint: {
               "@type": "ContactPoint",
-              telephone: "+55-91-92004-8471",
+              telephone: "+55-91-93618-0774",
               contactType: "customer service",
               areaServed: "BR",
               availableLanguage: "Portuguese",

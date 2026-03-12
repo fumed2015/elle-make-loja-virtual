@@ -173,7 +173,10 @@ const Footer = () => {
 
         {/* Bottom bar */}
         <div className="max-w-7xl mx-auto mt-5 pt-5 border-t border-primary-foreground/10 flex flex-col md:flex-row items-center justify-between gap-3">
-          <p className="text-[10px] text-primary-foreground/40">© 2026 Elle Make. Todos os direitos reservados.</p>
+          <div className="text-[10px] text-primary-foreground/40 text-center md:text-left">
+            <p>© 2026 Elle Make. Todos os direitos reservados.</p>
+            <p className="mt-0.5">CNPJ: 65.548.306/0001-22 — Isabelly Miranda Linhares</p>
+          </div>
           <div className="flex gap-3 text-[10px] text-primary-foreground/30">
             <Link to="/privacidade" className="hover:text-primary-foreground/50 transition-colors">Privacidade</Link>
             <Link to="/termos" className="hover:text-primary-foreground/50 transition-colors">Termos</Link>

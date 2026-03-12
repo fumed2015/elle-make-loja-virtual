@@ -273,7 +273,7 @@ const Header = () => {
               <WhatsAppIcon className="w-4 h-4" /> <span className="underline">WhatsApp</span>
             </a>
             <span className="flex items-center gap-1.5">
-              <Phone className="w-3.5 h-3.5" /> (91) 92004-8471
+              <Phone className="w-3.5 h-3.5" /> (91) 93618-0774
             </span>
             <span className="flex items-center gap-1.5">
               <Mail className="w-3.5 h-3.5" /> ellemakeloja@gmail.com

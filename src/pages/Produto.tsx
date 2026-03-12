@@ -389,7 +389,7 @@ const Produto = () => {
           >
             <Button className="bg-accent text-accent-foreground hover:bg-accent/90 min-h-[44px] px-6">
               <WhatsAppIcon className="w-5 h-5 mr-2" />
-              WhatsApp (91) 92004-8471
+              WhatsApp (91) 93618-0774
             </Button>
           </a>
         </div>
