@@ -62,7 +62,7 @@ const OptimizedImage = ({
       {/* Shimmer placeholder */}
       {!loaded && (
         <div
-           className="absolute inset-0 bg-white"
+           className="absolute inset-0 bg-muted/30"
           style={{ backgroundColor: placeholderColor }}
         >
           <div className="w-full h-full bg-gradient-to-r from-gray-100 via-gray-50 to-gray-100 animate-pulse" />
