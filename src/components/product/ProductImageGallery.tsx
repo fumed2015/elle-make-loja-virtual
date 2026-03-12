@@ -16,7 +16,7 @@ const ProductImageGallery = ({ images, alt, children }: ProductImageGalleryProps
 
   if (validImages.length === 0) {
     return (
-      <div className="aspect-[4/5] bg-white flex items-center justify-center text-muted-foreground rounded-xl">
+      <div className="aspect-[4/5] bg-white flex items-center justify-center text-muted-foreground rounded-xl" />
         Sem imagem
       </div>
     );
