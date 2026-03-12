@@ -283,6 +283,190 @@ serve(async (req) => {
       return jsonResponse({ sent: !result?.error, result });
     }
 
+    // ===== BIRTHDAY NOTIFICATIONS =====
+    if (action === "birthday-notify") {
+      const today = new Date();
+      const mm = String(today.getMonth() + 1).padStart(2, "0");
+      const dd = String(today.getDate()).padStart(2, "0");
+
+      const { data: birthdayProfiles, error: bErr } = await supabase
+        .from("profiles")
+        .select("user_id, full_name, phone, birthday")
+        .not("phone", "is", null)
+        .not("birthday", "is", null);
+
+      if (bErr) return jsonResponse({ error: bErr.message }, 500);
+
+      const matches = (birthdayProfiles || []).filter((p: any) => {
+        if (!p.birthday) return false;
+        const bday = String(p.birthday);
+        return bday.slice(5, 10) === `${mm}-${dd}`;
+      });
+
+      if (matches.length === 0) {
+        return jsonResponse({ sent: 0, message: "Nenhum aniversariante hoje" });
+      }
+
+      const customMessage = body.custom_message || null;
+      let sentCount = 0;
+
+      for (const profile of matches) {
+        const firstName = profile.full_name?.split(" ")[0] || "Cliente";
+        const data = { first_name: firstName, merchant: MERCHANT_NAME, link: "https://ellemake2.lovable.app" };
+
+        let msg: string;
+        if (customMessage) {
+          msg = buildMessageFromTemplate(customMessage, data);
+        } else {
+          msg = await buildMessage("birthday", data, supabase);
+        }
+
+        const result = await sendWhatsApp(profile.phone, msg);
+
+        await supabase.from("notifications").insert({
+          event_type: "birthday",
+          phone: profile.phone,
+          message: msg,
+          status: result?.error ? "failed" : "sent",
+          zapi_response: result,
+          user_id: profile.user_id,
+        });
+
+        if (!result?.error) sentCount++;
+      }
+
+      return jsonResponse({ sent: sentCount, total: matches.length });
+    }
+
+    // ===== REPURCHASE REMINDER =====
+    if (action === "repurchase-reminder") {
+      const daysThreshold = body.days || 30;
+      const cutoffDate = new Date();
+      cutoffDate.setDate(cutoffDate.getDate() - daysThreshold);
+
+      // Get all users with orders
+      const { data: allOrders } = await supabase
+        .from("orders")
+        .select("user_id, created_at, status")
+        .not("status", "in", "(cancelled,refunded)")
+        .order("created_at", { ascending: false });
+
+      if (!allOrders || allOrders.length === 0) {
+        return jsonResponse({ sent: 0, message: "Nenhum pedido encontrado" });
+      }
+
+      // Group by user_id, get last order date
+      const lastOrderByUser: Record<string, string> = {};
+      for (const o of allOrders) {
+        if (!lastOrderByUser[o.user_id]) {
+          lastOrderByUser[o.user_id] = o.created_at;
+        }
+      }
+
+      // Filter users whose last order is older than threshold
+      const inactiveUserIds = Object.entries(lastOrderByUser)
+        .filter(([_, date]) => new Date(date) < cutoffDate)
+        .map(([uid]) => uid);
+
+      if (inactiveUserIds.length === 0) {
+        return jsonResponse({ sent: 0, message: `Nenhum cliente inativo há ${daysThreshold}+ dias` });
+      }
+
+      // Fetch profiles
+      const { data: profiles } = await supabase
+        .from("profiles")
+        .select("user_id, full_name, phone")
+        .not("phone", "is", null)
+        .in("user_id", inactiveUserIds.slice(0, 500));
+
+      const customMessage = body.custom_message || null;
+      let sentCount = 0;
+
+      for (const profile of (profiles || [])) {
+        const firstName = profile.full_name?.split(" ")[0] || "Cliente";
+        const data = { first_name: firstName, merchant: MERCHANT_NAME, link: "https://ellemake2.lovable.app", days: String(daysThreshold) };
+
+        let msg: string;
+        if (customMessage) {
+          msg = buildMessageFromTemplate(customMessage, data);
+        } else {
+          msg = await buildMessage("repurchase.reminder", data, supabase);
+        }
+
+        const result = await sendWhatsApp(profile.phone, msg);
+
+        await supabase.from("notifications").insert({
+          event_type: "repurchase.reminder",
+          phone: profile.phone,
+          message: msg,
+          status: result?.error ? "failed" : "sent",
+          zapi_response: result,
+          user_id: profile.user_id,
+        });
+
+        if (!result?.error) sentCount++;
+      }
+
+      return jsonResponse({ sent: sentCount, total: profiles?.length || 0 });
+    }
+
+    // ===== MASS CAMPAIGN =====
+    if (action === "mass-campaign") {
+      const { message: campaignMessage, filter } = body;
+
+      if (!campaignMessage) {
+        return jsonResponse({ error: "message is required" }, 400);
+      }
+
+      // Build query for profiles with phone
+      let query = supabase
+        .from("profiles")
+        .select("user_id, full_name, phone")
+        .not("phone", "is", null);
+
+      // Optional filters
+      if (filter === "buyers") {
+        const { data: buyerOrders } = await supabase
+          .from("orders")
+          .select("user_id")
+          .not("status", "in", "(cancelled,refunded)");
+        const buyerIds = [...new Set((buyerOrders || []).map((o: any) => o.user_id))];
+        if (buyerIds.length > 0) {
+          query = query.in("user_id", buyerIds);
+        } else {
+          return jsonResponse({ sent: 0, message: "Nenhum comprador encontrado" });
+        }
+      }
+
+      const { data: targets, error: tErr } = await query.limit(1000);
+      if (tErr) return jsonResponse({ error: tErr.message }, 500);
+
+      let sentCount = 0;
+      for (const profile of (targets || [])) {
+        const firstName = profile.full_name?.split(" ")[0] || "Cliente";
+        const msg = buildMessageFromTemplate(campaignMessage, {
+          first_name: firstName,
+          merchant: MERCHANT_NAME,
+          link: "https://ellemake2.lovable.app",
+        });
+
+        const result = await sendWhatsApp(profile.phone, msg);
+
+        await supabase.from("notifications").insert({
+          event_type: "mass.campaign",
+          phone: profile.phone,
+          message: msg,
+          status: result?.error ? "failed" : "sent",
+          zapi_response: result,
+          user_id: profile.user_id,
+        });
+
+        if (!result?.error) sentCount++;
+      }
+
+      return jsonResponse({ sent: sentCount, total: targets?.length || 0 });
+    }
+
     return jsonResponse({ error: "Unknown action" }, 400);
   } catch (err: any) {
     console.error("WhatsApp notification error:", err);
