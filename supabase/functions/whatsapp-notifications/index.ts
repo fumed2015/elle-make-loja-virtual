@@ -56,7 +56,8 @@ function buildMessageFromTemplate(template: string, data: Record<string, any>): 
     .replace(/{payment_method}/g, data.payment_method || "")
     .replace(/{order_id}/g, data.order_id || "")
     .replace(/{items_count}/g, data.items_count || "0")
-    .replace(/{link}/g, data.link || "https://ellemake2.lovable.app");
+    .replace(/{link}/g, data.link || "https://ellemake2.lovable.app")
+    .replace(/{days}/g, data.days || "30");
 }
 
 const PAYMENT_LABELS: Record<string, string> = {
