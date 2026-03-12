@@ -383,7 +383,7 @@ const Produto = () => {
           <h3 className="text-lg font-bold text-foreground mb-1">Dúvidas sobre este produto?</h3>
           <p className="text-sm text-muted-foreground mb-4">Fale com nossa consultora de beleza pelo WhatsApp</p>
           <a
-            href={`https://wa.me/5591920048471?text=${encodeURIComponent(`Olá! Tenho dúvidas sobre: ${product.name}`)}`}
+            href={`https://wa.me/5591936180774?text=${encodeURIComponent(`Olá! Tenho dúvidas sobre: ${product.name}`)}`}
             target="_blank"
             rel="noopener noreferrer"
           >
