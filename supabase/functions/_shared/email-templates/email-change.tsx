@@ -9,8 +9,10 @@ import {
   Head,
   Heading,
   Html,
+  Img,
   Link,
   Preview,
+  Section,
   Text,
 } from 'npm:@react-email/components@0.0.22'
 
@@ -21,38 +23,49 @@ interface EmailChangeEmailProps {
   confirmationUrl: string
 }
 
+const LOGO_URL = 'https://xinkvwlhctwgdfwixzxf.supabase.co/storage/v1/object/public/email-assets/logo-ellemake.png'
+
 export const EmailChangeEmail = ({
   siteName,
   email,
   newEmail,
   confirmationUrl,
 }: EmailChangeEmailProps) => (
-  <Html lang="en" dir="ltr">
+  <Html lang="pt-BR" dir="ltr">
     <Head />
-    <Preview>Confirm your email change for {siteName}</Preview>
+    <Preview>Confirme a alteração do seu e-mail na Elle Make</Preview>
     <Body style={main}>
       <Container style={container}>
-        <Heading style={h1}>Confirm your email change</Heading>
-        <Text style={text}>
-          You requested to change your email address for {siteName} from{' '}
-          <Link href={`mailto:${email}`} style={link}>
-            {email}
-          </Link>{' '}
-          to{' '}
-          <Link href={`mailto:${newEmail}`} style={link}>
-            {newEmail}
-          </Link>
-          .
-        </Text>
-        <Text style={text}>
-          Click the button below to confirm this change:
-        </Text>
-        <Button style={button} href={confirmationUrl}>
-          Confirm Email Change
-        </Button>
-        <Text style={footer}>
-          If you didn't request this change, please secure your account
-          immediately.
+        <Section style={logoSection}>
+          <Img src={LOGO_URL} alt="Elle Make" width="160" height="auto" style={logo} />
+        </Section>
+        <Section style={card}>
+          <Heading style={h1}>Alteração de e-mail 📧</Heading>
+          <Text style={text}>
+            Você solicitou a alteração do seu e-mail na Elle Make de{' '}
+            <Link href={`mailto:${email}`} style={linkStyle}>
+              {email}
+            </Link>{' '}
+            para{' '}
+            <Link href={`mailto:${newEmail}`} style={linkStyle}>
+              {newEmail}
+            </Link>
+            .
+          </Text>
+          <Text style={text}>
+            Clique no botão abaixo para confirmar essa alteração:
+          </Text>
+          <Section style={buttonContainer}>
+            <Button style={button} href={confirmationUrl}>
+              Confirmar alteração
+            </Button>
+          </Section>
+          <Text style={footer}>
+            Se você não solicitou essa alteração, proteja sua conta imediatamente.
+          </Text>
+        </Section>
+        <Text style={bottomText}>
+          © Elle Make · CNPJ 65.548.306/0001-22
         </Text>
       </Container>
     </Body>
@@ -61,27 +74,39 @@ export const EmailChangeEmail = ({
 
 export default EmailChangeEmail
 
-const main = { backgroundColor: '#ffffff', fontFamily: 'Arial, sans-serif' }
-const container = { padding: '20px 25px' }
+const main = { backgroundColor: '#ffffff', fontFamily: "'Playfair Display', Georgia, serif" }
+const container = { maxWidth: '520px', margin: '0 auto', padding: '20px 16px' }
+const logoSection = { textAlign: 'center' as const, padding: '24px 0 16px' }
+const logo = { margin: '0 auto' }
+const card = {
+  backgroundColor: '#FDF8F4',
+  borderRadius: '12px',
+  padding: '32px 28px',
+  border: '1px solid #EDE5DB',
+}
 const h1 = {
-  fontSize: '22px',
+  fontSize: '24px',
   fontWeight: 'bold' as const,
-  color: '#000000',
-  margin: '0 0 20px',
+  color: '#800020',
+  margin: '0 0 16px',
+  textAlign: 'center' as const,
 }
 const text = {
-  fontSize: '14px',
-  color: '#55575d',
-  lineHeight: '1.5',
-  margin: '0 0 25px',
+  fontSize: '15px',
+  color: '#1F1F1F',
+  lineHeight: '1.6',
+  margin: '0 0 24px',
 }
-const link = { color: 'inherit', textDecoration: 'underline' }
+const linkStyle = { color: '#800020', textDecoration: 'underline' }
+const buttonContainer = { textAlign: 'center' as const, margin: '0 0 24px' }
 const button = {
-  backgroundColor: '#000000',
-  color: '#ffffff',
-  fontSize: '14px',
+  backgroundColor: '#800020',
+  color: '#F8F5F0',
+  fontSize: '15px',
+  fontWeight: 'bold' as const,
   borderRadius: '8px',
-  padding: '12px 20px',
+  padding: '14px 28px',
   textDecoration: 'none',
 }
-const footer = { fontSize: '12px', color: '#999999', margin: '30px 0 0' }
+const footer = { fontSize: '13px', color: '#737373', margin: '0', lineHeight: '1.5' }
+const bottomText = { fontSize: '11px', color: '#999999', textAlign: 'center' as const, margin: '20px 0 0' }

@@ -9,7 +9,9 @@ import {
   Head,
   Heading,
   Html,
+  Img,
   Preview,
+  Section,
   Text,
 } from 'npm:@react-email/components@0.0.22'
 
@@ -18,26 +20,38 @@ interface RecoveryEmailProps {
   confirmationUrl: string
 }
 
+const LOGO_URL = 'https://xinkvwlhctwgdfwixzxf.supabase.co/storage/v1/object/public/email-assets/logo-ellemake.png'
+
 export const RecoveryEmail = ({
   siteName,
   confirmationUrl,
 }: RecoveryEmailProps) => (
-  <Html lang="en" dir="ltr">
+  <Html lang="pt-BR" dir="ltr">
     <Head />
-    <Preview>Reset your password for {siteName}</Preview>
+    <Preview>Redefinir sua senha na Elle Make</Preview>
     <Body style={main}>
       <Container style={container}>
-        <Heading style={h1}>Reset your password</Heading>
-        <Text style={text}>
-          We received a request to reset your password for {siteName}. Click
-          the button below to choose a new password.
-        </Text>
-        <Button style={button} href={confirmationUrl}>
-          Reset Password
-        </Button>
-        <Text style={footer}>
-          If you didn't request a password reset, you can safely ignore this
-          email. Your password will not be changed.
+        <Section style={logoSection}>
+          <Img src={LOGO_URL} alt="Elle Make" width="160" height="auto" style={logo} />
+        </Section>
+        <Section style={card}>
+          <Heading style={h1}>Redefinir senha 🔒</Heading>
+          <Text style={text}>
+            Recebemos uma solicitação para redefinir a senha da sua conta na Elle Make.
+            Clique no botão abaixo para criar uma nova senha.
+          </Text>
+          <Section style={buttonContainer}>
+            <Button style={button} href={confirmationUrl}>
+              Redefinir minha senha
+            </Button>
+          </Section>
+          <Text style={footer}>
+            Se você não solicitou a redefinição, pode ignorar este e-mail.
+            Sua senha não será alterada.
+          </Text>
+        </Section>
+        <Text style={bottomText}>
+          © Elle Make · CNPJ 65.548.306/0001-22
         </Text>
       </Container>
     </Body>
@@ -46,26 +60,38 @@ export const RecoveryEmail = ({
 
 export default RecoveryEmail
 
-const main = { backgroundColor: '#ffffff', fontFamily: 'Arial, sans-serif' }
-const container = { padding: '20px 25px' }
+const main = { backgroundColor: '#ffffff', fontFamily: "'Playfair Display', Georgia, serif" }
+const container = { maxWidth: '520px', margin: '0 auto', padding: '20px 16px' }
+const logoSection = { textAlign: 'center' as const, padding: '24px 0 16px' }
+const logo = { margin: '0 auto' }
+const card = {
+  backgroundColor: '#FDF8F4',
+  borderRadius: '12px',
+  padding: '32px 28px',
+  border: '1px solid #EDE5DB',
+}
 const h1 = {
-  fontSize: '22px',
+  fontSize: '24px',
   fontWeight: 'bold' as const,
-  color: '#000000',
-  margin: '0 0 20px',
+  color: '#800020',
+  margin: '0 0 16px',
+  textAlign: 'center' as const,
 }
 const text = {
-  fontSize: '14px',
-  color: '#55575d',
-  lineHeight: '1.5',
-  margin: '0 0 25px',
+  fontSize: '15px',
+  color: '#1F1F1F',
+  lineHeight: '1.6',
+  margin: '0 0 24px',
 }
+const buttonContainer = { textAlign: 'center' as const, margin: '0 0 24px' }
 const button = {
-  backgroundColor: '#000000',
-  color: '#ffffff',
-  fontSize: '14px',
+  backgroundColor: '#800020',
+  color: '#F8F5F0',
+  fontSize: '15px',
+  fontWeight: 'bold' as const,
   borderRadius: '8px',
-  padding: '12px 20px',
+  padding: '14px 28px',
   textDecoration: 'none',
 }
-const footer = { fontSize: '12px', color: '#999999', margin: '30px 0 0' }
+const footer = { fontSize: '13px', color: '#737373', margin: '0', lineHeight: '1.5' }
+const bottomText = { fontSize: '11px', color: '#999999', textAlign: 'center' as const, margin: '20px 0 0' }
