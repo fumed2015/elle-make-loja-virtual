@@ -67,7 +67,7 @@ const Checkout = () => {
   const [submitting, setSubmitting] = useState(false);
   const [orderId, setOrderId] = useState("");
   const [couponCode, setCouponCode] = useState("");
-  const [appliedCoupon, setAppliedCoupon] = useState<{ code: string; discount: number } | null>(null);
+  const [appliedCoupon, setAppliedCoupon] = useState<{ code: string; discount: number; influencer_id?: string | null } | null>(null);
   const [couponLoading, setCouponLoading] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("pix");
   const [cepLoading, setCepLoading] = useState(false);
@@ -240,7 +240,7 @@ const Checkout = () => {
     setCouponLoading(true);
     try {
       const result = await validateCoupon(couponCode.trim(), cartTotal);
-      setAppliedCoupon({ code: result.coupon.code, discount: result.discount });
+      setAppliedCoupon({ code: result.coupon.code, discount: result.discount, influencer_id: result.coupon.influencer_id });
       toast.success(`Cupom aplicado! -R$ ${result.discount.toFixed(2).replace(".", ",")} 🎉`);
     } catch (err: any) {
       toast.error(err.message);
@@ -299,21 +299,12 @@ const Checkout = () => {
 
     if (orderError) throw orderError;
 
-    if (appliedCoupon?.code) {
+    if (appliedCoupon?.influencer_id) {
       try {
-        const { data: couponData } = await supabase.from("coupons").select("influencer_id").eq("code", appliedCoupon.code).maybeSingle();
-        if (couponData && (couponData as any).influencer_id) {
-          const influencerId = (couponData as any).influencer_id;
-          const { data: infData } = await supabase.from("influencers").select("commission_percent").eq("id", influencerId).single();
-          if (infData) {
-            const commissionValue = finalTotal * (infData.commission_percent / 100);
-            await supabase.from("influencer_commissions").insert({
-              influencer_id: influencerId, order_id: orderData.id,
-              order_total: finalTotal, commission_percent: infData.commission_percent,
-              commission_value: commissionValue,
-            });
-          }
-        }
+        await supabase.rpc("record_influencer_commission", {
+          p_order_id: orderData.id,
+          p_influencer_id: appliedCoupon.influencer_id,
+        });
       } catch (commErr) {
         console.error("Commission tracking error:", commErr);
       }

@@ -1717,6 +1717,10 @@ export type Database = {
         }
         Returns: boolean
       }
+      record_influencer_commission: {
+        Args: { p_influencer_id: string; p_order_id: string }
+        Returns: undefined
+      }
       validate_coupon: {
         Args: { p_code: string; p_order_total?: number }
         Returns: Json
