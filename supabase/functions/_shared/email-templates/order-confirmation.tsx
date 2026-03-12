@@ -56,11 +56,19 @@ export const OrderConfirmationEmail = ({
   firstName = 'Cliente',
   orderId = '',
   orderNumber,
+  items = [],
+  subtotal,
+  shipping,
+  discount,
   total,
   paymentMethod = 'PIX',
   estimatedDelivery,
   shippingAddress,
-}: OrderConfirmationEmailProps) => (
+}: OrderConfirmationEmailProps) => {
+  const displayOrderId = orderNumber || orderId?.slice(0, 8) || ''
+  const formattedTotal = typeof total === 'number' ? total.toFixed(2).replace('.', ',') : total
+  const formattedAddress = formatAddress(shippingAddress)
+  return (
   <Html lang="pt-BR" dir="ltr">
     <Head />
     <Preview>Pedido confirmado! #{orderId?.slice(0, 8)} 🎉</Preview>
