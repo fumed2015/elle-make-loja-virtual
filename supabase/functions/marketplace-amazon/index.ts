@@ -259,11 +259,15 @@ Deno.serve(async (req) => {
     if (req.method === "POST") {
       const body = await req.json().catch(() => ({}));
 
-      // Webhook from Amazon
+      // Webhook from Amazon — no auth required (external service)
       if (body.NotificationType) {
         const result = await handleWebhook(body);
         return new Response(JSON.stringify(result), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
       }
+
+      // All other actions require admin authentication
+      const authError = await verifyAdmin(req);
+      if (authError) return authError;
 
       let result: any;
       switch (action) {

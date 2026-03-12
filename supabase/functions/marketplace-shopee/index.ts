@@ -415,7 +415,7 @@ Deno.serve(async (req) => {
     const url = new URL(req.url);
     const action = url.searchParams.get("action");
 
-    // OAuth callback
+    // OAuth callback — no auth (redirect from Shopee)
     if (action === "oauth_callback") {
       const code = url.searchParams.get("code");
       const shopIdParam = url.searchParams.get("shop_id");
@@ -431,11 +431,15 @@ Deno.serve(async (req) => {
     if (req.method === "POST") {
       const body = await req.json().catch(() => ({}));
 
-      // Webhook from Shopee
+      // Webhook from Shopee — no auth (external service)
       if (body.code !== undefined && body.shop_id) {
         const result = await handleWebhook(body);
         return new Response(JSON.stringify(result), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
       }
+
+      // All other actions require admin authentication
+      const authError = await verifyAdmin(req);
+      if (authError) return authError;
 
       let result: any;
       switch (action) {

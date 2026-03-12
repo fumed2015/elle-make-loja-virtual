@@ -423,7 +423,7 @@ Deno.serve(async (req) => {
     const url = new URL(req.url);
     const action = url.searchParams.get("action");
 
-    // OAuth callback (GET with auth_code)
+    // OAuth callback (GET) — no auth (redirect from TikTok)
     if (req.method === "GET" && action === "oauth_callback") {
       const authCode = url.searchParams.get("code");
       if (!authCode) throw new Error("Auth code não fornecido");
@@ -431,8 +431,10 @@ Deno.serve(async (req) => {
       return new Response(JSON.stringify(result), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
-    // Generate OAuth URL
+    // Generate OAuth URL (GET) — requires admin auth
     if (req.method === "GET" && action === "oauth_url") {
+      const authError = await verifyAdmin(req);
+      if (authError) return authError;
       const appKey = getAppKey();
       const redirectUri = `${Deno.env.get("SUPABASE_URL")}/functions/v1/marketplace-tiktokshop?action=oauth_callback`;
       const oauthUrl = `https://services.tiktokshop.com/open/authorize?service_id=${appKey}&redirect_uri=${encodeURIComponent(redirectUri)}`;
@@ -442,11 +444,15 @@ Deno.serve(async (req) => {
     if (req.method === "POST") {
       const body = await req.json().catch(() => ({}));
 
-      // Webhook from TikTok Shop
+      // Webhook from TikTok Shop — no auth (external service)
       if (body.type && !action) {
         const result = await handleWebhook(body);
         return new Response(JSON.stringify(result), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
       }
+
+      // All other POST actions require admin authentication
+      const authError = await verifyAdmin(req);
+      if (authError) return authError;
 
       let result: any;
       switch (action) {
