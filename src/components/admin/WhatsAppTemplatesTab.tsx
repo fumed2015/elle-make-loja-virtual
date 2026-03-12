@@ -12,23 +12,33 @@ import { motion } from "framer-motion";
 const EVENT_LABELS: Record<string, { label: string; emoji: string; description: string }> = {
   "order.created": { label: "Pedido Criado", emoji: "🛒", description: "Enviado quando um novo pedido é registrado" },
   "order.paid": { label: "Pagamento Confirmado", emoji: "✅", description: "Enviado quando o pagamento é aprovado" },
-  "order.shipped": { label: "Pedido Enviado", emoji: "📦", description: "Enviado quando o pedido sai para entrega" },
+  "order.shipped.local": { label: "Enviado (Local)", emoji: "🛵", description: "Motoboy saiu para entrega (região de Belém)" },
+  "order.shipped.national": { label: "Enviado (Nacional)", emoji: "📦", description: "Enviado pelos Correios com rastreio" },
+  "order.shipped": { label: "Pedido Enviado (legado)", emoji: "📦", description: "Template genérico de envio" },
   "order.delivered": { label: "Pedido Entregue", emoji: "🎉", description: "Enviado quando o pedido é entregue" },
+  "order.cancelled": { label: "Pedido Cancelado", emoji: "😔", description: "Enviado quando o pedido é cancelado" },
   "checkout.abandoned": { label: "Carrinho Abandonado", emoji: "💄", description: "Enviado para recuperar carrinhos abandonados" },
-  "cart.recovery.first": { label: "Recuperação 1ª Msg", emoji: "🔄", description: "1ª mensagem automática de recuperação de carrinho (30min)" },
+  "cart.recovery.first": { label: "Recuperação 1ª Msg", emoji: "🔄", description: "1ª mensagem automática de recuperação (30min)" },
   "cart.recovery.second": { label: "Recuperação 2ª Msg", emoji: "🔁", description: "2ª mensagem de recuperação (follow-up)" },
   "pix.reminder": { label: "Lembrete PIX", emoji: "⏳", description: "Lembrete quando PIX está pendente há 15+ min" },
+  "birthday": { label: "Aniversário", emoji: "🎂", description: "Parabéns automático para aniversariantes" },
+  "repurchase.reminder": { label: "Recompra", emoji: "💕", description: "Lembrete para clientes inativos" },
 };
 
 const AVAILABLE_VARS: Record<string, string[]> = {
   "order.created": ["{first_name}", "{merchant}", "{products_list}", "{total}"],
   "order.paid": ["{first_name}", "{merchant}", "{products_list}"],
   "order.shipped": ["{first_name}", "{merchant}", "{products_list}", "{tracking_code}", "{tracking_url}"],
+  "order.shipped.local": ["{first_name}", "{merchant}", "{products_list}", "{address}"],
+  "order.shipped.national": ["{first_name}", "{merchant}", "{products_list}", "{tracking_code}", "{tracking_url}", "{address}"],
   "order.delivered": ["{first_name}", "{merchant}", "{products_list}"],
+  "order.cancelled": ["{first_name}", "{merchant}", "{link}"],
   "checkout.abandoned": ["{first_name}", "{merchant}", "{products_list}", "{link}"],
   "cart.recovery.first": ["{first_name}", "{merchant}", "{items_count}", "{items_label}", "{total}", "{recovery_link}"],
   "cart.recovery.second": ["{first_name}", "{merchant}", "{items_count}", "{items_label}", "{total}", "{recovery_link}"],
   "pix.reminder": ["{first_name}", "{merchant}", "{total}", "{products_list}", "{link}"],
+  "birthday": ["{first_name}", "{merchant}", "{link}"],
+  "repurchase.reminder": ["{first_name}", "{merchant}", "{link}", "{days}"],
 };
 
 const WhatsAppTemplatesTab = () => {
