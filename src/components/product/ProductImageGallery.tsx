@@ -41,7 +41,8 @@ const ProductImageGallery = ({ images, alt, children }: ProductImageGalleryProps
             src={validImages[current]}
             alt={`${alt} - Imagem ${current + 1}`}
             aspectRatio="4/5"
-            displayWidth={800}
+            displayWidth={1200}
+            priority
             className="w-full bg-white"
           />
         </motion.div>

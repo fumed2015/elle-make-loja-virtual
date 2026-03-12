@@ -72,7 +72,7 @@ const ProductCard = memo(({ product, index = 0 }: ProductCardProps) => {
               alt={product.name}
               className="transition-opacity duration-300"
               aspectRatio="3/4"
-              displayWidth={400}
+              displayWidth={600}
             />
           ) : (
             <div className="aspect-[3/4] bg-white flex items-center justify-center text-muted-foreground text-[9px]">
