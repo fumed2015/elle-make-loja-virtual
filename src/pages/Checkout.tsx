@@ -17,6 +17,7 @@ import AddressStep from "@/components/checkout/AddressStep";
 import ReviewStep from "@/components/checkout/ReviewStep";
 import PaymentStep from "@/components/checkout/PaymentStep";
 import SuccessStep from "@/components/checkout/SuccessStep";
+import OrderSummaryDesktop from "@/components/checkout/OrderSummaryDesktop";
 
 type Step = "address" | "review" | "payment" | "processing" | "success";
 
@@ -439,7 +440,7 @@ const Checkout = () => {
   const stepIndex = step === "address" ? 0 : step === "review" ? 1 : 2;
 
   return (
-    <div className="min-h-screen max-w-lg mx-auto px-4 pt-6 pb-4">
+    <div className="min-h-screen max-w-5xl mx-auto px-4 pt-6 pb-4">
       <div className="flex items-center gap-3 mb-6">
         <button onClick={() => step === "address" ? navigate("/carrinho") : step === "review" ? setStep("address") : step === "payment" ? setStep("review") : null} className="w-10 h-10 rounded-full bg-muted flex items-center justify-center">
           <ArrowLeft className="w-5 h-5" />
@@ -451,7 +452,7 @@ const Checkout = () => {
 
       {/* Progress */}
       {step !== "success" && step !== "processing" && (
-        <div className="flex items-center gap-2 mb-6">
+        <div className="flex items-center gap-2 mb-6 lg:max-w-xl">
           {STEP_LABELS.map((s, i) => (
             <div key={s.key} className="flex items-center flex-1">
               <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold transition-colors ${
@@ -468,61 +469,84 @@ const Checkout = () => {
         </div>
       )}
 
-      <AnimatePresence mode="wait">
-        {step === "address" && (
-          <AddressStep
-            address={address} setAddress={setAddress}
-            customerInfo={customerInfo} setCustomerInfo={setCustomerInfo}
-            savedAddresses={savedAddresses} showAddressPicker={showAddressPicker}
-            setShowAddressPicker={setShowAddressPicker} selectSavedAddress={selectSavedAddress}
-            cepLoading={cepLoading} items={items} cartTotal={cartTotal} cartCount={cartCount}
-            onContinue={() => setStep("review")} formatCpf={formatCpf} formatPhone={formatPhone}
+      <div className="lg:grid lg:grid-cols-[1fr_380px] lg:gap-8">
+        {/* Main content column */}
+        <div className="max-w-lg lg:max-w-none">
+          <AnimatePresence mode="wait">
+            {step === "address" && (
+              <AddressStep
+                address={address} setAddress={setAddress}
+                customerInfo={customerInfo} setCustomerInfo={setCustomerInfo}
+                savedAddresses={savedAddresses} showAddressPicker={showAddressPicker}
+                setShowAddressPicker={setShowAddressPicker} selectSavedAddress={selectSavedAddress}
+                cepLoading={cepLoading} items={items} cartTotal={cartTotal} cartCount={cartCount}
+                onContinue={() => setStep("review")} formatCpf={formatCpf} formatPhone={formatPhone}
+              />
+            )}
+
+            {step === "review" && (
+              <ReviewStep
+                items={items} cartTotal={cartTotal} cartCount={cartCount}
+                appliedCoupon={appliedCoupon} setAppliedCoupon={setAppliedCoupon}
+                couponCode={couponCode} setCouponCode={setCouponCode}
+                couponLoading={couponLoading} handleApplyCoupon={handleApplyCoupon}
+                address={address} shipping={shipping}
+                paymentMethod={paymentMethod} setPaymentMethod={setPaymentMethod}
+                pixDiscount={pixDiscount} subtotalAfterCoupon={subtotalAfterCoupon}
+                freeShipping={freeShipping} shippingCost={shippingCost}
+                finalTotal={finalTotal} submitting={submitting}
+                paymentLoading={payment.loading} handlePlaceOrder={handlePlaceOrder}
+                onCardTokenized={handleCardTokenized}
+                customerCpf={customerInfo.cpf.replace(/\D/g, "")}
+              />
+            )}
+
+            {step === "processing" && (
+              <div className="text-center py-16 space-y-4">
+                <Loader2 className="w-12 h-12 text-primary mx-auto animate-spin" />
+                <h2 className="text-lg font-display font-bold">Processando pagamento...</h2>
+                <p className="text-sm text-muted-foreground">Aguarde enquanto geramos seu pagamento</p>
+              </div>
+            )}
+
+            {step === "payment" && (
+              <PaymentStep
+                pixData={pixData} boletoData={boletoData}
+                paymentId={paymentId} paymentStatus={paymentStatus}
+                paymentStatusDetail={paymentStatusDetail} isPolling={isPolling}
+                copied={copied} copyToClipboard={copyToClipboard}
+                onDone={() => setStep("success")}
+              />
+            )}
+
+            {step === "success" && (
+              <SuccessStep
+                orderId={orderId} paymentMethod={paymentMethod}
+                onViewOrders={() => navigate("/pedidos")}
+                onBackToStore={() => navigate("/")}
+              />
+            )}
+          </AnimatePresence>
+        </div>
+
+        {/* Desktop sidebar */}
+        {step !== "success" && step !== "processing" && (
+          <OrderSummaryDesktop
+            items={items}
+            cartTotal={cartTotal}
+            cartCount={cartCount}
+            appliedCoupon={appliedCoupon}
+            paymentMethod={paymentMethod}
+            pixDiscount={pixDiscount}
+            subtotalAfterCoupon={subtotalAfterCoupon}
+            freeShipping={freeShipping}
+            shippingCost={shippingCost}
+            finalTotal={finalTotal}
+            shipping={shipping}
+            address={address}
           />
         )}
-
-        {step === "review" && (
-          <ReviewStep
-            items={items} cartTotal={cartTotal} cartCount={cartCount}
-            appliedCoupon={appliedCoupon} setAppliedCoupon={setAppliedCoupon}
-            couponCode={couponCode} setCouponCode={setCouponCode}
-            couponLoading={couponLoading} handleApplyCoupon={handleApplyCoupon}
-            address={address} shipping={shipping}
-            paymentMethod={paymentMethod} setPaymentMethod={setPaymentMethod}
-            pixDiscount={pixDiscount} subtotalAfterCoupon={subtotalAfterCoupon}
-            freeShipping={freeShipping} shippingCost={shippingCost}
-            finalTotal={finalTotal} submitting={submitting}
-            paymentLoading={payment.loading} handlePlaceOrder={handlePlaceOrder}
-            onCardTokenized={handleCardTokenized}
-            customerCpf={customerInfo.cpf.replace(/\D/g, "")}
-          />
-        )}
-
-        {step === "processing" && (
-          <div className="text-center py-16 space-y-4">
-            <Loader2 className="w-12 h-12 text-primary mx-auto animate-spin" />
-            <h2 className="text-lg font-display font-bold">Processando pagamento...</h2>
-            <p className="text-sm text-muted-foreground">Aguarde enquanto geramos seu pagamento</p>
-          </div>
-        )}
-
-        {step === "payment" && (
-          <PaymentStep
-            pixData={pixData} boletoData={boletoData}
-            paymentId={paymentId} paymentStatus={paymentStatus}
-            paymentStatusDetail={paymentStatusDetail} isPolling={isPolling}
-            copied={copied} copyToClipboard={copyToClipboard}
-            onDone={() => setStep("success")}
-          />
-        )}
-
-        {step === "success" && (
-          <SuccessStep
-            orderId={orderId} paymentMethod={paymentMethod}
-            onViewOrders={() => navigate("/pedidos")}
-            onBackToStore={() => navigate("/")}
-          />
-        )}
-      </AnimatePresence>
+      </div>
     </div>
   );
 };
