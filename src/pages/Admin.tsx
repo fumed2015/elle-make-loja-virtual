@@ -23,6 +23,7 @@ import OperacionalTab from "@/components/admin/OperacionalTab";
 import MarketingTab from "@/components/admin/MarketingTab";
 import TrackingPixelsTab from "@/components/admin/TrackingPixelsTab";
 import WhatsAppTemplatesTab from "@/components/admin/WhatsAppTemplatesTab";
+import WhatsAppCampaignsTab from "@/components/admin/WhatsAppCampaignsTab";
 import StockManagementTab from "@/components/admin/StockManagementTab";
 import SalesIntelligenceTab from "@/components/admin/SalesIntelligenceTab";
 import CRMTab from "@/components/admin/CRMTab";
@@ -129,6 +130,7 @@ const Admin = () => {
       case "seo": return <SEOReportTab />;
       case "pixels": return <TrackingPixelsTab />;
       case "whatsapp": return <WhatsAppTemplatesTab />;
+      case "whatsapp-campaigns": return <WhatsAppCampaignsTab />;
       case "ai-content": return <AIContentTab />;
       case "homepage-sections": return <HomepageSectionsTab />;
       case "catalog-drive": return <CatalogDriveTab />;

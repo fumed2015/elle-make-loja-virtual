@@ -2,7 +2,7 @@ import { useLocation } from "react-router-dom";
 import {
   TrendingUp, DollarSign, Target, Settings2, Megaphone, BarChart3, Heart, Truck, Gift, Globe2,
   Box, Package, FolderOpen, ShoppingCart, Tag, Star, Users, UserPlus, Cake, Code, MessageCircle,
-  Search, Wand2, LayoutDashboard, Store, FileText,
+  Search, Wand2, LayoutDashboard, Store, FileText, Send,
 } from "lucide-react";
 import {
   Sidebar,
@@ -24,7 +24,7 @@ export type AdminTab =
   | "products" | "stock" | "categories" | "homepage-sections" | "catalog-drive"
   | "orders" | "coupons" | "reviews"
   | "influencers" | "leads" | "birthdays"
-  | "pixels" | "whatsapp" | "seo" | "ai-content"
+  | "pixels" | "whatsapp" | "whatsapp-campaigns" | "seo" | "ai-content"
   | "marketplaces" | "newsletter";
 
 interface SidebarItem {
@@ -98,7 +98,8 @@ const SIDEBAR_SECTIONS: SidebarSection[] = [
       { id: "seo-content", label: "SEO & Blog", icon: Globe2 },
       { id: "seo", label: "Relatório SEO", icon: Search },
       { id: "pixels", label: "Pixels", icon: Code },
-      { id: "whatsapp", label: "WhatsApp", icon: MessageCircle },
+      { id: "whatsapp", label: "WhatsApp Templates", icon: MessageCircle },
+      { id: "whatsapp-campaigns", label: "Disparos WhatsApp", icon: Send },
       { id: "ai-content", label: "IA Conteúdo", icon: Wand2 },
     ],
   },
