@@ -83,8 +83,8 @@ const PaymentStep = ({
                 <span className="text-[10px] text-amber-600 font-medium">Verificando pagamento a cada 5s</span>
               </div>
             )}
-            <Button onClick={onDone} variant="ghost" className="mt-3 text-xs">
-              Já realizei o pagamento →
+            <Button onClick={onDone} className="mt-3 text-sm font-bold bg-emerald-600 hover:bg-emerald-700 text-white shadow-md min-h-[44px] px-6">
+              ✅ Já realizei o pagamento →
             </Button>
           </div>
         </div>
