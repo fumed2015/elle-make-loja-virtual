@@ -240,7 +240,7 @@ const Checkout = () => {
     setCouponLoading(true);
     try {
       const result = await validateCoupon(couponCode.trim(), cartTotal);
-      setAppliedCoupon({ code: result.coupon.code, discount: result.discount });
+      setAppliedCoupon({ code: result.coupon.code, discount: result.discount, influencer_id: result.coupon.influencer_id });
       toast.success(`Cupom aplicado! -R$ ${result.discount.toFixed(2).replace(".", ",")} 🎉`);
     } catch (err: any) {
       toast.error(err.message);
