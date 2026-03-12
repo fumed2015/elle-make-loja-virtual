@@ -65,7 +65,7 @@ const OptimizedImage = ({
            className="absolute inset-0 bg-muted/30"
           style={{ backgroundColor: placeholderColor }}
         >
-          <div className="w-full h-full bg-gradient-to-r from-gray-100 via-gray-50 to-gray-100 animate-pulse" />
+          <div className="w-full h-full bg-gradient-to-r from-muted/40 via-muted/20 to-muted/40 animate-pulse" />
         </div>
       )}
 
