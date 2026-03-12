@@ -248,6 +248,12 @@ serve(async (req) => {
         return jsonResponse({ error: "Order not found" }, 404);
       }
 
+      // Verify caller owns the order or is admin
+      const { data: isAdmin } = await supabase.rpc("has_role", { _user_id: callerUserId, _role: "admin" });
+      if (order.user_id !== callerUserId && !isAdmin) {
+        return new Response(JSON.stringify({ error: "Forbidden" }), { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      }
+
       // Fetch user profile for phone and name
       const { data: profile } = await supabase
         .from("profiles")
