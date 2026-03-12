@@ -34,7 +34,7 @@ const PaymentStatusBadge = ({ status, polling, detail }: { status: PaymentStatus
         <span className="text-base">{config.icon}</span>
         <div>
           <p className="text-xs font-semibold">{config.label}</p>
-          {detail && <p className="text-[10px] opacity-75">{detail}</p>}
+          {/* status_detail omitted – raw API codes are not user-friendly */}
         </div>
       </div>
       {polling && <Loader2 className="w-4 h-4 animate-spin opacity-50" />}
