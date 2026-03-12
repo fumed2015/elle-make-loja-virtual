@@ -2,7 +2,7 @@ import { useLocation } from "react-router-dom";
 import {
   TrendingUp, DollarSign, Target, Settings2, Megaphone, BarChart3, Heart, Truck, Gift, Globe2,
   Box, Package, FolderOpen, ShoppingCart, Tag, Star, Users, UserPlus, Cake, Code, MessageCircle,
-  Search, Wand2, LayoutDashboard, Store, FileText,
+  Search, Wand2, LayoutDashboard, Store, FileText, Send,
 } from "lucide-react";
 import {
   Sidebar,

@@ -130,6 +130,7 @@ const Admin = () => {
       case "seo": return <SEOReportTab />;
       case "pixels": return <TrackingPixelsTab />;
       case "whatsapp": return <WhatsAppTemplatesTab />;
+      case "whatsapp-campaigns": return <WhatsAppCampaignsTab />;
       case "ai-content": return <AIContentTab />;
       case "homepage-sections": return <HomepageSectionsTab />;
       case "catalog-drive": return <CatalogDriveTab />;
