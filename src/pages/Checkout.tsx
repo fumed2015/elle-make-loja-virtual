@@ -67,7 +67,7 @@ const Checkout = () => {
   const [submitting, setSubmitting] = useState(false);
   const [orderId, setOrderId] = useState("");
   const [couponCode, setCouponCode] = useState("");
-  const [appliedCoupon, setAppliedCoupon] = useState<{ code: string; discount: number } | null>(null);
+  const [appliedCoupon, setAppliedCoupon] = useState<{ code: string; discount: number; influencer_id?: string | null } | null>(null);
   const [couponLoading, setCouponLoading] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("pix");
   const [cepLoading, setCepLoading] = useState(false);
