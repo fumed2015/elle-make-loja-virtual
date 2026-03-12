@@ -88,8 +88,19 @@ const FALLBACK_TEMPLATES: Record<string, string> = {
     `💰 *Total: R$ {total}*\n\n` +
     `Recebemos seu pagamento! 💸\nEstamos preparando tudo com carinho para enviar o mais rápido possível! 📦✨`,
 
-  "order.shipped":
-    `📦 *Pedido Enviado!* 🚀\n\nOi *{first_name}*!\n\n` +
+  "order.shipped.local":
+    `🛵 *Pedido Saiu para Entrega!* 🎉\n\nOi *{first_name}*!\n\n` +
+    `🆔 *Pedido #{order_id}*\n` +
+    `━━━━━━━━━━━━━━━━━━\n\n` +
+    `🛍️ *Itens:*\n{products_list}\n\n` +
+    `━━━━━━━━━━━━━━━━━━\n` +
+    `📍 *Entrega em:* {address}\n\n` +
+    `Nosso motoboy já saiu com seu pedido! 🏍️💨\n` +
+    `Fique de olho, ele chega rapidinho! 😍\n\n` +
+    `Qualquer dúvida, estamos aqui! 💬`,
+
+  "order.shipped.national":
+    `📦 *Pedido Enviado pelos Correios!* 🚀\n\nOi *{first_name}*!\n\n` +
     `🆔 *Pedido #{order_id}*\n` +
     `━━━━━━━━━━━━━━━━━━\n\n` +
     `🛍️ *Itens:*\n{products_list}\n\n` +
@@ -218,6 +229,20 @@ serve(async (req) => {
       const shippingAddr = order.shipping_address as any;
       const paymentLabel = PAYMENT_LABELS[order.payment_method] || order.payment_method || "";
 
+      // Determine if local delivery (Belém metropolitan area) or national shipping
+      const LOCAL_CITIES = ["belém", "belem", "ananindeua", "marituba", "benevides", "santa bárbara do pará", "santa barbara do para"];
+      const shippingCity = (shippingAddr?.city || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+      const isLocalDelivery = LOCAL_CITIES.some(c => {
+        const normalized = c.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+        return shippingCity.includes(normalized);
+      });
+
+      // For order.shipped, split into local vs national
+      let resolvedEventType = event_type;
+      if (event_type === "order.shipped") {
+        resolvedEventType = isLocalDelivery ? "order.shipped.local" : "order.shipped.national";
+      }
+
       const messageData = {
         first_name: firstName,
         order_id: order.id.slice(0, 8),
@@ -231,7 +256,7 @@ serve(async (req) => {
         link: "https://ellemake2.lovable.app/pedidos",
       };
 
-      const message = await buildMessage(event_type, messageData, supabase);
+      const message = await buildMessage(resolvedEventType, messageData, supabase);
       const zapiResponse = await sendWhatsApp(phone, message);
 
       // Log notification
