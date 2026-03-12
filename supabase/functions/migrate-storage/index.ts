@@ -8,10 +8,54 @@ const corsHeaders = {
 
 const BUCKETS = ["product-images", "ugc-images"];
 
+async function verifyAdmin(req: Request): Promise<{ userId: string } | Response> {
+  const authHeader = req.headers.get("Authorization");
+  if (!authHeader?.startsWith("Bearer ")) {
+    return new Response(JSON.stringify({ error: "Unauthorized" }), {
+      status: 401,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
+  }
+
+  const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+  const anonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
+  const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+
+  const supabase = createClient(supabaseUrl, anonKey, {
+    global: { headers: { Authorization: authHeader } },
+  });
+
+  const token = authHeader.replace("Bearer ", "");
+  const { data: claimsData, error: claimsError } = await supabase.auth.getClaims(token);
+  if (claimsError || !claimsData?.claims) {
+    return new Response(JSON.stringify({ error: "Invalid token" }), {
+      status: 401,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
+  }
+
+  const userId = claimsData.claims.sub;
+  const adminClient = createClient(supabaseUrl, serviceKey);
+  const { data: isAdmin } = await adminClient.rpc("has_role", { _user_id: userId, _role: "admin" });
+
+  if (!isAdmin) {
+    return new Response(JSON.stringify({ error: "Acesso negado - apenas administradores" }), {
+      status: 403,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
+  }
+
+  return { userId };
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
+    // ===== AUTHENTICATION: Require admin role =====
+    const authResult = await verifyAdmin(req);
+    if (authResult instanceof Response) return authResult;
+
     const srcUrl = Deno.env.get("SUPABASE_URL")!;
     const srcKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const src = createClient(srcUrl, srcKey);
@@ -27,7 +71,6 @@ serve(async (req) => {
       const bucketResult = { migrated: 0, skipped: 0, errors: [] as string[] };
 
       try {
-        // List all files in source bucket
         const { data: files, error: listError } = await src.storage.from(bucket).list("", {
           limit: 1000,
           sortBy: { column: "name", order: "asc" },
@@ -45,17 +88,15 @@ serve(async (req) => {
         }
 
         for (const file of files) {
-          if (!file.name || file.id === null) continue; // skip folders metadata
+          if (!file.name || file.id === null) continue;
 
           try {
-            // Download from source
             const { data: blob, error: dlError } = await src.storage.from(bucket).download(file.name);
             if (dlError || !blob) {
               bucketResult.errors.push(`Download ${file.name}: ${dlError?.message || "empty"}`);
               continue;
             }
 
-            // Upload to destination (upsert)
             const { error: upError } = await dest.storage.from(bucket).upload(file.name, blob, {
               contentType: file.metadata?.mimetype || "image/jpeg",
               upsert: true,
