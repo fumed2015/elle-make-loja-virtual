@@ -24,6 +24,27 @@ function supabaseAdmin() {
   );
 }
 
+async function verifyAdmin(req: Request): Promise<Response | null> {
+  const authHeader = req.headers.get("Authorization");
+  if (!authHeader?.startsWith("Bearer ")) {
+    return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+  }
+  const sb = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_ANON_KEY")!, {
+    global: { headers: { Authorization: authHeader } },
+  });
+  const token = authHeader.replace("Bearer ", "");
+  const { data, error } = await sb.auth.getClaims(token);
+  if (error || !data?.claims) {
+    return new Response(JSON.stringify({ error: "Invalid token" }), { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+  }
+  const adminClient = supabaseAdmin();
+  const { data: isAdmin } = await adminClient.rpc("has_role", { _user_id: data.claims.sub, _role: "admin" });
+  if (!isAdmin) {
+    return new Response(JSON.stringify({ error: "Acesso negado - apenas administradores" }), { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+  }
+  return null;
+}
+
 function getPartnerId(): number {
   return Number(Deno.env.get("SHOPEE_PARTNER_ID") || "0");
 }
