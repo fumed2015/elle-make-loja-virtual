@@ -41,3 +41,6 @@ verify_jwt = false
 
 [functions.marketplace-tiktokshop]
 verify_jwt = false
+
+[functions.export-auth-users]
+verify_jwt = false
