@@ -112,8 +112,8 @@ const PaymentStep = ({
               Abrir Boleto
             </Button>
           )}
-          <Button onClick={onDone} variant="ghost" className="text-xs">
-            Já realizei o pagamento →
+          <Button onClick={onDone} className="text-sm font-bold bg-emerald-600 hover:bg-emerald-700 text-white shadow-md min-h-[44px] px-6">
+            ✅ Já realizei o pagamento →
           </Button>
         </div>
       )}
