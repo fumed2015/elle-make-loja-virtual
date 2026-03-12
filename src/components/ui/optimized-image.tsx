@@ -45,11 +45,11 @@ const OptimizedImage = ({
     return () => observer.disconnect();
   }, [priority]);
 
-  // Optimize Supabase images: resize + compress
+  // Optimize Supabase images: resize with high quality
   const optimizedSrc = inView
     ? getOptimizedImageUrl(src, {
-        width: displayWidth || 600,
-        quality: 75,
+        width: displayWidth || 800,
+        quality: 90,
       })
     : "";
 
