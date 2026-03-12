@@ -15,14 +15,39 @@ import {
   Text,
 } from 'npm:@react-email/components@0.0.22'
 
+interface ShippingAddress {
+  street?: string
+  number?: string
+  neighborhood?: string
+  city?: string
+  state?: string
+  zip?: string
+}
+
 interface OrderConfirmationEmailProps {
   firstName: string
   orderId: string
+  orderNumber?: string
   items: Array<{ name: string; price: number; quantity: number }>
-  total: string
+  subtotal?: number
+  shipping?: number
+  discount?: number
+  total: string | number
   paymentMethod: string
   estimatedDelivery?: string
-  shippingAddress?: string
+  shippingAddress?: ShippingAddress | string
+}
+
+function formatAddress(addr: ShippingAddress | string | undefined): string | null {
+  if (!addr) return null
+  if (typeof addr === 'string') return addr
+  const parts = [
+    addr.street && addr.number ? `${addr.street}, ${addr.number}` : addr.street,
+    addr.neighborhood,
+    addr.city && addr.state ? `${addr.city} - ${addr.state}` : addr.city,
+    addr.zip,
+  ].filter(Boolean)
+  return parts.length > 0 ? parts.join('\n') : null
 }
 
 const LOGO_URL = 'https://xinkvwlhctwgdfwixzxf.supabase.co/storage/v1/object/public/email-assets/logo-ellemake.png'
