@@ -24,7 +24,7 @@ export type AdminTab =
   | "products" | "stock" | "categories" | "homepage-sections" | "catalog-drive"
   | "orders" | "coupons" | "reviews"
   | "influencers" | "leads" | "birthdays"
-  | "pixels" | "whatsapp" | "seo" | "ai-content"
+  | "pixels" | "whatsapp" | "whatsapp-campaigns" | "seo" | "ai-content"
   | "marketplaces" | "newsletter";
 
 interface SidebarItem {
