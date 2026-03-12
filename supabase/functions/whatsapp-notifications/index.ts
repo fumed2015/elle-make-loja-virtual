@@ -129,6 +129,20 @@ const FALLBACK_TEMPLATES: Record<string, string> = {
     `Infelizmente seu pedido na *{merchant}* foi cancelado.\n\n` +
     `Se tiver alguma dúvida ou quiser fazer um novo pedido, estamos aqui! 💬\n\n` +
     `🔗 Visite nossa loja: {link}`,
+
+  "birthday":
+    `🎂 *Feliz Aniversário, {first_name}!* 🎉💖\n\n` +
+    `A *{merchant}* deseja a você um dia maravilhoso! ✨\n\n` +
+    `Para comemorar, preparamos algo especial pra você! 🎁\n\n` +
+    `Acesse nossa loja e aproveite: 🔗 {link}\n\n` +
+    `Parabéns! 🥳💕`,
+
+  "repurchase.reminder":
+    `💕 *Sentimos sua falta, {first_name}!*\n\n` +
+    `Já faz {days} dias desde sua última compra na *{merchant}* 😢\n\n` +
+    `Temos novidades incríveis esperando por você! ✨🛍️\n\n` +
+    `Vem dar uma olhada: 🔗 {link}\n\n` +
+    `Estamos aqui se precisar de algo! 💬`,
 };
 
 async function buildMessage(
