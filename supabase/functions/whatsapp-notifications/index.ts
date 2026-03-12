@@ -88,8 +88,19 @@ const FALLBACK_TEMPLATES: Record<string, string> = {
     `💰 *Total: R$ {total}*\n\n` +
     `Recebemos seu pagamento! 💸\nEstamos preparando tudo com carinho para enviar o mais rápido possível! 📦✨`,
 
-  "order.shipped":
-    `📦 *Pedido Enviado!* 🚀\n\nOi *{first_name}*!\n\n` +
+  "order.shipped.local":
+    `🛵 *Pedido Saiu para Entrega!* 🎉\n\nOi *{first_name}*!\n\n` +
+    `🆔 *Pedido #{order_id}*\n` +
+    `━━━━━━━━━━━━━━━━━━\n\n` +
+    `🛍️ *Itens:*\n{products_list}\n\n` +
+    `━━━━━━━━━━━━━━━━━━\n` +
+    `📍 *Entrega em:* {address}\n\n` +
+    `Nosso motoboy já saiu com seu pedido! 🏍️💨\n` +
+    `Fique de olho, ele chega rapidinho! 😍\n\n` +
+    `Qualquer dúvida, estamos aqui! 💬`,
+
+  "order.shipped.national":
+    `📦 *Pedido Enviado pelos Correios!* 🚀\n\nOi *{first_name}*!\n\n` +
     `🆔 *Pedido #{order_id}*\n` +
     `━━━━━━━━━━━━━━━━━━\n\n` +
     `🛍️ *Itens:*\n{products_list}\n\n` +
