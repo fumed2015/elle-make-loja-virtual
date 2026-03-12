@@ -147,16 +147,24 @@ const ProductCard = memo(({ product, index = 0 }: ProductCardProps) => {
             )}
           </div>
 
-          {/* Add to cart button - always visible on mobile, hover on desktop */}
-          <div className="md:opacity-0 md:group-hover:opacity-100 transition-opacity duration-200">
+          {/* Add to cart - always visible */}
+          <div className="flex gap-1.5 mt-1.5">
             <Button
               onClick={handleQuickAdd}
               disabled={product.stock <= 0}
-              className="w-full bg-primary text-primary-foreground hover:bg-primary/90 rounded-full text-[10px] h-7 font-semibold mt-1.5"
+              className="flex-1 bg-primary text-primary-foreground hover:bg-primary/90 rounded-md text-[10px] h-8 font-bold uppercase tracking-wide"
               size="sm"
             >
-              <ShoppingBag className="w-3 h-3 mr-1" />
-              {product.stock <= 0 ? "Esgotado" : swatches.length > 0 ? "Ver cores" : "Adicionar"}
+              {product.stock <= 0 ? "Esgotado" : swatches.length > 0 ? "Ver cores" : "Comprar"}
+            </Button>
+            <Button
+              onClick={handleQuickAdd}
+              disabled={product.stock <= 0}
+              variant="outline"
+              className="w-8 h-8 p-0 rounded-md border-primary text-primary hover:bg-primary hover:text-primary-foreground"
+              size="sm"
+            >
+              <ShoppingBag className="w-3.5 h-3.5" />
             </Button>
           </div>
         </div>
