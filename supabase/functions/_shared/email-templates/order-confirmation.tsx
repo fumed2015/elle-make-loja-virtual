@@ -54,8 +54,8 @@ const LOGO_URL = 'https://xinkvwlhctwgdfwixzxf.supabase.co/storage/v1/object/pub
 
 export const OrderConfirmationEmail = ({
   firstName = 'Cliente',
-  orderId,
-  items = [],
+  orderId = '',
+  orderNumber,
   total,
   paymentMethod = 'PIX',
   estimatedDelivery,
