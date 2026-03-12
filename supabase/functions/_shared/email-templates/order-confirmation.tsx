@@ -86,7 +86,7 @@ export const OrderConfirmationEmail = ({
 
           <Section style={detailBox}>
             <Text style={detailLabel}>Nº do pedido</Text>
-            <Text style={detailValue}>#{orderId?.slice(0, 8)}</Text>
+            <Text style={detailValue}>#{displayOrderId}</Text>
           </Section>
 
           {items.length > 0 && (
