@@ -21,7 +21,7 @@ const Sobre = () => (
         name: "Elle Make",
         description: "Loja de maquiagem e cosméticos com delivery rápido em Belém do Pará.",
         address: { "@type": "PostalAddress", addressLocality: "Belém", addressRegion: "PA", addressCountry: "BR" },
-        telephone: "+5591920048471",
+        telephone: "+5591936180774",
         url: "https://ellemake2.lovable.app",
       }}
     />
