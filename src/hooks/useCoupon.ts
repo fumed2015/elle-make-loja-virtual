@@ -1,30 +1,33 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
 
 export const useCoupon = () => {
   const validateCoupon = async (code: string, orderTotal: number) => {
-    const { data, error } = await supabase
-      .from("coupons")
-      .select("*")
-      .eq("code", code.toUpperCase())
-      .eq("is_active", true)
-      .maybeSingle();
+    const { data, error } = await supabase.rpc("validate_coupon", {
+      p_code: code.toUpperCase(),
+      p_order_total: orderTotal,
+    });
 
     if (error) throw new Error("Erro ao validar cupom");
-    if (!data) throw new Error("Cupom inválido ou expirado");
-    if (data.expires_at && new Date(data.expires_at) < new Date()) throw new Error("Cupom expirado");
-    if (data.max_uses && data.current_uses >= data.max_uses) throw new Error("Cupom esgotado");
-    if (orderTotal < Number(data.min_order_value)) throw new Error(`Pedido mínimo de R$ ${Number(data.min_order_value).toFixed(2).replace(".", ",")}`);
+    
+    const result = data as { valid: boolean; error?: string; code?: string; discount_type?: string; discount_value?: number; min_order_value?: number };
+    
+    if (!result.valid) throw new Error(result.error || "Cupom inválido");
 
     let discount = 0;
-    if (data.discount_type === "percentage") {
-      discount = orderTotal * (Number(data.discount_value) / 100);
+    if (result.discount_type === "percentage") {
+      discount = orderTotal * (Number(result.discount_value) / 100);
     } else {
-      discount = Number(data.discount_value);
+      discount = Number(result.discount_value);
     }
 
-    return { coupon: data, discount: Math.min(discount, orderTotal) };
+    return {
+      coupon: {
+        code: result.code,
+        discount_type: result.discount_type,
+        discount_value: result.discount_value,
+      },
+      discount: Math.min(discount, orderTotal),
+    };
   };
 
   return { validateCoupon };
