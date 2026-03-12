@@ -301,15 +301,10 @@ const Checkout = () => {
 
     if (appliedCoupon?.influencer_id) {
       try {
-        const { data: infData } = await supabase.from("influencers").select("commission_percent").eq("id", appliedCoupon.influencer_id).single();
-        if (infData) {
-          const commissionValue = finalTotal * (infData.commission_percent / 100);
-          await supabase.from("influencer_commissions").insert({
-            influencer_id: appliedCoupon.influencer_id, order_id: orderData.id,
-            order_total: finalTotal, commission_percent: infData.commission_percent,
-            commission_value: commissionValue,
-          });
-        }
+        await supabase.rpc("record_influencer_commission", {
+          p_order_id: orderData.id,
+          p_influencer_id: appliedCoupon.influencer_id,
+        });
       } catch (commErr) {
         console.error("Commission tracking error:", commErr);
       }
