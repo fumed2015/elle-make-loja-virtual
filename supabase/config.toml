@@ -44,3 +44,9 @@ verify_jwt = false
 
 [functions.export-auth-users]
 verify_jwt = false
+
+[functions.migrate-data]
+verify_jwt = false
+
+[functions.migrate-storage]
+verify_jwt = false

@@ -49,10 +49,54 @@ const TABLES_ORDER = [
   "revenue_reports",
 ];
 
+async function verifyAdmin(req: Request): Promise<{ userId: string } | Response> {
+  const authHeader = req.headers.get("Authorization");
+  if (!authHeader?.startsWith("Bearer ")) {
+    return new Response(JSON.stringify({ error: "Unauthorized" }), {
+      status: 401,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
+  }
+
+  const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+  const anonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
+  const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+
+  const supabase = createClient(supabaseUrl, anonKey, {
+    global: { headers: { Authorization: authHeader } },
+  });
+
+  const token = authHeader.replace("Bearer ", "");
+  const { data: claimsData, error: claimsError } = await supabase.auth.getClaims(token);
+  if (claimsError || !claimsData?.claims) {
+    return new Response(JSON.stringify({ error: "Invalid token" }), {
+      status: 401,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
+  }
+
+  const userId = claimsData.claims.sub;
+  const adminClient = createClient(supabaseUrl, serviceKey);
+  const { data: isAdmin } = await adminClient.rpc("has_role", { _user_id: userId, _role: "admin" });
+
+  if (!isAdmin) {
+    return new Response(JSON.stringify({ error: "Acesso negado - apenas administradores" }), {
+      status: 403,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
+  }
+
+  return { userId };
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
+    // ===== AUTHENTICATION: Require admin role =====
+    const authResult = await verifyAdmin(req);
+    if (authResult instanceof Response) return authResult;
+
     // Source (current project)
     const srcUrl = Deno.env.get("SUPABASE_URL")!;
     const srcKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
@@ -71,7 +115,6 @@ serve(async (req) => {
       const tableResult = { migrated: 0, errors: [] as string[] };
 
       try {
-        // Fetch all data from source (handle pagination for >1000 rows)
         let allRows: any[] = [];
         let offset = 0;
         const PAGE_SIZE = 1000;
@@ -100,7 +143,6 @@ serve(async (req) => {
           continue;
         }
 
-        // Insert in batches of 500
         const BATCH_SIZE = 500;
         for (let i = 0; i < allRows.length; i += BATCH_SIZE) {
           const batch = allRows.slice(i, i + BATCH_SIZE);
@@ -110,7 +152,6 @@ serve(async (req) => {
             .upsert(batch, { onConflict: "id", ignoreDuplicates: false });
 
           if (insertError) {
-            // For site_settings, the PK is "key" not "id"
             if (table === "site_settings") {
               const { error: retryErr } = await dest
                 .from(table)
