@@ -44,7 +44,7 @@ const Footer = () => {
             asChild
             className="bg-card text-accent hover:bg-card/90 font-bold px-8 min-h-[48px] rounded-full shadow-whatsapp"
           >
-            <a href="https://wa.me/5591920048471?text=Olá! Gostaria de saber mais sobre os produtos" target="_blank" rel="noopener noreferrer">
+            <a href="https://wa.me/5591936180774?text=Olá! Gostaria de saber mais sobre os produtos" target="_blank" rel="noopener noreferrer">
               <WhatsAppIcon className="w-4 h-4 mr-2" />
               Falar no WhatsApp
             </a>
@@ -62,7 +62,7 @@ const Footer = () => {
               Maquiagem e cosméticos com entrega rápida em Belém do Pará.
             </p>
             <div className="flex gap-3">
-              <a href="https://wa.me/5591920048471" target="_blank" rel="noopener noreferrer" className="w-9 h-9 rounded-full bg-primary-foreground/10 flex items-center justify-center hover:bg-primary-foreground/20 transition-colors" aria-label="WhatsApp">
+              <a href="https://wa.me/5591936180774" target="_blank" rel="noopener noreferrer" className="w-9 h-9 rounded-full bg-primary-foreground/10 flex items-center justify-center hover:bg-primary-foreground/20 transition-colors" aria-label="WhatsApp">
                 <WhatsAppIcon className="w-4 h-4" />
               </a>
               <a href="https://instagram.com/ellemakebelem" target="_blank" rel="noopener noreferrer" className="w-9 h-9 rounded-full bg-primary-foreground/10 flex items-center justify-center hover:bg-primary-foreground/20 transition-colors" aria-label="Instagram">
@@ -121,7 +121,7 @@ const Footer = () => {
               </li>
               <li className="flex items-center gap-2.5 text-xs">
                 <Phone className="w-3.5 h-3.5 flex-shrink-0 text-primary-foreground/50" />
-                <a href="tel:+5591920048471" className="hover:text-primary-foreground transition-colors">(91) 92004-8471</a>
+                <a href="tel:+5591936180774" className="hover:text-primary-foreground transition-colors">(91) 93618-0774</a>
               </li>
               <li className="flex items-center gap-2.5 text-xs">
                 <Mail className="w-3.5 h-3.5 flex-shrink-0 text-primary-foreground/50" />
@@ -173,7 +173,10 @@ const Footer = () => {
 
         {/* Bottom bar */}
         <div className="max-w-7xl mx-auto mt-5 pt-5 border-t border-primary-foreground/10 flex flex-col md:flex-row items-center justify-between gap-3">
-          <p className="text-[10px] text-primary-foreground/40">© 2026 Elle Make. Todos os direitos reservados.</p>
+          <div className="text-[10px] text-primary-foreground/40 text-center md:text-left">
+            <p>© 2026 Elle Make. Todos os direitos reservados.</p>
+            <p className="mt-0.5">CNPJ: 65.548.306/0001-22 — Isabelly Miranda Linhares</p>
+          </div>
           <div className="flex gap-3 text-[10px] text-primary-foreground/30">
             <Link to="/privacidade" className="hover:text-primary-foreground/50 transition-colors">Privacidade</Link>
             <Link to="/termos" className="hover:text-primary-foreground/50 transition-colors">Termos</Link>

@@ -21,7 +21,7 @@ const Sobre = () => (
         name: "Elle Make",
         description: "Loja de maquiagem e cosméticos com delivery rápido em Belém do Pará.",
         address: { "@type": "PostalAddress", addressLocality: "Belém", addressRegion: "PA", addressCountry: "BR" },
-        telephone: "+5591920048471",
+        telephone: "+5591936180774",
         url: "https://ellemake2.lovable.app",
       }}
     />
@@ -88,7 +88,7 @@ const Sobre = () => (
         Para demais localidades, utilizamos o Melhor Envio para garantir o melhor custo e prazo.
       </p>
       <Button asChild className="bg-primary text-primary-foreground rounded-full px-8 min-h-[48px]">
-        <a href="https://wa.me/5591920048471?text=Olá! Gostaria de conhecer mais sobre a Elle Make" target="_blank" rel="noopener noreferrer">
+        <a href="https://wa.me/5591936180774?text=Olá! Gostaria de conhecer mais sobre a Elle Make" target="_blank" rel="noopener noreferrer">
           <WhatsAppIcon className="w-4 h-4 mr-2" />
           Fale Conosco
         </a>
