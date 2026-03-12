@@ -71,7 +71,7 @@ const ProductCard = memo(({ product, index = 0 }: ProductCardProps) => {
               src={product.images[0]}
               alt={product.name}
               className="transition-opacity duration-300"
-              aspectRatio="4/5"
+              aspectRatio="3/4"
               displayWidth={400}
             />
           ) : (
