@@ -49,7 +49,7 @@ export const useCreateReview = () => {
         product_id: productId,
         rating,
         comment,
-        is_approved: true, // auto-approve for now
+        is_approved: false,
       });
       if (error) throw error;
     },
