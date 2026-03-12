@@ -71,7 +71,7 @@ export const OrderConfirmationEmail = ({
   return (
   <Html lang="pt-BR" dir="ltr">
     <Head />
-    <Preview>Pedido confirmado! #{orderId?.slice(0, 8)} 🎉</Preview>
+    <Preview>Pedido confirmado! #{displayOrderId} 🎉</Preview>
     <Body style={main}>
       <Container style={container}>
         <Section style={logoSection}>
