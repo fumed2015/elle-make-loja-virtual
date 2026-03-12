@@ -17,6 +17,7 @@ import AddressStep from "@/components/checkout/AddressStep";
 import ReviewStep from "@/components/checkout/ReviewStep";
 import PaymentStep from "@/components/checkout/PaymentStep";
 import SuccessStep from "@/components/checkout/SuccessStep";
+import OrderSummaryDesktop from "@/components/checkout/OrderSummaryDesktop";
 
 type Step = "address" | "review" | "payment" | "processing" | "success";
 
