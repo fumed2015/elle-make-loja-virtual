@@ -122,38 +122,85 @@ serve(async (req) => {
           .eq("user_id", event.user_id)
           .maybeSingle();
 
-        if (!profile?.phone) {
+        // Get user email from auth
+        const { data: authUser } = await supabase.auth.admin.getUserById(event.user_id);
+        const userEmail = authUser?.user?.email;
+
+        if (!profile?.phone && !userEmail) {
           await supabase.from("cart_abandonment_events").update({ notification_count: 99 }).eq("id", event.id);
           continue;
         }
 
-        const vars = {
-          first_name: profile.full_name?.split(" ")[0] || "Cliente",
-          merchant: MERCHANT_NAME,
-          items_count: String(event.items_count),
-          items_label: event.items_count === 1 ? "item" : "itens",
-          total: Number(event.cart_total || 0).toFixed(2).replace(".", ","),
-          recovery_link: `${SITE_URL}/recuperar-carrinho?token=${token}`,
-        };
+        const firstName = profile?.full_name?.split(" ")[0] || "Cliente";
+        const recoveryLink = `${SITE_URL}/recuperar-carrinho?token=${token}`;
+        const cartTotal = Number(event.cart_total || 0).toFixed(2).replace(".", ",");
 
-        const template = event.notification_count === 0 ? tmplFirst : tmplSecond;
-        const message = fillTemplate(template, vars);
+        // Send WhatsApp if phone available
+        let whatsappResult: any = null;
+        if (profile?.phone) {
+          const vars = {
+            first_name: firstName,
+            merchant: MERCHANT_NAME,
+            items_count: String(event.items_count),
+            items_label: event.items_count === 1 ? "item" : "itens",
+            total: cartTotal,
+            recovery_link: recoveryLink,
+          };
 
-        const result = await sendWhatsApp(profile.phone, message);
+          const template = event.notification_count === 0 ? tmplFirst : tmplSecond;
+          const message = fillTemplate(template, vars);
+          whatsappResult = await sendWhatsApp(profile.phone, message);
+
+          await supabase.from("notifications").insert({
+            event_type: "cart.abandoned",
+            phone: profile.phone,
+            message,
+            status: whatsappResult?.error ? "failed" : "sent",
+            zapi_response: whatsappResult,
+            user_id: event.user_id,
+          });
+        }
+
+        // Send email if available
+        if (userEmail) {
+          try {
+            // Fetch cart items for email
+            const { data: cartItems } = await supabase
+              .from("cart_items")
+              .select("quantity, products(name, price, images)")
+              .eq("user_id", event.user_id);
+
+            const emailItems = (cartItems || []).map((ci: any) => ({
+              name: ci.products?.name || "Produto",
+              price: ci.products?.price || 0,
+              quantity: ci.quantity || 1,
+              image: ci.products?.images?.[0] || undefined,
+            }));
+
+            const couponCode = event.notification_count >= 1 ? "VOLTEI10" : undefined;
+
+            await supabase.functions.invoke("send-transactional-email", {
+              body: {
+                template: "cart-recovery",
+                to: userEmail,
+                data: {
+                  firstName,
+                  items: emailItems,
+                  cartTotal,
+                  recoveryLink,
+                  couponCode,
+                },
+              },
+            });
+          } catch (emailErr) {
+            console.error("Email send error:", emailErr);
+          }
+        }
 
         await supabase.from("cart_abandonment_events").update({
           notified_at: new Date().toISOString(),
           notification_count: (event.notification_count || 0) + 1,
         }).eq("id", event.id);
-
-        await supabase.from("notifications").insert({
-          event_type: "cart.abandoned",
-          phone: profile.phone,
-          message,
-          status: result?.error ? "failed" : "sent",
-          zapi_response: result,
-          user_id: event.user_id,
-        });
 
         sent++;
       }

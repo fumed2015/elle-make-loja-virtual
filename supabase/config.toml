@@ -37,5 +37,7 @@ project_id = "xinkvwlhctwgdfwixzxf"
     verify_jwt = false
   [functions.sitemap]
     verify_jwt = false
+  [functions.send-transactional-email]
+    verify_jwt = false
   [functions.whatsapp-notifications]
     verify_jwt = false
