@@ -221,6 +221,14 @@ serve(async (req) => {
     const body = await req.json();
     const { action } = body;
 
+    // For non-order actions, require admin role
+    if (action !== "notify-order") {
+      const { data: isAdmin } = await supabase.rpc("has_role", { _user_id: callerUserId, _role: "admin" });
+      if (!isAdmin) {
+        return new Response(JSON.stringify({ error: "Forbidden: admin only" }), { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      }
+    }
+
     // ===== SEND NOTIFICATION FOR ORDER EVENT =====
     if (action === "notify-order") {
       const { order_id, event_type } = body;
