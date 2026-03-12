@@ -15,6 +15,27 @@ function supabaseAdmin() {
   );
 }
 
+async function verifyAdmin(req: Request): Promise<Response | null> {
+  const authHeader = req.headers.get("Authorization");
+  if (!authHeader?.startsWith("Bearer ")) {
+    return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+  }
+  const sb = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_ANON_KEY")!, {
+    global: { headers: { Authorization: authHeader } },
+  });
+  const token = authHeader.replace("Bearer ", "");
+  const { data, error } = await sb.auth.getClaims(token);
+  if (error || !data?.claims) {
+    return new Response(JSON.stringify({ error: "Invalid token" }), { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+  }
+  const adminClient = supabaseAdmin();
+  const { data: isAdmin } = await adminClient.rpc("has_role", { _user_id: data.claims.sub, _role: "admin" });
+  if (!isAdmin) {
+    return new Response(JSON.stringify({ error: "Acesso negado - apenas administradores" }), { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+  }
+  return null;
+}
+
 async function getToken(sb: ReturnType<typeof supabaseAdmin>) {
   const { data } = await sb
     .from("marketplace_tokens")
@@ -312,18 +333,17 @@ Deno.serve(async (req) => {
     const url = new URL(req.url);
     const action = url.searchParams.get("action");
 
-    // OAuth callback (GET with code param)
+    // OAuth callback (GET with code param) — no auth (redirect from ML)
     if (action === "oauth_callback") {
       const code = url.searchParams.get("code");
       if (!code) return new Response(JSON.stringify({ error: "Missing code" }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
       const result = await handleOAuthCallback(code);
-      // Redirect back to admin
       return new Response(`<html><body><script>window.close();</script><p>Conectado com sucesso! Pode fechar esta janela.</p></body></html>`, {
         headers: { "Content-Type": "text/html", ...corsHeaders },
       });
     }
 
-    // Webhook (POST without action from ML)
+    // Webhook (POST without action from ML) — no auth (external service)
     if (req.method === "POST" && (!action || action === "webhook")) {
       const body = await req.json();
       if (body.topic) {
@@ -332,8 +352,11 @@ Deno.serve(async (req) => {
       }
     }
 
-    // API actions (POST with action param)
+    // API actions (POST with action param) — require admin auth
     if (req.method === "POST") {
+      const authError = await verifyAdmin(req);
+      if (authError) return authError;
+
       const body = await req.json().catch(() => ({}));
       let result: any;
 

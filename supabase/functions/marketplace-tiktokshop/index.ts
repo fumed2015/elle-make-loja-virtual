@@ -24,6 +24,27 @@ function supabaseAdmin() {
   );
 }
 
+async function verifyAdmin(req: Request): Promise<Response | null> {
+  const authHeader = req.headers.get("Authorization");
+  if (!authHeader?.startsWith("Bearer ")) {
+    return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+  }
+  const sb = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_ANON_KEY")!, {
+    global: { headers: { Authorization: authHeader } },
+  });
+  const token = authHeader.replace("Bearer ", "");
+  const { data, error } = await sb.auth.getClaims(token);
+  if (error || !data?.claims) {
+    return new Response(JSON.stringify({ error: "Invalid token" }), { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+  }
+  const adminClient = supabaseAdmin();
+  const { data: isAdmin } = await adminClient.rpc("has_role", { _user_id: data.claims.sub, _role: "admin" });
+  if (!isAdmin) {
+    return new Response(JSON.stringify({ error: "Acesso negado - apenas administradores" }), { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+  }
+  return null;
+}
+
 function getAppKey(): string {
   const key = Deno.env.get("TIKTOK_SHOP_APP_KEY");
   if (!key) throw new Error("TIKTOK_SHOP_APP_KEY não configurado");
@@ -402,7 +423,7 @@ Deno.serve(async (req) => {
     const url = new URL(req.url);
     const action = url.searchParams.get("action");
 
-    // OAuth callback (GET with auth_code)
+    // OAuth callback (GET) — no auth (redirect from TikTok)
     if (req.method === "GET" && action === "oauth_callback") {
       const authCode = url.searchParams.get("code");
       if (!authCode) throw new Error("Auth code não fornecido");
@@ -410,8 +431,10 @@ Deno.serve(async (req) => {
       return new Response(JSON.stringify(result), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
-    // Generate OAuth URL
+    // Generate OAuth URL (GET) — requires admin auth
     if (req.method === "GET" && action === "oauth_url") {
+      const authError = await verifyAdmin(req);
+      if (authError) return authError;
       const appKey = getAppKey();
       const redirectUri = `${Deno.env.get("SUPABASE_URL")}/functions/v1/marketplace-tiktokshop?action=oauth_callback`;
       const oauthUrl = `https://services.tiktokshop.com/open/authorize?service_id=${appKey}&redirect_uri=${encodeURIComponent(redirectUri)}`;
@@ -421,11 +444,15 @@ Deno.serve(async (req) => {
     if (req.method === "POST") {
       const body = await req.json().catch(() => ({}));
 
-      // Webhook from TikTok Shop
+      // Webhook from TikTok Shop — no auth (external service)
       if (body.type && !action) {
         const result = await handleWebhook(body);
         return new Response(JSON.stringify(result), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
       }
+
+      // All other POST actions require admin authentication
+      const authError = await verifyAdmin(req);
+      if (authError) return authError;
 
       let result: any;
       switch (action) {
