@@ -40,8 +40,7 @@ export function useMetaAdvancedMatching() {
           zip: addr.zip || "",
           country: "br",
         });
-      })
-      .catch(() => {
+      }, () => {
         // Fallback: send what we have from auth
         fbSetUserData(baseData);
       });
