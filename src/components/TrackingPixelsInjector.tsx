@@ -22,7 +22,13 @@ const TrackingPixelsInjector = () => {
 
     if (!pixels?.length) return;
 
+    // Pixel ID already hardcoded in index.html — skip to avoid duplicate init
+    const HARDCODED_PIXEL_ID = "1447990610311925";
+
     pixels.forEach((pixel) => {
+      // Skip if this pixel code contains the hardcoded ID
+      if (pixel.pixel_code.includes(HARDCODED_PIXEL_ID)) return;
+
       const container = document.createElement("div");
       container.innerHTML = pixel.pixel_code;
 
