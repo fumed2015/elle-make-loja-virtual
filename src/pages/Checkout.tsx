@@ -324,7 +324,8 @@ const Checkout = () => {
 
     trackPurchase({ orderId: orderData.id, value: finalTotal, itemCount: cartCount });
     const contentIds = items.map((item: any) => (item.products as any)?.id).filter(Boolean);
-    fbTrackPurchase({ orderId: orderData.id, value: finalTotal, itemCount: cartCount, contentIds });
+    const contents = items.map((item: any) => ({ id: (item.products as any)?.id, quantity: item.quantity })).filter((c: any) => c.id);
+    fbTrackPurchase({ orderId: orderData.id, value: finalTotal, itemCount: cartCount, contentIds, contents });
 
     return orderData.id;
   };
