@@ -53,6 +53,7 @@ const COLLECTION_TITLES: Record<CollectionSlug, string> = {
   lancamentos: "Lançamentos",
   "mais-vendidos": "Mais Vendidos",
   tendencias: "Tendências",
+  ofertas: "Ofertas",
 };
 
 const Explorar = () => {
