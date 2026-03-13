@@ -101,6 +101,7 @@ const SIDEBAR_SECTIONS: SidebarSection[] = [
       { id: "pixels", label: "Pixels", icon: Code },
       { id: "whatsapp", label: "WhatsApp Templates", icon: MessageCircle },
       { id: "whatsapp-campaigns", label: "Disparos WhatsApp", icon: Send },
+      { id: "notifications-monitor", label: "Monitor Disparos", icon: BarChart3 },
       { id: "ai-content", label: "IA Conteúdo", icon: Wand2 },
     ],
   },

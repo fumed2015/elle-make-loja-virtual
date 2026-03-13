@@ -139,6 +139,7 @@ const Admin = () => {
       case "marketplaces": return <MarketplacesTab />;
       case "revenue-report": return <MonthlyRevenueReportTab />;
       case "collections": return <CollectionsTab />;
+      case "notifications-monitor": return <NotificationsMonitorTab />;
       default: return <DashboardTab />;
     }
   };
