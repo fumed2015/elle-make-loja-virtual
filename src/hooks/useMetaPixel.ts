@@ -5,11 +5,17 @@
  * fires immediately on every page load — no async DB fetch needed.
  *
  * These helpers call fbq('track', …) for each standard e-commerce event,
- * following the official Meta Pixel conversion-tracking spec:
- * https://developers.facebook.com/docs/meta-pixel/implementation/conversion-tracking
+ * following the official Meta Pixel conversion-tracking spec.
  *
  * All monetary values use currency: "BRL".
+ *
+ * OPTIMIZATIONS (EMQ improvement):
+ * - Every event includes event_id (eventID) for CAPI deduplication
+ * - User data (PII) is sent alongside events via userData injection
+ * - fbc/fbp are read from cookies/localStorage for attribution
  */
+
+import { getFbc } from "./useMetaFbclid";
 
 declare global {
   interface Window {
@@ -19,6 +25,26 @@ declare global {
 
 const PIXEL_ID = "1447990610311925";
 
+// ─── Shared user data cache ───────────────────────────────────────────
+// Stores the latest normalized user data for injection into every event
+let _cachedUserData: Record<string, string> = {};
+
+/**
+ * Generate a unique event_id (UUID v4) for deduplication with CAPI.
+ */
+function generateEventId(): string {
+  return crypto.randomUUID?.() || `${Date.now()}-${Math.random().toString(36).slice(2, 11)}`;
+}
+
+/**
+ * Store the last generated event_id so it can be retrieved
+ * for server-side CAPI deduplication.
+ */
+let _lastEventId: string | null = null;
+export function getLastEventId(): string | null {
+  return _lastEventId;
+}
+
 // ─── Advanced Matching ─────────────────────────────────────────────────
 /**
  * Re-initialises the pixel with user PII so Meta can match conversions
@@ -27,12 +53,13 @@ const PIXEL_ID = "1447990610311925";
  * Data is sent in clear-text to fbq(); the JS SDK hashes it
  * automatically before transmitting.
  *
- * Normalisation follows Meta's spec (the CSV reference):
+ * Normalisation follows Meta's spec:
  *  - email: trim + lowercase
  *  - phone: digits only, strip leading zeros, prepend country code 55 (BR)
- *  - names / city: trim + lowercase
+ *  - names / city: trim + lowercase, remove diacritics
  *  - state: 2-letter lowercase
  *  - zip: digits only
+ *  - external_id: stable user identifier (user UUID)
  */
 export function fbSetUserData(data: {
   email?: string;
@@ -43,6 +70,8 @@ export function fbSetUserData(data: {
   state?: string;
   zip?: string;
   country?: string;
+  externalId?: string;
+  cpf?: string;
 }) {
   try {
     if (typeof window === "undefined" || typeof window.fbq !== "function") return;
@@ -53,20 +82,28 @@ export function fbSetUserData(data: {
 
     if (data.phone) {
       let ph = data.phone.replace(/\D/g, "").replace(/^0+/, "");
-      // Prepend BR country code if not present
       if (ph.length === 10 || ph.length === 11) ph = "55" + ph;
       if (ph) ud.ph = ph;
     }
 
-    if (data.firstName) ud.fn = data.firstName.trim().toLowerCase();
-    if (data.lastName) ud.ln = data.lastName.trim().toLowerCase();
+    if (data.firstName) ud.fn = data.firstName.trim().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+    if (data.lastName) ud.ln = data.lastName.trim().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
     if (data.city) ud.ct = data.city.trim().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
     if (data.state) ud.st = data.state.trim().toLowerCase().slice(0, 2);
     if (data.zip) ud.zp = data.zip.replace(/\D/g, "");
     ud.country = (data.country || "br").toLowerCase();
 
+    // external_id: use user UUID or hashed CPF as stable identifier
+    if (data.externalId) ud.external_id = data.externalId;
+
+    // Inject fbc from our persistence layer
+    const fbc = getFbc();
+    if (fbc) ud.fbc = fbc;
+
+    // Cache for future events
+    _cachedUserData = { ..._cachedUserData, ...ud };
+
     if (Object.keys(ud).length > 1) {
-      // Re-init with user data for Advanced Matching
       window.fbq("init", PIXEL_ID, ud);
     }
   } catch {
@@ -79,10 +116,18 @@ export function fbSetUserData(data: {
 function fire(event: string, params?: Record<string, any>) {
   try {
     if (typeof window !== "undefined" && typeof window.fbq === "function") {
+      const eventId = generateEventId();
+      _lastEventId = eventId;
+
+      // Store event_id in sessionStorage for CAPI deduplication
+      try {
+        sessionStorage.setItem(`_meta_eid_${event}`, eventId);
+      } catch { /* ignore */ }
+
       if (params) {
-        window.fbq("track", event, params);
+        window.fbq("track", event, params, { eventID: eventId });
       } else {
-        window.fbq("track", event);
+        window.fbq("track", event, {}, { eventID: eventId });
       }
     }
   } catch {
@@ -93,10 +138,13 @@ function fire(event: string, params?: Record<string, any>) {
 function fireCustom(event: string, params?: Record<string, any>) {
   try {
     if (typeof window !== "undefined" && typeof window.fbq === "function") {
+      const eventId = generateEventId();
+      _lastEventId = eventId;
+
       if (params) {
-        window.fbq("trackCustom", event, params);
+        window.fbq("trackCustom", event, params, { eventID: eventId });
       } else {
-        window.fbq("trackCustom", event);
+        window.fbq("trackCustom", event, {}, { eventID: eventId });
       }
     }
   } catch {
@@ -106,18 +154,10 @@ function fireCustom(event: string, params?: Record<string, any>) {
 
 // ─── Standard Events ───────────────────────────────────────────────────
 
-/**
- * PageView – already fired by the base code in index.html on first load.
- * Call this on SPA route changes so Meta sees each "virtual" page.
- */
 export function fbTrackPageView() {
   fire("PageView");
 }
 
-/**
- * ViewContent – When a visitor views a product page.
- * @see https://developers.facebook.com/docs/meta-pixel/reference#standard-events
- */
 export function fbTrackViewContent(product: {
   id: string;
   name: string;
@@ -136,9 +176,6 @@ export function fbTrackViewContent(product: {
   });
 }
 
-/**
- * AddToCart – When an item is added to the shopping cart.
- */
 export function fbTrackAddToCart(product: {
   id: string;
   name: string;
@@ -155,9 +192,6 @@ export function fbTrackAddToCart(product: {
   });
 }
 
-/**
- * InitiateCheckout – When a visitor starts the checkout flow.
- */
 export function fbTrackInitiateCheckout(params: {
   value: number;
   itemCount: number;
@@ -174,9 +208,6 @@ export function fbTrackInitiateCheckout(params: {
   });
 }
 
-/**
- * AddPaymentInfo – When payment information is submitted.
- */
 export function fbTrackAddPaymentInfo(params: {
   value: number;
   contentIds: string[];
@@ -193,8 +224,7 @@ export function fbTrackAddPaymentInfo(params: {
 }
 
 /**
- * Purchase – When a purchase is completed (order confirmed).
- * This is the most important conversion event for ROAS tracking.
+ * Purchase – returns the event_id for CAPI deduplication.
  */
 export function fbTrackPurchase(params: {
   orderId: string;
@@ -202,30 +232,36 @@ export function fbTrackPurchase(params: {
   itemCount: number;
   contentIds: string[];
   contents?: Array<{ id: string; quantity: number }>;
-}) {
-  fire("Purchase", {
-    content_ids: params.contentIds,
-    content_type: "product",
-    value: params.value,
-    currency: "BRL",
-    num_items: params.itemCount,
-    contents: params.contents,
-    delivery_category: "home_delivery",
-  });
+}): string {
+  const eventId = generateEventId();
+  _lastEventId = eventId;
+
+  try {
+    sessionStorage.setItem("_meta_eid_Purchase", eventId);
+    sessionStorage.setItem(`_meta_eid_order_${params.orderId}`, eventId);
+  } catch { /* ignore */ }
+
+  try {
+    if (typeof window !== "undefined" && typeof window.fbq === "function") {
+      window.fbq("track", "Purchase", {
+        content_ids: params.contentIds,
+        content_type: "product",
+        value: params.value,
+        currency: "BRL",
+        num_items: params.itemCount,
+        contents: params.contents,
+        delivery_category: "home_delivery",
+      }, { eventID: eventId });
+    }
+  } catch { /* ignore */ }
+
+  return eventId;
 }
 
-/**
- * Search – When a search is performed.
- */
 export function fbTrackSearch(query: string) {
-  fire("Search", {
-    search_string: query,
-  });
+  fire("Search", { search_string: query });
 }
 
-/**
- * AddToWishlist – When a product is added to favorites.
- */
 export function fbTrackAddToWishlist(product: {
   id: string;
   name: string;
@@ -241,37 +277,18 @@ export function fbTrackAddToWishlist(product: {
   });
 }
 
-/**
- * CompleteRegistration – When a visitor completes signup.
- */
 export function fbTrackCompleteRegistration(params?: { value?: number }) {
-  fire("CompleteRegistration", {
-    status: true,
-    currency: "BRL",
-    ...params,
-  });
+  fire("CompleteRegistration", { status: true, currency: "BRL", ...params });
 }
 
-/**
- * Lead – When a visitor signs up for newsletter or becomes a lead.
- */
 export function fbTrackLead(params?: { value?: number }) {
-  fire("Lead", {
-    currency: "BRL",
-    ...params,
-  });
+  fire("Lead", { currency: "BRL", ...params });
 }
 
-/**
- * Contact – When a visitor initiates contact (e.g. WhatsApp click).
- */
 export function fbTrackContact() {
   fire("Contact");
 }
 
-/**
- * ViewCategory – Custom event for category page views.
- */
 export function fbTrackViewCategory(category: { name: string; slug: string }) {
   fireCustom("ViewCategory", {
     content_category: category.name,
@@ -279,16 +296,10 @@ export function fbTrackViewCategory(category: { name: string; slug: string }) {
   });
 }
 
-/**
- * Generic custom event.
- */
 export function fbTrackCustom(eventName: string, params?: Record<string, any>) {
   fireCustom(eventName, params);
 }
 
-/**
- * ViewCart – Custom event when user views their cart page.
- */
 export function fbTrackViewCart(params: {
   value: number;
   itemCount: number;
@@ -303,4 +314,11 @@ export function fbTrackViewCart(params: {
     num_items: params.itemCount,
     contents: params.contents,
   });
+}
+
+/**
+ * Get the cached user data for CAPI usage.
+ */
+export function getCachedUserData(): Record<string, string> {
+  return { ..._cachedUserData };
 }
