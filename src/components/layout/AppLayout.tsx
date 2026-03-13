@@ -3,9 +3,11 @@ import { AnimatePresence, motion } from "framer-motion";
 import Header from "./Header";
 import BottomNav from "./BottomNav";
 import FloatingWhatsApp from "./FloatingWhatsApp";
+import { useMetaPageView } from "@/hooks/useMetaPageView";
 
 const AppLayout = () => {
   const location = useLocation();
+  useMetaPageView();
 
   return (
     <div className="min-h-screen bg-background transition-colors duration-300 overscroll-none">

@@ -18,7 +18,7 @@ import { cn } from "@/lib/utils";
 import SEOHead from "@/components/SEOHead";
 import UrgencyBadge from "@/components/product/UrgencyBadge";
 import { trackViewContent, trackAddToCart } from "@/hooks/useTikTokPixel";
-import { fbTrackViewContent, fbTrackAddToCart } from "@/hooks/useMetaPixel";
+import { fbTrackViewContent, fbTrackAddToCart, fbTrackAddToWishlist } from "@/hooks/useMetaPixel";
 
 const trustBadges = [
   { icon: ShieldCheck, text: "Entrega Segura", sub: "Embalagem protegida" },
@@ -88,6 +88,9 @@ const Produto = () => {
 
   const handleToggleFavorite = () => {
     if (!user) { navigate("/perfil"); return; }
+    if (!isFavorited(product.id)) {
+      fbTrackAddToWishlist({ id: product.id, name: product.name, price: Number(product.price) });
+    }
     toggleFavorite.mutate(product.id);
   };
 

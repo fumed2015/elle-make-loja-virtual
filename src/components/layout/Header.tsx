@@ -8,6 +8,7 @@ import { useCart } from "@/hooks/useCart";
 import { useAuth } from "@/hooks/useAuth";
 import { useProducts } from "@/hooks/useProducts";
 import { useState, useEffect, useRef, useCallback, useMemo } from "react";
+import { fbTrackSearch } from "@/hooks/useMetaPixel";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   DropdownMenu,
@@ -178,7 +179,10 @@ const Header = () => {
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     setShowSuggestions(false);
-    if (search.trim()) navigate(`/explorar?q=${encodeURIComponent(search.trim())}`);
+    if (search.trim()) {
+      fbTrackSearch(search.trim());
+      navigate(`/explorar?q=${encodeURIComponent(search.trim())}`);
+    }
   };
 
   const handleSelectSuggestion = (slug: string) => {

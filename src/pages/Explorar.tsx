@@ -11,6 +11,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import SEOHead from "@/components/SEOHead";
 import Footer from "@/components/layout/Footer";
+import { fbTrackSearch } from "@/hooks/useMetaPixel";
 
 type SortOption = "recent" | "price-asc" | "price-desc" | "name" | "discount";
 
@@ -138,12 +139,18 @@ const Explorar = () => {
 
   const activeFiltersCount = [activeBrand, activePriceRange !== null, activeCat].filter(Boolean).length;
 
+  const searchDebounceRef = useRef<ReturnType<typeof setTimeout>>();
   const handleSearch = (value: string) => {
     setSearchQuery(value);
     setShowSuggestions(value.length >= 2);
     const params = new URLSearchParams(searchParams);
     if (value) params.set("q", value); else params.delete("q");
     setSearchParams(params, { replace: true });
+    // Fire Meta Pixel Search event (debounced)
+    if (searchDebounceRef.current) clearTimeout(searchDebounceRef.current);
+    if (value.length >= 2) {
+      searchDebounceRef.current = setTimeout(() => fbTrackSearch(value), 800);
+    }
   };
 
   const handleCatFilter = (slug: string) => {
