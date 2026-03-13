@@ -14,17 +14,31 @@ function jsonResponse(data: any, status = 200) {
   });
 }
 
-const SITE_URL = "https://ellemake2.lovable.app";
+const SITE_URL = "https://www.ellemake.com.br";
 const MERCHANT_NAME = "Elle Make";
 
 // ── Fallback templates ──
 const FALLBACK_TEMPLATES: Record<string, string> = {
   "cart.recovery.first":
-    `💄 Oi {first_name}! Notamos que você deixou {items_count} {items_label} no carrinho da *{merchant}*!\n\n💰 Total: R$ {total}\n\n🛒 Finalize sua compra: {recovery_link}\n\nEstamos aqui se precisar de ajuda! 💕`,
+    `Oi, *{first_name}*! 💄\n\n` +
+    `Você deixou {items_count} {items_label} esperando no seu carrinho da *{merchant}*!\n\n` +
+    `💰 Total: R$ {total}\n\n` +
+    `Finalize agora antes que acabe:\n🔗 {recovery_link}\n\n` +
+    `Precisa de ajuda? Responda aqui! 💬`,
+
   "cart.recovery.second":
-    `✨ {first_name}, seus produtos ainda estão esperando por você na *{merchant}*! 💖\n\n🛒 {items_count} {items_label} · R$ {total}\n\nAproveite antes que acabe: {recovery_link}\n\nDúvidas? Fale conosco! 😊`,
+    `*{first_name}*, última chance! 🔥\n\n` +
+    `Seus {items_count} {items_label} (R$ {total}) ainda estão reservados na *{merchant}*.\n\n` +
+    `Use o cupom *VOLTEI10* e ganhe 10% OFF! 🎁\n\n` +
+    `🔗 {recovery_link}\n\n` +
+    `Corre que a promoção é por tempo limitado! ⏳💕`,
+
   "pix.reminder":
-    `⏳ Oi {first_name}! Seu PIX de *R$ {total}* na *{merchant}* ainda está pendente!\n\n{products_list}\n\n💡 Acesse o app para copiar o código PIX novamente:\n{link}\n\nO PIX expira em breve. Não perca! 💕`,
+    `Oi, *{first_name}*! ⏳\n\n` +
+    `Seu PIX de *R$ {total}* na *{merchant}* ainda está pendente.\n\n` +
+    `{products_list}\n\n` +
+    `Acesse para copiar o código PIX:\n🔗 {link}\n\n` +
+    `Pague antes que expire e garanta seus produtos! 💕`,
 };
 
 // ── Load template from DB with fallback ──
@@ -104,7 +118,6 @@ serve(async (req) => {
       if (error) return jsonResponse({ error: error.message }, 500);
       if (!events || events.length === 0) return jsonResponse({ processed: 0, message: "No carts to recover" });
 
-      // Pre-load both templates
       const tmplFirst = await loadTemplate(supabase, "cart.recovery.first");
       const tmplSecond = await loadTemplate(supabase, "cart.recovery.second");
 
@@ -122,7 +135,6 @@ serve(async (req) => {
           .eq("user_id", event.user_id)
           .maybeSingle();
 
-        // Get user email from auth
         const { data: authUser } = await supabase.auth.admin.getUserById(event.user_id);
         const userEmail = authUser?.user?.email;
 
@@ -164,7 +176,6 @@ serve(async (req) => {
         // Send email if available
         if (userEmail) {
           try {
-            // Fetch cart items for email
             const { data: cartItems } = await supabase
               .from("cart_items")
               .select("quantity, products(name, price, images)")

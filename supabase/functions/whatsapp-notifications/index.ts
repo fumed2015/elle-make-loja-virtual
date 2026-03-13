@@ -8,6 +8,7 @@ const corsHeaders = {
 };
 
 const MERCHANT_NAME = "Elle Make";
+const SITE_URL = "https://www.ellemake.com.br";
 
 // ===== Z-API WhatsApp Helper =====
 async function sendWhatsApp(phone: string, message: string): Promise<any> {
@@ -56,7 +57,7 @@ function buildMessageFromTemplate(template: string, data: Record<string, any>): 
     .replace(/{payment_method}/g, data.payment_method || "")
     .replace(/{order_id}/g, data.order_id || "")
     .replace(/{items_count}/g, data.items_count || "0")
-    .replace(/{link}/g, data.link || "https://ellemake2.lovable.app")
+    .replace(/{link}/g, data.link || SITE_URL)
     .replace(/{days}/g, data.days || "30");
 }
 
@@ -70,79 +71,71 @@ const PAYMENT_LABELS: Record<string, string> = {
 
 const FALLBACK_TEMPLATES: Record<string, string> = {
   "order.created":
-    `✨ *Novo Pedido Recebido!* ✨\n\nOi *{first_name}*! 💕\nSeu pedido na *{merchant}* foi confirmado com sucesso!\n\n` +
-    `🆔 *Pedido #{order_id}*\n` +
-    `━━━━━━━━━━━━━━━━━━\n\n` +
-    `🛍️ *Itens do pedido:*\n{products_list}\n\n` +
-    `━━━━━━━━━━━━━━━━━━\n` +
-    `💰 *Total: R$ {total}*\n` +
-    `📍 *Entrega:* {address}\n` +
-    `💳 *Pagamento:* {payment_method}\n\n` +
-    `Vamos preparar tudo com muito carinho! 💖\nAcompanhe seu pedido pelo nosso site 🔗`,
+    `✨ *Pedido Confirmado!* ✨\n\n` +
+    `Oi, *{first_name}*! Que alegria ter você com a gente 💖\n\n` +
+    `Seu pedido *#{order_id}* foi recebido!\n\n` +
+    `🛍️ *O que você pediu:*\n{products_list}\n\n` +
+    `💰 *Total:* R$ {total}\n` +
+    `💳 *Pagamento:* {payment_method}\n` +
+    `📍 *Enviar para:* {address}\n\n` +
+    `Já estamos preparando tudo com carinho pra você! 🎁\n` +
+    `Acompanhe aqui: {link}/pedidos`,
 
   "order.paid":
-    `✅ *Pagamento Confirmado!* 🎉\n\nOi *{first_name}*!\n\n` +
-    `🆔 *Pedido #{order_id}*\n` +
-    `━━━━━━━━━━━━━━━━━━\n\n` +
-    `🛍️ *Seus itens:*\n{products_list}\n\n` +
-    `━━━━━━━━━━━━━━━━━━\n` +
-    `💰 *Total: R$ {total}*\n\n` +
-    `Recebemos seu pagamento! 💸\nEstamos preparando tudo com carinho para enviar o mais rápido possível! 📦✨`,
+    `✅ *Pagamento Aprovado!*\n\n` +
+    `*{first_name}*, recebemos seu pagamento 🎉\n\n` +
+    `Pedido *#{order_id}*\n` +
+    `🛍️ {products_list}\n\n` +
+    `💰 *Total:* R$ {total}\n\n` +
+    `Agora é com a gente! Vamos embalar tudo com muito cuidado e enviar o mais rápido possível 📦💕`,
 
   "order.shipped.local":
-    `🛵 *Pedido Saiu para Entrega!* 🎉\n\nOi *{first_name}*!\n\n` +
-    `🆔 *Pedido #{order_id}*\n` +
-    `━━━━━━━━━━━━━━━━━━\n\n` +
-    `🛍️ *Itens:*\n{products_list}\n\n` +
-    `━━━━━━━━━━━━━━━━━━\n` +
-    `📍 *Entrega em:* {address}\n\n` +
-    `Nosso motoboy já saiu com seu pedido! 🏍️💨\n` +
-    `Fique de olho, ele chega rapidinho! 😍\n\n` +
-    `Qualquer dúvida, estamos aqui! 💬`,
+    `🛵 *Saiu pra Entrega!*\n\n` +
+    `*{first_name}*, seu pedido *#{order_id}* acabou de sair! 🏍️💨\n\n` +
+    `🛍️ {products_list}\n\n` +
+    `📍 *Destino:* {address}\n\n` +
+    `Nosso entregador já está a caminho.\n` +
+    `Fique de olho que chega rapidinho! 😍\n\n` +
+    `Precisa de algo? Responda aqui mesmo 💬`,
 
   "order.shipped.national":
-    `📦 *Pedido Enviado pelos Correios!* 🚀\n\nOi *{first_name}*!\n\n` +
-    `🆔 *Pedido #{order_id}*\n` +
-    `━━━━━━━━━━━━━━━━━━\n\n` +
-    `🛍️ *Itens:*\n{products_list}\n\n` +
-    `━━━━━━━━━━━━━━━━━━\n` +
-    `🔎 *Código de rastreio:*\n📋 *{tracking_code}*\n\n` +
-    `📍 *Entrega em:* {address}\n\n` +
-    `Acompanhe a entrega aqui: 🔗 {tracking_url}\n\n` +
-    `Seus produtos estão a caminho! 🎁💕`,
+    `📦 *Pedido Enviado!*\n\n` +
+    `*{first_name}*, seu pedido *#{order_id}* foi postado! 🚀\n\n` +
+    `🛍️ {products_list}\n\n` +
+    `📋 *Rastreio:* {tracking_code}\n` +
+    `🔗 *Acompanhe:* {tracking_url}\n\n` +
+    `📍 *Destino:* {address}\n\n` +
+    `Seus produtinhos já estão viajando até você! ✈️💕`,
 
   "order.delivered":
-    `🎉 *Pedido Entregue!* 💖\n\nOi *{first_name}*!\n\n` +
-    `🆔 *Pedido #{order_id}*\n` +
-    `━━━━━━━━━━━━━━━━━━\n\n` +
-    `🛍️ *Itens:*\n{products_list}\n\n` +
-    `━━━━━━━━━━━━━━━━━━\n\n` +
-    `Esperamos que você ame tudo! 😍\n\n` +
-    `⭐ *Avalie seus produtos:* {link}\n` +
-    `📸 Mostra pra gente! Marca *@ellemakebelem* no Instagram 🤳\n\n` +
-    `Obrigada por comprar com a gente! 💕`,
+    `🎉 *Entrega Realizada!*\n\n` +
+    `*{first_name}*, seu pedido *#{order_id}* chegou! 💖\n\n` +
+    `🛍️ {products_list}\n\n` +
+    `Esperamos que você ame cada produto! 😍\n\n` +
+    `📸 Mostra pra gente o resultado! Marca *@ellemakebelem* no Insta ✨\n\n` +
+    `⭐ Avalie sua experiência: {link}/pedidos\n\n` +
+    `Obrigada por escolher a Elle Make 💕`,
 
   "order.cancelled":
-    `😔 *Pedido Cancelado*\n\nOi *{first_name}*,\n\n` +
-    `🆔 *Pedido #{order_id}*\n` +
-    `━━━━━━━━━━━━━━━━━━\n\n` +
-    `Infelizmente seu pedido na *{merchant}* foi cancelado.\n\n` +
-    `Se tiver alguma dúvida ou quiser fazer um novo pedido, estamos aqui! 💬\n\n` +
-    `🔗 Visite nossa loja: {link}`,
+    `Oi, *{first_name}* 😔\n\n` +
+    `Seu pedido *#{order_id}* foi cancelado.\n\n` +
+    `Se houve algum problema, estamos aqui pra ajudar! Basta responder esta mensagem 💬\n\n` +
+    `Se quiser refazer seu pedido:\n🔗 {link}\n\n` +
+    `Esperamos te ver de volta em breve 💕`,
 
   "birthday":
-    `🎂 *Feliz Aniversário, {first_name}!* 🎉💖\n\n` +
-    `A *{merchant}* deseja a você um dia maravilhoso! ✨\n\n` +
-    `Para comemorar, preparamos algo especial pra você! 🎁\n\n` +
-    `Acesse nossa loja e aproveite: 🔗 {link}\n\n` +
-    `Parabéns! 🥳💕`,
+    `🎂 *Parabéns, {first_name}!* 🎉\n\n` +
+    `A *Elle Make* deseja um dia incrível pra você! ✨\n\n` +
+    `Para celebrar, preparamos uma surpresa especial! 🎁\n\n` +
+    `Acesse e aproveite:\n🔗 {link}\n\n` +
+    `Feliz aniversário! 💖🥳`,
 
   "repurchase.reminder":
-    `💕 *Sentimos sua falta, {first_name}!*\n\n` +
-    `Já faz {days} dias desde sua última compra na *{merchant}* 😢\n\n` +
-    `Temos novidades incríveis esperando por você! ✨🛍️\n\n` +
-    `Vem dar uma olhada: 🔗 {link}\n\n` +
-    `Estamos aqui se precisar de algo! 💬`,
+    `Oi, *{first_name}*! 💕\n\n` +
+    `Faz {days} dias que você não aparece por aqui, e já temos saudade! 😢\n\n` +
+    `A gente trouxe novidades que são a sua cara ✨\n\n` +
+    `Vem ver o que chegou:\n🔗 {link}\n\n` +
+    `Precisa de uma indicação? Responda aqui que ajudamos! 💬`,
 };
 
 async function buildMessage(
@@ -237,7 +230,6 @@ serve(async (req) => {
         return jsonResponse({ error: "order_id and event_type required" }, 400);
       }
 
-      // Fetch order details
       const { data: order, error: orderErr } = await supabase
         .from("orders")
         .select("*")
@@ -248,13 +240,11 @@ serve(async (req) => {
         return jsonResponse({ error: "Order not found" }, 404);
       }
 
-      // Verify caller owns the order or is admin
       const { data: isAdmin } = await supabase.rpc("has_role", { _user_id: callerUserId, _role: "admin" });
       if (order.user_id !== callerUserId && !isAdmin) {
         return new Response(JSON.stringify({ error: "Forbidden" }), { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } });
       }
 
-      // Fetch user profile for phone and name
       const { data: profile } = await supabase
         .from("profiles")
         .select("full_name, phone")
@@ -275,7 +265,6 @@ serve(async (req) => {
       const shippingAddr = order.shipping_address as any;
       const paymentLabel = PAYMENT_LABELS[order.payment_method] || order.payment_method || "";
 
-      // Determine if local delivery (Belém metropolitan area) or national shipping
       const LOCAL_CITIES = ["belém", "belem", "ananindeua", "marituba", "benevides", "santa bárbara do pará", "santa barbara do para"];
       const shippingCity = (shippingAddr?.city || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
       const isLocalDelivery = LOCAL_CITIES.some(c => {
@@ -283,7 +272,6 @@ serve(async (req) => {
         return shippingCity.includes(normalized);
       });
 
-      // For order.shipped, split into local vs national
       let resolvedEventType = event_type;
       if (event_type === "order.shipped") {
         resolvedEventType = isLocalDelivery ? "order.shipped.local" : "order.shipped.national";
@@ -299,13 +287,12 @@ serve(async (req) => {
         payment_method: paymentLabel,
         tracking_code: order.tracking_code || "",
         tracking_url: order.tracking_url || "",
-        link: "https://ellemake2.lovable.app/pedidos",
+        link: SITE_URL,
       };
 
       const message = await buildMessage(resolvedEventType, messageData, supabase);
       const zapiResponse = await sendWhatsApp(phone, message);
 
-      // Log notification
       await supabase.from("notifications").insert({
         event_type,
         phone,
@@ -358,7 +345,7 @@ serve(async (req) => {
 
       for (const profile of matches) {
         const firstName = profile.full_name?.split(" ")[0] || "Cliente";
-        const data = { first_name: firstName, merchant: MERCHANT_NAME, link: "https://ellemake2.lovable.app" };
+        const data = { first_name: firstName, merchant: MERCHANT_NAME, link: SITE_URL };
 
         let msg: string;
         if (customMessage) {
@@ -390,7 +377,6 @@ serve(async (req) => {
       const cutoffDate = new Date();
       cutoffDate.setDate(cutoffDate.getDate() - daysThreshold);
 
-      // Get all users with orders
       const { data: allOrders } = await supabase
         .from("orders")
         .select("user_id, created_at, status")
@@ -401,7 +387,6 @@ serve(async (req) => {
         return jsonResponse({ sent: 0, message: "Nenhum pedido encontrado" });
       }
 
-      // Group by user_id, get last order date
       const lastOrderByUser: Record<string, string> = {};
       for (const o of allOrders) {
         if (!lastOrderByUser[o.user_id]) {
@@ -409,7 +394,6 @@ serve(async (req) => {
         }
       }
 
-      // Filter users whose last order is older than threshold
       const inactiveUserIds = Object.entries(lastOrderByUser)
         .filter(([_, date]) => new Date(date) < cutoffDate)
         .map(([uid]) => uid);
@@ -418,7 +402,6 @@ serve(async (req) => {
         return jsonResponse({ sent: 0, message: `Nenhum cliente inativo há ${daysThreshold}+ dias` });
       }
 
-      // Fetch profiles
       const { data: profiles } = await supabase
         .from("profiles")
         .select("user_id, full_name, phone")
@@ -430,7 +413,7 @@ serve(async (req) => {
 
       for (const profile of (profiles || [])) {
         const firstName = profile.full_name?.split(" ")[0] || "Cliente";
-        const data = { first_name: firstName, merchant: MERCHANT_NAME, link: "https://ellemake2.lovable.app", days: String(daysThreshold) };
+        const data = { first_name: firstName, merchant: MERCHANT_NAME, link: SITE_URL, days: String(daysThreshold) };
 
         let msg: string;
         if (customMessage) {
@@ -464,13 +447,11 @@ serve(async (req) => {
         return jsonResponse({ error: "message is required" }, 400);
       }
 
-      // Build query for profiles with phone
       let query = supabase
         .from("profiles")
         .select("user_id, full_name, phone")
         .not("phone", "is", null);
 
-      // Optional filters
       if (filter === "buyers") {
         const { data: buyerOrders } = await supabase
           .from("orders")
@@ -493,7 +474,7 @@ serve(async (req) => {
         const msg = buildMessageFromTemplate(campaignMessage, {
           first_name: firstName,
           merchant: MERCHANT_NAME,
-          link: "https://ellemake2.lovable.app",
+          link: SITE_URL,
         });
 
         const result = await sendWhatsApp(profile.phone, msg);
