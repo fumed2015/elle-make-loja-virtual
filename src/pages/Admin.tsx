@@ -43,6 +43,7 @@ import { LeadsTab, BirthdaysTab } from "@/components/admin/LeadsBirthdaysTab";
 import NewsletterTab from "@/components/admin/NewsletterTab";
 import MonthlyRevenueReportTab from "@/components/admin/MonthlyRevenueReportTab";
 import CollectionsTab from "@/components/admin/CollectionsTab";
+import NotificationsMonitorTab from "@/components/admin/NotificationsMonitorTab";
 
 const Admin = () => {
   const navigate = useNavigate();
