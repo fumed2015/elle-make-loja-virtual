@@ -98,6 +98,9 @@ const navLinks: NavItem[] = [
       { label: "Necessaires", to: "/explorar?cat=acessorios&q=necessaire" },
     ],
   },
+  {
+    label: "Ofertas", to: "/ofertas",
+  },
 ];
 
 // Labels to show on mobile (reduced set to fit one line)
