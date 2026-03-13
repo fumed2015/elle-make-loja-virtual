@@ -15,30 +15,63 @@ import {
   Text,
 } from 'npm:@react-email/components@0.0.22'
 
+interface ShippingAddress {
+  street?: string
+  number?: string
+  neighborhood?: string
+  city?: string
+  state?: string
+  zip?: string
+}
+
 interface OrderConfirmationEmailProps {
   firstName: string
   orderId: string
+  orderNumber?: string
   items: Array<{ name: string; price: number; quantity: number }>
-  total: string
+  subtotal?: number
+  shipping?: number
+  discount?: number
+  total: string | number
   paymentMethod: string
   estimatedDelivery?: string
-  shippingAddress?: string
+  shippingAddress?: ShippingAddress | string
+}
+
+function formatAddress(addr: ShippingAddress | string | undefined): string | null {
+  if (!addr) return null
+  if (typeof addr === 'string') return addr
+  const parts = [
+    addr.street && addr.number ? `${addr.street}, ${addr.number}` : addr.street,
+    addr.neighborhood,
+    addr.city && addr.state ? `${addr.city} - ${addr.state}` : addr.city,
+    addr.zip,
+  ].filter(Boolean)
+  return parts.length > 0 ? parts.join('\n') : null
 }
 
 const LOGO_URL = 'https://xinkvwlhctwgdfwixzxf.supabase.co/storage/v1/object/public/email-assets/logo-ellemake.png'
 
 export const OrderConfirmationEmail = ({
   firstName = 'Cliente',
-  orderId,
+  orderId = '',
+  orderNumber,
   items = [],
+  subtotal,
+  shipping,
+  discount,
   total,
   paymentMethod = 'PIX',
   estimatedDelivery,
   shippingAddress,
-}: OrderConfirmationEmailProps) => (
+}: OrderConfirmationEmailProps) => {
+  const displayOrderId = orderNumber || orderId?.slice(0, 8) || ''
+  const formattedTotal = typeof total === 'number' ? total.toFixed(2).replace('.', ',') : total
+  const formattedAddress = formatAddress(shippingAddress)
+  return (
   <Html lang="pt-BR" dir="ltr">
     <Head />
-    <Preview>Pedido confirmado! #{orderId?.slice(0, 8)} 🎉</Preview>
+    <Preview>Pedido confirmado! #{displayOrderId} 🎉</Preview>
     <Body style={main}>
       <Container style={container}>
         <Section style={logoSection}>
@@ -53,7 +86,7 @@ export const OrderConfirmationEmail = ({
 
           <Section style={detailBox}>
             <Text style={detailLabel}>Nº do pedido</Text>
-            <Text style={detailValue}>#{orderId?.slice(0, 8)}</Text>
+            <Text style={detailValue}>#{displayOrderId}</Text>
           </Section>
 
           {items.length > 0 && (
@@ -70,9 +103,30 @@ export const OrderConfirmationEmail = ({
 
           <Hr style={divider} />
 
+          {subtotal != null && (
+            <Section style={summaryRow}>
+              <Text style={summaryLabel}>Subtotal</Text>
+              <Text style={summaryValueSmall}>R$ {Number(subtotal).toFixed(2).replace('.', ',')}</Text>
+            </Section>
+          )}
+
+          {shipping != null && shipping > 0 && (
+            <Section style={summaryRow}>
+              <Text style={summaryLabel}>Frete</Text>
+              <Text style={summaryValueSmall}>R$ {Number(shipping).toFixed(2).replace('.', ',')}</Text>
+            </Section>
+          )}
+
+          {discount != null && discount > 0 && (
+            <Section style={summaryRow}>
+              <Text style={summaryLabel}>Desconto</Text>
+              <Text style={{ ...summaryValueSmall, color: '#16a34a' }}>- R$ {Number(discount).toFixed(2).replace('.', ',')}</Text>
+            </Section>
+          )}
+
           <Section style={summaryRow}>
             <Text style={summaryLabel}>Total</Text>
-            <Text style={summaryValue}>R$ {total}</Text>
+            <Text style={summaryValue}>R$ {formattedTotal}</Text>
           </Section>
 
           <Section style={summaryRow}>
@@ -87,11 +141,11 @@ export const OrderConfirmationEmail = ({
             </Section>
           )}
 
-          {shippingAddress && (
+          {formattedAddress && (
             <>
               <Hr style={divider} />
               <Text style={sectionTitle}>Endereço de entrega</Text>
-              <Text style={addressText}>{shippingAddress}</Text>
+              <Text style={addressText}>{formattedAddress}</Text>
             </>
           )}
 
@@ -107,7 +161,8 @@ export const OrderConfirmationEmail = ({
       </Container>
     </Body>
   </Html>
-)
+  )
+}
 
 export default OrderConfirmationEmail
 
