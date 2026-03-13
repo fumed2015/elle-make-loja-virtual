@@ -257,7 +257,7 @@ const Explorar = () => {
 
   return (
     <div className="min-h-screen flex flex-col">
-      <SEOHead title="Explorar Produtos" description="Explore nossa coleção de maquiagens e skincare. Filtros por categoria, marca e preço com busca inteligente." />
+      <SEOHead title={activeCategoryName || "Explorar Produtos"} description="Explore nossa coleção de maquiagens e skincare. Filtros por categoria, marca e preço com busca inteligente." />
 
       {/* Breadcrumb */}
       <div className="bg-muted/50 border-b border-border">
