@@ -28,6 +28,7 @@ const Sobre = lazy(() => import("./pages/Sobre"));
 const ResetPassword = lazy(() => import("./pages/ResetPassword"));
 const Consultora = lazy(() => import("./pages/Consultora"));
 const RecuperarCarrinho = lazy(() => import("./pages/RecuperarCarrinho"));
+const Ofertas = lazy(() => import("./pages/Ofertas"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 const queryClient = new QueryClient();
