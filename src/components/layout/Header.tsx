@@ -354,18 +354,18 @@ const Header = () => {
 
           {/* Desktop nav links inline in header */}
           <nav
-            className="hidden md:flex flex-1 items-center justify-center gap-0.5 overflow-visible relative"
+            className="hidden md:flex flex-1 items-center justify-center gap-0 overflow-visible relative min-w-0"
             onMouseLeave={handleMouseLeave}
           >
             {navLinks.map((link) => (
               <div
                 key={link.label}
-                className="relative flex-shrink-0"
+                className="relative"
                 onMouseEnter={() => handleMouseEnter(link.label)}
               >
                 <Link
                   to={link.to}
-                  className={`flex items-center gap-1 px-3 py-2 text-sm font-semibold transition-all tracking-wide uppercase whitespace-nowrap ${!isTransparent ? 'text-foreground hover:text-primary' : 'text-white hover:text-white/80 drop-shadow-sm'}`}
+                  className={`flex items-center gap-0.5 px-2 lg:px-3 py-2 text-xs lg:text-sm font-semibold transition-all tracking-wide uppercase whitespace-nowrap ${!isTransparent ? 'text-foreground hover:text-primary' : 'text-white hover:text-white/80 drop-shadow-sm'}`}
                 >
                   {link.label}
                   {link.subs && <ChevronDown className="w-3 h-3" />}
