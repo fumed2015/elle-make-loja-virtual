@@ -103,9 +103,30 @@ export const OrderConfirmationEmail = ({
 
           <Hr style={divider} />
 
+          {subtotal != null && (
+            <Section style={summaryRow}>
+              <Text style={summaryLabel}>Subtotal</Text>
+              <Text style={summaryValueSmall}>R$ {Number(subtotal).toFixed(2).replace('.', ',')}</Text>
+            </Section>
+          )}
+
+          {shipping != null && shipping > 0 && (
+            <Section style={summaryRow}>
+              <Text style={summaryLabel}>Frete</Text>
+              <Text style={summaryValueSmall}>R$ {Number(shipping).toFixed(2).replace('.', ',')}</Text>
+            </Section>
+          )}
+
+          {discount != null && discount > 0 && (
+            <Section style={summaryRow}>
+              <Text style={summaryLabel}>Desconto</Text>
+              <Text style={{ ...summaryValueSmall, color: '#16a34a' }}>- R$ {Number(discount).toFixed(2).replace('.', ',')}</Text>
+            </Section>
+          )}
+
           <Section style={summaryRow}>
             <Text style={summaryLabel}>Total</Text>
-            <Text style={summaryValue}>R$ {total}</Text>
+            <Text style={summaryValue}>R$ {formattedTotal}</Text>
           </Section>
 
           <Section style={summaryRow}>
