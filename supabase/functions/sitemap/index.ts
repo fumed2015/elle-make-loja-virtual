@@ -1,7 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
-const SITE_URL = Deno.env.get("SITE_URL") || "https://ellemake2.lovable.app";
+const SITE_URL = Deno.env.get("SITE_URL") || "https://www.ellemake.com.br";
 
 const staticPages = [
   { loc: "/", changefreq: "daily", priority: "1.0" },
