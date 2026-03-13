@@ -288,7 +288,7 @@ const Header = () => {
       </div>
 
       {/* Main header */}
-      <div className={`border-b px-3 md:px-4 py-3 md:py-4 transition-all duration-500 ease-in-out ${!isTransparent ? 'bg-card/95 backdrop-blur-md border-border shadow-sm' : 'bg-transparent border-transparent shadow-none backdrop-blur-none'}`}>
+      <div className={`border-b px-3 md:px-4 py-3 md:py-2 transition-all duration-500 ease-in-out ${!isTransparent ? 'bg-card/95 backdrop-blur-md border-border shadow-sm' : 'bg-transparent border-transparent shadow-none backdrop-blur-none'}`}>
         <div className="max-w-7xl mx-auto w-full flex items-center min-w-0 relative overflow-visible">
           {/* Left: hamburger (mobile only) + Logo */}
           <div className="flex items-center gap-1 flex-shrink-0 md:w-auto">
