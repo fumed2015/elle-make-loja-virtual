@@ -11,6 +11,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import SEOHead from "@/components/SEOHead";
 import Footer from "@/components/layout/Footer";
+import { fbTrackSearch } from "@/hooks/useMetaPixel";
 
 type SortOption = "recent" | "price-asc" | "price-desc" | "name" | "discount";
 
