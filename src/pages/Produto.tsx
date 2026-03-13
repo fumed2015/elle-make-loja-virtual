@@ -88,6 +88,9 @@ const Produto = () => {
 
   const handleToggleFavorite = () => {
     if (!user) { navigate("/perfil"); return; }
+    if (!isFavorited(product.id)) {
+      fbTrackAddToWishlist({ id: product.id, name: product.name, price: Number(product.price) });
+    }
     toggleFavorite.mutate(product.id);
   };
 
