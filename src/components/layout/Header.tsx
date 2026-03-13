@@ -358,6 +358,7 @@ const Header = () => {
                 key={link.label}
                 className="relative"
                 onMouseEnter={() => handleMouseEnter(link.label)}
+                onMouseLeave={handleMouseLeave}
               >
                 <Link
                   to={link.to}
@@ -366,47 +367,42 @@ const Header = () => {
                   {link.label}
                   {link.subs && <ChevronDown className="w-2.5 h-2.5 lg:w-3 lg:h-3" />}
                 </Link>
-              </div>
-            ))}
 
-            {/* Mega menu panel */}
-            <AnimatePresence>
-              {hoveredNav && navLinks.find(l => l.label === hoveredNav)?.subs && (
-                <motion.div
-                  initial={{ opacity: 0, y: -4 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -4 }}
-                  transition={{ duration: 0.15 }}
-                  className="absolute top-full left-1/2 -translate-x-1/2 w-[600px] z-50 pt-2"
-                  onMouseEnter={() => handleMouseEnter(hoveredNav)}
-                  onMouseLeave={handleMouseLeave}
-                >
-                  <div className="bg-card border border-border shadow-lg rounded-b-lg">
-                    <div className="px-6 py-5">
-                      <div className="grid grid-cols-2 gap-x-8 gap-y-3">
-                        {navLinks.find(l => l.label === hoveredNav)?.subs?.map((sub) => (
-                          <Link
-                            key={sub.label}
-                            to={sub.to}
-                            className="text-sm text-foreground hover:text-primary font-medium transition-colors whitespace-nowrap"
-                          >
-                            {sub.label}
-                          </Link>
-                        ))}
+                <AnimatePresence>
+                  {hoveredNav === link.label && link.subs && (
+                    <motion.div
+                      initial={{ opacity: 0, y: -4 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -4 }}
+                      transition={{ duration: 0.15 }}
+                      className="absolute top-full left-0 z-50 pt-1 min-w-[220px]"
+                    >
+                      <div className="bg-card border border-border shadow-lg rounded-lg">
+                        <div className="px-4 py-3 space-y-1.5">
+                          {link.subs.map((sub) => (
+                            <Link
+                              key={sub.label}
+                              to={sub.to}
+                              className="block text-sm text-foreground hover:text-primary font-medium transition-colors whitespace-nowrap py-1"
+                            >
+                              {sub.label}
+                            </Link>
+                          ))}
+                          <div className="border-t border-border mt-2 pt-2">
+                            <Link
+                              to={link.to}
+                              className="text-xs font-semibold text-primary hover:underline"
+                            >
+                              Ver tudo em {link.label} →
+                            </Link>
+                          </div>
+                        </div>
                       </div>
-                      <div className="border-t border-border mt-4 pt-3">
-                        <Link
-                          to={navLinks.find(l => l.label === hoveredNav)?.to || "/explorar"}
-                          className="text-xs font-semibold text-primary hover:underline"
-                        >
-                          Ver tudo em {hoveredNav} →
-                        </Link>
-                      </div>
-                    </div>
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+            ))
           </nav>
 
           {/* Right: search + icons */}
