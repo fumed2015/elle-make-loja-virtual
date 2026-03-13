@@ -289,7 +289,7 @@ const Header = () => {
 
       {/* Main header */}
       <div className={`border-b px-3 md:px-4 py-3 md:py-4 transition-all duration-500 ease-in-out ${!isTransparent ? 'bg-card/95 backdrop-blur-md border-border shadow-sm' : 'bg-transparent border-transparent shadow-none backdrop-blur-none'}`}>
-        <div className="max-w-7xl mx-auto flex items-center min-w-0 relative">
+        <div className="max-w-7xl mx-auto w-full flex items-center min-w-0 relative overflow-visible">
           {/* Left: hamburger (mobile only) + Logo */}
           <div className="flex items-center gap-1 flex-shrink-0 md:w-auto">
             <Sheet>
@@ -336,7 +336,7 @@ const Header = () => {
           </div>
 
           {/* Center: Logo (absolutely centered on mobile, left-aligned on desktop) */}
-          <div className="absolute left-1/2 -translate-x-1/2 md:static md:translate-x-0 md:flex-none md:mr-8">
+          <div className="absolute left-1/2 -translate-x-1/2 md:static md:translate-x-0 md:flex-none md:mr-4">
             <Link to="/">
               <motion.div
                 whileHover={{ scale: 1.02 }}
@@ -354,18 +354,18 @@ const Header = () => {
 
           {/* Desktop nav links inline in header */}
           <nav
-            className="hidden md:flex flex-1 items-center justify-center gap-0.5 overflow-visible relative"
+            className="hidden md:flex flex-1 items-center justify-center gap-0 overflow-visible relative min-w-0"
             onMouseLeave={handleMouseLeave}
           >
             {navLinks.map((link) => (
               <div
                 key={link.label}
-                className="relative flex-shrink-0"
+                className="relative"
                 onMouseEnter={() => handleMouseEnter(link.label)}
               >
                 <Link
                   to={link.to}
-                  className={`flex items-center gap-1 px-3 py-2 text-sm font-semibold transition-all tracking-wide uppercase whitespace-nowrap ${!isTransparent ? 'text-foreground hover:text-primary' : 'text-white hover:text-white/80 drop-shadow-sm'}`}
+                  className={`flex items-center gap-0.5 px-1.5 lg:px-2.5 py-2 text-[11px] lg:text-xs xl:text-sm font-semibold transition-all tracking-wide uppercase whitespace-nowrap ${!isTransparent ? 'text-foreground hover:text-primary' : 'text-white hover:text-white/80 drop-shadow-sm'}`}
                 >
                   {link.label}
                   {link.subs && <ChevronDown className="w-3 h-3" />}
@@ -414,7 +414,7 @@ const Header = () => {
           {/* Right: search + icons */}
           <div className="flex items-center gap-1 flex-shrink-0 md:w-auto justify-end">
             {/* Desktop search */}
-            <div className="hidden md:flex relative w-48 lg:w-56" ref={searchContainerRef}>
+            <div className="hidden md:flex relative w-32 lg:w-44 xl:w-56 ml-2" ref={searchContainerRef}>
               <form onSubmit={handleSearch} className="w-full relative">
                 <Input
                   placeholder="Buscar"
