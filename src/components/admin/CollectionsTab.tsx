@@ -17,11 +17,12 @@ import { Plus, Trash2, Search, Sparkles, TrendingUp, Flame, ArrowUp, ArrowDown }
 import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
 
-const SLUGS: CollectionSlug[] = ["lancamentos", "mais-vendidos", "tendencias"];
+const SLUGS: CollectionSlug[] = ["lancamentos", "mais-vendidos", "tendencias", "ofertas"];
 const SLUG_ICONS: Record<CollectionSlug, any> = {
   lancamentos: Sparkles,
   "mais-vendidos": TrendingUp,
   tendencias: Flame,
+  ofertas: Flame,
 };
 
 const CollectionsTab = () => {
