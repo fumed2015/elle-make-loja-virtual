@@ -164,6 +164,8 @@ export const OrderConfirmationEmail = ({
   )
 }
 
+export default OrderConfirmationEmail
+
 const main = { backgroundColor: '#ffffff', fontFamily: "'Playfair Display', Georgia, serif" }
 const container = { maxWidth: '520px', margin: '0 auto', padding: '20px 16px' }
 const logoSection = { textAlign: 'center' as const, padding: '24px 0 16px' }
