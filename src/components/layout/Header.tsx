@@ -336,7 +336,7 @@ const Header = () => {
           </div>
 
           {/* Center: Logo (absolutely centered on mobile, left-aligned on desktop) */}
-          <div className="absolute left-1/2 -translate-x-1/2 md:static md:translate-x-0 md:flex-none md:mr-8">
+          <div className="absolute left-1/2 -translate-x-1/2 md:static md:translate-x-0 md:flex-none md:mr-4">
             <Link to="/">
               <motion.div
                 whileHover={{ scale: 1.02 }}
