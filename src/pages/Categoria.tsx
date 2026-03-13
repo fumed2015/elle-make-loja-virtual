@@ -54,6 +54,10 @@ const Categoria = () => {
   const meta = categoryMeta[slug || ""] || { title: slug || "Categoria", description: "", emoji: "✨" };
   const isOfertas = slug === "ofertas";
 
+  useEffect(() => {
+    if (slug) fbTrackViewCategory({ name: meta.title, slug });
+  }, [slug]); // eslint-disable-line react-hooks/exhaustive-deps
+
   const { data: products, isLoading } = useProducts({
     categorySlug: isOfertas ? undefined : slug,
     search: search || undefined,
