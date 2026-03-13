@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { ShoppingBag, Trash2, ArrowRight, Minus, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useCart } from "@/hooks/useCart";
@@ -9,6 +10,7 @@ import ShippingCalculator from "@/components/shipping/ShippingCalculator";
 import FreeShippingBar from "@/components/layout/FreeShippingBar";
 import CrossSellSection from "@/components/checkout/CrossSellSection";
 import UrgencyBadge from "@/components/product/UrgencyBadge";
+import { fbTrackViewCart } from "@/hooks/useMetaPixel";
 
 const Carrinho = () => {
   const { items, isLoading, removeFromCart, updateQuantity, cartTotal, cartCount } = useCart();
