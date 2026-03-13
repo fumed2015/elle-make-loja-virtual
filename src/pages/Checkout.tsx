@@ -348,6 +348,9 @@ const Checkout = () => {
       setStep("address"); return;
     }
     setSubmitting(true);
+    // Fire AddPaymentInfo event
+    const contentIds = items.map((item: any) => (item.products as any)?.id).filter(Boolean);
+    fbTrackAddPaymentInfo({ value: finalTotal, contentIds, paymentMethod });
     try {
       const newOrderId = await createOrder();
       setOrderId(newOrderId);
