@@ -196,7 +196,7 @@ const OrdersManagementTab = () => {
     const order = orders?.find(o => o.id === orderId);
     const confirmedStatuses = ['confirmed', 'approved', 'processing', 'shipped', 'delivered'];
     
-    // If the order was in a confirmed state, first cancel it to trigger stock restoration
+    // If the order was in a confirmed state, first cancel it to trigger stock restoration & financial reversal
     if (order && confirmedStatuses.includes(order.status)) {
       const { error: cancelError } = await supabase
         .from("orders")
@@ -204,12 +204,26 @@ const OrdersManagementTab = () => {
         .eq("id", orderId);
       
       if (cancelError) {
-        toast.error("Erro ao cancelar pedido antes de apagar: " + cancelError.message);
+        toast.error("Erro ao cancelar pedido: " + cancelError.message);
         return;
       }
       
       // Small delay to ensure triggers complete
       await new Promise(resolve => setTimeout(resolve, 500));
+    }
+    
+    // Delete related records that have FK constraints to orders
+    const deleteRelated = await Promise.all([
+      supabase.from("financial_transactions").delete().eq("order_id", orderId),
+      supabase.from("notifications").delete().eq("order_id", orderId),
+      supabase.from("influencer_commissions").delete().eq("order_id", orderId),
+      supabase.from("returns").delete().eq("order_id", orderId),
+    ]);
+    
+    const relatedError = deleteRelated.find(r => r.error);
+    if (relatedError?.error) {
+      toast.error("Erro ao limpar dados relacionados: " + relatedError.error.message);
+      return;
     }
     
     // Now delete the order
