@@ -178,7 +178,10 @@ const Header = () => {
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     setShowSuggestions(false);
-    if (search.trim()) navigate(`/explorar?q=${encodeURIComponent(search.trim())}`);
+    if (search.trim()) {
+      fbTrackSearch(search.trim());
+      navigate(`/explorar?q=${encodeURIComponent(search.trim())}`);
+    }
   };
 
   const handleSelectSuggestion = (slug: string) => {
