@@ -167,7 +167,9 @@ const Explorar = () => {
     return () => document.removeEventListener("mousedown", handler);
   }, []);
 
-  const activeCategoryName = categories?.find(c => c.slug === activeCat)?.name;
+  const activeCategoryName = isCollectionPage && collectionSlug
+    ? COLLECTION_TITLES[collectionSlug]
+    : categories?.find(c => c.slug === activeCat)?.name;
 
   // Sidebar filter section (reused desktop + mobile drawer)
   const FilterPanel = ({ className }: { className?: string }) => (
