@@ -190,13 +190,50 @@ const OrdersManagementTab = () => {
   };
 
   const handleDeleteOrder = async (orderId: string) => {
-    if (!confirm("Tem certeza que deseja apagar este pedido? Esta ação não pode ser desfeita.")) return;
+    if (!confirm("Tem certeza que deseja apagar este pedido? O estoque será restaurado automaticamente.")) return;
+    
+    // Find the order to check its current status
+    const order = orders?.find(o => o.id === orderId);
+    const confirmedStatuses = ['confirmed', 'approved', 'processing', 'shipped', 'delivered'];
+    
+    // If the order was in a confirmed state, first cancel it to trigger stock restoration & financial reversal
+    if (order && confirmedStatuses.includes(order.status)) {
+      const { error: cancelError } = await supabase
+        .from("orders")
+        .update({ status: "cancelled" })
+        .eq("id", orderId);
+      
+      if (cancelError) {
+        toast.error("Erro ao cancelar pedido: " + cancelError.message);
+        return;
+      }
+      
+      // Small delay to ensure triggers complete
+      await new Promise(resolve => setTimeout(resolve, 500));
+    }
+    
+    // Delete related records that have FK constraints to orders
+    const deleteRelated = await Promise.all([
+      supabase.from("financial_transactions").delete().eq("order_id", orderId),
+      supabase.from("notifications").delete().eq("order_id", orderId),
+      supabase.from("influencer_commissions").delete().eq("order_id", orderId),
+      supabase.from("returns").delete().eq("order_id", orderId),
+    ]);
+    
+    const relatedError = deleteRelated.find(r => r.error);
+    if (relatedError?.error) {
+      toast.error("Erro ao limpar dados relacionados: " + relatedError.error.message);
+      return;
+    }
+    
+    // Now delete the order
     const { error } = await supabase.from("orders").delete().eq("id", orderId);
     if (error) {
-      toast.error("Erro ao apagar pedido");
+      toast.error("Erro ao apagar pedido: " + error.message);
     } else {
-      toast.success("Pedido apagado!");
+      toast.success("Pedido apagado e estoque restaurado!");
       setExpandedId(null);
+      refetch();
     }
   };
 
