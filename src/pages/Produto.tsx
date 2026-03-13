@@ -18,7 +18,7 @@ import { cn } from "@/lib/utils";
 import SEOHead from "@/components/SEOHead";
 import UrgencyBadge from "@/components/product/UrgencyBadge";
 import { trackViewContent, trackAddToCart } from "@/hooks/useTikTokPixel";
-import { fbTrackViewContent, fbTrackAddToCart, fbTrackAddToWishlist } from "@/hooks/useMetaPixel";
+import { fbTrackViewContent, fbTrackAddToCart, fbTrackAddToWishlist, fbTrackContact } from "@/hooks/useMetaPixel";
 
 const trustBadges = [
   { icon: ShieldCheck, text: "Entrega Segura", sub: "Embalagem protegida" },
