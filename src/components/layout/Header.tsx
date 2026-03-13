@@ -351,7 +351,6 @@ const Header = () => {
           {/* Center: Desktop nav links */}
           <nav
             className="hidden md:flex flex-1 items-center justify-center gap-0 overflow-visible relative min-w-0 mx-2"
-            onMouseLeave={handleMouseLeave}
           >
             {navLinks.map((link) => (
               <div
@@ -402,7 +401,7 @@ const Header = () => {
                   )}
                 </AnimatePresence>
               </div>
-            ))
+            ))}
           </nav>
 
           {/* Right: search + icons */}
