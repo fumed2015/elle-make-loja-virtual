@@ -21,7 +21,7 @@ import { Badge } from "@/components/ui/badge";
 export type AdminTab =
   | "dashboard" | "financeiro" | "comercial" | "operacional" | "marketing" | "revenue-report"
   | "sales-intelligence" | "crm" | "logistics" | "marketing-conversion" | "seo-content"
-  | "products" | "stock" | "categories" | "homepage-sections" | "catalog-drive"
+  | "products" | "stock" | "categories" | "homepage-sections" | "catalog-drive" | "collections"
   | "orders" | "coupons" | "reviews"
   | "influencers" | "leads" | "birthdays"
   | "pixels" | "whatsapp" | "whatsapp-campaigns" | "seo" | "ai-content"
@@ -64,6 +64,7 @@ const SIDEBAR_SECTIONS: SidebarSection[] = [
     items: [
       { id: "products", label: "Produtos", icon: Box },
       { id: "categories", label: "Categorias", icon: FolderOpen },
+      { id: "collections", label: "Coleções", icon: Heart },
       { id: "stock", label: "Estoque", icon: Package },
       { id: "homepage-sections", label: "Página Inicial", icon: LayoutDashboard },
       { id: "catalog-drive", label: "Catálogo Drive", icon: FolderOpen },

@@ -42,6 +42,7 @@ import AIContentTab from "@/components/admin/AIContentTab";
 import { LeadsTab, BirthdaysTab } from "@/components/admin/LeadsBirthdaysTab";
 import NewsletterTab from "@/components/admin/NewsletterTab";
 import MonthlyRevenueReportTab from "@/components/admin/MonthlyRevenueReportTab";
+import CollectionsTab from "@/components/admin/CollectionsTab";
 
 const Admin = () => {
   const navigate = useNavigate();
@@ -136,6 +137,7 @@ const Admin = () => {
       case "catalog-drive": return <CatalogDriveTab />;
       case "marketplaces": return <MarketplacesTab />;
       case "revenue-report": return <MonthlyRevenueReportTab />;
+      case "collections": return <CollectionsTab />;
       default: return <DashboardTab />;
     }
   };

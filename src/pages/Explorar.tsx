@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useProducts, useCategories } from "@/hooks/useProducts";
+import { useCollectionProducts, useBestSellingProducts, type CollectionSlug } from "@/hooks/useCollections";
 import ProductCard from "@/components/product/ProductCard";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
@@ -40,10 +41,24 @@ const categoryIcons: Record<string, string> = {
   paletas: "🎨",
 };
 
+// Map URL query params to collection slugs
+const COLLECTION_MAP: Record<string, CollectionSlug> = {
+  lancamento: "lancamentos",
+  vendido: "mais-vendidos",
+  tendencia: "tendencias",
+};
+
+const COLLECTION_TITLES: Record<CollectionSlug, string> = {
+  lancamentos: "Lançamentos",
+  "mais-vendidos": "Mais Vendidos",
+  tendencias: "Tendências",
+};
+
 const Explorar = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const [searchQuery, setSearchQuery] = useState(searchParams.get("q") || "");
   const activeCat = searchParams.get("cat") || "";
+  const urlQ = searchParams.get("q") || "";
   const [showMobileFilters, setShowMobileFilters] = useState(false);
   const [sortBy, setSortBy] = useState<SortOption>("recent");
   const [activeBrand, setActiveBrand] = useState("");
@@ -53,17 +68,30 @@ const Explorar = () => {
   const [gridCols, setGridCols] = useState<2 | 3>(2);
   const searchRef = useRef<HTMLDivElement>(null);
 
+  // Detect if this is a curated collection page
+  const collectionSlug = activeCat === "novidades" && COLLECTION_MAP[urlQ] ? COLLECTION_MAP[urlQ] : null;
+  const isCollectionPage = !!collectionSlug;
+
+  // Regular products (for non-collection pages)
   const { data: products, isLoading } = useProducts({
-    search: searchQuery || undefined,
-    categorySlug: activeCat || undefined,
+    search: !isCollectionPage ? (searchQuery || undefined) : undefined,
+    categorySlug: !isCollectionPage ? (activeCat || undefined) : undefined,
   });
+
+  // Collection products
+  const { data: collectionProducts, isLoading: collectionLoading } = useCollectionProducts(
+    collectionSlug || "lancamentos"
+  );
+  const { data: salesCount } = useBestSellingProducts();
+
   const { data: categories } = useCategories();
 
   const brands = useMemo(() => {
-    if (!products) return [];
-    const brandSet = new Set(products.map((p) => p.brand).filter(Boolean));
+    const source = isCollectionPage ? collectionProducts : products;
+    if (!source) return [];
+    const brandSet = new Set(source.map((p: any) => p.brand).filter(Boolean));
     return Array.from(brandSet).sort() as string[];
-  }, [products]);
+  }, [products, collectionProducts, isCollectionPage]);
 
   const suggestions = useMemo(() => {
     if (!searchQuery || searchQuery.length < 2 || !products) return [];
@@ -72,25 +100,41 @@ const Explorar = () => {
   }, [searchQuery, products]);
 
   const filteredProducts = useMemo(() => {
-    if (!products) return [];
-    let result = [...products];
-    if (activeBrand) result = result.filter((p) => p.brand === activeBrand);
+    let source: any[] = [];
+    
+    if (isCollectionPage) {
+      source = collectionProducts ? [...collectionProducts] : [];
+      // For "mais-vendidos", sort by sales count (best selling first)
+      if (collectionSlug === "mais-vendidos" && salesCount) {
+        source.sort((a: any, b: any) => {
+          const salesA = salesCount[a.id] || 0;
+          const salesB = salesCount[b.id] || 0;
+          return salesB - salesA;
+        });
+      }
+    } else {
+      source = products ? [...products] : [];
+    }
+
+    if (activeBrand) source = source.filter((p: any) => p.brand === activeBrand);
     if (activePriceRange !== null) {
       const range = priceRanges[activePriceRange];
-      result = result.filter((p) => Number(p.price) >= range.min && Number(p.price) < range.max);
+      source = source.filter((p: any) => Number(p.price) >= range.min && Number(p.price) < range.max);
     }
-    switch (sortBy) {
-      case "price-asc": result.sort((a, b) => Number(a.price) - Number(b.price)); break;
-      case "price-desc": result.sort((a, b) => Number(b.price) - Number(a.price)); break;
-      case "name": result.sort((a, b) => a.name.localeCompare(b.name)); break;
-      case "discount": result.sort((a, b) => {
-        const dA = a.compare_at_price ? (Number(a.compare_at_price) - Number(a.price)) / Number(a.compare_at_price) : 0;
-        const dB = b.compare_at_price ? (Number(b.compare_at_price) - Number(b.price)) / Number(b.compare_at_price) : 0;
-        return dB - dA;
-      }); break;
+    if (!isCollectionPage || collectionSlug !== "mais-vendidos") {
+      switch (sortBy) {
+        case "price-asc": source.sort((a, b) => Number(a.price) - Number(b.price)); break;
+        case "price-desc": source.sort((a, b) => Number(b.price) - Number(a.price)); break;
+        case "name": source.sort((a, b) => a.name.localeCompare(b.name)); break;
+        case "discount": source.sort((a, b) => {
+          const dA = a.compare_at_price ? (Number(a.compare_at_price) - Number(a.price)) / Number(a.compare_at_price) : 0;
+          const dB = b.compare_at_price ? (Number(b.compare_at_price) - Number(b.price)) / Number(b.compare_at_price) : 0;
+          return dB - dA;
+        }); break;
+      }
     }
-    return result;
-  }, [products, activeBrand, activePriceRange, sortBy]);
+    return source;
+  }, [products, collectionProducts, isCollectionPage, collectionSlug, salesCount, activeBrand, activePriceRange, sortBy]);
 
   const activeFiltersCount = [activeBrand, activePriceRange !== null, activeCat].filter(Boolean).length;
 
@@ -123,7 +167,9 @@ const Explorar = () => {
     return () => document.removeEventListener("mousedown", handler);
   }, []);
 
-  const activeCategoryName = categories?.find(c => c.slug === activeCat)?.name;
+  const activeCategoryName = isCollectionPage && collectionSlug
+    ? COLLECTION_TITLES[collectionSlug]
+    : categories?.find(c => c.slug === activeCat)?.name;
 
   // Sidebar filter section (reused desktop + mobile drawer)
   const FilterPanel = ({ className }: { className?: string }) => (
@@ -211,7 +257,7 @@ const Explorar = () => {
 
   return (
     <div className="min-h-screen flex flex-col">
-      <SEOHead title="Explorar Produtos" description="Explore nossa coleção de maquiagens e skincare. Filtros por categoria, marca e preço com busca inteligente." />
+      <SEOHead title={activeCategoryName || "Explorar Produtos"} description="Explore nossa coleção de maquiagens e skincare. Filtros por categoria, marca e preço com busca inteligente." />
 
       {/* Breadcrumb */}
       <div className="bg-muted/50 border-b border-border">
@@ -432,7 +478,7 @@ const Explorar = () => {
             </AnimatePresence>
 
             {/* Product grid */}
-            {isLoading ? (
+            {(isCollectionPage ? collectionLoading : isLoading) ? (
               <div className={cn("grid gap-3", gridCols === 3 ? "grid-cols-2 md:grid-cols-3 lg:grid-cols-4" : "grid-cols-2 md:grid-cols-3")}>
                 {[...Array(8)].map((_, i) => (
                   <div key={i} className="aspect-[3/4] rounded-xl bg-muted animate-pulse" />
