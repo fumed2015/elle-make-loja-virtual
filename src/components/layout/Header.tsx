@@ -365,7 +365,7 @@ const Header = () => {
               >
                 <Link
                   to={link.to}
-                  className={`flex items-center gap-0.5 px-2 lg:px-3 py-2 text-xs lg:text-sm font-semibold transition-all tracking-wide uppercase whitespace-nowrap ${!isTransparent ? 'text-foreground hover:text-primary' : 'text-white hover:text-white/80 drop-shadow-sm'}`}
+                  className={`flex items-center gap-0.5 px-1.5 lg:px-2.5 py-2 text-[11px] lg:text-xs xl:text-sm font-semibold transition-all tracking-wide uppercase whitespace-nowrap ${!isTransparent ? 'text-foreground hover:text-primary' : 'text-white hover:text-white/80 drop-shadow-sm'}`}
                 >
                   {link.label}
                   {link.subs && <ChevronDown className="w-3 h-3" />}
