@@ -31,7 +31,7 @@ const ComercialTab = () => {
   const goalPercent = Math.min(100, (monthRevenue / goal) * 100);
 
   // ===== Funil de Vendas =====
-  const activeOrders = orders?.filter(o => o.status !== "cancelled" && o.status !== "refunded") || [];
+  const activeOrders = orders?.filter(o => CONFIRMED.includes(o.status)) || [];
   const totalUsers = profiles?.length || 0;
   const usersWithPhone = profiles?.filter(p => p.phone).length || 0;
   const buyerIds = new Set(activeOrders.map(o => o.user_id));

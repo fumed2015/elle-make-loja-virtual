@@ -1358,7 +1358,8 @@ const DRESection = ({ orders, commissions, premises, products, costMap, cacUnita
     const now = new Date();
     const periodMs = drePeriod === "30d" ? 30 * 86400000 : drePeriod === "90d" ? 90 * 86400000 : Infinity;
     const cutoff = periodMs === Infinity ? new Date(0) : new Date(now.getTime() - periodMs);
-    const filtered = orders.filter(o => new Date(o.created_at) >= cutoff && o.status !== "cancelled");
+    const CONFIRMED = ["approved", "confirmed", "processing", "shipped", "delivered"];
+    const filtered = orders.filter(o => new Date(o.created_at) >= cutoff && CONFIRMED.includes(o.status));
 
     const revenue = filtered.reduce((s, o) => s + Number(o.total), 0);
     const discounts = filtered.reduce((s, o) => s + Number(o.discount || 0), 0);
