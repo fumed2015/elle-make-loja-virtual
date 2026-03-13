@@ -64,6 +64,7 @@ const SIDEBAR_SECTIONS: SidebarSection[] = [
     items: [
       { id: "products", label: "Produtos", icon: Box },
       { id: "categories", label: "Categorias", icon: FolderOpen },
+      { id: "collections", label: "Coleções", icon: Heart },
       { id: "stock", label: "Estoque", icon: Package },
       { id: "homepage-sections", label: "Página Inicial", icon: LayoutDashboard },
       { id: "catalog-drive", label: "Catálogo Drive", icon: FolderOpen },
