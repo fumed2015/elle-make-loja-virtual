@@ -8,8 +8,9 @@ import { useProducts, useCategories } from "@/hooks/useProducts";
 import ProductCard from "@/components/product/ProductCard";
 import SEOHead from "@/components/SEOHead";
 import Footer from "@/components/layout/Footer";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { cn } from "@/lib/utils";
+import { fbTrackViewCategory } from "@/hooks/useMetaPixel";
 
 const categoryMeta: Record<string, { title: string; description: string; emoji: string }> = {
   rosto: { title: "Rosto", description: "Bases, corretivos, pós, blushes e contornos para um rosto perfeito.", emoji: "✨" },
@@ -52,6 +53,10 @@ const Categoria = () => {
 
   const meta = categoryMeta[slug || ""] || { title: slug || "Categoria", description: "", emoji: "✨" };
   const isOfertas = slug === "ofertas";
+
+  useEffect(() => {
+    if (slug) fbTrackViewCategory({ name: meta.title, slug });
+  }, [slug]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const { data: products, isLoading } = useProducts({
     categorySlug: isOfertas ? undefined : slug,

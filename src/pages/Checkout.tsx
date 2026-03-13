@@ -87,7 +87,8 @@ const Checkout = () => {
     if (cartTotal > 0) {
       trackInitiateCheckout({ value: cartTotal, itemCount: cartCount });
       const contentIds = items.map((item: any) => (item.products as any)?.id).filter(Boolean);
-      fbTrackInitiateCheckout({ value: cartTotal, itemCount: cartCount, contentIds });
+      const contents = items.map((item: any) => ({ id: (item.products as any)?.id, quantity: item.quantity })).filter((c: any) => c.id);
+      fbTrackInitiateCheckout({ value: cartTotal, itemCount: cartCount, contentIds, contents });
     }
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -323,7 +324,8 @@ const Checkout = () => {
 
     trackPurchase({ orderId: orderData.id, value: finalTotal, itemCount: cartCount });
     const contentIds = items.map((item: any) => (item.products as any)?.id).filter(Boolean);
-    fbTrackPurchase({ orderId: orderData.id, value: finalTotal, itemCount: cartCount, contentIds });
+    const contents = items.map((item: any) => ({ id: (item.products as any)?.id, quantity: item.quantity })).filter((c: any) => c.id);
+    fbTrackPurchase({ orderId: orderData.id, value: finalTotal, itemCount: cartCount, contentIds, contents });
 
     return orderData.id;
   };
@@ -350,7 +352,8 @@ const Checkout = () => {
     setSubmitting(true);
     // Fire AddPaymentInfo event
     const contentIds = items.map((item: any) => (item.products as any)?.id).filter(Boolean);
-    fbTrackAddPaymentInfo({ value: finalTotal, contentIds, paymentMethod });
+    const contents = items.map((item: any) => ({ id: (item.products as any)?.id, quantity: item.quantity })).filter((c: any) => c.id);
+    fbTrackAddPaymentInfo({ value: finalTotal, contentIds, paymentMethod, contents });
     try {
       const newOrderId = await createOrder();
       setOrderId(newOrderId);

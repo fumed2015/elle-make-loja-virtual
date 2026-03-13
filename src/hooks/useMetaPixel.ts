@@ -1,10 +1,14 @@
 /**
- * Meta (Facebook) Pixel event helpers.
- * The base pixel script is injected via TrackingPixelsInjector (admin Pixels tab).
- * These helpers fire standard e-commerce events when `fbq` is available on window.
+ * Meta (Facebook) Pixel – Standard Event Helpers
  *
- * Because the pixel script loads asynchronously from the database, we queue events
- * and retry until `fbq` becomes available (up to 10 seconds).
+ * The base pixel script (init + PageView) is hardcoded in index.html so it
+ * fires immediately on every page load — no async DB fetch needed.
+ *
+ * These helpers call fbq('track', …) for each standard e-commerce event,
+ * following the official Meta Pixel conversion-tracking spec:
+ * https://developers.facebook.com/docs/meta-pixel/implementation/conversion-tracking
+ *
+ * All monetary values use currency: "BRL".
  */
 
 declare global {
@@ -13,61 +17,16 @@ declare global {
   }
 }
 
-/** Queue of events waiting for fbq to load */
-const pendingEvents: Array<{ method: string; event: string; params?: Record<string, any> }> = [];
-let retryTimer: ReturnType<typeof setInterval> | null = null;
-
-function flushQueue() {
-  if (typeof window === "undefined" || !window.fbq) return;
-  while (pendingEvents.length > 0) {
-    const ev = pendingEvents.shift()!;
-    try {
-      if (ev.params) {
-        window.fbq(ev.method, ev.event, ev.params);
-      } else {
-        window.fbq(ev.method, ev.event);
-      }
-    } catch {
-      // silently ignore
-    }
-  }
-  if (retryTimer) {
-    clearInterval(retryTimer);
-    retryTimer = null;
-  }
-}
-
-function startRetry() {
-  if (retryTimer) return;
-  let attempts = 0;
-  retryTimer = setInterval(() => {
-    attempts++;
-    if (window.fbq) {
-      flushQueue();
-    } else if (attempts > 50) {
-      // Give up after ~10 seconds
-      pendingEvents.length = 0;
-      if (retryTimer) {
-        clearInterval(retryTimer);
-        retryTimer = null;
-      }
-    }
-  }, 200);
-}
+// ─── Internal fire helpers ─────────────────────────────────────────────
 
 function fire(event: string, params?: Record<string, any>) {
   try {
-    if (typeof window === "undefined") return;
-    if (window.fbq) {
+    if (typeof window !== "undefined" && typeof window.fbq === "function") {
       if (params) {
         window.fbq("track", event, params);
       } else {
         window.fbq("track", event);
       }
-    } else {
-      // Queue and retry
-      pendingEvents.push({ method: "track", event, params });
-      startRetry();
     }
   } catch {
     // silently ignore
@@ -76,28 +35,32 @@ function fire(event: string, params?: Record<string, any>) {
 
 function fireCustom(event: string, params?: Record<string, any>) {
   try {
-    if (typeof window === "undefined") return;
-    if (window.fbq) {
+    if (typeof window !== "undefined" && typeof window.fbq === "function") {
       if (params) {
         window.fbq("trackCustom", event, params);
       } else {
         window.fbq("trackCustom", event);
       }
-    } else {
-      pendingEvents.push({ method: "trackCustom", event, params });
-      startRetry();
     }
   } catch {
     // silently ignore
   }
 }
 
-/** Page view — should be called on every route change */
+// ─── Standard Events ───────────────────────────────────────────────────
+
+/**
+ * PageView – already fired by the base code in index.html on first load.
+ * Call this on SPA route changes so Meta sees each "virtual" page.
+ */
 export function fbTrackPageView() {
   fire("PageView");
 }
 
-/** Product page view */
+/**
+ * ViewContent – When a visitor views a product page.
+ * @see https://developers.facebook.com/docs/meta-pixel/reference#standard-events
+ */
 export function fbTrackViewContent(product: {
   id: string;
   name: string;
@@ -109,13 +72,16 @@ export function fbTrackViewContent(product: {
     content_ids: [product.id],
     content_type: "product",
     content_name: product.name,
-    content_category: [product.brand, product.category].filter(Boolean).join(" > "),
+    content_category: [product.brand, product.category].filter(Boolean).join(" > ") || undefined,
     value: product.price,
     currency: "BRL",
+    contents: [{ id: product.id, quantity: 1 }],
   });
 }
 
-/** Item added to cart */
+/**
+ * AddToCart – When an item is added to the shopping cart.
+ */
 export function fbTrackAddToCart(product: {
   id: string;
   name: string;
@@ -132,11 +98,14 @@ export function fbTrackAddToCart(product: {
   });
 }
 
-/** Checkout initiated */
+/**
+ * InitiateCheckout – When a visitor starts the checkout flow.
+ */
 export function fbTrackInitiateCheckout(params: {
   value: number;
   itemCount: number;
   contentIds: string[];
+  contents?: Array<{ id: string; quantity: number }>;
 }) {
   fire("InitiateCheckout", {
     content_ids: params.contentIds,
@@ -144,29 +113,38 @@ export function fbTrackInitiateCheckout(params: {
     value: params.value,
     currency: "BRL",
     num_items: params.itemCount,
+    contents: params.contents,
   });
 }
 
-/** Payment info added */
+/**
+ * AddPaymentInfo – When payment information is submitted.
+ */
 export function fbTrackAddPaymentInfo(params: {
   value: number;
   contentIds: string[];
   paymentMethod?: string;
+  contents?: Array<{ id: string; quantity: number }>;
 }) {
   fire("AddPaymentInfo", {
     content_ids: params.contentIds,
     content_type: "product",
     value: params.value,
     currency: "BRL",
+    contents: params.contents,
   });
 }
 
-/** Purchase completed */
+/**
+ * Purchase – When a purchase is completed (order confirmed).
+ * This is the most important conversion event for ROAS tracking.
+ */
 export function fbTrackPurchase(params: {
   orderId: string;
   value: number;
   itemCount: number;
   contentIds: string[];
+  contents?: Array<{ id: string; quantity: number }>;
 }) {
   fire("Purchase", {
     content_ids: params.contentIds,
@@ -174,18 +152,23 @@ export function fbTrackPurchase(params: {
     value: params.value,
     currency: "BRL",
     num_items: params.itemCount,
-    order_id: params.orderId,
+    contents: params.contents,
+    delivery_category: "home_delivery",
   });
 }
 
-/** Search */
+/**
+ * Search – When a search is performed.
+ */
 export function fbTrackSearch(query: string) {
   fire("Search", {
     search_string: query,
   });
 }
 
-/** Add to wishlist */
+/**
+ * AddToWishlist – When a product is added to favorites.
+ */
 export function fbTrackAddToWishlist(product: {
   id: string;
   name: string;
@@ -197,20 +180,51 @@ export function fbTrackAddToWishlist(product: {
     content_name: product.name,
     value: product.price,
     currency: "BRL",
+    contents: [{ id: product.id, quantity: 1 }],
   });
 }
 
-/** Lead — e.g. newsletter signup */
-export function fbTrackLead(params?: { value?: number }) {
-  fire("Lead", params);
+/**
+ * CompleteRegistration – When a visitor completes signup.
+ */
+export function fbTrackCompleteRegistration(params?: { value?: number }) {
+  fire("CompleteRegistration", {
+    status: true,
+    currency: "BRL",
+    ...params,
+  });
 }
 
-/** Contact — e.g. WhatsApp click */
+/**
+ * Lead – When a visitor signs up for newsletter or becomes a lead.
+ */
+export function fbTrackLead(params?: { value?: number }) {
+  fire("Lead", {
+    currency: "BRL",
+    ...params,
+  });
+}
+
+/**
+ * Contact – When a visitor initiates contact (e.g. WhatsApp click).
+ */
 export function fbTrackContact() {
   fire("Contact");
 }
 
-/** Custom click event */
-export function fbTrackCustomClick(eventName: string, params?: Record<string, any>) {
+/**
+ * ViewCategory – Custom event for category page views.
+ */
+export function fbTrackViewCategory(category: { name: string; slug: string }) {
+  fireCustom("ViewCategory", {
+    content_category: category.name,
+    content_name: category.slug,
+  });
+}
+
+/**
+ * Generic custom event.
+ */
+export function fbTrackCustom(eventName: string, params?: Record<string, any>) {
   fireCustom(eventName, params);
 }
