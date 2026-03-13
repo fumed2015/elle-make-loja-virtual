@@ -285,3 +285,22 @@ export function fbTrackViewCategory(category: { name: string; slug: string }) {
 export function fbTrackCustom(eventName: string, params?: Record<string, any>) {
   fireCustom(eventName, params);
 }
+
+/**
+ * ViewCart – Custom event when user views their cart page.
+ */
+export function fbTrackViewCart(params: {
+  value: number;
+  itemCount: number;
+  contentIds: string[];
+  contents?: Array<{ id: string; quantity: number }>;
+}) {
+  fireCustom("ViewCart", {
+    content_ids: params.contentIds,
+    content_type: "product",
+    value: params.value,
+    currency: "BRL",
+    num_items: params.itemCount,
+    contents: params.contents,
+  });
+}
