@@ -145,7 +145,7 @@ export default function MonthlyRevenueReportTab() {
   const [itemVIII, setItemVIII] = useState(0);
 
   const startDate = new Date(year, month, 1).toISOString();
-  const endDate = new Date(year, month + 1, 0, 23, 59, 59).toISOString();
+  const endDate = new Date(year, month + 1, 0, 23, 59, 59, 999).toISOString();
 
   const { data: monthlyTotal, isLoading } = useQuery({
     queryKey: ["revenue-report-orders", year, month],
