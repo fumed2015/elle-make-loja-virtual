@@ -1,12 +1,13 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
-export type CollectionSlug = "lancamentos" | "mais-vendidos" | "tendencias";
+export type CollectionSlug = "lancamentos" | "mais-vendidos" | "tendencias" | "ofertas";
 
 export const COLLECTION_LABELS: Record<CollectionSlug, string> = {
   lancamentos: "Lançamentos",
   "mais-vendidos": "Mais Vendidos",
   tendencias: "Tendências",
+  ofertas: "Ofertas",
 };
 
 export const useCollectionProducts = (slug: CollectionSlug) => {
