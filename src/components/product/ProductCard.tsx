@@ -11,7 +11,7 @@ import OptimizedImage from "@/components/ui/optimized-image";
 import { cn } from "@/lib/utils";
 import { useNavigate } from "react-router-dom";
 import { trackAddToCart } from "@/hooks/useTikTokPixel";
-import { fbTrackAddToCart } from "@/hooks/useMetaPixel";
+import { fbTrackAddToCart, fbTrackAddToWishlist } from "@/hooks/useMetaPixel";
 
 interface ProductCardProps {
   product: any;
