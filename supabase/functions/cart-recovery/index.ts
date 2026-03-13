@@ -104,6 +104,7 @@ serve(async (req) => {
     if (action === "process-abandonments") {
       const cutoff = new Date(Date.now() - 30 * 60 * 1000).toISOString();
       const maxAge = new Date(Date.now() - 48 * 60 * 60 * 1000).toISOString();
+      const cooldownCutoff = new Date(Date.now() - 4 * 60 * 60 * 1000).toISOString(); // 4h cooldown
 
       const { data: events, error } = await supabase
         .from("cart_abandonment_events")
@@ -113,16 +114,92 @@ serve(async (req) => {
         .lt("created_at", cutoff)
         .gt("created_at", maxAge)
         .order("created_at", { ascending: true })
-        .limit(20);
+        .limit(50);
 
       if (error) return jsonResponse({ error: error.message }, 500);
       if (!events || events.length === 0) return jsonResponse({ processed: 0, message: "No carts to recover" });
+
+      // ── DEDUPLICATE: only keep the LATEST event per user ──
+      const latestByUser = new Map<string, typeof events[0]>();
+      for (const event of events) {
+        const existing = latestByUser.get(event.user_id);
+        if (!existing || new Date(event.created_at) > new Date(existing.created_at)) {
+          latestByUser.set(event.user_id, event);
+        }
+      }
+
+      // Mark duplicate (older) events as fully notified so they stop being picked up
+      const duplicateIds = events
+        .filter((e) => latestByUser.get(e.user_id)?.id !== e.id)
+        .map((e) => e.id);
+      if (duplicateIds.length > 0) {
+        await supabase
+          .from("cart_abandonment_events")
+          .update({ notification_count: 99 })
+          .in("id", duplicateIds);
+      }
+
+      const uniqueEvents = Array.from(latestByUser.values());
+
+      // ── Check cooldown: skip users who got a notification recently ──
+      const userIds = uniqueEvents.map((e) => e.user_id);
+      const { data: recentNotifs } = await supabase
+        .from("notifications")
+        .select("user_id, created_at")
+        .in("user_id", userIds)
+        .eq("event_type", "cart.abandoned")
+        .gt("created_at", cooldownCutoff);
+
+      const recentlyNotifiedUsers = new Set((recentNotifs || []).map((n) => n.user_id));
 
       const tmplFirst = await loadTemplate(supabase, "cart.recovery.first");
       const tmplSecond = await loadTemplate(supabase, "cart.recovery.second");
 
       let sent = 0;
-      for (const event of events) {
+      let skipped = 0;
+      for (const event of uniqueEvents) {
+        // Skip if user was notified in the last 4 hours
+        if (recentlyNotifiedUsers.has(event.user_id)) {
+          skipped++;
+          continue;
+        }
+
+        // Verify cart items still exist before sending
+        const { data: cartItems, error: cartError } = await supabase
+          .from("cart_items")
+          .select("id, quantity, product_id, products(id, name, price, images, is_active)")
+          .eq("user_id", event.user_id);
+
+        const activeCartItems = (cartItems || []).filter(
+          (ci: any) => ci.products?.is_active === true
+        );
+
+        if (activeCartItems.length === 0) {
+          // No active cart items — mark as done
+          await supabase
+            .from("cart_abandonment_events")
+            .update({ notification_count: 99 })
+            .eq("id", event.id);
+          continue;
+        }
+
+        // Check if user already completed an order recently (converted)
+        const { data: recentOrders } = await supabase
+          .from("orders")
+          .select("id")
+          .eq("user_id", event.user_id)
+          .gt("created_at", event.created_at)
+          .not("status", "eq", "cancelled")
+          .limit(1);
+
+        if (recentOrders && recentOrders.length > 0) {
+          await supabase
+            .from("cart_abandonment_events")
+            .update({ recovered_at: new Date().toISOString(), notification_count: 99 })
+            .eq("id", event.id);
+          continue;
+        }
+
         let token = event.recovery_token;
         if (!token) {
           token = crypto.randomUUID().replace(/-/g, "").slice(0, 16);
@@ -153,8 +230,8 @@ serve(async (req) => {
           const vars = {
             first_name: firstName,
             merchant: MERCHANT_NAME,
-            items_count: String(event.items_count),
-            items_label: event.items_count === 1 ? "item" : "itens",
+            items_count: String(activeCartItems.length),
+            items_label: activeCartItems.length === 1 ? "item" : "itens",
             total: cartTotal,
             recovery_link: recoveryLink,
           };
@@ -176,12 +253,7 @@ serve(async (req) => {
         // Send email if available
         if (userEmail) {
           try {
-            const { data: cartItems } = await supabase
-              .from("cart_items")
-              .select("quantity, products(name, price, images)")
-              .eq("user_id", event.user_id);
-
-            const emailItems = (cartItems || []).map((ci: any) => ({
+            const emailItems = activeCartItems.map((ci: any) => ({
               name: ci.products?.name || "Produto",
               price: ci.products?.price || 0,
               quantity: ci.quantity || 1,
@@ -216,7 +288,7 @@ serve(async (req) => {
         sent++;
       }
 
-      return jsonResponse({ processed: events.length, sent });
+      return jsonResponse({ processed: uniqueEvents.length, sent, skipped, duplicatesCleaned: duplicateIds.length });
     }
 
     // ══════════════════════════════════════════════════════════
