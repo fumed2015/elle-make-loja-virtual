@@ -994,7 +994,8 @@ const AuditDashboard = ({ products, costMap, premises, orders, commissions, frei
     // Order-based stats (30d)
     const now = new Date();
     const cutoff = new Date(now.getTime() - 30 * 86400000);
-    const recentOrders = (orders || []).filter(o => new Date(o.created_at) >= cutoff && o.status !== "cancelled");
+    const CONFIRMED = ["approved", "confirmed", "processing", "shipped", "delivered"];
+    const recentOrders = (orders || []).filter(o => new Date(o.created_at) >= cutoff && CONFIRMED.includes(o.status));
 
     let orderCmvTotal = 0;
     recentOrders.forEach(order => {
