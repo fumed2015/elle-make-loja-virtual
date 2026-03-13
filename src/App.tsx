@@ -51,6 +51,7 @@ const App = () => (
           <>
             <ScrollToTop />
             <TrackingPixelsInjector />
+            <MetaPixelProvider />
             <Suspense fallback={<PageLoader />}>
               <Routes>
                 <Route element={<AppLayout />}>
