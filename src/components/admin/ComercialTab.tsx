@@ -24,7 +24,8 @@ const ComercialTab = () => {
 
   const now = new Date();
   const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
-  const monthOrders = orders?.filter(o => new Date(o.created_at) >= monthStart && o.status !== "cancelled" && o.status !== "refunded") || [];
+  const CONFIRMED = ["approved", "confirmed", "processing", "shipped", "delivered"];
+  const monthOrders = orders?.filter(o => new Date(o.created_at) >= monthStart && CONFIRMED.includes(o.status)) || [];
   const monthRevenue = monthOrders.reduce((s, o) => s + Number(o.total), 0);
   const goal = parseFloat(monthlyGoal) || 10000;
   const goalPercent = Math.min(100, (monthRevenue / goal) * 100);
