@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { supabase } from "@/integrations/supabase/client";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
+import { fbTrackLead } from "@/hooks/useMetaPixel";
 
 const STORAGE_KEY = "ellemake_newsletter_dismissed";
 const POPUP_DELAY_MS = 8000;
