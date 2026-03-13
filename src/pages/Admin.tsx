@@ -137,6 +137,7 @@ const Admin = () => {
       case "catalog-drive": return <CatalogDriveTab />;
       case "marketplaces": return <MarketplacesTab />;
       case "revenue-report": return <MonthlyRevenueReportTab />;
+      case "collections": return <CollectionsTab />;
       default: return <DashboardTab />;
     }
   };
