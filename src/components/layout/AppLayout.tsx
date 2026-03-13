@@ -4,10 +4,12 @@ import Header from "./Header";
 import BottomNav from "./BottomNav";
 import FloatingWhatsApp from "./FloatingWhatsApp";
 import { useMetaPageView } from "@/hooks/useMetaPageView";
+import { useMetaAdvancedMatching } from "@/hooks/useMetaAdvancedMatching";
 
 const AppLayout = () => {
   const location = useLocation();
   useMetaPageView();
+  useMetaAdvancedMatching();
 
   return (
     <div className="min-h-screen bg-background transition-colors duration-300 overscroll-none">

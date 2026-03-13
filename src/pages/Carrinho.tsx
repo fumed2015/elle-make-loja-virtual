@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { ShoppingBag, Trash2, ArrowRight, Minus, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useCart } from "@/hooks/useCart";
@@ -9,6 +10,7 @@ import ShippingCalculator from "@/components/shipping/ShippingCalculator";
 import FreeShippingBar from "@/components/layout/FreeShippingBar";
 import CrossSellSection from "@/components/checkout/CrossSellSection";
 import UrgencyBadge from "@/components/product/UrgencyBadge";
+import { fbTrackViewCart } from "@/hooks/useMetaPixel";
 
 const Carrinho = () => {
   const { items, isLoading, removeFromCart, updateQuantity, cartTotal, cartCount } = useCart();
@@ -17,6 +19,14 @@ const Carrinho = () => {
   const shippingCost = shipping.selectedShipping?.price ?? 0;
   const total = cartTotal + shippingCost;
   const needsLogin = !user;
+
+  // Pixel: ViewCart
+  useEffect(() => {
+    if (items.length === 0) return;
+    const contentIds = items.map((item: any) => (item.products as any)?.id).filter(Boolean);
+    const contents = items.map((item: any) => ({ id: (item.products as any)?.id, quantity: item.quantity })).filter((c: any) => c.id);
+    fbTrackViewCart({ value: cartTotal, itemCount: cartCount, contentIds, contents });
+  }, [items.length]); // eslint-disable-line react-hooks/exhaustive-deps
 
   if (isLoading) {
     return (

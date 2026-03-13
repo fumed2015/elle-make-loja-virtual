@@ -17,6 +17,63 @@ declare global {
   }
 }
 
+const PIXEL_ID = "1447990610311925";
+
+// ─── Advanced Matching ─────────────────────────────────────────────────
+/**
+ * Re-initialises the pixel with user PII so Meta can match conversions
+ * to real people (improves Event Match Quality / EMQ score).
+ *
+ * Data is sent in clear-text to fbq(); the JS SDK hashes it
+ * automatically before transmitting.
+ *
+ * Normalisation follows Meta's spec (the CSV reference):
+ *  - email: trim + lowercase
+ *  - phone: digits only, strip leading zeros, prepend country code 55 (BR)
+ *  - names / city: trim + lowercase
+ *  - state: 2-letter lowercase
+ *  - zip: digits only
+ */
+export function fbSetUserData(data: {
+  email?: string;
+  phone?: string;
+  firstName?: string;
+  lastName?: string;
+  city?: string;
+  state?: string;
+  zip?: string;
+  country?: string;
+}) {
+  try {
+    if (typeof window === "undefined" || typeof window.fbq !== "function") return;
+
+    const ud: Record<string, string> = {};
+
+    if (data.email) ud.em = data.email.trim().toLowerCase();
+
+    if (data.phone) {
+      let ph = data.phone.replace(/\D/g, "").replace(/^0+/, "");
+      // Prepend BR country code if not present
+      if (ph.length === 10 || ph.length === 11) ph = "55" + ph;
+      if (ph) ud.ph = ph;
+    }
+
+    if (data.firstName) ud.fn = data.firstName.trim().toLowerCase();
+    if (data.lastName) ud.ln = data.lastName.trim().toLowerCase();
+    if (data.city) ud.ct = data.city.trim().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+    if (data.state) ud.st = data.state.trim().toLowerCase().slice(0, 2);
+    if (data.zip) ud.zp = data.zip.replace(/\D/g, "");
+    ud.country = (data.country || "br").toLowerCase();
+
+    if (Object.keys(ud).length > 1) {
+      // Re-init with user data for Advanced Matching
+      window.fbq("init", PIXEL_ID, ud);
+    }
+  } catch {
+    // silently ignore
+  }
+}
+
 // ─── Internal fire helpers ─────────────────────────────────────────────
 
 function fire(event: string, params?: Record<string, any>) {
@@ -227,4 +284,23 @@ export function fbTrackViewCategory(category: { name: string; slug: string }) {
  */
 export function fbTrackCustom(eventName: string, params?: Record<string, any>) {
   fireCustom(eventName, params);
+}
+
+/**
+ * ViewCart – Custom event when user views their cart page.
+ */
+export function fbTrackViewCart(params: {
+  value: number;
+  itemCount: number;
+  contentIds: string[];
+  contents?: Array<{ id: string; quantity: number }>;
+}) {
+  fireCustom("ViewCart", {
+    content_ids: params.contentIds,
+    content_type: "product",
+    value: params.value,
+    currency: "BRL",
+    num_items: params.itemCount,
+    contents: params.contents,
+  });
 }

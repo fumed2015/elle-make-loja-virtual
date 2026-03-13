@@ -18,7 +18,7 @@ import { cn } from "@/lib/utils";
 import SEOHead from "@/components/SEOHead";
 import UrgencyBadge from "@/components/product/UrgencyBadge";
 import { trackViewContent, trackAddToCart } from "@/hooks/useTikTokPixel";
-import { fbTrackViewContent, fbTrackAddToCart, fbTrackAddToWishlist } from "@/hooks/useMetaPixel";
+import { fbTrackViewContent, fbTrackAddToCart, fbTrackAddToWishlist, fbTrackContact } from "@/hooks/useMetaPixel";
 
 const trustBadges = [
   { icon: ShieldCheck, text: "Entrega Segura", sub: "Embalagem protegida" },
@@ -293,6 +293,7 @@ const Produto = () => {
                 href={`https://wa.me/5591936180774?text=${whatsappMsg}`}
                 target="_blank"
                 rel="noopener noreferrer"
+                onClick={() => fbTrackContact()}
                 className="w-full min-h-[48px] text-base font-semibold border-2 border-border rounded-md flex items-center justify-center gap-2 hover:bg-muted transition-colors"
               >
                 <WhatsAppIcon className="w-5 h-5 text-accent" />
