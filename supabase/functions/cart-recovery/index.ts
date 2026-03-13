@@ -104,6 +104,7 @@ serve(async (req) => {
     if (action === "process-abandonments") {
       const cutoff = new Date(Date.now() - 30 * 60 * 1000).toISOString();
       const maxAge = new Date(Date.now() - 48 * 60 * 60 * 1000).toISOString();
+      const cooldownCutoff = new Date(Date.now() - 4 * 60 * 60 * 1000).toISOString(); // 4h cooldown
 
       const { data: events, error } = await supabase
         .from("cart_abandonment_events")
@@ -113,16 +114,92 @@ serve(async (req) => {
         .lt("created_at", cutoff)
         .gt("created_at", maxAge)
         .order("created_at", { ascending: true })
-        .limit(20);
+        .limit(50);
 
       if (error) return jsonResponse({ error: error.message }, 500);
       if (!events || events.length === 0) return jsonResponse({ processed: 0, message: "No carts to recover" });
+
+      // ── DEDUPLICATE: only keep the LATEST event per user ──
+      const latestByUser = new Map<string, typeof events[0]>();
+      for (const event of events) {
+        const existing = latestByUser.get(event.user_id);
+        if (!existing || new Date(event.created_at) > new Date(existing.created_at)) {
+          latestByUser.set(event.user_id, event);
+        }
+      }
+
+      // Mark duplicate (older) events as fully notified so they stop being picked up
+      const duplicateIds = events
+        .filter((e) => latestByUser.get(e.user_id)?.id !== e.id)
+        .map((e) => e.id);
+      if (duplicateIds.length > 0) {
+        await supabase
+          .from("cart_abandonment_events")
+          .update({ notification_count: 99 })
+          .in("id", duplicateIds);
+      }
+
+      const uniqueEvents = Array.from(latestByUser.values());
+
+      // ── Check cooldown: skip users who got a notification recently ──
+      const userIds = uniqueEvents.map((e) => e.user_id);
+      const { data: recentNotifs } = await supabase
+        .from("notifications")
+        .select("user_id, created_at")
+        .in("user_id", userIds)
+        .eq("event_type", "cart.abandoned")
+        .gt("created_at", cooldownCutoff);
+
+      const recentlyNotifiedUsers = new Set((recentNotifs || []).map((n) => n.user_id));
 
       const tmplFirst = await loadTemplate(supabase, "cart.recovery.first");
       const tmplSecond = await loadTemplate(supabase, "cart.recovery.second");
 
       let sent = 0;
-      for (const event of events) {
+      let skipped = 0;
+      for (const event of uniqueEvents) {
+        // Skip if user was notified in the last 4 hours
+        if (recentlyNotifiedUsers.has(event.user_id)) {
+          skipped++;
+          continue;
+        }
+
+        // Verify cart items still exist before sending
+        const { data: cartItems, error: cartError } = await supabase
+          .from("cart_items")
+          .select("id, quantity, product_id, products(id, name, price, images, is_active)")
+          .eq("user_id", event.user_id);
+
+        const activeCartItems = (cartItems || []).filter(
+          (ci: any) => ci.products?.is_active === true
+        );
+
+        if (activeCartItems.length === 0) {
+          // No active cart items — mark as done
+          await supabase
+            .from("cart_abandonment_events")
+            .update({ notification_count: 99 })
+            .eq("id", event.id);
+          continue;
+        }
+
+        // Check if user already completed an order recently (converted)
+        const { data: recentOrders } = await supabase
+          .from("orders")
+          .select("id")
+          .eq("user_id", event.user_id)
+          .gt("created_at", event.created_at)
+          .not("status", "eq", "cancelled")
+          .limit(1);
+
+        if (recentOrders && recentOrders.length > 0) {
+          await supabase
+            .from("cart_abandonment_events")
+            .update({ recovered_at: new Date().toISOString(), notification_count: 99 })
+            .eq("id", event.id);
+          continue;
+        }
+
         let token = event.recovery_token;
         if (!token) {
           token = crypto.randomUUID().replace(/-/g, "").slice(0, 16);
@@ -153,8 +230,8 @@ serve(async (req) => {
           const vars = {
             first_name: firstName,
             merchant: MERCHANT_NAME,
-            items_count: String(event.items_count),
-            items_label: event.items_count === 1 ? "item" : "itens",
+            items_count: String(activeCartItems.length),
+            items_label: activeCartItems.length === 1 ? "item" : "itens",
             total: cartTotal,
             recovery_link: recoveryLink,
           };
@@ -176,12 +253,7 @@ serve(async (req) => {
         // Send email if available
         if (userEmail) {
           try {
-            const { data: cartItems } = await supabase
-              .from("cart_items")
-              .select("quantity, products(name, price, images)")
-              .eq("user_id", event.user_id);
-
-            const emailItems = (cartItems || []).map((ci: any) => ({
+            const emailItems = activeCartItems.map((ci: any) => ({
               name: ci.products?.name || "Produto",
               price: ci.products?.price || 0,
               quantity: ci.quantity || 1,
@@ -216,7 +288,7 @@ serve(async (req) => {
         sent++;
       }
 
-      return jsonResponse({ processed: events.length, sent });
+      return jsonResponse({ processed: uniqueEvents.length, sent, skipped, duplicatesCleaned: duplicateIds.length });
     }
 
     // ══════════════════════════════════════════════════════════
@@ -233,6 +305,7 @@ serve(async (req) => {
         .eq("payment_method", "pix")
         .lt("created_at", cutoff15)
         .gt("created_at", cutoff24h)
+        .not("status", "in", "(cancelled,refunded)")
         .order("created_at", { ascending: true })
         .limit(20);
 
@@ -248,10 +321,44 @@ serve(async (req) => {
       const alreadyNotified = new Set(existingNotifs?.map((n) => n.order_id) || []);
       const toNotify = orders.filter((o) => !alreadyNotified.has(o.id));
 
+      // Also check cooldown per user - max 1 pix reminder per 4 hours
+      const cooldownCutoff = new Date(Date.now() - 4 * 60 * 60 * 1000).toISOString();
+      const userIdsToNotify = [...new Set(toNotify.map((o) => o.user_id))];
+      const { data: recentPixNotifs } = await supabase
+        .from("notifications")
+        .select("user_id")
+        .in("user_id", userIdsToNotify)
+        .eq("event_type", "pix.reminder")
+        .gt("created_at", cooldownCutoff);
+
+      const recentlyNotifiedUsers = new Set((recentPixNotifs || []).map((n) => n.user_id));
+      const filteredToNotify = toNotify.filter((o) => !recentlyNotifiedUsers.has(o.user_id));
+
+      // Deduplicate by user - only notify once per user
+      const seenUsers = new Set<string>();
+      const dedupedToNotify = filteredToNotify.filter((o) => {
+        if (seenUsers.has(o.user_id)) return false;
+        seenUsers.add(o.user_id);
+        return true;
+      });
+
       const tmplPix = await loadTemplate(supabase, "pix.reminder");
 
       let sent = 0;
-      for (const order of toNotify) {
+      for (const order of dedupedToNotify) {
+        // Verify order items have active products
+        const items = (order.items as any[]) || [];
+        const productIds = items.map((i: any) => i.product_id).filter(Boolean);
+        if (productIds.length > 0) {
+          const { data: activeProducts } = await supabase
+            .from("products")
+            .select("id")
+            .in("id", productIds)
+            .eq("is_active", true);
+
+          if (!activeProducts || activeProducts.length === 0) continue;
+        }
+
         const { data: profile } = await supabase
           .from("profiles")
           .select("full_name, phone")
@@ -260,7 +367,6 @@ serve(async (req) => {
 
         if (!profile?.phone) continue;
 
-        const items = (order.items as any[]) || [];
         const productsList = items.map((i: any) => `• ${i.name || "Produto"} (${i.quantity || 1}x)`).join("\n");
 
         const vars = {
@@ -287,7 +393,7 @@ serve(async (req) => {
         sent++;
       }
 
-      return jsonResponse({ processed: toNotify.length, sent });
+      return jsonResponse({ processed: dedupedToNotify.length, sent });
     }
 
     // ══════════════════════════════════════════════════════════
