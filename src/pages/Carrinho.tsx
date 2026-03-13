@@ -20,6 +20,14 @@ const Carrinho = () => {
   const total = cartTotal + shippingCost;
   const needsLogin = !user;
 
+  // Pixel: ViewCart
+  useEffect(() => {
+    if (items.length === 0) return;
+    const contentIds = items.map((item: any) => (item.products as any)?.id).filter(Boolean);
+    const contents = items.map((item: any) => ({ id: (item.products as any)?.id, quantity: item.quantity })).filter((c: any) => c.id);
+    fbTrackViewCart({ value: cartTotal, itemCount: cartCount, contentIds, contents });
+  }, [items.length]); // eslint-disable-line react-hooks/exhaustive-deps
+
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
