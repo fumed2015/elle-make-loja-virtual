@@ -9,6 +9,7 @@ import { ScrollToTop } from "@/components/ScrollToTop";
 
 import AppLayout from "@/components/layout/AppLayout";
 import TrackingPixelsInjector from "@/components/TrackingPixelsInjector";
+import MetaPixelProvider from "@/components/MetaPixelProvider";
 import Index from "./pages/Index";
 
 // Lazy load non-critical routes
@@ -50,6 +51,7 @@ const App = () => (
           <>
             <ScrollToTop />
             <TrackingPixelsInjector />
+            <MetaPixelProvider />
             <Suspense fallback={<PageLoader />}>
               <Routes>
                 <Route element={<AppLayout />}>
