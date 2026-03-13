@@ -414,7 +414,7 @@ const Header = () => {
           {/* Right: search + icons */}
           <div className="flex items-center gap-1 flex-shrink-0 md:w-auto justify-end">
             {/* Desktop search */}
-            <div className="hidden md:flex relative w-48 lg:w-56" ref={searchContainerRef}>
+            <div className="hidden md:flex relative w-40 lg:w-48 xl:w-56 ml-2" ref={searchContainerRef}>
               <form onSubmit={handleSearch} className="w-full relative">
                 <Input
                   placeholder="Buscar"
