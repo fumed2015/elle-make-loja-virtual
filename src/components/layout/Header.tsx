@@ -377,29 +377,31 @@ const Header = () => {
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -4 }}
                   transition={{ duration: 0.15 }}
-                  className="absolute top-full left-1/2 -translate-x-1/2 w-[600px] z-50 bg-card border border-border shadow-lg rounded-b-lg"
+                  className="absolute top-full left-1/2 -translate-x-1/2 w-[600px] z-50 pt-2"
                   onMouseEnter={() => handleMouseEnter(hoveredNav)}
                   onMouseLeave={handleMouseLeave}
                 >
-                  <div className="px-6 py-5">
-                    <div className="grid grid-cols-2 gap-x-8 gap-y-3">
-                      {navLinks.find(l => l.label === hoveredNav)?.subs?.map((sub) => (
+                  <div className="bg-card border border-border shadow-lg rounded-b-lg">
+                    <div className="px-6 py-5">
+                      <div className="grid grid-cols-2 gap-x-8 gap-y-3">
+                        {navLinks.find(l => l.label === hoveredNav)?.subs?.map((sub) => (
+                          <Link
+                            key={sub.label}
+                            to={sub.to}
+                            className="text-sm text-foreground hover:text-primary font-medium transition-colors whitespace-nowrap"
+                          >
+                            {sub.label}
+                          </Link>
+                        ))}
+                      </div>
+                      <div className="border-t border-border mt-4 pt-3">
                         <Link
-                          key={sub.label}
-                          to={sub.to}
-                          className="text-sm text-foreground hover:text-primary font-medium transition-colors whitespace-nowrap"
+                          to={navLinks.find(l => l.label === hoveredNav)?.to || "/explorar"}
+                          className="text-xs font-semibold text-primary hover:underline"
                         >
-                          {sub.label}
+                          Ver tudo em {hoveredNav} →
                         </Link>
-                      ))}
-                    </div>
-                    <div className="border-t border-border mt-4 pt-3">
-                      <Link
-                        to={navLinks.find(l => l.label === hoveredNav)?.to || "/explorar"}
-                        className="text-xs font-semibold text-primary hover:underline"
-                      >
-                        Ver tudo em {hoveredNav} →
-                      </Link>
+                      </div>
                     </div>
                   </div>
                 </motion.div>
