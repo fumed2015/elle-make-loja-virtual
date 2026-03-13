@@ -141,11 +141,11 @@ export const OrderConfirmationEmail = ({
             </Section>
           )}
 
-          {shippingAddress && (
+          {formattedAddress && (
             <>
               <Hr style={divider} />
               <Text style={sectionTitle}>Endereço de entrega</Text>
-              <Text style={addressText}>{shippingAddress}</Text>
+              <Text style={addressText}>{formattedAddress}</Text>
             </>
           )}
 
@@ -161,9 +161,8 @@ export const OrderConfirmationEmail = ({
       </Container>
     </Body>
   </Html>
-)
-
-export default OrderConfirmationEmail
+  )
+}
 
 const main = { backgroundColor: '#ffffff', fontFamily: "'Playfair Display', Georgia, serif" }
 const container = { maxWidth: '520px', margin: '0 auto', padding: '20px 16px' }
