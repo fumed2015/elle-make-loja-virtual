@@ -11,6 +11,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
+import { fbTrackCompleteRegistration } from "@/hooks/useMetaPixel";
 
 const Perfil = () => {
   const navigate = useNavigate();
