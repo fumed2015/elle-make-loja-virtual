@@ -220,6 +220,83 @@ async function handleWebhook(req: Request, rawBody: string, accessToken: string)
 
   console.log(`Order ${externalReference} updated to ${orderStatus}`);
 
+  // ─── Meta CAPI: Send Purchase event server-side ───────────────
+  if (mpStatus === "approved") {
+    try {
+      // Get order details for the event
+      const { data: orderData } = await supabaseAdmin
+        .from("orders")
+        .select("id, total, items, user_id, shipping_address")
+        .eq("id", externalReference)
+        .single();
+
+      if (orderData) {
+        const items = (orderData.items as any[]) || [];
+        const contentIds = items.map((i: any) => i.product_id).filter(Boolean);
+        const contents = items.map((i: any) => ({ id: i.product_id, quantity: i.quantity || 1 }));
+        const addr = (orderData.shipping_address as any) || {};
+
+        // Get user profile for PII
+        let profileData: any = null;
+        if (orderData.user_id) {
+          const { data: profile } = await supabaseAdmin
+            .from("profiles")
+            .select("phone, full_name, cpf, address")
+            .eq("user_id", orderData.user_id)
+            .maybeSingle();
+          profileData = profile;
+        }
+
+        const payer = paymentData.payer || {};
+        const nameParts = (profileData?.full_name || payer.first_name || "").split(" ");
+
+        const capiEvent = {
+          event_name: "Purchase",
+          event_id: `purchase_${externalReference}`,
+          event_time: Math.floor(Date.now() / 1000),
+          action_source: "website",
+          event_source_url: "https://ellemake2.lovable.app/checkout",
+          user_data: {
+            email: payer.email || "",
+            phone: payer.phone?.number ? `${payer.phone.area_code || ""}${payer.phone.number}` : (profileData?.phone || ""),
+            first_name: payer.first_name || nameParts[0] || "",
+            last_name: payer.last_name || nameParts.slice(1).join(" ") || "",
+            external_id: orderData.user_id || "",
+            country: "br",
+            state: addr.state || "",
+            city: addr.city || "",
+            zip: addr.zip || addr.cep || "",
+          },
+          custom_data: {
+            content_ids: contentIds,
+            content_type: "product",
+            value: orderData.total,
+            currency: "BRL",
+            num_items: items.length,
+            contents: contents,
+            order_id: externalReference,
+            delivery_category: "home_delivery",
+          },
+        };
+
+        const capiRes = await fetch(
+          `${supabaseUrl}/functions/v1/meta-capi`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${supabaseServiceKey}`,
+            },
+            body: JSON.stringify({ events: [capiEvent] }),
+          }
+        );
+        console.log("Meta CAPI Purchase event sent:", capiRes.status);
+      }
+    } catch (capiErr) {
+      console.error("Meta CAPI error (non-blocking):", capiErr);
+    }
+  }
+
   // Trigger WhatsApp notification via whatsapp-notifications function
   const eventMap: Record<string, string> = {
     approved: "order.paid",
