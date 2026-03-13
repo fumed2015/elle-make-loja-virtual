@@ -288,178 +288,73 @@ const Header = () => {
       </div>
 
       {/* Main header */}
-      <div className={`border-b px-3 md:px-4 py-3 md:py-2 transition-all duration-500 ease-in-out ${!isTransparent ? 'bg-card/95 backdrop-blur-md border-border shadow-sm' : 'bg-transparent border-transparent shadow-none backdrop-blur-none'}`}>
-        <div className="max-w-7xl mx-auto w-full">
-          {/* Top row: hamburger/logo + search + icons */}
-          <div className="flex items-center min-w-0 relative overflow-visible">
-            {/* Left: hamburger (mobile only) + Logo */}
-            <div className="flex items-center gap-1 flex-shrink-0 md:w-auto">
-              <Sheet>
-                <SheetTrigger asChild>
-                  <button className={`md:hidden w-10 h-10 flex items-center justify-center rounded-full transition-colors ${!isTransparent ? 'hover:bg-muted' : 'hover:bg-white/10'}`} aria-label="Menu">
-                     <Menu className={`w-6 h-6 ${!isTransparent ? 'text-foreground' : 'text-white drop-shadow-sm'}`} />
-                  </button>
-                </SheetTrigger>
-                <SheetContent side="left" className="w-72 p-0">
-                  <div className="p-4 border-b border-border">
-                    <img src={logoEllemake} alt="Elle Make" className="h-8 object-contain" />
-                  </div>
-                  <nav className="py-2">
-                    {navLinks.map((link) => (
-                      <div key={link.label}>
-                        <SheetClose asChild>
-                          <Link
-                            to={link.to}
-                            className="flex items-center justify-between px-4 py-3 text-sm font-medium text-foreground hover:bg-muted transition-colors"
-                          >
-                            {link.label}
-                            {link.subs && <ChevronRight className="w-4 h-4 text-muted-foreground" />}
-                          </Link>
-                        </SheetClose>
-                        {link.subs && (
-                          <div className="pl-6 pb-1">
-                            {link.subs.map((sub) => (
-                              <SheetClose asChild key={sub.label}>
-                                <Link
-                                  to={sub.to}
-                                  className="block px-4 py-1.5 text-xs text-muted-foreground hover:text-primary transition-colors"
-                                >
-                                  {sub.label}
-                                </Link>
-                              </SheetClose>
-                            ))}
-                          </div>
-                        )}
-                      </div>
-                    ))}
-                  </nav>
-                </SheetContent>
-              </Sheet>
-            </div>
+      <div className={`border-b px-3 md:px-4 py-3 md:py-3 transition-all duration-500 ease-in-out ${!isTransparent ? 'bg-card/95 backdrop-blur-md border-border shadow-sm' : 'bg-transparent border-transparent shadow-none backdrop-blur-none'}`}>
+        <div className="max-w-7xl mx-auto w-full flex items-center min-w-0 relative overflow-visible">
+          {/* Left: hamburger (mobile only) + Logo */}
+          <div className="flex items-center gap-1 flex-shrink-0">
+            <Sheet>
+              <SheetTrigger asChild>
+                <button className={`md:hidden w-10 h-10 flex items-center justify-center rounded-full transition-colors ${!isTransparent ? 'hover:bg-muted' : 'hover:bg-white/10'}`} aria-label="Menu">
+                   <Menu className={`w-6 h-6 ${!isTransparent ? 'text-foreground' : 'text-white drop-shadow-sm'}`} />
+                </button>
+              </SheetTrigger>
+              <SheetContent side="left" className="w-72 p-0">
+                <div className="p-4 border-b border-border">
+                  <img src={logoEllemake} alt="Elle Make" className="h-8 object-contain" />
+                </div>
+                <nav className="py-2">
+                  {navLinks.map((link) => (
+                    <div key={link.label}>
+                      <SheetClose asChild>
+                        <Link
+                          to={link.to}
+                          className="flex items-center justify-between px-4 py-3 text-sm font-medium text-foreground hover:bg-muted transition-colors"
+                        >
+                          {link.label}
+                          {link.subs && <ChevronRight className="w-4 h-4 text-muted-foreground" />}
+                        </Link>
+                      </SheetClose>
+                      {link.subs && (
+                        <div className="pl-6 pb-1">
+                          {link.subs.map((sub) => (
+                            <SheetClose asChild key={sub.label}>
+                              <Link
+                                to={sub.to}
+                                className="block px-4 py-1.5 text-xs text-muted-foreground hover:text-primary transition-colors"
+                              >
+                                {sub.label}
+                              </Link>
+                            </SheetClose>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </nav>
+              </SheetContent>
+            </Sheet>
 
             {/* Logo */}
-            <div className="absolute left-1/2 -translate-x-1/2 md:static md:translate-x-0 md:flex-none md:mr-auto">
+            <div className="absolute left-1/2 -translate-x-1/2 md:static md:translate-x-0 md:flex-none">
               <Link to="/">
                 <motion.div
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
-                  className="flex items-center gap-0"
+                  className="flex items-center"
                 >
                   <img 
                     src={logoEllemake} 
                     alt="Elle Make" 
-                    className={`h-8 md:h-10 object-contain transition-all duration-300 ${isTransparent ? 'brightness-0 invert drop-shadow-lg' : ''}`}
+                    className={`h-8 md:h-9 object-contain transition-all duration-300 ${isTransparent ? 'brightness-0 invert drop-shadow-lg' : ''}`}
                   />
                 </motion.div>
-              </Link>
-            </div>
-
-            {/* Right: search + icons */}
-            <div className="flex items-center gap-1 flex-shrink-0 md:w-auto justify-end ml-auto">
-              {/* Desktop search */}
-              <div className="hidden md:flex relative w-44 lg:w-56 xl:w-64 ml-2" ref={searchContainerRef}>
-                <form onSubmit={handleSearch} className="w-full relative">
-                  <Input
-                    placeholder="Buscar"
-                    value={search}
-                    onChange={(e) => { setSearch(e.target.value); setShowSuggestions(e.target.value.length >= 2); }}
-                    onFocus={() => search.length >= 2 && setShowSuggestions(true)}
-                    className={`h-10 rounded-lg text-sm pr-10 focus:ring-2 w-full transition-colors duration-300 ${!isTransparent ? 'bg-background border border-border focus:ring-primary/30 text-foreground' : 'bg-white/15 border border-white/30 focus:ring-white/30 text-white placeholder:text-white/60'}`}
-                  />
-                  <button type="submit" className="absolute right-1 top-1/2 -translate-y-1/2 w-8 h-8 flex items-center justify-center rounded-md hover:bg-muted transition-colors">
-                    <Search className={`w-5 h-5 ${!isTransparent ? 'text-muted-foreground' : 'text-white/70'}`} />
-                  </button>
-                </form>
-                <SuggestionsDropdown />
-              </div>
-
-              {/* User dropdown (desktop) */}
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <button className={`hidden md:flex w-10 h-10 items-center justify-center rounded-full transition-colors relative ${!isTransparent ? 'hover:bg-muted' : 'hover:bg-white/10'}`} aria-label="Conta">
-                    <User className={`w-5 h-5 ${!isTransparent ? 'text-foreground' : 'text-white drop-shadow-sm'}`} />
-                    {user && (
-                      <span className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-accent border-2 border-card" />
-                    )}
-                  </button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-48">
-                  {user ? (
-                    <>
-                      <div className="px-3 py-2">
-                        <p className="text-xs text-muted-foreground truncate">{user.email}</p>
-                      </div>
-                      <DropdownMenuSeparator />
-                      <DropdownMenuItem onClick={() => navigate("/perfil")}>
-                        <User className="w-4 h-4 mr-2" /> Meu Perfil
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => navigate("/pedidos")}>
-                        <ShoppingBag className="w-4 h-4 mr-2" /> Meus Pedidos
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => navigate("/favoritos")}>
-                        <Settings className="w-4 h-4 mr-2" /> Favoritos
-                      </DropdownMenuItem>
-                      <DropdownMenuSeparator />
-                      <DropdownMenuItem onClick={async () => { await signOut(); toast.success("Você saiu da conta"); }}>
-                        <LogOut className="w-4 h-4 mr-2" /> Sair
-                      </DropdownMenuItem>
-                    </>
-                  ) : (
-                    <>
-                      <DropdownMenuItem onClick={() => navigate("/perfil")}>
-                        <LogIn className="w-4 h-4 mr-2" /> Entrar / Cadastrar
-                      </DropdownMenuItem>
-                    </>
-                  )}
-                </DropdownMenuContent>
-              </DropdownMenu>
-
-              {/* Search icon (mobile) */}
-              <button
-                onClick={() => setMobileSearchOpen(prev => !prev)}
-                className={`md:hidden w-10 h-10 flex items-center justify-center rounded-full transition-colors ${!isTransparent ? 'hover:bg-muted' : 'hover:bg-white/10'}`}
-                aria-label="Buscar"
-              >
-                <Search className={`w-5 h-5 ${!isTransparent ? 'text-foreground' : 'text-white drop-shadow-sm'}`} />
-              </button>
-
-              {/* Account icon (mobile) */}
-              <Link to="/perfil" className={`md:hidden w-10 h-10 flex items-center justify-center rounded-full transition-colors relative ${!isTransparent ? 'hover:bg-muted' : 'hover:bg-white/10'}`} aria-label="Conta">
-                <User className={`w-5 h-5 ${!isTransparent ? 'text-foreground' : 'text-white drop-shadow-sm'}`} />
-                {user && (
-                  <span className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-accent border-2 border-card" />
-                )}
-              </Link>
-
-              {/* Cart */}
-              <Link to="/carrinho" className={`w-10 h-10 flex items-center justify-center rounded-full transition-colors relative ${!isTransparent ? 'hover:bg-muted' : 'hover:bg-white/10'}`} aria-label="Carrinho">
-                <motion.div
-                  whileHover={{ scale: 1.1 }}
-                  whileTap={{ scale: 0.9 }}
-                  key={cartCount}
-                  animate={cartCount > 0 ? { scale: [1, 1.3, 1], rotate: [0, -10, 10, 0] } : {}}
-                  transition={{ duration: 0.4 }}
-                >
-                  <ShoppingBag className={`w-5 h-5 ${!isTransparent ? 'text-foreground' : 'text-white drop-shadow-sm'}`} />
-                </motion.div>
-                {cartCount > 0 && (
-                  <motion.span
-                    key={`badge-${cartCount}`}
-                    initial={{ scale: 0 }}
-                    animate={{ scale: 1 }}
-                    transition={{ type: "spring", stiffness: 500, damping: 15 }}
-                    className="absolute -top-0.5 -right-0.5 w-5 h-5 rounded-full bg-primary text-primary-foreground text-[10px] font-bold flex items-center justify-center"
-                  >
-                    {cartCount}
-                  </motion.span>
-                )}
               </Link>
             </div>
           </div>
 
-          {/* Desktop nav links — second row */}
+          {/* Center: Desktop nav links */}
           <nav
-            className="hidden md:flex items-center justify-center gap-0 overflow-visible relative mt-1"
+            className="hidden md:flex flex-1 items-center justify-center gap-0 overflow-visible relative min-w-0 mx-2"
             onMouseLeave={handleMouseLeave}
           >
             {navLinks.map((link) => (
@@ -470,10 +365,10 @@ const Header = () => {
               >
                 <Link
                   to={link.to}
-                  className={`flex items-center gap-0.5 px-2 lg:px-3 xl:px-4 py-1.5 text-xs lg:text-sm font-semibold transition-all tracking-wide uppercase whitespace-nowrap ${!isTransparent ? 'text-foreground hover:text-primary' : 'text-white hover:text-white/80 drop-shadow-sm'}`}
+                  className={`flex items-center gap-0.5 px-1 lg:px-1.5 xl:px-2.5 py-2 text-[9px] lg:text-[10px] xl:text-xs font-semibold transition-all tracking-wider uppercase whitespace-nowrap ${!isTransparent ? 'text-foreground hover:text-primary' : 'text-white hover:text-white/80 drop-shadow-sm'}`}
                 >
                   {link.label}
-                  {link.subs && <ChevronDown className="w-3 h-3" />}
+                  {link.subs && <ChevronDown className="w-2.5 h-2.5 lg:w-3 lg:h-3" />}
                 </Link>
               </div>
             ))}
@@ -515,6 +410,108 @@ const Header = () => {
               )}
             </AnimatePresence>
           </nav>
+
+          {/* Right: search + icons */}
+          <div className="flex items-center gap-0.5 flex-shrink-0 justify-end ml-auto md:ml-0">
+            {/* Desktop search */}
+            <div className="hidden md:flex relative w-28 lg:w-36 xl:w-48" ref={searchContainerRef}>
+              <form onSubmit={handleSearch} className="w-full relative">
+                <Input
+                  placeholder="Buscar"
+                  value={search}
+                  onChange={(e) => { setSearch(e.target.value); setShowSuggestions(e.target.value.length >= 2); }}
+                  onFocus={() => search.length >= 2 && setShowSuggestions(true)}
+                  className={`h-8 rounded-lg text-xs pr-8 focus:ring-2 w-full transition-colors duration-300 ${!isTransparent ? 'bg-background border border-border focus:ring-primary/30 text-foreground' : 'bg-white/15 border border-white/30 focus:ring-white/30 text-white placeholder:text-white/60'}`}
+                />
+                <button type="submit" className="absolute right-0.5 top-1/2 -translate-y-1/2 w-7 h-7 flex items-center justify-center rounded-md hover:bg-muted transition-colors">
+                  <Search className={`w-4 h-4 ${!isTransparent ? 'text-muted-foreground' : 'text-white/70'}`} />
+                </button>
+              </form>
+              <SuggestionsDropdown />
+            </div>
+
+            {/* User dropdown (desktop) */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button className={`hidden md:flex w-9 h-9 items-center justify-center rounded-full transition-colors relative ${!isTransparent ? 'hover:bg-muted' : 'hover:bg-white/10'}`} aria-label="Conta">
+                  <User className={`w-[18px] h-[18px] ${!isTransparent ? 'text-foreground' : 'text-white drop-shadow-sm'}`} />
+                  {user && (
+                    <span className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-accent border-2 border-card" />
+                  )}
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-48">
+                {user ? (
+                  <>
+                    <div className="px-3 py-2">
+                      <p className="text-xs text-muted-foreground truncate">{user.email}</p>
+                    </div>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem onClick={() => navigate("/perfil")}>
+                      <User className="w-4 h-4 mr-2" /> Meu Perfil
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => navigate("/pedidos")}>
+                      <ShoppingBag className="w-4 h-4 mr-2" /> Meus Pedidos
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => navigate("/favoritos")}>
+                      <Settings className="w-4 h-4 mr-2" /> Favoritos
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem onClick={async () => { await signOut(); toast.success("Você saiu da conta"); }}>
+                      <LogOut className="w-4 h-4 mr-2" /> Sair
+                    </DropdownMenuItem>
+                  </>
+                ) : (
+                  <>
+                    <DropdownMenuItem onClick={() => navigate("/perfil")}>
+                      <LogIn className="w-4 h-4 mr-2" /> Entrar / Cadastrar
+                    </DropdownMenuItem>
+                  </>
+                )}
+              </DropdownMenuContent>
+            </DropdownMenu>
+
+            {/* Search icon (mobile) */}
+            <button
+              onClick={() => setMobileSearchOpen(prev => !prev)}
+              className={`md:hidden w-10 h-10 flex items-center justify-center rounded-full transition-colors ${!isTransparent ? 'hover:bg-muted' : 'hover:bg-white/10'}`}
+              aria-label="Buscar"
+            >
+              <Search className={`w-5 h-5 ${!isTransparent ? 'text-foreground' : 'text-white drop-shadow-sm'}`} />
+            </button>
+
+            {/* Account icon (mobile) */}
+            <Link to="/perfil" className={`md:hidden w-10 h-10 flex items-center justify-center rounded-full transition-colors relative ${!isTransparent ? 'hover:bg-muted' : 'hover:bg-white/10'}`} aria-label="Conta">
+              <User className={`w-5 h-5 ${!isTransparent ? 'text-foreground' : 'text-white drop-shadow-sm'}`} />
+              {user && (
+                <span className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-accent border-2 border-card" />
+              )}
+            </Link>
+
+            {/* Cart */}
+            <Link to="/carrinho" className={`w-9 h-9 md:w-9 md:h-9 flex items-center justify-center rounded-full transition-colors relative ${!isTransparent ? 'hover:bg-muted' : 'hover:bg-white/10'}`} aria-label="Carrinho">
+              <motion.div
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.9 }}
+                key={cartCount}
+                animate={cartCount > 0 ? { scale: [1, 1.3, 1], rotate: [0, -10, 10, 0] } : {}}
+                transition={{ duration: 0.4 }}
+              >
+                <ShoppingBag className={`w-[18px] h-[18px] ${!isTransparent ? 'text-foreground' : 'text-white drop-shadow-sm'}`} />
+              </motion.div>
+              {cartCount > 0 && (
+                <motion.span
+                  key={`badge-${cartCount}`}
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  transition={{ type: "spring", stiffness: 500, damping: 15 }}
+                  className="absolute -top-0.5 -right-0.5 w-5 h-5 rounded-full bg-primary text-primary-foreground text-[10px] font-bold flex items-center justify-center"
+                >
+                  {cartCount}
+                </motion.span>
+              )}
+            </Link>
+          </div>
         </div>
       </div>
 
