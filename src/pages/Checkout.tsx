@@ -352,7 +352,8 @@ const Checkout = () => {
     setSubmitting(true);
     // Fire AddPaymentInfo event
     const contentIds = items.map((item: any) => (item.products as any)?.id).filter(Boolean);
-    fbTrackAddPaymentInfo({ value: finalTotal, contentIds, paymentMethod });
+    const contents = items.map((item: any) => ({ id: (item.products as any)?.id, quantity: item.quantity })).filter((c: any) => c.id);
+    fbTrackAddPaymentInfo({ value: finalTotal, contentIds, paymentMethod, contents });
     try {
       const newOrderId = await createOrder();
       setOrderId(newOrderId);
