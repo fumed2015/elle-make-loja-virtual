@@ -97,14 +97,6 @@ const navLinks: NavItem[] = [
       { label: "Necessaires", to: "/explorar?cat=acessorios&q=necessaire" },
     ],
   },
-  {
-    label: "Ofertas", to: "/categoria/ofertas",
-    subs: [
-      { label: "Até 30% Off", to: "/explorar?cat=ofertas&q=30" },
-      { label: "Até 50% Off", to: "/explorar?cat=ofertas&q=50" },
-      { label: "Kits Promocionais", to: "/explorar?cat=kits-bundles" },
-    ],
-  },
 ];
 
 // Labels to show on mobile (reduced set to fit one line)
