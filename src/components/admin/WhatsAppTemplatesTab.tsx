@@ -105,10 +105,10 @@ const WhatsAppTemplatesTab = () => {
       .replace(/{total}/g, "135,80")
       .replace(/{tracking_code}/g, "BR123456789XX")
       .replace(/{tracking_url}/g, "https://rastreamento.correios.com.br")
-      .replace(/{link}/g, "https://ellemake2.lovable.app/pedidos")
+      .replace(/{link}/g, "https://www.ellemake.com.br/pedidos")
       .replace(/{items_count}/g, "2")
       .replace(/{items_label}/g, "itens")
-      .replace(/{recovery_link}/g, "https://ellemake2.lovable.app/recuperar-carrinho?token=abc123");
+      .replace(/{recovery_link}/g, "https://www.ellemake.com.br/recuperar-carrinho?token=abc123");
   };
 
   if (isLoading) {
