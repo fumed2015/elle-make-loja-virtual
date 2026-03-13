@@ -305,6 +305,7 @@ serve(async (req) => {
         .eq("payment_method", "pix")
         .lt("created_at", cutoff15)
         .gt("created_at", cutoff24h)
+        .not("status", "in", "(cancelled,refunded)")
         .order("created_at", { ascending: true })
         .limit(20);
 
@@ -320,10 +321,44 @@ serve(async (req) => {
       const alreadyNotified = new Set(existingNotifs?.map((n) => n.order_id) || []);
       const toNotify = orders.filter((o) => !alreadyNotified.has(o.id));
 
+      // Also check cooldown per user - max 1 pix reminder per 4 hours
+      const cooldownCutoff = new Date(Date.now() - 4 * 60 * 60 * 1000).toISOString();
+      const userIdsToNotify = [...new Set(toNotify.map((o) => o.user_id))];
+      const { data: recentPixNotifs } = await supabase
+        .from("notifications")
+        .select("user_id")
+        .in("user_id", userIdsToNotify)
+        .eq("event_type", "pix.reminder")
+        .gt("created_at", cooldownCutoff);
+
+      const recentlyNotifiedUsers = new Set((recentPixNotifs || []).map((n) => n.user_id));
+      const filteredToNotify = toNotify.filter((o) => !recentlyNotifiedUsers.has(o.user_id));
+
+      // Deduplicate by user - only notify once per user
+      const seenUsers = new Set<string>();
+      const dedupedToNotify = filteredToNotify.filter((o) => {
+        if (seenUsers.has(o.user_id)) return false;
+        seenUsers.add(o.user_id);
+        return true;
+      });
+
       const tmplPix = await loadTemplate(supabase, "pix.reminder");
 
       let sent = 0;
-      for (const order of toNotify) {
+      for (const order of dedupedToNotify) {
+        // Verify order items have active products
+        const items = (order.items as any[]) || [];
+        const productIds = items.map((i: any) => i.product_id).filter(Boolean);
+        if (productIds.length > 0) {
+          const { data: activeProducts } = await supabase
+            .from("products")
+            .select("id")
+            .in("id", productIds)
+            .eq("is_active", true);
+
+          if (!activeProducts || activeProducts.length === 0) continue;
+        }
+
         const { data: profile } = await supabase
           .from("profiles")
           .select("full_name, phone")
@@ -332,7 +367,6 @@ serve(async (req) => {
 
         if (!profile?.phone) continue;
 
-        const items = (order.items as any[]) || [];
         const productsList = items.map((i: any) => `• ${i.name || "Produto"} (${i.quantity || 1}x)`).join("\n");
 
         const vars = {
@@ -359,7 +393,7 @@ serve(async (req) => {
         sent++;
       }
 
-      return jsonResponse({ processed: toNotify.length, sent });
+      return jsonResponse({ processed: dedupedToNotify.length, sent });
     }
 
     // ══════════════════════════════════════════════════════════
