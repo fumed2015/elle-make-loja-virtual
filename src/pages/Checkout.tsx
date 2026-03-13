@@ -87,7 +87,8 @@ const Checkout = () => {
     if (cartTotal > 0) {
       trackInitiateCheckout({ value: cartTotal, itemCount: cartCount });
       const contentIds = items.map((item: any) => (item.products as any)?.id).filter(Boolean);
-      fbTrackInitiateCheckout({ value: cartTotal, itemCount: cartCount, contentIds });
+      const contents = items.map((item: any) => ({ id: (item.products as any)?.id, quantity: item.quantity })).filter((c: any) => c.id);
+      fbTrackInitiateCheckout({ value: cartTotal, itemCount: cartCount, contentIds, contents });
     }
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
