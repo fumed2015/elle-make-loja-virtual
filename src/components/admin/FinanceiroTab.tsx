@@ -365,7 +365,8 @@ const FinanceiroTab = () => {
     if (!orders || !p) return { revenue: 0, netRevenue: 0, orderCount: 0, avgTicket: 0, discounts: 0, commissionsTotal: 0 };
     const now = new Date();
     const cutoff = new Date(now.getTime() - 30 * 86400000);
-    const filtered = orders.filter(o => new Date(o.created_at) >= cutoff && o.status !== "cancelled");
+    const CONFIRMED = ["approved", "confirmed", "processing", "shipped", "delivered"];
+    const filtered = orders.filter(o => new Date(o.created_at) >= cutoff && CONFIRMED.includes(o.status));
     const revenue = filtered.reduce((s, o) => s + Number(o.total), 0);
     const discounts = filtered.reduce((s, o) => s + Number(o.discount || 0), 0);
     const commissionsTotal = commissions?.filter(c => new Date(c.created_at) >= cutoff)
@@ -993,7 +994,8 @@ const AuditDashboard = ({ products, costMap, premises, orders, commissions, frei
     // Order-based stats (30d)
     const now = new Date();
     const cutoff = new Date(now.getTime() - 30 * 86400000);
-    const recentOrders = (orders || []).filter(o => new Date(o.created_at) >= cutoff && o.status !== "cancelled");
+    const CONFIRMED = ["approved", "confirmed", "processing", "shipped", "delivered"];
+    const recentOrders = (orders || []).filter(o => new Date(o.created_at) >= cutoff && CONFIRMED.includes(o.status));
 
     let orderCmvTotal = 0;
     recentOrders.forEach(order => {
@@ -1356,7 +1358,8 @@ const DRESection = ({ orders, commissions, premises, products, costMap, cacUnita
     const now = new Date();
     const periodMs = drePeriod === "30d" ? 30 * 86400000 : drePeriod === "90d" ? 90 * 86400000 : Infinity;
     const cutoff = periodMs === Infinity ? new Date(0) : new Date(now.getTime() - periodMs);
-    const filtered = orders.filter(o => new Date(o.created_at) >= cutoff && o.status !== "cancelled");
+    const CONFIRMED = ["approved", "confirmed", "processing", "shipped", "delivered"];
+    const filtered = orders.filter(o => new Date(o.created_at) >= cutoff && CONFIRMED.includes(o.status));
 
     const revenue = filtered.reduce((s, o) => s + Number(o.total), 0);
     const discounts = filtered.reduce((s, o) => s + Number(o.discount || 0), 0);

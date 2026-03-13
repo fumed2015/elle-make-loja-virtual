@@ -14,10 +14,11 @@ const SalesIntelligenceTab = () => {
 
   const periodMs = period === "7d" ? 7 * 86400000 : period === "30d" ? 30 * 86400000 : period === "90d" ? 90 * 86400000 : Infinity;
 
+  const CONFIRMED = ["approved", "confirmed", "processing", "shipped", "delivered"];
   const filteredOrders = useMemo(() => {
     const now = Date.now();
     const cutoff = periodMs === Infinity ? 0 : now - periodMs;
-    return orders?.filter(o => o.status !== "cancelled" && new Date(o.created_at).getTime() >= cutoff) || [];
+    return orders?.filter(o => CONFIRMED.includes(o.status) && new Date(o.created_at).getTime() >= cutoff) || [];
   }, [orders, periodMs]);
 
   // ===== TOP SELLING PRODUCTS =====
