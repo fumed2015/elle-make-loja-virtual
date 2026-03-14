@@ -164,7 +164,7 @@ serve(async (req) => {
     }
 
     // Build all events with proper hashing
-    const serverEvents = await Promise.all(events.map(buildServerEvent));
+    const serverEvents = await Promise.all(events.map((e) => buildServerEvent(e, req)));
 
     // Send to Meta
     const url = `${META_API_URL}?access_token=${accessToken}`;
