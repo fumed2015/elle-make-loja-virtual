@@ -279,9 +279,7 @@ const Checkout = () => {
   };
 
   const saveDataAfterOrder = async () => {
-    if (!user) return; // Skip for guest checkout
-    try {
-    if (!user) return; // Skip for guest checkout
+    if (!user) return;
     try {
       if (customerInfo.cpf) await supabase.from("profiles").update({ cpf: customerInfo.cpf } as any).eq("user_id", user.id);
       if (customerInfo.phone) await supabase.from("profiles").update({ phone: customerInfo.phone }).eq("user_id", user.id);
