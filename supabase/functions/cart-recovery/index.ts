@@ -102,16 +102,23 @@ serve(async (req) => {
     // ACTION: process-abandonments
     // ══════════════════════════════════════════════════════════
     if (action === "process-abandonments") {
-      const cutoff = new Date(Date.now() - 30 * 60 * 1000).toISOString();
-      const maxAge = new Date(Date.now() - 48 * 60 * 60 * 1000).toISOString();
-      const cooldownCutoff = new Date(Date.now() - 4 * 60 * 60 * 1000).toISOString(); // 4h cooldown
+      // Schedule: notification_count 0 → 30min, 1 → 2h, 2 → 24h, 3 → 48h, 4 → 72h
+      const SCHEDULE_DELAYS_MS = [
+        30 * 60 * 1000,       // 0 → 30 min after creation
+        2 * 60 * 60 * 1000,   // 1 → 2h after creation
+        24 * 60 * 60 * 1000,  // 2 → 24h after creation
+        48 * 60 * 60 * 1000,  // 3 → 48h after creation
+        72 * 60 * 60 * 1000,  // 4 → 72h after creation
+      ];
+      const MAX_NOTIFICATIONS = SCHEDULE_DELAYS_MS.length;
+      const maxAge = new Date(Date.now() - 73 * 60 * 60 * 1000).toISOString(); // 73h max window
+      const MAX_WHATSAPP_PER_PHONE_PER_DAY = 3; // daily limit per phone number
 
       const { data: events, error } = await supabase
         .from("cart_abandonment_events")
         .select("*")
         .is("recovered_at", null)
-        .lt("notification_count", 2)
-        .lt("created_at", cutoff)
+        .lt("notification_count", MAX_NOTIFICATIONS)
         .gt("created_at", maxAge)
         .order("created_at", { ascending: true })
         .limit(50);
@@ -119,19 +126,29 @@ serve(async (req) => {
       if (error) return jsonResponse({ error: error.message }, 500);
       if (!events || events.length === 0) return jsonResponse({ processed: 0, message: "No carts to recover" });
 
+      // Filter events that are ready based on their schedule
+      const now = Date.now();
+      const readyEvents = events.filter((e: any) => {
+        const createdAt = new Date(e.created_at).getTime();
+        const nextDelay = SCHEDULE_DELAYS_MS[e.notification_count] || Infinity;
+        return now >= createdAt + nextDelay;
+      });
+
+      if (readyEvents.length === 0) return jsonResponse({ processed: 0, message: "No carts ready for notification yet" });
+
       // ── DEDUPLICATE: only keep the LATEST event per user ──
-      const latestByUser = new Map<string, typeof events[0]>();
-      for (const event of events) {
+      const latestByUser = new Map<string, typeof readyEvents[0]>();
+      for (const event of readyEvents) {
         const existing = latestByUser.get(event.user_id);
         if (!existing || new Date(event.created_at) > new Date(existing.created_at)) {
           latestByUser.set(event.user_id, event);
         }
       }
 
-      // Mark duplicate (older) events as fully notified so they stop being picked up
-      const duplicateIds = events
-        .filter((e) => latestByUser.get(e.user_id)?.id !== e.id)
-        .map((e) => e.id);
+      // Mark duplicate (older) events as fully notified
+      const duplicateIds = readyEvents
+        .filter((e: any) => latestByUser.get(e.user_id)?.id !== e.id)
+        .map((e: any) => e.id);
       if (duplicateIds.length > 0) {
         await supabase
           .from("cart_abandonment_events")
@@ -141,16 +158,44 @@ serve(async (req) => {
 
       const uniqueEvents = Array.from(latestByUser.values());
 
-      // ── Check cooldown: skip users who got a notification recently ──
-      const userIds = uniqueEvents.map((e) => e.user_id);
-      const { data: recentNotifs } = await supabase
-        .from("notifications")
-        .select("user_id, created_at")
-        .in("user_id", userIds)
-        .eq("event_type", "cart.abandoned")
-        .gt("created_at", cooldownCutoff);
+      // ── Check per-phone daily WhatsApp limit ──
+      const userIds = uniqueEvents.map((e: any) => e.user_id);
 
-      const recentlyNotifiedUsers = new Set((recentNotifs || []).map((n) => n.user_id));
+      // Get profiles for phone numbers
+      const { data: profilesForLimit } = await supabase
+        .from("profiles")
+        .select("user_id, phone")
+        .in("user_id", userIds)
+        .not("phone", "is", null);
+
+      const phoneByUser = new Map<string, string>();
+      for (const p of (profilesForLimit || [])) {
+        if (p.phone) {
+          let clean = p.phone.replace(/\D/g, "");
+          if (!clean.startsWith("55")) clean = "55" + clean;
+          phoneByUser.set(p.user_id, clean);
+        }
+      }
+
+      // Count today's WhatsApp sends per phone
+      const todayStart = new Date();
+      todayStart.setHours(0, 0, 0, 0);
+      const uniquePhones = [...new Set(phoneByUser.values())];
+      const phoneUsageMap = new Map<string, number>();
+
+      if (uniquePhones.length > 0) {
+        const { data: todayNotifs } = await supabase
+          .from("notifications")
+          .select("phone")
+          .in("phone", uniquePhones)
+          .eq("status", "sent")
+          .gt("created_at", todayStart.toISOString());
+
+        for (const n of (todayNotifs || [])) {
+          const clean = n.phone.replace(/\D/g, "");
+          phoneUsageMap.set(clean, (phoneUsageMap.get(clean) || 0) + 1);
+        }
+      }
 
       const tmplFirst = await loadTemplate(supabase, "cart.recovery.first");
       const tmplSecond = await loadTemplate(supabase, "cart.recovery.second");
@@ -158,14 +203,8 @@ serve(async (req) => {
       let sent = 0;
       let skipped = 0;
       for (const event of uniqueEvents) {
-        // Skip if user was notified in the last 4 hours
-        if (recentlyNotifiedUsers.has(event.user_id)) {
-          skipped++;
-          continue;
-        }
-
-        // Verify cart items still exist before sending
-        const { data: cartItems, error: cartError } = await supabase
+        // Verify cart items still exist
+        const { data: cartItems } = await supabase
           .from("cart_items")
           .select("id, quantity, product_id, products(id, name, price, images, is_active)")
           .eq("user_id", event.user_id);
@@ -175,7 +214,6 @@ serve(async (req) => {
         );
 
         if (activeCartItems.length === 0) {
-          // No active cart items — mark as done
           await supabase
             .from("cart_abandonment_events")
             .update({ notification_count: 99 })
@@ -183,7 +221,7 @@ serve(async (req) => {
           continue;
         }
 
-        // Check if user already completed an order recently (converted)
+        // Check if user already completed an order recently
         const { data: recentOrders } = await supabase
           .from("orders")
           .select("id")
@@ -198,6 +236,16 @@ serve(async (req) => {
             .update({ recovered_at: new Date().toISOString(), notification_count: 99 })
             .eq("id", event.id);
           continue;
+        }
+
+        // Check per-phone daily limit
+        const userPhone = phoneByUser.get(event.user_id);
+        if (userPhone) {
+          const usage = phoneUsageMap.get(userPhone) || 0;
+          if (usage >= MAX_WHATSAPP_PER_PHONE_PER_DAY) {
+            skipped++;
+            continue;
+          }
         }
 
         let token = event.recovery_token;
@@ -224,7 +272,7 @@ serve(async (req) => {
         const recoveryLink = `${SITE_URL}/recuperar-carrinho?token=${token}`;
         const cartTotal = Number(event.cart_total || 0).toFixed(2).replace(".", ",");
 
-        // Send WhatsApp if phone available
+        // Send WhatsApp if phone available and within daily limit
         let whatsappResult: any = null;
         if (profile?.phone) {
           const vars = {
@@ -236,6 +284,7 @@ serve(async (req) => {
             recovery_link: recoveryLink,
           };
 
+          // Use first template for count 0, second for count >= 1
           const template = event.notification_count === 0 ? tmplFirst : tmplSecond;
           const message = fillTemplate(template, vars);
           whatsappResult = await sendWhatsApp(profile.phone, message);
@@ -248,6 +297,11 @@ serve(async (req) => {
             zapi_response: whatsappResult,
             user_id: event.user_id,
           });
+
+          // Update daily usage tracking
+          if (!whatsappResult?.error && userPhone) {
+            phoneUsageMap.set(userPhone, (phoneUsageMap.get(userPhone) || 0) + 1);
+          }
         }
 
         // Send email if available
