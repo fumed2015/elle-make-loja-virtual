@@ -1,4 +1,4 @@
-import { MapPin, ChevronDown, Loader2, ShoppingBag } from "lucide-react";
+import { MapPin, ChevronDown, Loader2, ShoppingBag, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -21,13 +21,21 @@ interface AddressStepProps {
   onContinue: () => void;
   formatCpf: (v: string) => string;
   formatPhone: (v: string) => string;
+  isGuest?: boolean;
+  guestInfo?: { name: string; email: string; phone: string };
+  setGuestInfo?: (info: any) => void;
 }
 
 const AddressStep = ({
   address, setAddress, customerInfo, setCustomerInfo,
   savedAddresses, showAddressPicker, setShowAddressPicker, selectSavedAddress,
   cepLoading, items, cartTotal, cartCount, onContinue, formatCpf, formatPhone,
+  isGuest, guestInfo, setGuestInfo,
 }: AddressStepProps) => {
+
+  const canContinue = address.street && address.number && address.neighborhood && address.zip && customerInfo.cpf && customerInfo.cpf.length >= 11
+    && (!isGuest || (guestInfo?.name && guestInfo?.phone));
+
   return (
     <motion.div key="address" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-4">
       {/* Free shipping bar */}
@@ -58,6 +66,30 @@ const AddressStep = ({
           )}
         </div>
       </div>
+
+      {/* Guest info fields */}
+      {isGuest && guestInfo && setGuestInfo && (
+        <div className="bg-card rounded-xl p-4 border border-border space-y-3">
+          <div className="flex items-center gap-2 mb-2">
+            <User className="w-5 h-5 text-primary" />
+            <h2 className="text-lg font-display font-semibold">Seus Dados</h2>
+          </div>
+          <div className="space-y-2">
+            <Label>Nome completo *</Label>
+            <Input value={guestInfo.name} onChange={(e) => setGuestInfo({ ...guestInfo, name: e.target.value })} placeholder="Seu nome completo" className="bg-muted border-none min-h-[44px]" required />
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-2">
+              <Label>E-mail</Label>
+              <Input value={guestInfo.email} onChange={(e) => setGuestInfo({ ...guestInfo, email: e.target.value })} placeholder="seu@email.com" className="bg-muted border-none min-h-[44px]" type="email" />
+            </div>
+            <div className="space-y-2">
+              <Label>WhatsApp *</Label>
+              <Input value={formatPhone(guestInfo.phone)} onChange={(e) => setGuestInfo({ ...guestInfo, phone: e.target.value.replace(/\D/g, "").slice(0, 11) })} placeholder="(91) 99999-9999" className="bg-muted border-none min-h-[44px]" inputMode="tel" required />
+            </div>
+          </div>
+        </div>
+      )}
 
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
@@ -125,12 +157,14 @@ const AddressStep = ({
           <Label>CPF *</Label>
           <Input value={formatCpf(customerInfo.cpf)} onChange={(e) => setCustomerInfo({ ...customerInfo, cpf: e.target.value.replace(/\D/g, "").slice(0, 11) })} placeholder="000.000.000-00" className="bg-muted border-none min-h-[44px]" inputMode="numeric" required />
         </div>
-        <div className="space-y-2">
-          <Label>Telefone</Label>
-          <Input value={formatPhone(customerInfo.phone)} onChange={(e) => setCustomerInfo({ ...customerInfo, phone: e.target.value.replace(/\D/g, "").slice(0, 11) })} placeholder="(91) 99999-9999" className="bg-muted border-none min-h-[44px]" inputMode="tel" />
-        </div>
+        {!isGuest && (
+          <div className="space-y-2">
+            <Label>Telefone</Label>
+            <Input value={formatPhone(customerInfo.phone)} onChange={(e) => setCustomerInfo({ ...customerInfo, phone: e.target.value.replace(/\D/g, "").slice(0, 11) })} placeholder="(91) 99999-9999" className="bg-muted border-none min-h-[44px]" inputMode="tel" />
+          </div>
+        )}
       </div>
-      <Button onClick={onContinue} disabled={!address.street || !address.number || !address.neighborhood || !address.zip || !customerInfo.cpf || customerInfo.cpf.length < 11} className="w-full bg-primary text-primary-foreground hover:bg-primary/90 min-h-[44px] mt-4">
+      <Button onClick={onContinue} disabled={!canContinue} className="w-full bg-primary text-primary-foreground hover:bg-primary/90 min-h-[44px] mt-4">
         Continuar para Revisão
       </Button>
     </motion.div>
