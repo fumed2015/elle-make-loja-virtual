@@ -147,10 +147,14 @@ const OrdersManagementTab = () => {
       const eventType = statusEventMap[newStatus];
       if (eventType) {
         try {
-          await supabase.functions.invoke("whatsapp-notifications", {
+          const { data: notifResult } = await supabase.functions.invoke("whatsapp-notifications", {
             body: { action: "notify-order", order_id: orderId, event_type: eventType },
           });
-          toast.success("📱 Notificação WhatsApp enviada!");
+          if (notifResult?.reason === "already_sent") {
+            toast.info("📱 Notificação já enviada anteriormente (deduplicada)");
+          } else if (notifResult?.sent !== false) {
+            toast.success("📱 Notificação WhatsApp enviada!");
+          }
         } catch (notifErr) {
           console.error("WhatsApp notification error:", notifErr);
         }
