@@ -141,6 +141,7 @@ const Admin = () => {
       case "revenue-report": return <MonthlyRevenueReportTab />;
       case "collections": return <CollectionsTab />;
       case "notifications-monitor": return <NotificationsMonitorTab />;
+      case "checkout-leads": return <CheckoutLeadsTab />;
       default: return <DashboardTab />;
     }
   };
