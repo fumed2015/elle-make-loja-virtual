@@ -366,6 +366,10 @@ const Checkout = () => {
 
     fbTrackPurchase({ orderId: orderData.id, value: finalTotal, itemCount: cartCount, contentIds, contents });
 
+    // Mark ghost lead as converted
+    supabase.from("checkout_leads").update({ converted_at: new Date().toISOString() } as any)
+      .eq("user_id", user.id).is("converted_at" as any, null).then(() => {});
+
     return orderData.id;
   };
 
