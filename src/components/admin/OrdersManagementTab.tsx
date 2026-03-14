@@ -1,4 +1,5 @@
 import { useState, useMemo } from "react";
+import OrderNotificationLog from "./OrderNotificationLog";
 import { useAllOrders } from "@/hooks/useOrders";
 import { useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
