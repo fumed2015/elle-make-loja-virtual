@@ -82,7 +82,21 @@ const Produto = () => {
   const pixPrice = (Number(product.price) * 0.95).toFixed(2).replace(".", ",");
 
   const handleAddToCart = () => {
-    addToCart.mutate({ productId: product.id, quantity: qty, swatch: selectedSwatch });
+    addToCart.mutate({ productId: product.id, quantity: qty, swatch: selectedSwatch }, {
+      onSuccess: () => {
+        showAddedProduct(
+          {
+            name: product.name,
+            price: Number(product.price),
+            image: product.images?.[0],
+            quantity: qty,
+            swatch: selectedSwatch,
+          },
+          cartCount + qty,
+          cartTotal + Number(product.price) * qty
+        );
+      }
+    });
     const atcParams = { id: product.id, name: product.name, price: Number(product.price), quantity: qty };
     trackAddToCart(atcParams);
     fbTrackAddToCart(atcParams);
