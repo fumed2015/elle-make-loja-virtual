@@ -225,10 +225,7 @@ const Checkout = () => {
     }
   }, [pendingShippingCalc]);
 
-  // Redirect unauthenticated
-  useEffect(() => {
-    if (!authLoading && !user) navigate("/perfil?redirect=/checkout", { replace: true });
-  }, [user, authLoading, navigate]);
+  // No longer redirect unauthenticated — guest checkout is allowed
 
   // Redirect empty cart
   const [cartChecked, setCartChecked] = useState(false);
