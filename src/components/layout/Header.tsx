@@ -361,13 +361,13 @@ const Header = () => {
             {navLinks.map((link) => (
               <div
                 key={link.label}
-                className={`relative ${hiddenAtMdLabels.has(link.label) ? 'hidden xl:block' : ''}`}
+                className={`relative ${hiddenAtMdLabels.has(link.label) ? 'hidden 2xl:block' : ''}`}
                 onMouseEnter={() => handleMouseEnter(link.label)}
                 onMouseLeave={handleMouseLeave}
               >
                 <Link
                   to={link.to}
-                  className={`flex items-center gap-0.5 px-1 lg:px-2 xl:px-3 py-2 text-[11px] lg:text-xs xl:text-sm font-semibold transition-all tracking-wider uppercase whitespace-nowrap ${!isTransparent ? 'text-foreground hover:text-primary' : 'text-white hover:text-white/80 drop-shadow-sm'}`}
+                  className={`flex items-center gap-0.5 px-1 lg:px-2 xl:px-2.5 py-2 text-[11px] lg:text-xs xl:text-[13px] font-semibold transition-all tracking-wide uppercase whitespace-nowrap ${!isTransparent ? 'text-foreground hover:text-primary' : 'text-white hover:text-white/80 drop-shadow-sm'}`}
                 >
                   {link.label}
                   {link.subs && <ChevronDown className="w-2.5 h-2.5 lg:w-3 lg:h-3" />}
