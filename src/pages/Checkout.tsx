@@ -76,6 +76,7 @@ const Checkout = () => {
   const [profileLoaded, setProfileLoaded] = useState(false);
   const [addressLoaded, setAddressLoaded] = useState(false);
   const [showAddressPicker, setShowAddressPicker] = useState(false);
+  const [guestInfo, setGuestInfo] = useState({ name: "", email: "", phone: "" });
 
   const [pixData, setPixData] = useState<{ qr_code: string; qr_code_base64: string } | null>(null);
   const [boletoData, setBoletoData] = useState<{ barcode: string; boleto_url: string } | null>(null);
@@ -128,9 +129,14 @@ const Checkout = () => {
   }, [customerInfo.phone, step, user, cartTotal, items.length]);
 
   const clearCart = useCallback(async () => {
-    const cartIds = items.map((i: any) => i.id).filter(Boolean);
-    if (cartIds.length > 0) await supabase.from("cart_items").delete().in("id", cartIds);
-  }, [items]);
+    if (user) {
+      const cartIds = items.map((i: any) => i.id).filter(Boolean);
+      if (cartIds.length > 0) await supabase.from("cart_items").delete().in("id", cartIds);
+    } else {
+      // Clear guest cart from localStorage
+      try { localStorage.removeItem("ellemake_guest_cart"); } catch {}
+    }
+  }, [items, user]);
 
   const { status: paymentStatus, statusDetail: paymentStatusDetail, polling: isPolling } = usePaymentStatusPolling(
     step === "payment" && paymentId ? paymentId : null, 5000, orderId || null
@@ -224,10 +230,7 @@ const Checkout = () => {
     }
   }, [pendingShippingCalc]);
 
-  // Redirect unauthenticated
-  useEffect(() => {
-    if (!authLoading && !user) navigate("/perfil?redirect=/checkout", { replace: true });
-  }, [user, authLoading, navigate]);
+  // No longer redirect unauthenticated — guest checkout is allowed
 
   // Redirect empty cart
   const [cartChecked, setCartChecked] = useState(false);
@@ -242,7 +245,7 @@ const Checkout = () => {
     }
   }, [cartChecked, cartFetching, items.length, step, navigate]);
 
-  if (authLoading || !user) return (
+  if (authLoading) return (
     <div className="min-h-screen flex items-center justify-center">
       <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
     </div>
@@ -276,6 +279,7 @@ const Checkout = () => {
   };
 
   const saveDataAfterOrder = async () => {
+    if (!user) return;
     try {
       if (customerInfo.cpf) await supabase.from("profiles").update({ cpf: customerInfo.cpf } as any).eq("user_id", user.id);
       if (customerInfo.phone) await supabase.from("profiles").update({ phone: customerInfo.phone }).eq("user_id", user.id);
@@ -317,15 +321,25 @@ const Checkout = () => {
       };
     });
 
-    const { data: orderData, error: orderError } = await supabase.from("orders").insert({
-      user_id: user.id, total: finalTotal, shipping_address: address,
+    const orderPayload: any = {
+      total: finalTotal, shipping_address: address,
       payment_method: paymentMethod, items: orderItems,
       coupon_code: appliedCoupon?.code || null, discount: appliedCoupon?.discount || 0,
-    }).select("id").single();
+    };
+
+    if (user) {
+      orderPayload.user_id = user.id;
+    } else {
+      orderPayload.guest_name = guestInfo.name;
+      orderPayload.guest_email = guestInfo.email;
+      orderPayload.guest_phone = guestInfo.phone || customerInfo.phone;
+    }
+
+    const { data: orderData, error: orderError } = await supabase.from("orders").insert(orderPayload).select("id").single();
 
     if (orderError) throw orderError;
 
-    if (appliedCoupon?.influencer_id) {
+    if (appliedCoupon?.influencer_id && user) {
       try {
         await supabase.rpc("record_influencer_commission", {
           p_order_id: orderData.id,
@@ -352,32 +366,36 @@ const Checkout = () => {
 
     // Enrich Meta Advanced Matching with checkout data (address + CPF)
     const addr = (address || {}) as any;
+    const emailForPixel = user?.email || guestInfo.email || "";
+    const nameForPixel = user?.user_metadata?.full_name || guestInfo.name || "";
     fbSetUserData({
-      email: user.email || "",
-      phone: user.user_metadata?.phone || "",
-      firstName: (user.user_metadata?.full_name || "").split(" ")[0] || "",
-      lastName: (user.user_metadata?.full_name || "").split(" ").slice(1).join(" ") || "",
+      email: emailForPixel,
+      phone: user?.user_metadata?.phone || guestInfo.phone || customerInfo.phone || "",
+      firstName: nameForPixel.split(" ")[0] || "",
+      lastName: nameForPixel.split(" ").slice(1).join(" ") || "",
       city: addr.city || "",
       state: addr.state || "",
       zip: addr.zip || addr.cep || "",
       country: "br",
-      externalId: user.id,
+      externalId: user?.id || "",
     });
 
     fbTrackPurchase({ orderId: orderData.id, value: finalTotal, itemCount: cartCount, contentIds, contents });
 
     // Mark ghost lead as converted
-    supabase.from("checkout_leads").update({ converted_at: new Date().toISOString() } as any)
-      .eq("user_id", user.id).is("converted_at" as any, null).then(() => {});
+    if (user) {
+      supabase.from("checkout_leads").update({ converted_at: new Date().toISOString() } as any)
+        .eq("user_id", user.id).is("converted_at" as any, null).then(() => {});
+    }
 
     return orderData.id;
   };
 
   const getPayer = () => {
-    const fullName = user.user_metadata?.full_name || "";
+    const fullName = user?.user_metadata?.full_name || guestInfo.name || "";
     const parts = fullName.split(" ");
     return {
-      email: user.email || "",
+      email: user?.email || guestInfo.email || "",
       cpf: customerInfo.cpf.replace(/\D/g, ""),
       firstName: parts[0] || "Cliente",
       lastName: parts.slice(1).join(" ") || "",
@@ -530,6 +548,7 @@ const Checkout = () => {
                 setShowAddressPicker={setShowAddressPicker} selectSavedAddress={selectSavedAddress}
                 cepLoading={cepLoading} items={items} cartTotal={cartTotal} cartCount={cartCount}
                 onContinue={() => setStep("review")} formatCpf={formatCpf} formatPhone={formatPhone}
+                isGuest={!user} guestInfo={guestInfo} setGuestInfo={setGuestInfo}
               />
             )}
 

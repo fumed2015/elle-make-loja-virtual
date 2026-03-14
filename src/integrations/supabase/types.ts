@@ -1168,6 +1168,9 @@ export type Database = {
           created_at: string
           discount: number | null
           estimated_delivery: string | null
+          guest_email: string | null
+          guest_name: string | null
+          guest_phone: string | null
           id: string
           influencer_id: string | null
           items: Json
@@ -1179,13 +1182,16 @@ export type Database = {
           tracking_code: string | null
           tracking_url: string | null
           updated_at: string
-          user_id: string
+          user_id: string | null
         }
         Insert: {
           coupon_code?: string | null
           created_at?: string
           discount?: number | null
           estimated_delivery?: string | null
+          guest_email?: string | null
+          guest_name?: string | null
+          guest_phone?: string | null
           id?: string
           influencer_id?: string | null
           items?: Json
@@ -1197,13 +1203,16 @@ export type Database = {
           tracking_code?: string | null
           tracking_url?: string | null
           updated_at?: string
-          user_id: string
+          user_id?: string | null
         }
         Update: {
           coupon_code?: string | null
           created_at?: string
           discount?: number | null
           estimated_delivery?: string | null
+          guest_email?: string | null
+          guest_name?: string | null
+          guest_phone?: string | null
           id?: string
           influencer_id?: string | null
           items?: Json
@@ -1215,7 +1224,7 @@ export type Database = {
           tracking_code?: string | null
           tracking_url?: string | null
           updated_at?: string
-          user_id?: string
+          user_id?: string | null
         }
         Relationships: [
           {
