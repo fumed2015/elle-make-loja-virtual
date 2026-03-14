@@ -578,6 +578,9 @@ const OrdersManagementTab = () => {
                           )}
                         </div>
 
+                        {/* Notification log */}
+                        <OrderNotificationLog orderId={order.id} />
+
                         {/* Payment & meta */}
                         <div className="grid grid-cols-2 gap-2">
                           <div className="bg-muted rounded-lg p-2.5">
