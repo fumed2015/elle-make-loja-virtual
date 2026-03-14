@@ -1,9 +1,10 @@
-import { createContext, useContext, useState, useCallback, ReactNode } from "react";
+import { createContext, useContext, useState, useCallback, useEffect, ReactNode } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import { ShoppingBag, Check, ArrowRight, Sparkles, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import OptimizedImage from "@/components/ui/optimized-image";
+import confetti from "canvas-confetti";
 
 // ─── Context ───────────────────────────────────────────────
 interface AddedProduct {
