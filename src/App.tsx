@@ -49,7 +49,7 @@ const App = () => (
         <Toaster />
         <Sonner />
         <BrowserRouter>
-          <>
+          <CartDrawerProvider>
             <ScrollToTop />
             <TrackingPixelsInjector />
             <MetaPixelProvider />
