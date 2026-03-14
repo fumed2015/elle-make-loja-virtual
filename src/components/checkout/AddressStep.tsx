@@ -65,7 +65,7 @@ const AddressStep = ({
 
 
   return (
-    <motion.div key="address" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-4">
+    <motion.div key="address" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-4 pb-24">
       {/* Free shipping bar */}
       <div className="mb-4"><FreeShippingBar /></div>
 
