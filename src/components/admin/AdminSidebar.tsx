@@ -85,6 +85,7 @@ const SIDEBAR_SECTIONS: SidebarSection[] = [
     items: [
       { id: "crm", label: "CRM", icon: Heart },
       { id: "leads", label: "Leads", icon: UserPlus },
+      { id: "checkout-leads", label: "Ghost Leads", icon: Ghost },
       { id: "newsletter", label: "Newsletter", icon: UserPlus },
       { id: "birthdays", label: "Aniversários", icon: Cake },
       { id: "influencers", label: "Influencers", icon: Users },
