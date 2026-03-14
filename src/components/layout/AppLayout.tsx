@@ -3,6 +3,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import Header from "./Header";
 import BottomNav from "./BottomNav";
 import FloatingWhatsApp from "./FloatingWhatsApp";
+import FloatingDeliveryBadge from "./FloatingDeliveryBadge";
 import { useMetaPageView } from "@/hooks/useMetaPageView";
 import { useMetaAdvancedMatching } from "@/hooks/useMetaAdvancedMatching";
 
