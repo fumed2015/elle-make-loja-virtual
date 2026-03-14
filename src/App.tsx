@@ -4,6 +4,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { ThemeProvider } from "@/hooks/useTheme";
+import { CartDrawerProvider } from "@/components/cart/AddToCartDrawer";
 import { lazy, Suspense } from "react";
 import { ScrollToTop } from "@/components/ScrollToTop";
 
