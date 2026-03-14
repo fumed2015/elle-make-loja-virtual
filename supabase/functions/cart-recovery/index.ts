@@ -454,17 +454,17 @@ serve(async (req) => {
     // ACTION: process-checkout-leads (Ghost Lead Recovery)
     // ══════════════════════════════════════════════════════════
     if (action === "process-checkout-leads") {
-      const cutoff15min = new Date(Date.now() - 15 * 60 * 1000).toISOString();
+      const cutoff30min = new Date(Date.now() - 30 * 60 * 1000).toISOString();
       const maxAge = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
       const MAX_WHATSAPP_PER_PHONE_PER_DAY = 3;
 
-      // Find leads older than 15 min, not converted, not notified
+      // Find leads older than 30 min, not converted, not notified
       const { data: leads, error } = await supabase
         .from("checkout_leads")
         .select("*")
         .is("converted_at", null)
         .is("notified_at", null)
-        .lt("updated_at", cutoff15min)
+        .lt("updated_at", cutoff30min)
         .gt("created_at", maxAge)
         .order("created_at", { ascending: true })
         .limit(30);
@@ -514,12 +514,12 @@ serve(async (req) => {
       }
 
       const ghostTemplate =
-        `Oi, *{first_name}*! 💕\n\n` +
-        `Notei que você teve uma dúvida no checkout da *${MERCHANT_NAME}*.\n\n` +
-        `Posso te ajudar a finalizar sua compra? 😊\n\n` +
+        `Oi, *{first_name}*! 💄\n\n` +
+        `Vimos que você esqueceu seus itens no carrinho da *${MERCHANT_NAME}*!\n\n` +
         `💰 Seu carrinho: R$ {total} ({items_count} {items_label})\n\n` +
+        `🎁 Use o cupom *VOLTEI5* e ganhe *5% OFF* para finalizar agora!\n\n` +
         `🔗 ${SITE_URL}/checkout\n\n` +
-        `Responda aqui que ajudamos! 💬`;
+        `Corre que o cupom é por tempo limitado! ⏳💕`;
 
       let sent = 0;
       let skipped = 0;
