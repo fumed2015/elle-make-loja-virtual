@@ -36,7 +36,7 @@ const AVAILABLE_VARS: Record<string, string[]> = {
   "checkout.abandoned": ["{first_name}", "{merchant}", "{products_list}", "{link}"],
   "cart.recovery.first": ["{first_name}", "{merchant}", "{items_count}", "{items_label}", "{total}", "{recovery_link}"],
   "cart.recovery.second": ["{first_name}", "{merchant}", "{items_count}", "{items_label}", "{total}", "{recovery_link}"],
-  "pix.reminder": ["{first_name}", "{merchant}", "{total}", "{products_list}", "{link}"],
+  "pix.reminder": ["{first_name}", "{merchant}", "{total}", "{products_list}", "{pix_code}", "{link}"],
   "birthday": ["{first_name}", "{merchant}", "{link}"],
   "repurchase.reminder": ["{first_name}", "{merchant}", "{link}", "{days}"],
 };
