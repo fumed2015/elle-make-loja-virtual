@@ -2,7 +2,7 @@ import { useLocation } from "react-router-dom";
 import {
   TrendingUp, DollarSign, Target, Settings2, Megaphone, BarChart3, Heart, Truck, Gift, Globe2,
   Box, Package, FolderOpen, ShoppingCart, Tag, Star, Users, UserPlus, Cake, Code, MessageCircle,
-  Search, Wand2, LayoutDashboard, Store, FileText, Send,
+  Search, Wand2, LayoutDashboard, Store, FileText, Send, Ghost,
 } from "lucide-react";
 import {
   Sidebar,
@@ -23,7 +23,7 @@ export type AdminTab =
   | "sales-intelligence" | "crm" | "logistics" | "marketing-conversion" | "seo-content"
   | "products" | "stock" | "categories" | "homepage-sections" | "catalog-drive" | "collections"
   | "orders" | "coupons" | "reviews"
-  | "influencers" | "leads" | "birthdays"
+  | "influencers" | "leads" | "birthdays" | "checkout-leads"
   | "pixels" | "whatsapp" | "whatsapp-campaigns" | "seo" | "ai-content"
   | "marketplaces" | "newsletter" | "notifications-monitor";
 
@@ -85,6 +85,7 @@ const SIDEBAR_SECTIONS: SidebarSection[] = [
     items: [
       { id: "crm", label: "CRM", icon: Heart },
       { id: "leads", label: "Leads", icon: UserPlus },
+      { id: "checkout-leads", label: "Ghost Leads", icon: Ghost },
       { id: "newsletter", label: "Newsletter", icon: UserPlus },
       { id: "birthdays", label: "Aniversários", icon: Cake },
       { id: "influencers", label: "Influencers", icon: Users },
