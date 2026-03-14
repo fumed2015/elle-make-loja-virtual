@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { useProduct } from "@/hooks/useProducts";
 import { useCart } from "@/hooks/useCart";
+import { useCartDrawer } from "@/components/cart/AddToCartDrawer";
 import { useAuth } from "@/hooks/useAuth";
 import { useFavorites } from "@/hooks/useFavorites";
 import { useShipping } from "@/hooks/useShipping";
@@ -31,7 +32,8 @@ const Produto = () => {
   const { slug } = useParams<{ slug: string }>();
   const navigate = useNavigate();
   const { data: product, isLoading } = useProduct(slug || "");
-  const { addToCart } = useCart();
+  const { addToCart, cartCount, cartTotal } = useCart();
+  const { showAddedProduct } = useCartDrawer();
   const { user } = useAuth();
   const { toggleFavorite, isFavorited } = useFavorites();
   const [selectedSwatch, setSelectedSwatch] = useState<any>(null);
@@ -80,7 +82,21 @@ const Produto = () => {
   const pixPrice = (Number(product.price) * 0.95).toFixed(2).replace(".", ",");
 
   const handleAddToCart = () => {
-    addToCart.mutate({ productId: product.id, quantity: qty, swatch: selectedSwatch });
+    addToCart.mutate({ productId: product.id, quantity: qty, swatch: selectedSwatch }, {
+      onSuccess: () => {
+        showAddedProduct(
+          {
+            name: product.name,
+            price: Number(product.price),
+            image: product.images?.[0],
+            quantity: qty,
+            swatch: selectedSwatch,
+          },
+          cartCount + qty,
+          cartTotal + Number(product.price) * qty
+        );
+      }
+    });
     const atcParams = { id: product.id, name: product.name, price: Number(product.price), quantity: qty };
     trackAddToCart(atcParams);
     fbTrackAddToCart(atcParams);

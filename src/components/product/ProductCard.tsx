@@ -4,6 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ShoppingBag, Heart, Eye } from "lucide-react";
 import { useCart } from "@/hooks/useCart";
+import { useCartDrawer } from "@/components/cart/AddToCartDrawer";
 import { useAuth } from "@/hooks/useAuth";
 import { useFavorites } from "@/hooks/useFavorites";
 import { motion } from "framer-motion";
@@ -24,7 +25,8 @@ const ProductCard = memo(({ product, index = 0 }: ProductCardProps) => {
   const discountPercent = hasDiscount
     ? Math.round(((product.compare_at_price - product.price) / product.compare_at_price) * 100)
     : 0;
-  const { addToCart } = useCart();
+  const { addToCart, cartCount, cartTotal } = useCart();
+  const { showAddedProduct } = useCartDrawer();
   const { user } = useAuth();
   const { toggleFavorite, isFavorited } = useFavorites();
   const favorited = user ? isFavorited(product.id) : false;
@@ -41,7 +43,15 @@ const ProductCard = memo(({ product, index = 0 }: ProductCardProps) => {
       navigate(`/produto/${product.slug}`);
       return;
     }
-    addToCart.mutate({ productId: product.id, quantity: 1 });
+    addToCart.mutate({ productId: product.id, quantity: 1 }, {
+      onSuccess: () => {
+        showAddedProduct(
+          { name: product.name, price: Number(product.price), image: product.images?.[0], quantity: 1 },
+          cartCount + 1,
+          cartTotal + Number(product.price)
+        );
+      }
+    });
     const atcParams = { id: product.id, name: product.name, price: Number(product.price), quantity: 1 };
     trackAddToCart(atcParams);
     fbTrackAddToCart(atcParams);
