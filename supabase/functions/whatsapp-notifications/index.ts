@@ -254,6 +254,12 @@ serve(async (req) => {
         return jsonResponse({ error: "Order not found" }, 404);
       }
 
+      // Block notifications for cancelled/refunded orders (except the cancellation notification itself)
+      if (["cancelled", "refunded"].includes(order.status) && event_type !== "order.cancelled") {
+        console.log(`Order ${order_id} is ${order.status}, skipping ${event_type}`);
+        return jsonResponse({ sent: false, reason: "order_cancelled", event_type });
+      }
+
       const { data: isAdmin } = await supabase.rpc("has_role", { _user_id: callerUserId, _role: "admin" });
       if (order.user_id !== callerUserId && !isAdmin) {
         return new Response(JSON.stringify({ error: "Forbidden" }), { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } });
