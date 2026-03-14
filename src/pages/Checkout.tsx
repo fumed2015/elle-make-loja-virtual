@@ -341,7 +341,7 @@ const Checkout = () => {
 
     if (orderError) throw orderError;
 
-    if (appliedCoupon?.influencer_id) {
+    if (appliedCoupon?.influencer_id && user) {
       try {
         await supabase.rpc("record_influencer_commission", {
           p_order_id: orderData.id,
