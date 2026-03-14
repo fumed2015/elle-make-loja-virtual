@@ -129,9 +129,14 @@ const Checkout = () => {
   }, [customerInfo.phone, step, user, cartTotal, items.length]);
 
   const clearCart = useCallback(async () => {
-    const cartIds = items.map((i: any) => i.id).filter(Boolean);
-    if (cartIds.length > 0) await supabase.from("cart_items").delete().in("id", cartIds);
-  }, [items]);
+    if (user) {
+      const cartIds = items.map((i: any) => i.id).filter(Boolean);
+      if (cartIds.length > 0) await supabase.from("cart_items").delete().in("id", cartIds);
+    } else {
+      // Clear guest cart from localStorage
+      try { localStorage.removeItem("ellemake_guest_cart"); } catch {}
+    }
+  }, [items, user]);
 
   const { status: paymentStatus, statusDetail: paymentStatusDetail, polling: isPolling } = usePaymentStatusPolling(
     step === "payment" && paymentId ? paymentId : null, 5000, orderId || null
