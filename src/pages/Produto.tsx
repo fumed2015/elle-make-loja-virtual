@@ -32,7 +32,8 @@ const Produto = () => {
   const { slug } = useParams<{ slug: string }>();
   const navigate = useNavigate();
   const { data: product, isLoading } = useProduct(slug || "");
-  const { addToCart } = useCart();
+  const { addToCart, cartCount, cartTotal } = useCart();
+  const { showAddedProduct } = useCartDrawer();
   const { user } = useAuth();
   const { toggleFavorite, isFavorited } = useFavorites();
   const [selectedSwatch, setSelectedSwatch] = useState<any>(null);
