@@ -402,6 +402,10 @@ serve(async (req) => {
 
       let sent = 0;
       for (const order of dedupedToNotify) {
+        // Re-verify order is still pending (could have been cancelled/deleted between query and notification)
+        const { data: freshOrder } = await supabase.from("orders").select("status").eq("id", order.id).maybeSingle();
+        if (!freshOrder || freshOrder.status !== "pending") continue;
+
         // Verify order items have active products
         const items = (order.items as any[]) || [];
         const productIds = items.map((i: any) => i.product_id).filter(Boolean);
