@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft, MapPin, ShoppingBag, CreditCard, Loader2 } from "lucide-react";
 import { useCart } from "@/hooks/useCart";
@@ -102,6 +102,30 @@ const Checkout = () => {
     }, 3000);
     return () => clearTimeout(timer);
   }, [step, user]);
+
+  // Ghost lead capture: save phone to checkout_leads as user types
+  const ghostLeadTimer = React.useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(() => {
+    if (!user || step === "success" || step === "processing") return;
+    const phoneDigits = customerInfo.phone.replace(/\D/g, "");
+    if (phoneDigits.length < 10) return; // need at least 10 digits
+
+    if (ghostLeadTimer.current) clearTimeout(ghostLeadTimer.current);
+    ghostLeadTimer.current = setTimeout(() => {
+      const firstName = user.user_metadata?.full_name?.split(" ")[0] || "Cliente";
+      supabase.from("checkout_leads").upsert({
+        user_id: user.id,
+        phone: phoneDigits,
+        first_name: firstName,
+        step,
+        cart_total: cartTotal,
+        items_count: items.length,
+        updated_at: new Date().toISOString(),
+      } as any, { onConflict: "user_id", ignoreDuplicates: false }).then(() => {});
+    }, 2000); // debounce 2s
+
+    return () => { if (ghostLeadTimer.current) clearTimeout(ghostLeadTimer.current); };
+  }, [customerInfo.phone, step, user, cartTotal, items.length]);
 
   const clearCart = useCallback(async () => {
     const cartIds = items.map((i: any) => i.id).filter(Boolean);
@@ -341,6 +365,10 @@ const Checkout = () => {
     });
 
     fbTrackPurchase({ orderId: orderData.id, value: finalTotal, itemCount: cartCount, contentIds, contents });
+
+    // Mark ghost lead as converted
+    supabase.from("checkout_leads").update({ converted_at: new Date().toISOString() } as any)
+      .eq("user_id", user.id).is("converted_at" as any, null).then(() => {});
 
     return orderData.id;
   };

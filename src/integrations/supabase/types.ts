@@ -328,6 +328,48 @@ export type Database = {
           },
         ]
       }
+      checkout_leads: {
+        Row: {
+          cart_total: number
+          converted_at: string | null
+          created_at: string
+          first_name: string | null
+          id: string
+          items_count: number
+          notified_at: string | null
+          phone: string
+          step: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          cart_total?: number
+          converted_at?: string | null
+          created_at?: string
+          first_name?: string | null
+          id?: string
+          items_count?: number
+          notified_at?: string | null
+          phone: string
+          step?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          cart_total?: number
+          converted_at?: string | null
+          created_at?: string
+          first_name?: string | null
+          id?: string
+          items_count?: number
+          notified_at?: string | null
+          phone?: string
+          step?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       coupons: {
         Row: {
           code: string
