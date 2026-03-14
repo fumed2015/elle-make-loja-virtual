@@ -23,7 +23,7 @@ export type AdminTab =
   | "sales-intelligence" | "crm" | "logistics" | "marketing-conversion" | "seo-content"
   | "products" | "stock" | "categories" | "homepage-sections" | "catalog-drive" | "collections"
   | "orders" | "coupons" | "reviews"
-  | "influencers" | "leads" | "birthdays"
+  | "influencers" | "leads" | "birthdays" | "checkout-leads"
   | "pixels" | "whatsapp" | "whatsapp-campaigns" | "seo" | "ai-content"
   | "marketplaces" | "newsletter" | "notifications-monitor";
 
