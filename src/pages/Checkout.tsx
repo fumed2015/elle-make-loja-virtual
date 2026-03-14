@@ -325,6 +325,21 @@ const Checkout = () => {
     trackPurchase({ orderId: orderData.id, value: finalTotal, itemCount: cartCount });
     const contentIds = items.map((item: any) => (item.products as any)?.id).filter(Boolean);
     const contents = items.map((item: any) => ({ id: (item.products as any)?.id, quantity: item.quantity })).filter((c: any) => c.id);
+
+    // Enrich Meta Advanced Matching with checkout data (address + CPF)
+    const addr = address || {};
+    fbSetUserData({
+      email: user.email || "",
+      phone: user.user_metadata?.phone || "",
+      firstName: (user.user_metadata?.full_name || "").split(" ")[0] || "",
+      lastName: (user.user_metadata?.full_name || "").split(" ").slice(1).join(" ") || "",
+      city: addr.city || "",
+      state: addr.state || "",
+      zip: addr.zip || addr.cep || "",
+      country: "br",
+      externalId: user.id,
+    });
+
     fbTrackPurchase({ orderId: orderData.id, value: finalTotal, itemCount: cartCount, contentIds, contents });
 
     return orderData.id;
