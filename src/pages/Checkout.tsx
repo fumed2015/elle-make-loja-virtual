@@ -550,6 +550,7 @@ const Checkout = () => {
                 setShowAddressPicker={setShowAddressPicker} selectSavedAddress={selectSavedAddress}
                 cepLoading={cepLoading} items={items} cartTotal={cartTotal} cartCount={cartCount}
                 onContinue={() => setStep("review")} formatCpf={formatCpf} formatPhone={formatPhone}
+                isGuest={!user} guestInfo={guestInfo} setGuestInfo={setGuestInfo}
               />
             )}
 
