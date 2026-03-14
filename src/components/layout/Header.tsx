@@ -106,6 +106,9 @@ const navLinks: NavItem[] = [
 // Labels to show on mobile (reduced set to fit one line)
 const mobileNavLabels = new Set(["Novidades", "Marcas", "Rosto", "Olhos", "Lábios", "Ofertas"]);
 
+// Labels hidden at md/lg/xl to prevent overflow — shown at 2xl (1400px+)
+const hiddenAtMdLabels = new Set(["Skincare", "Acessórios"]);
+
 const Header = () => {
   const { cartCount } = useCart();
   const { user, signOut } = useAuth();
@@ -358,13 +361,13 @@ const Header = () => {
             {navLinks.map((link) => (
               <div
                 key={link.label}
-                className="relative"
+                className={`relative ${hiddenAtMdLabels.has(link.label) ? 'hidden 2xl:block' : ''}`}
                 onMouseEnter={() => handleMouseEnter(link.label)}
                 onMouseLeave={handleMouseLeave}
               >
                 <Link
                   to={link.to}
-                  className={`flex items-center gap-0.5 px-1.5 lg:px-2.5 xl:px-3 py-2 text-xs lg:text-sm xl:text-sm font-semibold transition-all tracking-wider uppercase whitespace-nowrap ${!isTransparent ? 'text-foreground hover:text-primary' : 'text-white hover:text-white/80 drop-shadow-sm'}`}
+                  className={`flex items-center gap-0.5 px-1 lg:px-2 xl:px-2.5 py-2 text-[11px] lg:text-xs xl:text-[13px] font-semibold transition-all tracking-wide uppercase whitespace-nowrap ${!isTransparent ? 'text-foreground hover:text-primary' : 'text-white hover:text-white/80 drop-shadow-sm'}`}
                 >
                   {link.label}
                   {link.subs && <ChevronDown className="w-2.5 h-2.5 lg:w-3 lg:h-3" />}
@@ -408,9 +411,9 @@ const Header = () => {
           </nav>
 
           {/* Right: search + icons */}
-          <div className="flex items-center gap-0.5 flex-shrink-0 justify-end ml-auto md:ml-0">
+          <div className="flex items-center gap-0.5 flex-shrink-0 justify-end ml-auto md:ml-2">
             {/* Desktop search */}
-            <div className="hidden md:flex relative w-28 lg:w-36 xl:w-48" ref={searchContainerRef}>
+            <div className="hidden md:flex relative w-24 lg:w-32 xl:w-48" ref={searchContainerRef}>
               <form onSubmit={handleSearch} className="w-full relative">
                 <Input
                   placeholder="Buscar"
