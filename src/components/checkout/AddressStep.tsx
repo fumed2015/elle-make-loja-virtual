@@ -4,6 +4,23 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { motion, AnimatePresence } from "framer-motion";
 import FreeShippingBar from "@/components/layout/FreeShippingBar";
+import { useMemo } from "react";
+
+const validateEmail = (email: string): boolean => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+
+const validateCpf = (cpf: string): boolean => {
+  if (cpf.length !== 11 || /^(\d)\1{10}$/.test(cpf)) return false;
+  let sum = 0;
+  for (let i = 0; i < 9; i++) sum += parseInt(cpf[i]) * (10 - i);
+  let rest = (sum * 10) % 11;
+  if (rest === 10) rest = 0;
+  if (rest !== parseInt(cpf[9])) return false;
+  sum = 0;
+  for (let i = 0; i < 10; i++) sum += parseInt(cpf[i]) * (11 - i);
+  rest = (sum * 10) % 11;
+  if (rest === 10) rest = 0;
+  return rest === parseInt(cpf[10]);
+};
 
 interface AddressStepProps {
   address: { street: string; number: string; complement: string; neighborhood: string; city: string; state: string; zip: string };
@@ -33,15 +50,19 @@ const AddressStep = ({
   isGuest, guestInfo, setGuestInfo,
 }: AddressStepProps) => {
 
+  const emailValid = useMemo(() => !guestInfo?.email || validateEmail(guestInfo.email), [guestInfo?.email]);
+  const cpfValid = useMemo(() => customerInfo.cpf.length < 11 || validateCpf(customerInfo.cpf), [customerInfo.cpf]);
+
   const guestCanContinue = isGuest && guestInfo
-    ? guestInfo.name && guestInfo.email && guestInfo.phone.length >= 10 && customerInfo.cpf.length >= 11 && address.zip.length >= 8
+    ? guestInfo.name.trim().length >= 3 && validateEmail(guestInfo.email) && guestInfo.phone.length >= 10 && validateCpf(customerInfo.cpf) && address.zip.length >= 8
     : false;
 
   const loggedCanContinue = !isGuest
-    ? address.street && address.number && address.neighborhood && address.zip && customerInfo.cpf && customerInfo.cpf.length >= 11
+    ? address.street && address.number && address.neighborhood && address.zip && validateCpf(customerInfo.cpf)
     : false;
 
   const canContinue = isGuest ? guestCanContinue : loggedCanContinue;
+
 
   return (
     <motion.div key="address" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-4">
@@ -89,7 +110,8 @@ const AddressStep = ({
 
           <div className="space-y-2">
             <Label>E-mail *</Label>
-            <Input value={guestInfo.email} onChange={(e) => setGuestInfo({ ...guestInfo, email: e.target.value })} placeholder="seu@email.com" className="bg-muted border-none min-h-[44px]" type="email" required />
+            <Input value={guestInfo.email} onChange={(e) => setGuestInfo({ ...guestInfo, email: e.target.value })} placeholder="seu@email.com" className={`bg-muted border-none min-h-[44px] ${!emailValid ? "ring-2 ring-destructive" : ""}`} type="email" required />
+            {!emailValid && <p className="text-[11px] text-destructive">Insira um e-mail válido</p>}
           </div>
 
           <div className="grid grid-cols-2 gap-3">
@@ -99,7 +121,8 @@ const AddressStep = ({
             </div>
             <div className="space-y-2">
               <Label>CPF *</Label>
-              <Input value={formatCpf(customerInfo.cpf)} onChange={(e) => setCustomerInfo({ ...customerInfo, cpf: e.target.value.replace(/\D/g, "").slice(0, 11) })} placeholder="000.000.000-00" className="bg-muted border-none min-h-[44px]" inputMode="numeric" required />
+              <Input value={formatCpf(customerInfo.cpf)} onChange={(e) => setCustomerInfo({ ...customerInfo, cpf: e.target.value.replace(/\D/g, "").slice(0, 11) })} placeholder="000.000.000-00" className={`bg-muted border-none min-h-[44px] ${!cpfValid ? "ring-2 ring-destructive" : ""}`} inputMode="numeric" required />
+              {!cpfValid && <p className="text-[11px] text-destructive">CPF inválido</p>}
             </div>
           </div>
 
@@ -182,7 +205,8 @@ const AddressStep = ({
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-2">
               <Label>CPF *</Label>
-              <Input value={formatCpf(customerInfo.cpf)} onChange={(e) => setCustomerInfo({ ...customerInfo, cpf: e.target.value.replace(/\D/g, "").slice(0, 11) })} placeholder="000.000.000-00" className="bg-muted border-none min-h-[44px]" inputMode="numeric" required />
+              <Input value={formatCpf(customerInfo.cpf)} onChange={(e) => setCustomerInfo({ ...customerInfo, cpf: e.target.value.replace(/\D/g, "").slice(0, 11) })} placeholder="000.000.000-00" className={`bg-muted border-none min-h-[44px] ${!cpfValid ? "ring-2 ring-destructive" : ""}`} inputMode="numeric" required />
+              {!cpfValid && <p className="text-[11px] text-destructive">CPF inválido</p>}
             </div>
             <div className="space-y-2">
               <Label>Telefone</Label>
