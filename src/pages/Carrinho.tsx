@@ -18,7 +18,7 @@ const Carrinho = () => {
   const shipping = useShipping();
   const shippingCost = shipping.selectedShipping?.price ?? 0;
   const total = cartTotal + shippingCost;
-  const needsLogin = !user;
+  
 
   // Pixel: ViewCart
   useEffect(() => {
