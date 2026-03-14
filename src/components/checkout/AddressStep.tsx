@@ -110,7 +110,8 @@ const AddressStep = ({
 
           <div className="space-y-2">
             <Label>E-mail *</Label>
-            <Input value={guestInfo.email} onChange={(e) => setGuestInfo({ ...guestInfo, email: e.target.value })} placeholder="seu@email.com" className="bg-muted border-none min-h-[44px]" type="email" required />
+            <Input value={guestInfo.email} onChange={(e) => setGuestInfo({ ...guestInfo, email: e.target.value })} placeholder="seu@email.com" className={`bg-muted border-none min-h-[44px] ${!emailValid ? "ring-2 ring-destructive" : ""}`} type="email" required />
+            {!emailValid && <p className="text-[11px] text-destructive">Insira um e-mail válido</p>}
           </div>
 
           <div className="grid grid-cols-2 gap-3">
