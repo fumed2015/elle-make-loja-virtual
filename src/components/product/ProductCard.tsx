@@ -4,6 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ShoppingBag, Heart, Eye } from "lucide-react";
 import { useCart } from "@/hooks/useCart";
+import { useCartDrawer } from "@/components/cart/AddToCartDrawer";
 import { useAuth } from "@/hooks/useAuth";
 import { useFavorites } from "@/hooks/useFavorites";
 import { motion } from "framer-motion";
