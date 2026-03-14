@@ -368,32 +368,36 @@ const Checkout = () => {
 
     // Enrich Meta Advanced Matching with checkout data (address + CPF)
     const addr = (address || {}) as any;
+    const emailForPixel = user?.email || guestInfo.email || "";
+    const nameForPixel = user?.user_metadata?.full_name || guestInfo.name || "";
     fbSetUserData({
-      email: user.email || "",
-      phone: user.user_metadata?.phone || "",
-      firstName: (user.user_metadata?.full_name || "").split(" ")[0] || "",
-      lastName: (user.user_metadata?.full_name || "").split(" ").slice(1).join(" ") || "",
+      email: emailForPixel,
+      phone: user?.user_metadata?.phone || guestInfo.phone || customerInfo.phone || "",
+      firstName: nameForPixel.split(" ")[0] || "",
+      lastName: nameForPixel.split(" ").slice(1).join(" ") || "",
       city: addr.city || "",
       state: addr.state || "",
       zip: addr.zip || addr.cep || "",
       country: "br",
-      externalId: user.id,
+      externalId: user?.id || "",
     });
 
     fbTrackPurchase({ orderId: orderData.id, value: finalTotal, itemCount: cartCount, contentIds, contents });
 
     // Mark ghost lead as converted
-    supabase.from("checkout_leads").update({ converted_at: new Date().toISOString() } as any)
-      .eq("user_id", user.id).is("converted_at" as any, null).then(() => {});
+    if (user) {
+      supabase.from("checkout_leads").update({ converted_at: new Date().toISOString() } as any)
+        .eq("user_id", user.id).is("converted_at" as any, null).then(() => {});
+    }
 
     return orderData.id;
   };
 
   const getPayer = () => {
-    const fullName = user.user_metadata?.full_name || "";
+    const fullName = user?.user_metadata?.full_name || guestInfo.name || "";
     const parts = fullName.split(" ");
     return {
-      email: user.email || "",
+      email: user?.email || guestInfo.email || "",
       cpf: customerInfo.cpf.replace(/\D/g, ""),
       firstName: parts[0] || "Cliente",
       lastName: parts.slice(1).join(" ") || "",
