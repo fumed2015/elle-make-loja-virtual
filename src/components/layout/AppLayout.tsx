@@ -29,6 +29,7 @@ const AppLayout = () => {
       </AnimatePresence>
       <BottomNav />
       <FloatingWhatsApp />
+      <FloatingDeliveryBadge />
     </div>
   );
 };

@@ -1,0 +1,50 @@
+import { motion, AnimatePresence } from "framer-motion";
+import { Zap, X } from "lucide-react";
+import { useState, useEffect } from "react";
+
+const FloatingDeliveryBadge = () => {
+  const [visible, setVisible] = useState(false);
+  const [dismissed, setDismissed] = useState(false);
+
+  useEffect(() => {
+    // Check if already dismissed this session
+    if (sessionStorage.getItem("delivery-badge-dismissed")) return;
+    const timer = setTimeout(() => setVisible(true), 2000);
+    return () => clearTimeout(timer);
+  }, []);
+
+  const handleDismiss = () => {
+    setDismissed(true);
+    sessionStorage.setItem("delivery-badge-dismissed", "1");
+    setTimeout(() => setVisible(false), 300);
+  };
+
+  return (
+    <AnimatePresence>
+      {visible && !dismissed && (
+        <motion.div
+          initial={{ x: 100, opacity: 0 }}
+          animate={{ x: 0, opacity: 1 }}
+          exit={{ x: 100, opacity: 0 }}
+          transition={{ type: "spring", stiffness: 300, damping: 25 }}
+          className="fixed bottom-36 md:bottom-16 right-4 z-50 flex items-center gap-2 rounded-full bg-primary text-primary-foreground pl-3 pr-2 py-2 shadow-lg cursor-default select-none max-w-[220px]"
+        >
+          <Zap className="w-4 h-4 flex-shrink-0 text-accent" fill="currentColor" />
+          <span className="text-[11px] font-semibold leading-tight">
+            Entrega em até 3h
+            <span className="block text-[9px] font-normal opacity-80">Belém e Ananindeua</span>
+          </span>
+          <button
+            onClick={handleDismiss}
+            className="ml-1 p-0.5 rounded-full hover:bg-primary-foreground/20 transition-colors flex-shrink-0"
+            aria-label="Fechar"
+          >
+            <X className="w-3 h-3" />
+          </button>
+        </motion.div>
+      )}
+    </AnimatePresence>
+  );
+};
+
+export default FloatingDeliveryBadge;
