@@ -11,7 +11,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
 import { trackInitiateCheckout, trackPurchase } from "@/hooks/useTikTokPixel";
-import { fbTrackInitiateCheckout, fbTrackPurchase, fbTrackAddPaymentInfo } from "@/hooks/useMetaPixel";
+import { fbTrackInitiateCheckout, fbTrackPurchase, fbTrackAddPaymentInfo, fbSetUserData } from "@/hooks/useMetaPixel";
 
 import AddressStep from "@/components/checkout/AddressStep";
 import ReviewStep from "@/components/checkout/ReviewStep";
