@@ -135,9 +135,9 @@ export const useCart = () => {
         if (error) throw error;
       }
     },
-    onSuccess: () => {
+    onSuccess: (_data, variables) => {
       queryClient.invalidateQueries({ queryKey: ["cart"] });
-      toast.success("Adicionado ao carrinho! 🛍️");
+      // No toast here — components trigger the drawer instead
     },
     onError: (err: Error) => toast.error(err.message),
   });
