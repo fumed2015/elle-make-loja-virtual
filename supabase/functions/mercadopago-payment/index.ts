@@ -241,7 +241,7 @@ async function handleWebhook(req: Request, rawBody: string, accessToken: string)
         if (orderData.user_id) {
           const { data: profile } = await supabaseAdmin
             .from("profiles")
-            .select("phone, full_name, cpf, address")
+            .select("phone, full_name, cpf, address, birthday")
             .eq("user_id", orderData.user_id)
             .maybeSingle();
           profileData = profile;
