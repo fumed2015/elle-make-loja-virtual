@@ -398,6 +398,7 @@ serve(async (req) => {
       });
 
       const tmplPix = await loadTemplate(supabase, "pix.reminder");
+      const mpToken = Deno.env.get("MERCADO_PAGO_ACCESS_TOKEN");
 
       let sent = 0;
       for (const order of dedupedToNotify) {
@@ -422,6 +423,29 @@ serve(async (req) => {
 
         if (!profile?.phone) continue;
 
+        // Fetch PIX code from Mercado Pago using external_reference (order_id)
+        let pixCode = "";
+        if (mpToken) {
+          try {
+            const searchRes = await fetch(
+              `https://api.mercadopago.com/v1/payments/search?external_reference=${order.id}&status=pending&sort=date_created&criteria=desc`,
+              { headers: { Authorization: `Bearer ${mpToken}` } }
+            );
+            const searchData = await searchRes.json();
+            const mpPayment = searchData?.results?.[0];
+            if (mpPayment?.point_of_interaction?.transaction_data?.qr_code) {
+              pixCode = mpPayment.point_of_interaction.transaction_data.qr_code;
+            }
+          } catch (e) {
+            console.error("Error fetching PIX code from MP:", e);
+          }
+        }
+
+        // If no PIX code found, send fallback with link
+        if (!pixCode) {
+          pixCode = `Acesse ${SITE_URL}/pedidos para copiar o código`;
+        }
+
         const productsList = items.map((i: any) => `• ${i.name || "Produto"} (${i.quantity || 1}x)`).join("\n");
 
         const vars = {
@@ -429,6 +453,7 @@ serve(async (req) => {
           merchant: MERCHANT_NAME,
           total: Number(order.total).toFixed(2).replace(".", ","),
           products_list: productsList,
+          pix_code: pixCode,
           link: `${SITE_URL}/pedidos`,
         };
 
