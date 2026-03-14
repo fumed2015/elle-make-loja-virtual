@@ -1,9 +1,10 @@
-import { createContext, useContext, useState, useCallback, ReactNode } from "react";
+import { createContext, useContext, useState, useCallback, useEffect, ReactNode } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import { ShoppingBag, Check, ArrowRight, Sparkles, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import OptimizedImage from "@/components/ui/optimized-image";
+import confetti from "canvas-confetti";
 
 // ─── Context ───────────────────────────────────────────────
 interface AddedProduct {
@@ -37,6 +38,32 @@ export function CartDrawerProvider({ children }: { children: ReactNode }) {
       setProduct(p);
       setCartInfo({ count, total });
       setOpen(true);
+
+      // 🎉 Confetti burst from bottom center
+      const end = Date.now() + 600;
+      const colors = ["#800020", "#F5F5DC", "#d4a0a0", "#ffd700", "#ff69b4"];
+      (function frame() {
+        confetti({
+          particleCount: 3,
+          angle: 60,
+          spread: 55,
+          origin: { x: 0.3, y: 0.9 },
+          colors,
+          zIndex: 70,
+          disableForReducedMotion: true,
+        });
+        confetti({
+          particleCount: 3,
+          angle: 120,
+          spread: 55,
+          origin: { x: 0.7, y: 0.9 },
+          colors,
+          zIndex: 70,
+          disableForReducedMotion: true,
+        });
+        if (Date.now() < end) requestAnimationFrame(frame);
+      })();
+
       // Auto-dismiss after 5s
       setTimeout(() => setOpen(false), 5000);
     },
