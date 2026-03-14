@@ -230,6 +230,20 @@ serve(async (req) => {
         return jsonResponse({ error: "order_id and event_type required" }, 400);
       }
 
+      // ── DEDUP: check if this exact notification was already sent ──
+      const { data: existingNotif } = await supabase
+        .from("notifications")
+        .select("id")
+        .eq("order_id", order_id)
+        .eq("event_type", event_type)
+        .eq("status", "sent")
+        .limit(1);
+
+      if (existingNotif && existingNotif.length > 0) {
+        console.log(`Notification ${event_type} already sent for order ${order_id}, skipping`);
+        return jsonResponse({ sent: false, reason: "already_sent", event_type });
+      }
+
       const { data: order, error: orderErr } = await supabase
         .from("orders")
         .select("*")
@@ -255,6 +269,25 @@ serve(async (req) => {
       if (!phone) {
         console.log(`No phone for user ${order.user_id}, skipping notification`);
         return jsonResponse({ sent: false, reason: "no_phone" });
+      }
+
+      // ── PER-PHONE DAILY LIMIT ──
+      const todayStart = new Date();
+      todayStart.setHours(0, 0, 0, 0);
+      let cleanPhone = phone.replace(/\D/g, "");
+      if (!cleanPhone.startsWith("55")) cleanPhone = "55" + cleanPhone;
+
+      const { data: todayCount } = await supabase
+        .from("notifications")
+        .select("id", { count: "exact", head: true })
+        .eq("phone", cleanPhone)
+        .eq("status", "sent")
+        .gt("created_at", todayStart.toISOString());
+
+      const MAX_PER_PHONE_PER_DAY = 5;
+      if ((todayCount as any)?.length >= MAX_PER_PHONE_PER_DAY) {
+        console.log(`Phone ${cleanPhone} hit daily limit, skipping ${event_type}`);
+        return jsonResponse({ sent: false, reason: "daily_limit", event_type });
       }
 
       const firstName = profile?.full_name?.split(" ")[0] || "Cliente";
@@ -295,7 +328,7 @@ serve(async (req) => {
 
       await supabase.from("notifications").insert({
         event_type,
-        phone,
+        phone: cleanPhone,
         message,
         status: zapiResponse?.error ? "failed" : "sent",
         zapi_response: zapiResponse,
