@@ -37,8 +37,9 @@ const FALLBACK_TEMPLATES: Record<string, string> = {
     `Oi, *{first_name}*! ⏳\n\n` +
     `Seu PIX de *R$ {total}* na *{merchant}* ainda está pendente.\n\n` +
     `{products_list}\n\n` +
-    `Acesse para copiar o código PIX:\n🔗 {link}\n\n` +
-    `Pague antes que expire e garanta seus produtos! 💕`,
+    `📋 *Copie o código PIX abaixo e pague pelo app do seu banco:*\n\n` +
+    `{pix_code}\n\n` +
+    `⚠️ O código expira em breve. Pague agora e garanta seus produtos! 💕`,
 };
 
 // ── Load template from DB with fallback ──
