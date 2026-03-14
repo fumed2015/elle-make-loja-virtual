@@ -50,15 +50,19 @@ const AddressStep = ({
   isGuest, guestInfo, setGuestInfo,
 }: AddressStepProps) => {
 
+  const emailValid = useMemo(() => !guestInfo?.email || validateEmail(guestInfo.email), [guestInfo?.email]);
+  const cpfValid = useMemo(() => customerInfo.cpf.length < 11 || validateCpf(customerInfo.cpf), [customerInfo.cpf]);
+
   const guestCanContinue = isGuest && guestInfo
-    ? guestInfo.name && guestInfo.email && guestInfo.phone.length >= 10 && customerInfo.cpf.length >= 11 && address.zip.length >= 8
+    ? guestInfo.name.trim().length >= 3 && validateEmail(guestInfo.email) && guestInfo.phone.length >= 10 && validateCpf(customerInfo.cpf) && address.zip.length >= 8
     : false;
 
   const loggedCanContinue = !isGuest
-    ? address.street && address.number && address.neighborhood && address.zip && customerInfo.cpf && customerInfo.cpf.length >= 11
+    ? address.street && address.number && address.neighborhood && address.zip && validateCpf(customerInfo.cpf)
     : false;
 
   const canContinue = isGuest ? guestCanContinue : loggedCanContinue;
+
 
   return (
     <motion.div key="address" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-4">
