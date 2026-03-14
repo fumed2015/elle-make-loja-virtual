@@ -15,7 +15,7 @@
  * - fbc/fbp are read from cookies/localStorage for attribution
  */
 
-import { getFbc } from "./useMetaFbclid";
+import { getFbc, getFbp } from "./useMetaFbclid";
 
 declare global {
   interface Window {
