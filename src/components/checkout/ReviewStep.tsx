@@ -168,7 +168,9 @@ const ReviewStep = ({
         )}
         <div className="flex justify-between text-sm">
           <span className="text-muted-foreground">Frete</span>
-          {shipping.selectedShipping ? (
+          {shipping.loading ? (
+            <span className="flex items-center gap-1 text-muted-foreground text-xs"><Loader2 className="w-3 h-3 animate-spin" />Calculando...</span>
+          ) : shipping.selectedShipping ? (
             freeShipping ? <span className="text-accent font-medium">Grátis</span> :
             shipping.selectedShipping.price !== null ? <span>R$ {shipping.selectedShipping.price.toFixed(2).replace(".", ",")}</span> :
             <span className="text-accent">A combinar</span>
