@@ -327,7 +327,7 @@ const Checkout = () => {
     const contents = items.map((item: any) => ({ id: (item.products as any)?.id, quantity: item.quantity })).filter((c: any) => c.id);
 
     // Enrich Meta Advanced Matching with checkout data (address + CPF)
-    const addr = address || {};
+    const addr = (address || {}) as any;
     fbSetUserData({
       email: user.email || "",
       phone: user.user_metadata?.phone || "",
