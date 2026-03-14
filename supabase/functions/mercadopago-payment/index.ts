@@ -241,7 +241,7 @@ async function handleWebhook(req: Request, rawBody: string, accessToken: string)
         if (orderData.user_id) {
           const { data: profile } = await supabaseAdmin
             .from("profiles")
-            .select("phone, full_name, cpf, address")
+            .select("phone, full_name, cpf, address, birthday")
             .eq("user_id", orderData.user_id)
             .maybeSingle();
           profileData = profile;
@@ -266,6 +266,9 @@ async function handleWebhook(req: Request, rawBody: string, accessToken: string)
             state: addr.state || "",
             city: addr.city || "",
             zip: addr.zip || addr.cep || "",
+            date_of_birth: profileData?.birthday ? profileData.birthday.replace(/-/g, "") : "",
+            client_ip_address: req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || req.headers.get("cf-connecting-ip") || "",
+            client_user_agent: req.headers.get("user-agent") || "",
           },
           custom_data: {
             content_ids: contentIds,

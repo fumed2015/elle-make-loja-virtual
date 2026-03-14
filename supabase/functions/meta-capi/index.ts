@@ -51,6 +51,8 @@ interface CAPIEventData {
     phone?: string;
     first_name?: string;
     last_name?: string;
+    date_of_birth?: string; // YYYYMMDD
+    gender?: string; // 'm' or 'f'
     external_id?: string;
     client_ip_address?: string;
     client_user_agent?: string;
@@ -64,10 +66,10 @@ interface CAPIEventData {
   custom_data?: Record<string, any>;
 }
 
-async function buildServerEvent(data: CAPIEventData) {
-  const ud: Record<string, string> = {};
+async function buildServerEvent(data: CAPIEventData, req: Request) {
+  const ud: Record<string, any> = {};
 
-  // Hash PII fields
+  // Hash PII fields (must be arrays per Meta spec)
   if (data.user_data.email) {
     ud.em = [await sha256(data.user_data.email.trim().toLowerCase())];
   }
@@ -82,6 +84,20 @@ async function buildServerEvent(data: CAPIEventData) {
     const ln = data.user_data.last_name.trim().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
     ud.ln = [await sha256(ln)];
   }
+  // Date of birth (YYYYMMDD)
+  if (data.user_data.date_of_birth) {
+    const db = data.user_data.date_of_birth.replace(/\D/g, "");
+    if (db.length === 8) {
+      ud.db = [await sha256(db)];
+    }
+  }
+  // Gender (m or f)
+  if (data.user_data.gender) {
+    const ge = data.user_data.gender.trim().toLowerCase().charAt(0);
+    if (ge === "m" || ge === "f") {
+      ud.ge = [await sha256(ge)];
+    }
+  }
   if (data.user_data.external_id) {
     ud.external_id = [await sha256(data.user_data.external_id)];
   }
@@ -92,16 +108,22 @@ async function buildServerEvent(data: CAPIEventData) {
     ud.st = [await sha256(data.user_data.state.trim().toLowerCase().slice(0, 2))];
   }
   if (data.user_data.city) {
-    const ct = data.user_data.city.trim().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+    const ct = data.user_data.city.trim().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/\s/g, "");
     ud.ct = [await sha256(ct)];
   }
   if (data.user_data.zip) {
-    ud.zp = [await sha256(data.user_data.zip.replace(/\D/g, ""))];
+    ud.zp = [await sha256(data.user_data.zip.replace(/\D/g, "").slice(0, 5))];
   }
 
-  // Non-hashed fields
-  if (data.user_data.client_ip_address) ud.client_ip_address = data.user_data.client_ip_address;
-  if (data.user_data.client_user_agent) ud.client_user_agent = data.user_data.client_user_agent;
+  // Non-hashed fields — use provided values or fallback to request headers
+  ud.client_ip_address = data.user_data.client_ip_address
+    || req.headers.get("x-forwarded-for")?.split(",")[0]?.trim()
+    || req.headers.get("cf-connecting-ip")
+    || "";
+  ud.client_user_agent = data.user_data.client_user_agent
+    || req.headers.get("user-agent")
+    || "";
+
   if (data.user_data.fbc) ud.fbc = data.user_data.fbc;
   if (data.user_data.fbp) ud.fbp = data.user_data.fbp;
 
@@ -142,7 +164,7 @@ serve(async (req) => {
     }
 
     // Build all events with proper hashing
-    const serverEvents = await Promise.all(events.map(buildServerEvent));
+    const serverEvents = await Promise.all(events.map((e) => buildServerEvent(e, req)));
 
     // Send to Meta
     const url = `${META_API_URL}?access_token=${accessToken}`;

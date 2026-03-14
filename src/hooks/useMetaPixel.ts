@@ -15,7 +15,7 @@
  * - fbc/fbp are read from cookies/localStorage for attribution
  */
 
-import { getFbc } from "./useMetaFbclid";
+import { getFbc, getFbp } from "./useMetaFbclid";
 
 declare global {
   interface Window {
@@ -72,6 +72,8 @@ export function fbSetUserData(data: {
   country?: string;
   externalId?: string;
   cpf?: string;
+  dateOfBirth?: string; // YYYY-MM-DD or DD/MM/YYYY
+  gender?: string; // 'm' or 'f'
 }) {
   try {
     if (typeof window === "undefined" || typeof window.fbq !== "function") return;
@@ -88,19 +90,39 @@ export function fbSetUserData(data: {
 
     if (data.firstName) ud.fn = data.firstName.trim().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
     if (data.lastName) ud.ln = data.lastName.trim().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-    if (data.city) ud.ct = data.city.trim().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+    if (data.city) ud.ct = data.city.trim().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/\s/g, "");
     if (data.state) ud.st = data.state.trim().toLowerCase().slice(0, 2);
-    if (data.zip) ud.zp = data.zip.replace(/\D/g, "");
+    if (data.zip) ud.zp = data.zip.replace(/\D/g, "").slice(0, 5);
     ud.country = (data.country || "br").toLowerCase();
 
-    // external_id: use user UUID or hashed CPF as stable identifier
+    // Date of birth: normalize to YYYYMMDD
+    if (data.dateOfBirth) {
+      const raw = data.dateOfBirth.replace(/\D/g, "");
+      // If already YYYYMMDD (8 digits starting with 19 or 20)
+      if (raw.length === 8 && (raw.startsWith("19") || raw.startsWith("20"))) {
+        ud.db = raw;
+      } else if (raw.length === 8) {
+        // Assume DDMMYYYY
+        ud.db = raw.slice(4) + raw.slice(2, 4) + raw.slice(0, 2);
+      }
+    }
+
+    // Gender
+    if (data.gender) {
+      const g = data.gender.trim().toLowerCase().charAt(0);
+      if (g === "m" || g === "f") ud.ge = g;
+    }
+
+    // external_id: use user UUID as stable identifier
     if (data.externalId) ud.external_id = data.externalId;
 
-    // Inject fbc from our persistence layer
+    // Inject fbc and fbp from cookies/persistence
     const fbc = getFbc();
     if (fbc) ud.fbc = fbc;
+    const fbp = getFbp();
+    if (fbp) ud.fbp = fbp;
 
-    // Cache for future events
+    // Cache for future events and CAPI
     _cachedUserData = { ..._cachedUserData, ...ud };
 
     if (Object.keys(ud).length > 1) {

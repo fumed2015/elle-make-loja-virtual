@@ -27,10 +27,10 @@ export function useMetaAdvancedMatching() {
       externalId: user.id, // stable UUID for cross-device matching
     };
 
-    // Enrich with profile data (phone, address, etc.)
+    // Enrich with profile data (phone, address, birthday, etc.)
     supabase
       .from("profiles")
-      .select("phone, address, cpf")
+      .select("phone, address, cpf, birthday")
       .eq("user_id", user.id)
       .maybeSingle()
       .then(({ data }) => {
@@ -42,6 +42,7 @@ export function useMetaAdvancedMatching() {
           state: addr.state || "",
           zip: addr.zip || addr.cep || "",
           country: "br",
+          dateOfBirth: data?.birthday || user.user_metadata?.birthday || "",
         });
       }, () => {
         // Fallback: send what we have from auth

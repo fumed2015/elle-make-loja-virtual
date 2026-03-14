@@ -34,6 +34,15 @@ export function getFbc(): string | null {
 }
 
 /**
+ * Returns the _fbp (browser ID) value from cookie.
+ * Format: fb.1.<creation_time>.<random_number>
+ * Set automatically by Meta's pixel.js
+ */
+export function getFbp(): string | null {
+  return getCookie("_fbp");
+}
+
+/**
  * Returns the raw fbclid value.
  */
 export function getFbclid(): string | null {
