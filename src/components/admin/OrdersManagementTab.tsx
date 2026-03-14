@@ -1,4 +1,5 @@
 import { useState, useMemo } from "react";
+import OrderNotificationLog from "./OrderNotificationLog";
 import { useAllOrders } from "@/hooks/useOrders";
 import { useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -577,6 +578,9 @@ const OrdersManagementTab = () => {
                             </div>
                           )}
                         </div>
+
+                        {/* Notification log */}
+                        <OrderNotificationLog orderId={order.id} />
 
                         {/* Payment & meta */}
                         <div className="grid grid-cols-2 gap-2">
