@@ -451,6 +451,125 @@ serve(async (req) => {
     }
 
     // ══════════════════════════════════════════════════════════
+    // ACTION: process-checkout-leads (Ghost Lead Recovery)
+    // ══════════════════════════════════════════════════════════
+    if (action === "process-checkout-leads") {
+      const cutoff15min = new Date(Date.now() - 15 * 60 * 1000).toISOString();
+      const maxAge = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+      const MAX_WHATSAPP_PER_PHONE_PER_DAY = 3;
+
+      // Find leads older than 15 min, not converted, not notified
+      const { data: leads, error } = await supabase
+        .from("checkout_leads")
+        .select("*")
+        .is("converted_at", null)
+        .is("notified_at", null)
+        .lt("updated_at", cutoff15min)
+        .gt("created_at", maxAge)
+        .order("created_at", { ascending: true })
+        .limit(30);
+
+      if (error) return jsonResponse({ error: error.message }, 500);
+      if (!leads || leads.length === 0) return jsonResponse({ processed: 0, message: "No checkout leads to recover" });
+
+      // Check if user completed an order after the lead was created
+      const userIds = leads.map((l: any) => l.user_id);
+      const { data: recentOrders } = await supabase
+        .from("orders")
+        .select("user_id, created_at")
+        .in("user_id", userIds)
+        .not("status", "eq", "cancelled")
+        .order("created_at", { ascending: false });
+
+      const usersWithOrders = new Set<string>();
+      for (const lead of leads) {
+        const hasOrder = (recentOrders || []).some(
+          (o: any) => o.user_id === lead.user_id && new Date(o.created_at) > new Date(lead.created_at)
+        );
+        if (hasOrder) usersWithOrders.add(lead.user_id);
+      }
+
+      // Check daily phone limit
+      const todayStart = new Date();
+      todayStart.setHours(0, 0, 0, 0);
+      const phones = [...new Set(leads.map((l: any) => {
+        let p = l.phone.replace(/\D/g, "");
+        if (!p.startsWith("55")) p = "55" + p;
+        return p;
+      }))];
+
+      const phoneUsageMap = new Map<string, number>();
+      if (phones.length > 0) {
+        const { data: todayNotifs } = await supabase
+          .from("notifications")
+          .select("phone")
+          .in("phone", phones)
+          .eq("status", "sent")
+          .gt("created_at", todayStart.toISOString());
+
+        for (const n of (todayNotifs || [])) {
+          const clean = n.phone.replace(/\D/g, "");
+          phoneUsageMap.set(clean, (phoneUsageMap.get(clean) || 0) + 1);
+        }
+      }
+
+      const ghostTemplate =
+        `Oi, *{first_name}*! 💕\n\n` +
+        `Notei que você teve uma dúvida no checkout da *${MERCHANT_NAME}*.\n\n` +
+        `Posso te ajudar a finalizar sua compra? 😊\n\n` +
+        `💰 Seu carrinho: R$ {total} ({items_count} {items_label})\n\n` +
+        `🔗 ${SITE_URL}/checkout\n\n` +
+        `Responda aqui que ajudamos! 💬`;
+
+      let sent = 0;
+      let skipped = 0;
+      for (const lead of leads) {
+        // Skip converted users
+        if (usersWithOrders.has(lead.user_id)) {
+          await supabase.from("checkout_leads").update({ converted_at: new Date().toISOString() }).eq("id", lead.id);
+          continue;
+        }
+
+        let cleanPhone = lead.phone.replace(/\D/g, "");
+        if (!cleanPhone.startsWith("55")) cleanPhone = "55" + cleanPhone;
+
+        // Check daily limit
+        const usage = phoneUsageMap.get(cleanPhone) || 0;
+        if (usage >= MAX_WHATSAPP_PER_PHONE_PER_DAY) {
+          skipped++;
+          continue;
+        }
+
+        const firstName = lead.first_name || "Cliente";
+        const message = ghostTemplate
+          .replace(/{first_name}/g, firstName)
+          .replace(/{total}/g, Number(lead.cart_total || 0).toFixed(2).replace(".", ","))
+          .replace(/{items_count}/g, String(lead.items_count || 0))
+          .replace(/{items_label}/g, (lead.items_count || 0) === 1 ? "item" : "itens");
+
+        const result = await sendWhatsApp(lead.phone, message);
+
+        await supabase.from("notifications").insert({
+          event_type: "checkout.ghost_lead",
+          phone: cleanPhone,
+          message,
+          status: result?.error ? "failed" : "sent",
+          zapi_response: result,
+          user_id: lead.user_id,
+        });
+
+        await supabase.from("checkout_leads").update({ notified_at: new Date().toISOString() }).eq("id", lead.id);
+
+        if (!result?.error) {
+          phoneUsageMap.set(cleanPhone, usage + 1);
+          sent++;
+        }
+      }
+
+      return jsonResponse({ processed: leads.length, sent, skipped });
+    }
+
+    // ══════════════════════════════════════════════════════════
     // ACTION: resolve-recovery
     // ══════════════════════════════════════════════════════════
     if (action === "resolve-recovery") {
