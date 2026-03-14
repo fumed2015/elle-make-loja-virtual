@@ -1,5 +1,5 @@
 import { motion, AnimatePresence } from "framer-motion";
-import { Zap, X } from "lucide-react";
+import { Bike, X } from "lucide-react";
 import { useState, useEffect } from "react";
 
 const FloatingDeliveryBadge = () => {
