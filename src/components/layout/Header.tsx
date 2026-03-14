@@ -396,7 +396,7 @@ const Header = () => {
                           <div className="border-t border-border mt-2 pt-2">
                             <Link
                               to={link.to}
-                              className="text-xs font-semibold text-primary hover:underline"
+                              className="text-sm font-semibold text-primary hover:underline"
                             >
                               Ver tudo em {link.label} →
                             </Link>
