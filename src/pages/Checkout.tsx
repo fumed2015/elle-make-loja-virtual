@@ -76,6 +76,7 @@ const Checkout = () => {
   const [profileLoaded, setProfileLoaded] = useState(false);
   const [addressLoaded, setAddressLoaded] = useState(false);
   const [showAddressPicker, setShowAddressPicker] = useState(false);
+  const [guestInfo, setGuestInfo] = useState({ name: "", email: "", phone: "" });
 
   const [pixData, setPixData] = useState<{ qr_code: string; qr_code_base64: string } | null>(null);
   const [boletoData, setBoletoData] = useState<{ barcode: string; boleto_url: string } | null>(null);
