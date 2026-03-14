@@ -323,11 +323,21 @@ const Checkout = () => {
       };
     });
 
-    const { data: orderData, error: orderError } = await supabase.from("orders").insert({
-      user_id: user.id, total: finalTotal, shipping_address: address,
+    const orderPayload: any = {
+      total: finalTotal, shipping_address: address,
       payment_method: paymentMethod, items: orderItems,
       coupon_code: appliedCoupon?.code || null, discount: appliedCoupon?.discount || 0,
-    }).select("id").single();
+    };
+
+    if (user) {
+      orderPayload.user_id = user.id;
+    } else {
+      orderPayload.guest_name = guestInfo.name;
+      orderPayload.guest_email = guestInfo.email;
+      orderPayload.guest_phone = guestInfo.phone || customerInfo.phone;
+    }
+
+    const { data: orderData, error: orderError } = await supabase.from("orders").insert(orderPayload).select("id").single();
 
     if (orderError) throw orderError;
 
