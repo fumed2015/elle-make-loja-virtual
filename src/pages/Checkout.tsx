@@ -193,12 +193,20 @@ const Checkout = () => {
     setShowAddressPicker(false);
   };
 
-  // ViaCEP auto-fill
+  // ViaCEP auto-fill + persist CEP + sync shipping
   const [shippingAutoCalculated, setShippingAutoCalculated] = useState(false);
   const [pendingShippingCalc, setPendingShippingCalc] = useState(false);
   useEffect(() => {
     const clean = address.zip.replace(/\D/g, "");
     if (clean.length !== 8) return;
+
+    // Persist CEP to localStorage so cart/other pages stay in sync
+    try { localStorage.setItem("ellemake_shipping_cep", clean); } catch {}
+
+    // Sync to shipping hook and recalculate
+    shipping.setCep(clean);
+    setPendingShippingCalc(true);
+
     let cancelled = false;
     setCepLoading(true);
     fetch(`https://viacep.com.br/ws/${clean}/json/`)
@@ -215,13 +223,8 @@ const Checkout = () => {
       })
       .catch(() => {})
       .finally(() => { if (!cancelled) setCepLoading(false); });
-    if (!shippingAutoCalculated && shipping.options.length === 0) {
-      shipping.setCep(clean);
-      setShippingAutoCalculated(true);
-      setPendingShippingCalc(true);
-    }
     return () => { cancelled = true; };
-  }, [address.zip]);
+  }, [address.zip]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     if (pendingShippingCalc) {
