@@ -25,7 +25,8 @@ const ProductCard = memo(({ product, index = 0 }: ProductCardProps) => {
   const discountPercent = hasDiscount
     ? Math.round(((product.compare_at_price - product.price) / product.compare_at_price) * 100)
     : 0;
-  const { addToCart } = useCart();
+  const { addToCart, cartCount, cartTotal } = useCart();
+  const { showAddedProduct } = useCartDrawer();
   const { user } = useAuth();
   const { toggleFavorite, isFavorited } = useFavorites();
   const favorited = user ? isFavorited(product.id) : false;
