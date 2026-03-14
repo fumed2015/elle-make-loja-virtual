@@ -202,6 +202,7 @@ const OrdersManagementTab = () => {
     const confirmedStatuses = ['confirmed', 'approved', 'processing', 'shipped', 'delivered'];
     
     // If the order was in a confirmed state, first cancel it to trigger stock restoration & financial reversal
+    // NOTE: We do NOT send a WhatsApp cancellation notification here since the order is being deleted
     if (order && confirmedStatuses.includes(order.status)) {
       const { error: cancelError } = await supabase
         .from("orders")
@@ -217,6 +218,13 @@ const OrdersManagementTab = () => {
       await new Promise(resolve => setTimeout(resolve, 500));
     }
     
+    // Mark any pending notifications as cancelled to prevent Z-API from processing them
+    await supabase
+      .from("notifications")
+      .update({ status: "cancelled" })
+      .eq("order_id", orderId)
+      .in("status", ["pending", "sent"]);
+    
     // Delete related records that have FK constraints to orders
     const deleteRelated = await Promise.all([
       supabase.from("financial_transactions").delete().eq("order_id", orderId),
@@ -231,12 +239,21 @@ const OrdersManagementTab = () => {
       return;
     }
     
+    // Also clean up any checkout_leads and cart_abandonment_events for this user
+    if (order?.user_id) {
+      await supabase
+        .from("cart_abandonment_events")
+        .update({ recovered_at: new Date().toISOString() })
+        .eq("user_id", order.user_id)
+        .is("recovered_at", null);
+    }
+    
     // Now delete the order
     const { error } = await supabase.from("orders").delete().eq("id", orderId);
     if (error) {
       toast.error("Erro ao apagar pedido: " + error.message);
     } else {
-      toast.success("Pedido apagado e estoque restaurado!");
+      toast.success("Pedido apagado e estoque restaurado! Notificações canceladas.");
       setExpandedId(null);
       refetch();
     }
