@@ -388,7 +388,7 @@ const Header = () => {
                             <Link
                               key={sub.label}
                               to={sub.to}
-                              className="block text-sm text-foreground hover:text-primary font-medium transition-colors whitespace-nowrap py-1"
+                              className="block text-base text-foreground hover:text-primary font-medium transition-colors whitespace-nowrap py-1"
                             >
                               {sub.label}
                             </Link>
