@@ -51,6 +51,8 @@ interface CAPIEventData {
     phone?: string;
     first_name?: string;
     last_name?: string;
+    date_of_birth?: string; // YYYYMMDD
+    gender?: string; // 'm' or 'f'
     external_id?: string;
     client_ip_address?: string;
     client_user_agent?: string;
