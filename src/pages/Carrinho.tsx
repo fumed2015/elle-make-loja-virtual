@@ -190,8 +190,8 @@ const Carrinho = () => {
           <p className="text-xs font-semibold text-primary">🛵 Belém e Ananindeua: entrega em até 3 horas!</p>
         </div>
         <Button asChild className="w-full bg-primary text-primary-foreground shadow-marsala hover:bg-primary/90 min-h-[44px] press-scale">
-          <Link to={needsLogin ? "/perfil?redirect=/checkout" : "/checkout"}>
-            {needsLogin ? "Entrar para finalizar" : "Garantir Meu Look ✨"} <ArrowRight className="w-4 h-4 ml-1" />
+          <Link to="/checkout">
+            Garantir Meu Look ✨ <ArrowRight className="w-4 h-4 ml-1" />
           </Link>
         </Button>
       </div>
