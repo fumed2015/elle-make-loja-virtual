@@ -43,7 +43,15 @@ const ProductCard = memo(({ product, index = 0 }: ProductCardProps) => {
       navigate(`/produto/${product.slug}`);
       return;
     }
-    addToCart.mutate({ productId: product.id, quantity: 1 });
+    addToCart.mutate({ productId: product.id, quantity: 1 }, {
+      onSuccess: () => {
+        showAddedProduct(
+          { name: product.name, price: Number(product.price), image: product.images?.[0], quantity: 1 },
+          cartCount + 1,
+          cartTotal + Number(product.price)
+        );
+      }
+    });
     const atcParams = { id: product.id, name: product.name, price: Number(product.price), quantity: 1 };
     trackAddToCart(atcParams);
     fbTrackAddToCart(atcParams);
