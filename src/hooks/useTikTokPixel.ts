@@ -395,15 +395,12 @@ export function trackSubmitForm(params?: { description?: string }) {
   }));
 }
 
-export interface TrackPurchaseParams {
+interface TrackPurchaseParams {
   orderId: string;
   value: number;
   itemCount: number;
   contentIds?: string[];
   contents?: Array<{ content_id: string; quantity: number; price: number; content_name?: string }>;
-  email?: string;
-  phone?: string;
-  externalId?: string;
 }
 
 export function trackPurchase(params: TrackPurchaseParams): void {
