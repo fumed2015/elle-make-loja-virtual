@@ -27,6 +27,7 @@ const TestPixel = () => {
       orderId: fakeOrderId,
       value: fakeValue,
       itemCount: 1,
+      contentIds: fakeContentIds,
     });
 
     setFired(true);
