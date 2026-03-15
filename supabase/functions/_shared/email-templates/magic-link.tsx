@@ -21,7 +21,7 @@ interface MagicLinkEmailProps {
 }
 
 const LOGO_URL = 'https://xinkvwlhctwgdfwixzxf.supabase.co/storage/v1/object/public/email-assets/logo-ellemake-circular.png'
-const MARSALA = '#800020'
+const MARSALA = '#74242c'
 
 export const MagicLinkEmail = ({ siteName = 'Elle Make', confirmationUrl }: MagicLinkEmailProps) => (
   <Html lang="pt-BR" dir="ltr">
