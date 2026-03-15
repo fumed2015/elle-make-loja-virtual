@@ -143,6 +143,7 @@ const Admin = () => {
       case "collections": return <CollectionsTab />;
       case "notifications-monitor": return <NotificationsMonitorTab />;
       case "checkout-leads": return <CheckoutLeadsTab />;
+      case "blog": return <BlogTab />;
       default: return <DashboardTab />;
     }
   };
