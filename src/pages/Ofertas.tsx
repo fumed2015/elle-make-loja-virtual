@@ -56,12 +56,6 @@ const Ofertas = () => {
             <p className="text-sm md:text-base text-muted-foreground max-w-md mx-auto">
               Os melhores preços em maquiagem e cosméticos. Aproveite antes que acabe!
             </p>
-            <div className="flex items-center justify-center gap-2">
-              <Tag className="w-4 h-4 text-primary" />
-              <span className="text-xs font-bold text-primary uppercase tracking-wider">
-                {products.length} {products.length === 1 ? "produto" : "produtos"} em oferta
-              </span>
-            </div>
           </div>
         </section>
 
