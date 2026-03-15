@@ -389,26 +389,38 @@ serve(async (req) => {
       return await getPaymentStatus(body, ACCESS_TOKEN);
     }
 
-    // Payment creation requires authentication
-    if (!authHeader?.startsWith("Bearer ")) {
-      return jsonResponse({ error: "Não autenticado" }, 401);
-    }
-
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey);
 
-    const supabaseAuth = createClient(supabaseUrl, supabaseAnonKey, {
-      global: { headers: { Authorization: authHeader } },
-    });
-
-    const { data: { user: authUser }, error: authError } = await supabaseAuth.auth.getUser();
-    if (authError || !authUser) {
-      return jsonResponse({ error: "Token inválido" }, 401);
+    // Authenticate if token provided; allow guest checkout otherwise
+    let authUserId: string | null = null;
+    if (authHeader?.startsWith("Bearer ")) {
+      const supabaseAuth = createClient(supabaseUrl, supabaseAnonKey, {
+        global: { headers: { Authorization: authHeader } },
+      });
+      const { data: { user: authUser } } = await supabaseAuth.auth.getUser();
+      authUserId = authUser?.id || null;
     }
 
-    // Use service role for order validation
-    const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey);
+    // For payment creation, verify the order belongs to the caller (or is a guest order)
+    if (body.external_reference) {
+      const { data: order } = await supabaseAdmin
+        .from("orders")
+        .select("user_id")
+        .eq("id", body.external_reference)
+        .single();
+
+      if (!order) {
+        return jsonResponse({ error: "Pedido não encontrado" }, 404);
+      }
+
+      // If order has a user_id, require matching auth
+      if (order.user_id && order.user_id !== authUserId) {
+        return jsonResponse({ error: "Não autorizado" }, 401);
+      }
+    }
 
     // Validate order total for payment actions
     if (body.external_reference && body.amount) {

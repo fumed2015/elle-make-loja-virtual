@@ -191,31 +191,33 @@ serve(async (req) => {
 
   // --- Authentication check ---
   const authHeader = req.headers.get("Authorization");
-  if (!authHeader?.startsWith("Bearer ")) {
-    return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } });
-  }
 
   const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
   const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
   const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-
-  const authClient = createClient(supabaseUrl, supabaseAnonKey, {
-    global: { headers: { Authorization: authHeader } },
-  });
-  const { data: claimsData, error: claimsError } = await authClient.auth.getClaims(authHeader.replace("Bearer ", ""));
-  if (claimsError || !claimsData?.claims?.sub) {
-    return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } });
-  }
-
-  const callerUserId = claimsData.claims.sub as string;
   const supabase = createClient(supabaseUrl, supabaseServiceKey);
+
+  let callerUserId: string | null = null;
+
+  // Try to authenticate if token provided
+  if (authHeader?.startsWith("Bearer ")) {
+    const authClient = createClient(supabaseUrl, supabaseAnonKey, {
+      global: { headers: { Authorization: authHeader } },
+    });
+    const { data: claimsData } = await authClient.auth.getClaims(authHeader.replace("Bearer ", ""));
+    callerUserId = (claimsData?.claims?.sub as string) || null;
+  }
 
   try {
     const body = await req.json();
     const { action } = body;
 
-    // For non-order actions, require admin role
+    // notify-order is allowed for guest checkout (validated by order existence)
+    // All other actions require admin auth
     if (action !== "notify-order") {
+      if (!callerUserId) {
+        return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      }
       const { data: isAdmin } = await supabase.rpc("has_role", { _user_id: callerUserId, _role: "admin" });
       if (!isAdmin) {
         return new Response(JSON.stringify({ error: "Forbidden: admin only" }), { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } });
