@@ -339,6 +339,7 @@ const Perfil = () => {
         Sair
       </Button>
     </div>
+    </div>
   );
 };
 
