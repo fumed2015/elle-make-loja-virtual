@@ -12,6 +12,7 @@ import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
 import { fbTrackCompleteRegistration } from "@/hooks/useMetaPixel";
+import { trackCompleteRegistration } from "@/hooks/useTikTokPixel";
 
 const Perfil = () => {
   const navigate = useNavigate();
@@ -75,6 +76,7 @@ const Perfil = () => {
         const { error } = await signUp(email, password, fullName, phone, birthday);
         if (error) throw error;
         fbTrackCompleteRegistration();
+        trackCompleteRegistration();
         toast.success("Conta criada com sucesso! 🎉");
         if (redirectTo) navigate(redirectTo);
       }

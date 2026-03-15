@@ -10,7 +10,7 @@ import { usePayment, usePaymentStatusPolling, type PaymentMethod } from "@/hooks
 import { supabase } from "@/integrations/supabase/client";
 import { AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
-import { trackInitiateCheckout, trackPurchase } from "@/hooks/useTikTokPixel";
+import { trackInitiateCheckout, trackPurchase, trackAddPaymentInfo, trackPlaceAnOrder } from "@/hooks/useTikTokPixel";
 import { fbTrackInitiateCheckout, fbTrackPurchase, fbTrackAddPaymentInfo, fbSetUserData } from "@/hooks/useMetaPixel";
 
 import AddressStep from "@/components/checkout/AddressStep";
@@ -418,6 +418,7 @@ const Checkout = () => {
     const contentIds = items.map((item: any) => (item.products as any)?.id).filter(Boolean);
     const contents = items.map((item: any) => ({ id: (item.products as any)?.id, quantity: item.quantity })).filter((c: any) => c.id);
     fbTrackAddPaymentInfo({ value: finalTotal, contentIds, paymentMethod, contents });
+    trackAddPaymentInfo({ value: finalTotal, contentIds, contents: contents.map(c => ({ content_id: c.id, quantity: c.quantity, price: 0 })) });
     try {
       const newOrderId = await createOrder();
       setOrderId(newOrderId);

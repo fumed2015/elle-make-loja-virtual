@@ -5,6 +5,10 @@
  * Server-side: sends to tiktok-capi edge function for Events API 2.0
  *
  * Both share the same `event_id` for deduplication.
+ *
+ * Supported events (per TikTok Ads spec):
+ * ViewContent, AddToCart, AddToWishlist, Search, AddPaymentInfo,
+ * InitiateCheckout, Contact, PlaceAnOrder, CompleteRegistration, CompletePayment
  */
 
 import { supabase } from "@/integrations/supabase/client";
@@ -86,7 +90,12 @@ function buildServerPayload(
   };
 }
 
-/** Product page view */
+/** Build standard client params with event_id */
+function clientBase(eventId: string): Record<string, any> {
+  return { event_id: eventId, currency: "BRL" };
+}
+
+// ─── ViewContent ──────────────────────────────────────────────────────
 export function trackViewContent(product: {
   id: string;
   name: string;
@@ -98,7 +107,7 @@ export function trackViewContent(product: {
   const contents = [
     {
       content_id: String(product.id),
-      content_type: "product" as const,
+      content_type: "product",
       content_name: product.name,
       brand: product.brand,
       content_category: product.category,
@@ -107,18 +116,15 @@ export function trackViewContent(product: {
     },
   ];
 
-  // Client-side
   fireClient("ViewContent", {
+    ...clientBase(eventId),
     content_id: String(product.id),
     content_type: "product",
     content_name: product.name,
     value: product.price,
-    currency: "BRL",
     contents,
-    event_id: eventId,
   });
 
-  // Server-side
   fireServer(
     buildServerPayload("ViewContent", eventId, {
       content_ids: [String(product.id)],
@@ -130,7 +136,7 @@ export function trackViewContent(product: {
   );
 }
 
-/** Item added to cart */
+// ─── AddToCart ─────────────────────────────────────────────────────────
 export function trackAddToCart(product: {
   id: string;
   name: string;
@@ -141,7 +147,7 @@ export function trackAddToCart(product: {
   const contents = [
     {
       content_id: String(product.id),
-      content_type: "product" as const,
+      content_type: "product",
       content_name: product.name,
       quantity: product.quantity,
       price: product.price,
@@ -149,14 +155,13 @@ export function trackAddToCart(product: {
   ];
 
   fireClient("AddToCart", {
+    ...clientBase(eventId),
     content_id: String(product.id),
     content_type: "product",
     content_name: product.name,
     quantity: product.quantity,
     value: product.price * product.quantity,
-    currency: "BRL",
     contents,
-    event_id: eventId,
   });
 
   fireServer(
@@ -170,7 +175,98 @@ export function trackAddToCart(product: {
   );
 }
 
-/** Checkout initiated */
+// ─── AddToWishlist ────────────────────────────────────────────────────
+export function trackAddToWishlist(product: {
+  id: string;
+  name: string;
+  price: number;
+}) {
+  const eventId = crypto.randomUUID();
+  const contents = [
+    {
+      content_id: String(product.id),
+      content_type: "product",
+      content_name: product.name,
+      price: product.price,
+      quantity: 1,
+    },
+  ];
+
+  fireClient("AddToWishlist", {
+    ...clientBase(eventId),
+    content_id: String(product.id),
+    content_type: "product",
+    content_name: product.name,
+    value: product.price,
+    contents,
+  });
+
+  fireServer(
+    buildServerPayload("AddToWishlist", eventId, {
+      content_ids: [String(product.id)],
+      content_type: "product",
+      contents,
+      value: product.price,
+    })
+  );
+}
+
+// ─── Search ───────────────────────────────────────────────────────────
+export function trackSearch(params: {
+  searchString: string;
+  contentIds?: string[];
+  value?: number;
+}) {
+  const eventId = crypto.randomUUID();
+
+  fireClient("Search", {
+    ...clientBase(eventId),
+    search_string: params.searchString,
+    ...(params.contentIds?.length ? { content_id: params.contentIds[0] } : {}),
+    value: params.value,
+  });
+
+  fireServer(
+    buildServerPayload("Search", eventId, {
+      search_string: params.searchString,
+      content_ids: params.contentIds,
+      value: params.value,
+    })
+  );
+}
+
+// ─── AddPaymentInfo ───────────────────────────────────────────────────
+export function trackAddPaymentInfo(params: {
+  value: number;
+  contentIds?: string[];
+  contents?: Array<{ content_id: string; quantity: number; price: number }>;
+}) {
+  const eventId = crypto.randomUUID();
+  const contents = params.contents ||
+    (params.contentIds || []).map((id) => ({
+      content_id: String(id),
+      content_type: "product",
+      quantity: 1,
+    }));
+
+  fireClient("AddPaymentInfo", {
+    ...clientBase(eventId),
+    value: params.value,
+    ...(params.contentIds?.length ? { content_id: params.contentIds[0] } : {}),
+    contents,
+  });
+
+  fireServer(
+    buildServerPayload("AddPaymentInfo", eventId, {
+      content_ids: params.contentIds,
+      content_type: "product",
+      contents,
+      value: params.value,
+    })
+  );
+}
+
+// ─── InitiateCheckout ─────────────────────────────────────────────────
 export function trackInitiateCheckout(params: {
   value: number;
   itemCount: number;
@@ -181,18 +277,17 @@ export function trackInitiateCheckout(params: {
   const contents = params.contents ||
     (params.contentIds || []).map((id) => ({
       content_id: String(id),
-      content_type: "product" as const,
+      content_type: "product",
       quantity: 1,
     }));
 
   fireClient("InitiateCheckout", {
+    ...clientBase(eventId),
     value: params.value,
-    currency: "BRL",
     quantity: params.itemCount,
-    ...(params.contentIds?.length ? { content_id: String(params.contentIds[0]) } : {}),
+    ...(params.contentIds?.length ? { content_id: params.contentIds[0] } : {}),
     content_ids: params.contentIds,
     contents,
-    event_id: eventId,
   });
 
   fireServer(
@@ -206,7 +301,67 @@ export function trackInitiateCheckout(params: {
   );
 }
 
-/** Purchase completed */
+// ─── Contact ──────────────────────────────────────────────────────────
+export function trackContact() {
+  const eventId = crypto.randomUUID();
+
+  fireClient("Contact", {
+    ...clientBase(eventId),
+  });
+
+  fireServer(buildServerPayload("Contact", eventId, {}));
+}
+
+// ─── PlaceAnOrder ─────────────────────────────────────────────────────
+export function trackPlaceAnOrder(params: {
+  orderId: string;
+  value: number;
+  itemCount: number;
+  contentIds?: string[];
+  contents?: Array<{ content_id: string; quantity: number; price: number }>;
+}) {
+  const eventId = crypto.randomUUID();
+  const contents = params.contents ||
+    (params.contentIds || []).map((id) => ({
+      content_id: String(id),
+      content_type: "product",
+      quantity: 1,
+    }));
+
+  fireClient("PlaceAnOrder", {
+    ...clientBase(eventId),
+    content_type: "product",
+    value: params.value,
+    quantity: params.itemCount,
+    order_id: params.orderId,
+    ...(params.contentIds?.length ? { content_id: params.contentIds[0] } : {}),
+    contents,
+  });
+
+  fireServer(
+    buildServerPayload("PlaceAnOrder", eventId, {
+      content_ids: params.contentIds,
+      content_type: "product",
+      contents,
+      value: params.value,
+      num_items: params.itemCount,
+      order_id: params.orderId,
+    })
+  );
+}
+
+// ─── CompleteRegistration ─────────────────────────────────────────────
+export function trackCompleteRegistration() {
+  const eventId = crypto.randomUUID();
+
+  fireClient("CompleteRegistration", {
+    ...clientBase(eventId),
+  });
+
+  fireServer(buildServerPayload("CompleteRegistration", eventId, {}));
+}
+
+// ─── CompletePayment (Purchase) ───────────────────────────────────────
 export function trackPurchase(params: {
   orderId: string;
   value: number;
@@ -220,20 +375,19 @@ export function trackPurchase(params: {
   const contents = params.contents ||
     (params.contentIds || []).map((id) => ({
       content_id: String(id),
-      content_type: "product" as const,
+      content_type: "product",
       quantity: 1,
     }));
 
   fireClient("CompletePayment", {
+    ...clientBase(eventId),
     content_type: "product",
     value: params.value,
-    currency: "BRL",
     quantity: params.itemCount,
     order_id: params.orderId,
-    ...(params.contentIds?.length ? { content_id: String(params.contentIds[0]) } : {}),
+    ...(params.contentIds?.length ? { content_id: params.contentIds[0] } : {}),
     content_ids: params.contentIds,
     contents,
-    event_id: eventId,
   });
 
   fireServer(

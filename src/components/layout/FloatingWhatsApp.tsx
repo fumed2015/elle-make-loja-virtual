@@ -1,6 +1,7 @@
 import WhatsAppIcon from "@/components/icons/WhatsAppIcon";
 import { motion } from "framer-motion";
 import { fbTrackContact } from "@/hooks/useMetaPixel";
+import { trackContact } from "@/hooks/useTikTokPixel";
 
 const FloatingWhatsApp = () => (
   <motion.a
@@ -8,7 +9,7 @@ const FloatingWhatsApp = () => (
     target="_blank"
     rel="noopener noreferrer"
     aria-label="Falar no WhatsApp"
-    onClick={() => fbTrackContact()}
+    onClick={() => { fbTrackContact(); trackContact(); }}
     className="fixed bottom-20 md:bottom-6 right-4 z-50 w-11 h-11 rounded-full bg-[hsl(142,70%,45%)] text-white flex items-center justify-center shadow-lg hover:shadow-xl transition-shadow"
     whileHover={{ scale: 1.1 }}
     whileTap={{ scale: 0.9 }}

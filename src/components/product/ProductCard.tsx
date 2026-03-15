@@ -11,7 +11,7 @@ import { motion } from "framer-motion";
 import OptimizedImage from "@/components/ui/optimized-image";
 import { cn } from "@/lib/utils";
 import { useNavigate } from "react-router-dom";
-import { trackAddToCart } from "@/hooks/useTikTokPixel";
+import { trackAddToCart, trackAddToWishlist } from "@/hooks/useTikTokPixel";
 import { fbTrackAddToCart, fbTrackAddToWishlist } from "@/hooks/useMetaPixel";
 
 interface ProductCardProps {
@@ -62,7 +62,9 @@ const ProductCard = memo(({ product, index = 0 }: ProductCardProps) => {
     e.stopPropagation();
     if (!user) { navigate("/perfil"); return; }
     if (!favorited) {
-      fbTrackAddToWishlist({ id: product.id, name: product.name, price: Number(product.price) });
+      const wishlistParams = { id: product.id, name: product.name, price: Number(product.price) };
+      fbTrackAddToWishlist(wishlistParams);
+      trackAddToWishlist(wishlistParams);
     }
     toggleFavorite.mutate(product.id);
   };

@@ -18,7 +18,7 @@ import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 import SEOHead from "@/components/SEOHead";
 import UrgencyBadge from "@/components/product/UrgencyBadge";
-import { trackViewContent, trackAddToCart } from "@/hooks/useTikTokPixel";
+import { trackViewContent, trackAddToCart, trackAddToWishlist, trackContact } from "@/hooks/useTikTokPixel";
 import { fbTrackViewContent, fbTrackAddToCart, fbTrackAddToWishlist, fbTrackContact } from "@/hooks/useMetaPixel";
 
 const trustBadges = [
@@ -105,7 +105,9 @@ const Produto = () => {
   const handleToggleFavorite = () => {
     if (!user) { navigate("/perfil"); return; }
     if (!isFavorited(product.id)) {
-      fbTrackAddToWishlist({ id: product.id, name: product.name, price: Number(product.price) });
+      const wishlistParams = { id: product.id, name: product.name, price: Number(product.price) };
+      fbTrackAddToWishlist(wishlistParams);
+      trackAddToWishlist(wishlistParams);
     }
     toggleFavorite.mutate(product.id);
   };
@@ -309,7 +311,7 @@ const Produto = () => {
                 href={`https://wa.me/5591936180774?text=${whatsappMsg}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                onClick={() => fbTrackContact()}
+                onClick={() => { fbTrackContact(); trackContact(); }}
                 className="w-full min-h-[48px] text-base font-semibold border-2 border-border rounded-md flex items-center justify-center gap-2 hover:bg-muted transition-colors"
               >
                 <WhatsAppIcon className="w-5 h-5 text-accent" />
