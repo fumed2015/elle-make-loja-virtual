@@ -132,7 +132,7 @@ const itemRow = {
 }
 const itemImage = { borderRadius: '8px', marginRight: '12px' }
 const itemText = { fontSize: '14px', color: '#1F1F1F', lineHeight: '1.4', margin: '0' }
-const itemPrice = { color: '#800020', fontWeight: 'bold' as const }
+const itemPrice = { color: '#74242c', fontWeight: 'bold' as const }
 const divider = { borderColor: '#EDE5DB', margin: '16px 0' }
 const totalText = {
   fontSize: '18px',
