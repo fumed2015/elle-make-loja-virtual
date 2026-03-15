@@ -182,7 +182,7 @@ export default OrderConfirmationEmail
 
 const main = { backgroundColor: '#ffffff', fontFamily: "'Playfair Display', Georgia, serif" }
 const container = { maxWidth: '520px', margin: '0 auto', padding: '20px 16px' }
-const logoSection = { textAlign: 'center' as const, padding: '24px 0 16px', backgroundColor: '#800020', borderRadius: '12px 12px 0 0' }
+const logoSection = { textAlign: 'center' as const, padding: '24px 0 16px', backgroundColor: '#74242c', borderRadius: '12px 12px 0 0' }
 const logo = { margin: '0 auto' }
 const card = {
   backgroundColor: '#FDF8F4',
@@ -193,7 +193,7 @@ const card = {
 const h1 = {
   fontSize: '24px',
   fontWeight: 'bold' as const,
-  color: '#800020',
+  color: '#74242c',
   margin: '0 0 16px',
   textAlign: 'center' as const,
 }
@@ -212,12 +212,12 @@ const detailBox = {
   border: '1px solid #EDE5DB',
 }
 const detailLabel = { fontSize: '12px', color: '#737373', margin: '0 0 4px', textTransform: 'uppercase' as const }
-const detailValue = { fontSize: '20px', fontWeight: 'bold' as const, color: '#800020', margin: '0' }
+const detailValue = { fontSize: '20px', fontWeight: 'bold' as const, color: '#74242c', margin: '0' }
 const itemsSection = { margin: '0 0 16px' }
-const sectionTitle = { fontSize: '14px', fontWeight: 'bold' as const, color: '#800020', margin: '0 0 8px' }
+const sectionTitle = { fontSize: '14px', fontWeight: 'bold' as const, color: '#74242c', margin: '0 0 8px' }
 const itemRow = { display: 'flex' as const, justifyContent: 'space-between' as const, padding: '6px 0' }
 const itemName = { fontSize: '14px', color: '#1F1F1F', margin: '0' }
-const itemPriceText = { fontSize: '14px', color: '#800020', fontWeight: 'bold' as const, margin: '0' }
+const itemPriceText = { fontSize: '14px', color: '#74242c', fontWeight: 'bold' as const, margin: '0' }
 const divider = { borderColor: '#EDE5DB', margin: '16px 0' }
 const summaryRow = { display: 'flex' as const, justifyContent: 'space-between' as const, padding: '4px 0' }
 const summaryLabel = { fontSize: '14px', color: '#737373', margin: '0' }
@@ -226,7 +226,7 @@ const summaryValueSmall = { fontSize: '14px', color: '#1F1F1F', margin: '0' }
 const addressText = { fontSize: '14px', color: '#1F1F1F', lineHeight: '1.5', margin: '0 0 16px' }
 const ctaSection = { textAlign: 'center' as const, margin: '8px 0' }
 const ctaButton = {
-  backgroundColor: '#800020',
+  backgroundColor: '#74242c',
   color: '#ffffff',
   fontSize: '16px',
   fontWeight: 'bold' as const,

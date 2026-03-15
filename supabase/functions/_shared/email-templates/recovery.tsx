@@ -21,7 +21,7 @@ interface RecoveryEmailProps {
 }
 
 const LOGO_URL = 'https://xinkvwlhctwgdfwixzxf.supabase.co/storage/v1/object/public/email-assets/logo-ellemake-circular.png'
-const MARSALA = '#800020'
+const MARSALA = '#74242c'
 
 export const RecoveryEmail = ({ siteName = 'Elle Make', confirmationUrl }: RecoveryEmailProps) => (
   <Html lang="pt-BR" dir="ltr">

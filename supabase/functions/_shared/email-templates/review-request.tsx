@@ -71,7 +71,7 @@ export default ReviewRequestEmail
 
 const main = { backgroundColor: '#ffffff', fontFamily: "'Playfair Display', Georgia, serif" }
 const container = { maxWidth: '520px', margin: '0 auto', padding: '20px 16px' }
-const logoSection = { textAlign: 'center' as const, padding: '24px 0 16px', backgroundColor: '#800020', borderRadius: '12px 12px 0 0' }
+const logoSection = { textAlign: 'center' as const, padding: '24px 0 16px', backgroundColor: '#74242c', borderRadius: '12px 12px 0 0' }
 const logo = { margin: '0 auto' }
 const card = {
   backgroundColor: '#FDF8F4',
@@ -82,7 +82,7 @@ const card = {
 const h1 = {
   fontSize: '24px',
   fontWeight: 'bold' as const,
-  color: '#800020',
+  color: '#74242c',
   margin: '0 0 16px',
   textAlign: 'center' as const,
 }
@@ -95,13 +95,13 @@ const text = {
 const productsSection = { margin: '0 0 20px' }
 const productButton = {
   backgroundColor: '#fff',
-  color: '#800020',
+  color: '#74242c',
   fontSize: '14px',
   fontWeight: 'bold' as const,
   borderRadius: '8px',
   padding: '10px 20px',
   textDecoration: 'none',
-  border: '1px solid #800020',
+  border: '1px solid #74242c',
   display: 'block' as const,
   textAlign: 'center' as const,
   margin: '0 0 8px',

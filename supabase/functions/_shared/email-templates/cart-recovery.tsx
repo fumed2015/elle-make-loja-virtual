@@ -102,7 +102,7 @@ export default CartRecoveryEmail
 
 const main = { backgroundColor: '#ffffff', fontFamily: "'Playfair Display', Georgia, serif" }
 const container = { maxWidth: '520px', margin: '0 auto', padding: '20px 16px' }
-const logoSection = { textAlign: 'center' as const, padding: '24px 0 16px', backgroundColor: '#800020', borderRadius: '12px 12px 0 0' }
+const logoSection = { textAlign: 'center' as const, padding: '24px 0 16px', backgroundColor: '#74242c', borderRadius: '12px 12px 0 0' }
 const logo = { margin: '0 auto' }
 const card = {
   backgroundColor: '#FDF8F4',
@@ -113,7 +113,7 @@ const card = {
 const h1 = {
   fontSize: '24px',
   fontWeight: 'bold' as const,
-  color: '#800020',
+  color: '#74242c',
   margin: '0 0 16px',
   textAlign: 'center' as const,
 }
@@ -132,7 +132,7 @@ const itemRow = {
 }
 const itemImage = { borderRadius: '8px', marginRight: '12px' }
 const itemText = { fontSize: '14px', color: '#1F1F1F', lineHeight: '1.4', margin: '0' }
-const itemPrice = { color: '#800020', fontWeight: 'bold' as const }
+const itemPrice = { color: '#74242c', fontWeight: 'bold' as const }
 const divider = { borderColor: '#EDE5DB', margin: '16px 0' }
 const totalText = {
   fontSize: '18px',
@@ -145,13 +145,13 @@ const couponSection = {
   borderRadius: '8px',
   padding: '12px 16px',
   margin: '0 0 20px',
-  border: '1px dashed #800020',
+  border: '1px dashed #74242c',
 }
 const couponText = { fontSize: '14px', color: '#1F1F1F', margin: '0', textAlign: 'center' as const }
-const couponCode_style = { color: '#800020', fontSize: '16px' }
+const couponCode_style = { color: '#74242c', fontSize: '16px' }
 const buttonContainer = { textAlign: 'center' as const, margin: '0 0 24px' }
 const button = {
-  backgroundColor: '#800020',
+  backgroundColor: '#74242c',
   color: '#F8F5F0',
   fontSize: '15px',
   fontWeight: 'bold' as const,

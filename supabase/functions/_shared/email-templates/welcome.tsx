@@ -66,7 +66,7 @@ export default WelcomeEmail
 
 const main = { backgroundColor: '#ffffff', fontFamily: "'Playfair Display', Georgia, serif" }
 const container = { maxWidth: '520px', margin: '0 auto', padding: '20px 16px' }
-const logoSection = { textAlign: 'center' as const, padding: '24px 0 16px', backgroundColor: '#800020', borderRadius: '12px 12px 0 0' }
+const logoSection = { textAlign: 'center' as const, padding: '24px 0 16px', backgroundColor: '#74242c', borderRadius: '12px 12px 0 0' }
 const logo = { margin: '0 auto' }
 const card = {
   backgroundColor: '#FDF8F4',
@@ -77,7 +77,7 @@ const card = {
 const h1 = {
   fontSize: '24px',
   fontWeight: 'bold' as const,
-  color: '#800020',
+  color: '#74242c',
   margin: '0 0 16px',
   textAlign: 'center' as const,
 }
@@ -89,7 +89,7 @@ const text = {
 }
 const buttonContainer = { textAlign: 'center' as const, margin: '0 0 24px' }
 const button = {
-  backgroundColor: '#800020',
+  backgroundColor: '#74242c',
   color: '#F8F5F0',
   fontSize: '15px',
   fontWeight: 'bold' as const,
