@@ -9,6 +9,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useProducts } from "@/hooks/useProducts";
 import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { fbTrackSearch } from "@/hooks/useMetaPixel";
+import { trackSearch } from "@/hooks/useTikTokPixel";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   DropdownMenu,
