@@ -1,4 +1,5 @@
 import SEOHead from "@/components/SEOHead";
+import Breadcrumbs, { breadcrumbJsonLd } from "@/components/Breadcrumbs";
 import { Heart, MapPin, Truck, ShieldCheck, Star } from "lucide-react";
 import WhatsAppIcon from "@/components/icons/WhatsAppIcon";
 import { Button } from "@/components/ui/button";
