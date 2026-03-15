@@ -152,7 +152,7 @@ const ProductCard = memo(({ product, index = 0 }: ProductCardProps) => {
             <span className="text-lg font-bold text-primary">
               R$ {Number(product.price).toFixed(2).replace(".", ",")}
             </span>
-            <p className="text-[10px] text-accent font-semibold leading-none mt-0.5">
+            <p className="text-[10px] text-emerald-600 font-semibold leading-none mt-0.5">
               R$ {pixPrice} no Pix
             </p>
             {Number(product.price) >= 10 && (

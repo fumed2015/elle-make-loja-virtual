@@ -36,7 +36,7 @@ const FloatingDeliveryBadge = () => {
           </span>
           <button
             onClick={handleDismiss}
-            className="ml-1 p-0.5 rounded-full hover:bg-primary-foreground/20 transition-colors flex-shrink-0"
+            className="ml-1 p-0.5 rounded-full hover:bg-white/20 transition-colors flex-shrink-0"
             aria-label="Fechar"
           >
             <X className="w-3 h-3" />
