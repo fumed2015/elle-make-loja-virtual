@@ -107,14 +107,7 @@ const Explorar = () => {
     
     if (isCollectionPage) {
       source = collectionProducts ? [...collectionProducts] : [];
-      // For "mais-vendidos", sort by sales count (best selling first)
-      if (collectionSlug === "mais-vendidos" && salesCount) {
-        source.sort((a: any, b: any) => {
-          const salesA = salesCount[a.id] || 0;
-          const salesB = salesCount[b.id] || 0;
-          return salesB - salesA;
-        });
-      }
+      // "mais-vendidos" is already sorted by sort_order from the database (auto-synced)
     } else {
       source = products ? [...products] : [];
     }
