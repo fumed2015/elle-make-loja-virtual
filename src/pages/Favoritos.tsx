@@ -5,6 +5,7 @@ import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import ProductCard from "@/components/product/ProductCard";
 import { motion } from "framer-motion";
+import SEOHead from "@/components/SEOHead";
 
 const Favoritos = () => {
   const { user } = useAuth();
