@@ -12,6 +12,7 @@ import { cn } from "@/lib/utils";
 import SEOHead from "@/components/SEOHead";
 import Footer from "@/components/layout/Footer";
 import { fbTrackSearch } from "@/hooks/useMetaPixel";
+import { trackSearch } from "@/hooks/useTikTokPixel";
 
 type SortOption = "recent" | "price-asc" | "price-desc" | "name" | "discount";
 
@@ -150,7 +151,10 @@ const Explorar = () => {
     // Fire Meta Pixel Search event (debounced)
     if (searchDebounceRef.current) clearTimeout(searchDebounceRef.current);
     if (value.length >= 2) {
-      searchDebounceRef.current = setTimeout(() => fbTrackSearch(value), 800);
+      searchDebounceRef.current = setTimeout(() => {
+        fbTrackSearch(value);
+        trackSearch({ searchString: value });
+      }, 800);
     }
   };
 

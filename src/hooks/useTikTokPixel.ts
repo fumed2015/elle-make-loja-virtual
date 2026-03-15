@@ -361,7 +361,20 @@ export function trackCompleteRegistration() {
   fireServer(buildServerPayload("CompleteRegistration", eventId, {}));
 }
 
-// ─── CompletePayment (Purchase) ───────────────────────────────────────
+// ─── SubmitForm (Lead / Newsletter) ──────────────────────────────────
+export function trackSubmitForm(params?: { description?: string }) {
+  const eventId = crypto.randomUUID();
+
+  fireClient("SubmitForm", {
+    ...clientBase(eventId),
+    ...(params?.description ? { description: params.description } : {}),
+  });
+
+  fireServer(buildServerPayload("SubmitForm", eventId, {
+    ...(params?.description ? { description: params.description } : {}),
+  }));
+}
+
 export interface TrackPurchaseParams {
   orderId: string;
   value: number;

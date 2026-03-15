@@ -6,6 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
 import { fbTrackLead } from "@/hooks/useMetaPixel";
+import { trackSubmitForm } from "@/hooks/useTikTokPixel";
 
 const STORAGE_KEY = "ellemake_newsletter_dismissed";
 const POPUP_DELAY_MS = 8000;
@@ -110,6 +111,7 @@ const NewsletterPopup = () => {
       } else {
         toast.success("Cadastro realizado com sucesso! 🎉");
         fbTrackLead();
+        trackSubmitForm({ description: "newsletter_signup" });
       }
       setSuccess(true);
       try { localStorage.setItem(STORAGE_KEY, Date.now().toString()); } catch {}
