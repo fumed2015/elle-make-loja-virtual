@@ -47,8 +47,10 @@ const Favoritos = () => {
   }
 
   return (
-    <div className="px-4 pt-8 pb-4 max-w-lg mx-auto">
+    <div className="pb-4 max-w-lg mx-auto">
       <SEOHead title="Meus Favoritos" description="Seus produtos favoritos salvos na Elle Make." noindex />
+      <Breadcrumbs items={[{ label: "Favoritos" }]} />
+      <div className="px-4 pt-6">
       <h1 className="text-2xl font-display font-bold mb-6">Favoritos</h1>
       <motion.div layout className="grid grid-cols-2 gap-3">
         {favorites.map((fav, i) => (
