@@ -36,7 +36,7 @@ export const ReviewRequestEmail = ({
     <Body style={main}>
       <Container style={container}>
         <Section style={logoSection}>
-          <Img src={LOGO_URL} alt="Elle Make" width="160" height="auto" style={logo} />
+          <Img src={LOGO_URL} alt="Elle Make" width="80" height="auto" style={logo} />
         </Section>
         <Section style={card}>
           <Heading style={h1}>Conta pra gente! ⭐</Heading>
