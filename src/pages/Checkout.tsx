@@ -363,9 +363,9 @@ const Checkout = () => {
 
     await saveDataAfterOrder();
 
-    trackPurchase({ orderId: orderData.id, value: finalTotal, itemCount: cartCount });
     const contentIds = items.map((item: any) => (item.products as any)?.id).filter(Boolean);
     const contents = items.map((item: any) => ({ id: (item.products as any)?.id, quantity: item.quantity })).filter((c: any) => c.id);
+    trackPurchase({ orderId: orderData.id, value: finalTotal, itemCount: cartCount, contentIds });
 
     // Enrich Meta Advanced Matching with checkout data (address + CPF)
     const addr = (address || {}) as any;
