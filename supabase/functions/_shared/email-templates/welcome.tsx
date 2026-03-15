@@ -77,7 +77,7 @@ const card = {
 const h1 = {
   fontSize: '24px',
   fontWeight: 'bold' as const,
-  color: '#800020',
+  color: '#74242c',
   margin: '0 0 16px',
   textAlign: 'center' as const,
 }
