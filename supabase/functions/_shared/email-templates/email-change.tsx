@@ -9,8 +9,10 @@ import {
   Head,
   Heading,
   Html,
+  Img,
   Link,
   Preview,
+  Section,
   Text,
 } from 'npm:@react-email/components@0.0.22'
 
@@ -21,39 +23,28 @@ interface EmailChangeEmailProps {
   confirmationUrl: string
 }
 
-export const EmailChangeEmail = ({
-  siteName,
-  email,
-  newEmail,
-  confirmationUrl,
-}: EmailChangeEmailProps) => (
-  <Html lang="en" dir="ltr">
+const LOGO_URL = 'https://xinkvwlhctwgdfwixzxf.supabase.co/storage/v1/object/public/email-assets/logo-ellemake.png'
+const MARSALA = '#800020'
+
+export const EmailChangeEmail = ({ siteName = 'Elle Make', email, newEmail, confirmationUrl }: EmailChangeEmailProps) => (
+  <Html lang="pt-BR" dir="ltr">
     <Head />
-    <Preview>Confirm your email change for {siteName}</Preview>
+    <Preview>Confirme a alteração do seu e-mail — Elle Make</Preview>
     <Body style={main}>
       <Container style={container}>
-        <Heading style={h1}>Confirm your email change</Heading>
-        <Text style={text}>
-          You requested to change your email address for {siteName} from{' '}
-          <Link href={`mailto:${email}`} style={link}>
-            {email}
-          </Link>{' '}
-          to{' '}
-          <Link href={`mailto:${newEmail}`} style={link}>
-            {newEmail}
-          </Link>
-          .
-        </Text>
-        <Text style={text}>
-          Click the button below to confirm this change:
-        </Text>
-        <Button style={button} href={confirmationUrl}>
-          Confirm Email Change
-        </Button>
-        <Text style={footer}>
-          If you didn't request this change, please secure your account
-          immediately.
-        </Text>
+        <Section style={header}><Img src={LOGO_URL} width="140" height="auto" alt="Elle Make" style={{ margin: '0 auto' }} /></Section>
+        <Section style={content}>
+          <Heading style={h1}>Alterar e-mail</Heading>
+          <Text style={text}>
+            Você solicitou a alteração do seu e-mail de{' '}
+            <Link href={`mailto:${email}`} style={link}>{email}</Link>{' '}para{' '}
+            <Link href={`mailto:${newEmail}`} style={link}>{newEmail}</Link>.
+          </Text>
+          <Text style={text}>Clique no botão abaixo para confirmar:</Text>
+          <Section style={btnWrap}><Button style={button} href={confirmationUrl}>Confirmar Alteração</Button></Section>
+          <Text style={footerText}>Se você não solicitou esta alteração, proteja sua conta imediatamente.</Text>
+        </Section>
+        <Section style={brand}><Text style={brandText}>Elle Make — Beleza acessível para todas 💋</Text></Section>
       </Container>
     </Body>
   </Html>
@@ -61,27 +52,15 @@ export const EmailChangeEmail = ({
 
 export default EmailChangeEmail
 
-const main = { backgroundColor: '#ffffff', fontFamily: 'Arial, sans-serif' }
-const container = { padding: '20px 25px' }
-const h1 = {
-  fontSize: '22px',
-  fontWeight: 'bold' as const,
-  color: '#000000',
-  margin: '0 0 20px',
-}
-const text = {
-  fontSize: '14px',
-  color: '#55575d',
-  lineHeight: '1.5',
-  margin: '0 0 25px',
-}
-const link = { color: 'inherit', textDecoration: 'underline' }
-const button = {
-  backgroundColor: '#000000',
-  color: '#ffffff',
-  fontSize: '14px',
-  borderRadius: '8px',
-  padding: '12px 20px',
-  textDecoration: 'none',
-}
-const footer = { fontSize: '12px', color: '#999999', margin: '30px 0 0' }
+const main = { backgroundColor: '#f8f4f0', fontFamily: "'Segoe UI', Arial, sans-serif" }
+const container = { maxWidth: '560px', margin: '0 auto', backgroundColor: '#ffffff', borderRadius: '12px', overflow: 'hidden' as const }
+const header = { backgroundColor: MARSALA, padding: '24px 20px', textAlign: 'center' as const }
+const content = { padding: '32px 28px' }
+const h1 = { fontSize: '22px', fontWeight: 'bold' as const, color: MARSALA, margin: '0 0 16px' }
+const text = { fontSize: '14px', color: '#4a4a4a', lineHeight: '1.6', margin: '0 0 16px' }
+const link = { color: MARSALA, textDecoration: 'underline' }
+const btnWrap = { textAlign: 'center' as const, margin: '30px 0' }
+const button = { backgroundColor: MARSALA, color: '#ffffff', fontSize: '15px', borderRadius: '8px', padding: '14px 28px', textDecoration: 'none', fontWeight: 'bold' as const }
+const footerText = { fontSize: '12px', color: '#999999', margin: '24px 0 0' }
+const brand = { backgroundColor: '#faf6f3', padding: '16px 28px', textAlign: 'center' as const }
+const brandText = { fontSize: '12px', color: '#999', margin: '0' }

@@ -9,7 +9,9 @@ import {
   Head,
   Heading,
   Html,
+  Img,
   Preview,
+  Section,
   Text,
 } from 'npm:@react-email/components@0.0.22'
 
@@ -18,26 +20,23 @@ interface MagicLinkEmailProps {
   confirmationUrl: string
 }
 
-export const MagicLinkEmail = ({
-  siteName,
-  confirmationUrl,
-}: MagicLinkEmailProps) => (
-  <Html lang="en" dir="ltr">
+const LOGO_URL = 'https://xinkvwlhctwgdfwixzxf.supabase.co/storage/v1/object/public/email-assets/logo-ellemake.png'
+const MARSALA = '#800020'
+
+export const MagicLinkEmail = ({ siteName = 'Elle Make', confirmationUrl }: MagicLinkEmailProps) => (
+  <Html lang="pt-BR" dir="ltr">
     <Head />
-    <Preview>Your login link for {siteName}</Preview>
+    <Preview>Seu link de acesso — Elle Make</Preview>
     <Body style={main}>
       <Container style={container}>
-        <Heading style={h1}>Your login link</Heading>
-        <Text style={text}>
-          Click the button below to log in to {siteName}. This link will expire
-          shortly.
-        </Text>
-        <Button style={button} href={confirmationUrl}>
-          Log In
-        </Button>
-        <Text style={footer}>
-          If you didn't request this link, you can safely ignore this email.
-        </Text>
+        <Section style={header}><Img src={LOGO_URL} width="140" height="auto" alt="Elle Make" style={{ margin: '0 auto' }} /></Section>
+        <Section style={content}>
+          <Heading style={h1}>Seu link de acesso</Heading>
+          <Text style={text}>Clique no botão abaixo para acessar sua conta na Elle Make. Este link expira em breve.</Text>
+          <Section style={btnWrap}><Button style={button} href={confirmationUrl}>Acessar Minha Conta</Button></Section>
+          <Text style={footerText}>Se você não solicitou este link, pode ignorar este e-mail.</Text>
+        </Section>
+        <Section style={brand}><Text style={brandText}>Elle Make — Beleza acessível para todas 💋</Text></Section>
       </Container>
     </Body>
   </Html>
@@ -45,26 +44,14 @@ export const MagicLinkEmail = ({
 
 export default MagicLinkEmail
 
-const main = { backgroundColor: '#ffffff', fontFamily: 'Arial, sans-serif' }
-const container = { padding: '20px 25px' }
-const h1 = {
-  fontSize: '22px',
-  fontWeight: 'bold' as const,
-  color: '#000000',
-  margin: '0 0 20px',
-}
-const text = {
-  fontSize: '14px',
-  color: '#55575d',
-  lineHeight: '1.5',
-  margin: '0 0 25px',
-}
-const button = {
-  backgroundColor: '#000000',
-  color: '#ffffff',
-  fontSize: '14px',
-  borderRadius: '8px',
-  padding: '12px 20px',
-  textDecoration: 'none',
-}
-const footer = { fontSize: '12px', color: '#999999', margin: '30px 0 0' }
+const main = { backgroundColor: '#f8f4f0', fontFamily: "'Segoe UI', Arial, sans-serif" }
+const container = { maxWidth: '560px', margin: '0 auto', backgroundColor: '#ffffff', borderRadius: '12px', overflow: 'hidden' as const }
+const header = { backgroundColor: MARSALA, padding: '24px 20px', textAlign: 'center' as const }
+const content = { padding: '32px 28px' }
+const h1 = { fontSize: '22px', fontWeight: 'bold' as const, color: MARSALA, margin: '0 0 16px' }
+const text = { fontSize: '14px', color: '#4a4a4a', lineHeight: '1.6', margin: '0 0 16px' }
+const btnWrap = { textAlign: 'center' as const, margin: '30px 0' }
+const button = { backgroundColor: MARSALA, color: '#ffffff', fontSize: '15px', borderRadius: '8px', padding: '14px 28px', textDecoration: 'none', fontWeight: 'bold' as const }
+const footerText = { fontSize: '12px', color: '#999999', margin: '24px 0 0' }
+const brand = { backgroundColor: '#faf6f3', padding: '16px 28px', textAlign: 'center' as const }
+const brandText = { fontSize: '12px', color: '#999', margin: '0' }
