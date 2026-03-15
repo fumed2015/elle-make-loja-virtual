@@ -6,6 +6,7 @@ import { motion } from "framer-motion";
 import { Tag, Flame } from "lucide-react";
 import SEOHead from "@/components/SEOHead";
 import Footer from "@/components/layout/Footer";
+import Breadcrumbs, { breadcrumbJsonLd } from "@/components/Breadcrumbs";
 
 const container = {
   hidden: { opacity: 0 },
