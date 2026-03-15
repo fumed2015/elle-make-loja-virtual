@@ -262,9 +262,15 @@ serve(async (req) => {
         return jsonResponse({ sent: false, reason: "order_cancelled", event_type });
       }
 
-      const { data: isAdmin } = await supabase.rpc("has_role", { _user_id: callerUserId, _role: "admin" });
-      if (order.user_id !== callerUserId && !isAdmin) {
-        return new Response(JSON.stringify({ error: "Forbidden" }), { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      // For guest orders (user_id is null), allow notify-order without ownership check
+      // For authenticated orders, verify caller owns the order or is admin
+      if (order.user_id) {
+        const { data: isAdmin } = callerUserId
+          ? await supabase.rpc("has_role", { _user_id: callerUserId, _role: "admin" })
+          : { data: false };
+        if (order.user_id !== callerUserId && !isAdmin) {
+          return new Response(JSON.stringify({ error: "Forbidden" }), { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+        }
       }
 
       const { data: profile } = await supabase
