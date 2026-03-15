@@ -362,7 +362,7 @@ export function trackCompleteRegistration() {
 }
 
 // ─── CompletePayment (Purchase) ───────────────────────────────────────
-export function trackPurchase(params: {
+interface TrackPurchaseParams {
   orderId: string;
   value: number;
   itemCount: number;
@@ -371,7 +371,9 @@ export function trackPurchase(params: {
   email?: string;
   phone?: string;
   externalId?: string;
-}): void {
+}
+
+export function trackPurchase(params: TrackPurchaseParams): void {
   const eventId = crypto.randomUUID();
   const contents = params.contents ||
     (params.contentIds || []).map((id) => ({
