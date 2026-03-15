@@ -83,6 +83,7 @@ Deno.serve(async (req) => {
     }
 
     const html = await renderAsync(element)
+    const textContent = `${SUBJECTS[template] || 'Elle Make'} - Confira os detalhes em ellemake.com.br`
     const subject = data?.subject as string || SUBJECTS[template] || 'Elle Make'
 
     // Enqueue email via pgmq
