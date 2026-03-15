@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+import { useLocation } from "react-router-dom";
 
 interface SEOHeadProps {
   title?: string;
@@ -7,10 +8,11 @@ interface SEOHeadProps {
   url?: string;
   type?: string;
   jsonLd?: Record<string, any> | Record<string, any>[];
-  
+  noindex?: boolean;
 }
 
 const SITE_NAME = "Elle Make | Maquiagem em Belém";
+const SITE_URL = "https://www.ellemake.com.br";
 const DEFAULT_DESC = "Loja de maquiagem e cosméticos com delivery rápido em Belém do Pará. Frete grátis acima de R$ 199. Entrega em até 3h.";
 const DEFAULT_IMAGE = "/og-image.jpg";
 
@@ -21,8 +23,14 @@ const SEOHead = ({
   url,
   type = "website",
   jsonLd,
+  noindex = false,
 }: SEOHeadProps) => {
+  const location = useLocation();
   const fullTitle = title ? `${title} | ${SITE_NAME}` : SITE_NAME;
+  // Auto-generate canonical URL from current path if not provided
+  const canonicalUrl = url || `${SITE_URL}${location.pathname}`;
+  // Ensure absolute image URL
+  const absoluteImage = image.startsWith("http") ? image : `${SITE_URL}${image}`;
 
   useEffect(() => {
     document.title = fullTitle;
@@ -41,26 +49,24 @@ const SEOHead = ({
     setMeta("property", "og:title", fullTitle);
     setMeta("property", "og:description", description);
     setMeta("property", "og:type", type);
-    setMeta("property", "og:image", image);
+    setMeta("property", "og:image", absoluteImage);
+    setMeta("property", "og:url", canonicalUrl);
     setMeta("property", "og:site_name", "Elle Make");
     setMeta("property", "og:locale", "pt_BR");
-    if (url) setMeta("property", "og:url", url);
     setMeta("name", "twitter:card", "summary_large_image");
     setMeta("name", "twitter:title", fullTitle);
     setMeta("name", "twitter:description", description);
-    setMeta("name", "twitter:image", image);
-    setMeta("name", "robots", "index, follow");
+    setMeta("name", "twitter:image", absoluteImage);
+    setMeta("name", "robots", noindex ? "noindex, nofollow" : "index, follow");
 
     // Canonical
     let canonical = document.querySelector("link[rel='canonical']") as HTMLLinkElement;
-    if (url) {
-      if (!canonical) {
-        canonical = document.createElement("link");
-        canonical.setAttribute("rel", "canonical");
-        document.head.appendChild(canonical);
-      }
-      canonical.setAttribute("href", url);
+    if (!canonical) {
+      canonical = document.createElement("link");
+      canonical.setAttribute("rel", "canonical");
+      document.head.appendChild(canonical);
     }
+    canonical.setAttribute("href", canonicalUrl);
 
     // JSON-LD (supports single or array)
     document.querySelectorAll("script[data-seo-ld]").forEach(el => el.remove());
@@ -78,7 +84,7 @@ const SEOHead = ({
     return () => {
       document.querySelectorAll("script[data-seo-ld]").forEach(el => el.remove());
     };
-  }, [fullTitle, description, image, url, type, jsonLd]);
+  }, [fullTitle, description, absoluteImage, canonicalUrl, type, jsonLd, noindex]);
 
   return null;
 };
