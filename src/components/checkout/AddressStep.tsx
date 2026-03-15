@@ -126,11 +126,41 @@ const AddressStep = ({
             </div>
           </div>
 
+          <div className="flex items-center gap-2 mt-4 mb-2">
+            <MapPin className="w-5 h-5 text-primary" />
+            <h2 className="text-lg font-display font-semibold">Endereço de Entrega</h2>
+          </div>
+
           <div className="space-y-2">
             <Label>CEP *</Label>
             <div className="relative">
               <Input value={address.zip} onChange={(e) => setAddress({ ...address, zip: e.target.value.replace(/\D/g, "").slice(0, 8) })} placeholder="66000-000" className="bg-muted border-none min-h-[44px]" inputMode="numeric" required />
               {cepLoading && <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 animate-spin text-primary" />}
+            </div>
+            <p className="text-[10px] text-muted-foreground">Digite o CEP para preencher automaticamente</p>
+          </div>
+
+          <div className="grid grid-cols-3 gap-3">
+            <div className="col-span-2 space-y-2">
+              <Label>Rua *</Label>
+              <Input value={address.street} onChange={(e) => setAddress({ ...address, street: e.target.value })} placeholder="Nome da rua" className="bg-muted border-none min-h-[44px]" required />
+            </div>
+            <div className="space-y-2">
+              <Label>Nº *</Label>
+              <Input value={address.number} onChange={(e) => setAddress({ ...address, number: e.target.value })} placeholder="123" className="bg-muted border-none min-h-[44px]" required />
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label>Complemento</Label>
+            <Input value={address.complement} onChange={(e) => setAddress({ ...address, complement: e.target.value })} placeholder="Apt, bloco..." className="bg-muted border-none min-h-[44px]" />
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-2"><Label>Bairro *</Label><Input value={address.neighborhood} onChange={(e) => setAddress({ ...address, neighborhood: e.target.value })} placeholder="Bairro" className="bg-muted border-none min-h-[44px]" required /></div>
+            <div className="grid grid-cols-2 gap-2">
+              <div className="space-y-2"><Label>Cidade</Label><Input value={address.city} onChange={(e) => setAddress({ ...address, city: e.target.value })} placeholder="Cidade" className="bg-muted border-none min-h-[44px]" required /></div>
+              <div className="space-y-2"><Label>UF</Label><Input value={address.state} onChange={(e) => setAddress({ ...address, state: e.target.value.toUpperCase().slice(0, 2) })} placeholder="UF" maxLength={2} className="bg-muted border-none min-h-[44px]" required /></div>
             </div>
           </div>
 
