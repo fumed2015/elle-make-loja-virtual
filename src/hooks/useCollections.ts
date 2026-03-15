@@ -26,35 +26,8 @@ export const useCollectionProducts = (slug: CollectionSlug) => {
   });
 };
 
-export const useBestSellingProducts = () => {
-  return useQuery({
-    queryKey: ["best-selling-products"],
-    queryFn: async () => {
-      // Get orders from last 90 days with confirmed statuses
-      const ninetyDaysAgo = new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString();
-      const { data: orders, error } = await supabase
-        .from("orders")
-        .select("items")
-        .in("status", ["approved", "confirmed", "processing", "shipped", "delivered"])
-        .gte("created_at", ninetyDaysAgo);
-      if (error) throw error;
-
-      // Count product sales
-      const salesCount: Record<string, number> = {};
-      orders?.forEach((order) => {
-        const items = (order.items as any[]) || [];
-        items.forEach((item) => {
-          if (item.product_id) {
-            salesCount[item.product_id] = (salesCount[item.product_id] || 0) + (item.quantity || 1);
-          }
-        });
-      });
-
-      return salesCount;
-    },
-    staleTime: 1000 * 60 * 10,
-  });
-};
+// Best sellers are now auto-synced via database function (sync_best_sellers)
+// running every 6 hours. Use useCollectionProducts("mais-vendidos") instead.
 
 export const useAllCollections = () => {
   return useQuery({

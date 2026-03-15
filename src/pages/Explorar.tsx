@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useProducts, useCategories } from "@/hooks/useProducts";
-import { useCollectionProducts, useBestSellingProducts, type CollectionSlug } from "@/hooks/useCollections";
+import { useCollectionProducts, type CollectionSlug } from "@/hooks/useCollections";
 import ProductCard from "@/components/product/ProductCard";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
@@ -85,7 +85,7 @@ const Explorar = () => {
   const { data: collectionProducts, isLoading: collectionLoading } = useCollectionProducts(
     collectionSlug || "lancamentos"
   );
-  const { data: salesCount } = useBestSellingProducts();
+  
 
   const { data: categories } = useCategories();
 
@@ -107,14 +107,7 @@ const Explorar = () => {
     
     if (isCollectionPage) {
       source = collectionProducts ? [...collectionProducts] : [];
-      // For "mais-vendidos", sort by sales count (best selling first)
-      if (collectionSlug === "mais-vendidos" && salesCount) {
-        source.sort((a: any, b: any) => {
-          const salesA = salesCount[a.id] || 0;
-          const salesB = salesCount[b.id] || 0;
-          return salesB - salesA;
-        });
-      }
+      // "mais-vendidos" is already sorted by sort_order from the database (auto-synced)
     } else {
       source = products ? [...products] : [];
     }
@@ -137,7 +130,7 @@ const Explorar = () => {
       }
     }
     return source;
-  }, [products, collectionProducts, isCollectionPage, collectionSlug, salesCount, activeBrand, activePriceRange, sortBy]);
+  }, [products, collectionProducts, isCollectionPage, collectionSlug, activeBrand, activePriceRange, sortBy]);
 
   const activeFiltersCount = [activeBrand, activePriceRange !== null, activeCat].filter(Boolean).length;
 
