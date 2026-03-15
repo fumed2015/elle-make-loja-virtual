@@ -25,6 +25,8 @@ export const useBlogPosts = (options?: { tag?: string; limit?: number }) => {
       if (error) throw error;
       return data as BlogPost[];
     },
+    staleTime: 1000 * 60 * 5,
+    gcTime: 1000 * 60 * 15,
   });
 };
 
@@ -50,5 +52,7 @@ export const useBlogPost = (slug: string) => {
       return data as BlogPost;
     },
     enabled: !!slug,
+    staleTime: 1000 * 60 * 5,
+    gcTime: 1000 * 60 * 15,
   });
 };

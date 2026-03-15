@@ -58,19 +58,37 @@ const COLLECTION_TITLES: Record<CollectionSlug, string> = {
   ofertas: "Ofertas",
 };
 
+const FILTER_STORAGE_KEY = "ellemake_explorar_filters";
+
+function loadFilters() {
+  try {
+    const stored = localStorage.getItem(FILTER_STORAGE_KEY);
+    if (stored) return JSON.parse(stored);
+  } catch {}
+  return {};
+}
+
 const Explorar = () => {
   const [searchParams, setSearchParams] = useSearchParams();
+  const savedFilters = loadFilters();
   const [searchQuery, setSearchQuery] = useState(searchParams.get("q") || "");
   const activeCat = searchParams.get("cat") || "";
   const urlQ = searchParams.get("q") || "";
   const [showMobileFilters, setShowMobileFilters] = useState(false);
-  const [sortBy, setSortBy] = useState<SortOption>("recent");
-  const [activeBrand, setActiveBrand] = useState("");
-  const [activePriceRange, setActivePriceRange] = useState<number | null>(null);
+  const [sortBy, setSortBy] = useState<SortOption>(savedFilters.sortBy || "recent");
+  const [activeBrand, setActiveBrand] = useState(savedFilters.brand || "");
+  const [activePriceRange, setActivePriceRange] = useState<number | null>(savedFilters.priceRange ?? null);
   const [showSortMenu, setShowSortMenu] = useState(false);
   const [showSuggestions, setShowSuggestions] = useState(false);
-  const [gridCols, setGridCols] = useState<2 | 3>(2);
+  const [gridCols, setGridCols] = useState<2 | 3>(savedFilters.gridCols || 2);
   const searchRef = useRef<HTMLDivElement>(null);
+
+  // Persist filter preferences
+  useEffect(() => {
+    try {
+      localStorage.setItem(FILTER_STORAGE_KEY, JSON.stringify({ sortBy, brand: activeBrand, priceRange: activePriceRange, gridCols }));
+    } catch {}
+  }, [sortBy, activeBrand, activePriceRange, gridCols]);
 
   // Detect if this is a curated collection page
   const collectionSlug = activeCat === "novidades" && COLLECTION_MAP[urlQ] ? COLLECTION_MAP[urlQ] : null;

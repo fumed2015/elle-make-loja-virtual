@@ -1,8 +1,13 @@
 import SEOHead from "@/components/SEOHead";
+import Breadcrumbs, { breadcrumbJsonLd } from "@/components/Breadcrumbs";
+
+const breadcrumbItems = [{ label: "Termos de Uso" }];
 
 const Termos = () => (
-  <div className="max-w-3xl mx-auto px-4 py-12 pb-24">
-    <SEOHead title="Termos de Uso" description="Termos de Uso da Elle Make — condições de compra, trocas, devoluções e mais." />
+  <div>
+    <SEOHead title="Termos de Uso" description="Termos de Uso da Elle Make — condições de compra, trocas, devoluções e mais." jsonLd={breadcrumbJsonLd(breadcrumbItems)} />
+    <Breadcrumbs items={breadcrumbItems} />
+    <div className="max-w-3xl mx-auto px-4 py-12 pb-24">
     <h1 className="text-3xl font-display font-bold mb-8 text-foreground">Termos de Uso</h1>
 
     <div className="prose prose-sm max-w-none text-muted-foreground space-y-6">
@@ -58,6 +63,7 @@ const Termos = () => (
         <p>Ao comprar conosco, você acumula pontos que podem ser trocados por descontos. Consulte as regras completas na sua área de perfil.</p>
       </section>
     </div>
+  </div>
   </div>
 );
 

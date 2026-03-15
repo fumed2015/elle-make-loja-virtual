@@ -6,19 +6,35 @@ import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import ReactMarkdown from "react-markdown";
 import { toast } from "sonner";
+import SEOHead from "@/components/SEOHead";
+import Breadcrumbs, { breadcrumbJsonLd } from "@/components/Breadcrumbs";
 
 type Msg = { role: "user" | "assistant"; content: string };
 
 const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/beauty-consultant`;
 
+const CHAT_STORAGE_KEY = "ellemake_consultant_chat";
+const breadcrumbItems = [{ label: "Consultora IA" }];
+
+function loadChatHistory(): Msg[] {
+  try {
+    const stored = localStorage.getItem(CHAT_STORAGE_KEY);
+    if (stored) return JSON.parse(stored);
+  } catch {}
+  return [{ role: "assistant", content: "Olá! ✨ Sou a **Glow**, sua consultora de beleza. Posso te ajudar a encontrar os produtos ideais para sua pele e estilo. O que você gostaria de saber?" }];
+}
+
 const Consultora = () => {
   const navigate = useNavigate();
-  const [messages, setMessages] = useState<Msg[]>([
-    { role: "assistant", content: "Olá! ✨ Sou a **Glow**, sua consultora de beleza. Posso te ajudar a encontrar os produtos ideais para sua pele e estilo. O que você gostaria de saber?" },
-  ]);
+  const [messages, setMessages] = useState<Msg[]>(loadChatHistory);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
+
+  // Persist chat to localStorage
+  useEffect(() => {
+    try { localStorage.setItem(CHAT_STORAGE_KEY, JSON.stringify(messages)); } catch {}
+  }, [messages]);
 
   useEffect(() => {
     scrollRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -94,12 +110,15 @@ const Consultora = () => {
   };
 
   return (
-    <div className="min-h-screen max-w-lg mx-auto flex flex-col">
-      {/* Header */}
-      <div className="flex items-center gap-3 px-4 pt-6 pb-4 border-b border-border">
-        <button onClick={() => navigate(-1)} className="w-10 h-10 rounded-full bg-muted flex items-center justify-center">
-          <ArrowLeft className="w-5 h-5" />
-        </button>
+    <div>
+      <SEOHead title="Consultora de Beleza IA" description="Converse com a Glow, nossa consultora de beleza com inteligência artificial." jsonLd={breadcrumbJsonLd(breadcrumbItems)} />
+      <Breadcrumbs items={breadcrumbItems} />
+      <div className="min-h-screen max-w-lg mx-auto flex flex-col">
+        {/* Header */}
+        <div className="flex items-center gap-3 px-4 pt-6 pb-4 border-b border-border">
+          <button onClick={() => navigate(-1)} className="w-10 h-10 rounded-full bg-muted flex items-center justify-center">
+            <ArrowLeft className="w-5 h-5" />
+          </button>
         <div className="flex items-center gap-2">
           <div className="w-8 h-8 rounded-full bg-gradient-teal flex items-center justify-center">
             <Sparkles className="w-4 h-4 text-secondary-foreground" />
@@ -178,6 +197,7 @@ const Consultora = () => {
           ))}
         </div>
       </div>
+    </div>
     </div>
   );
 };

@@ -13,6 +13,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
 import { fbTrackCompleteRegistration } from "@/hooks/useMetaPixel";
 import { trackCompleteRegistration } from "@/hooks/useTikTokPixel";
+import SEOHead from "@/components/SEOHead";
+import Breadcrumbs, { breadcrumbJsonLd } from "@/components/Breadcrumbs";
 
 const Perfil = () => {
   const navigate = useNavigate();
@@ -196,8 +198,13 @@ const Perfil = () => {
 
   const tierInfo = TIER_LABELS[tier];
 
+  const breadcrumbItems = [{ label: "Minha Conta" }];
+
   return (
-    <div className="px-4 pt-8 pb-24 max-w-lg mx-auto">
+    <div>
+      <SEOHead title="Minha Conta" description="Gerencie sua conta, endereços e pedidos na Elle Make." jsonLd={breadcrumbJsonLd(breadcrumbItems)} />
+      <Breadcrumbs items={breadcrumbItems} />
+      <div className="px-4 pt-8 pb-24 max-w-lg mx-auto">
       {/* Header */}
       <div className="flex items-center gap-4 mb-4">
         <div className="w-14 h-14 rounded-full bg-gradient-marsala flex items-center justify-center text-primary-foreground font-bold text-lg">
@@ -331,6 +338,7 @@ const Perfil = () => {
         <LogOut className="w-5 h-5" />
         Sair
       </Button>
+    </div>
     </div>
   );
 };

@@ -23,6 +23,7 @@ export const useCollectionProducts = (slug: CollectionSlug) => {
       return data?.map((pc: any) => ({ ...pc.products, collection_sort: pc.sort_order, collection_id: pc.id })) || [];
     },
     staleTime: 1000 * 60 * 5,
+    gcTime: 1000 * 60 * 15,
   });
 };
 
@@ -40,6 +41,8 @@ export const useAllCollections = () => {
       if (error) throw error;
       return data;
     },
+    staleTime: 1000 * 60 * 5,
+    gcTime: 1000 * 60 * 15,
   });
 };
 

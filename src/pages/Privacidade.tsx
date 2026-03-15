@@ -1,8 +1,13 @@
 import SEOHead from "@/components/SEOHead";
+import Breadcrumbs, { breadcrumbJsonLd } from "@/components/Breadcrumbs";
+
+const breadcrumbItems = [{ label: "Política de Privacidade" }];
 
 const Privacidade = () => (
-  <div className="max-w-3xl mx-auto px-4 py-12 pb-24">
-    <SEOHead title="Política de Privacidade" description="Política de Privacidade da Elle Make — como coletamos, usamos e protegemos seus dados." />
+  <div>
+    <SEOHead title="Política de Privacidade" description="Política de Privacidade da Elle Make — como coletamos, usamos e protegemos seus dados." jsonLd={breadcrumbJsonLd(breadcrumbItems)} />
+    <Breadcrumbs items={breadcrumbItems} />
+    <div className="max-w-3xl mx-auto px-4 py-12 pb-24">
     <h1 className="text-3xl font-display font-bold mb-8 text-foreground">Política de Privacidade</h1>
 
     <div className="prose prose-sm max-w-none text-muted-foreground space-y-6">
@@ -64,6 +69,7 @@ const Privacidade = () => (
         <p>Utilizamos cookies para manter sua sessão, salvar itens no carrinho e melhorar sua experiência. Você pode desativá-los nas configurações do seu navegador.</p>
       </section>
     </div>
+  </div>
   </div>
 );
 
