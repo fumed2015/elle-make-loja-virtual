@@ -3,7 +3,7 @@ import { ShoppingBag, Trash2, ArrowRight, Minus, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useCart } from "@/hooks/useCart";
 import { useAuth } from "@/hooks/useAuth";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { useShipping } from "@/hooks/useShipping";
 import ShippingCalculator from "@/components/shipping/ShippingCalculator";
