@@ -212,7 +212,7 @@ const detailBox = {
   border: '1px solid #EDE5DB',
 }
 const detailLabel = { fontSize: '12px', color: '#737373', margin: '0 0 4px', textTransform: 'uppercase' as const }
-const detailValue = { fontSize: '20px', fontWeight: 'bold' as const, color: '#800020', margin: '0' }
+const detailValue = { fontSize: '20px', fontWeight: 'bold' as const, color: '#74242c', margin: '0' }
 const itemsSection = { margin: '0 0 16px' }
 const sectionTitle = { fontSize: '14px', fontWeight: 'bold' as const, color: '#800020', margin: '0 0 8px' }
 const itemRow = { display: 'flex' as const, justifyContent: 'space-between' as const, padding: '6px 0' }
