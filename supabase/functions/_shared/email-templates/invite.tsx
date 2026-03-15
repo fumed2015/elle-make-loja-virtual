@@ -31,7 +31,7 @@ export const InviteEmail = ({ siteName = 'Elle Make', siteUrl = 'https://www.ell
     <Preview>Você foi convidada para a Elle Make!</Preview>
     <Body style={main}>
       <Container style={container}>
-        <Section style={header}><Img src={LOGO_URL} width="140" height="auto" alt="Elle Make" style={{ margin: '0 auto' }} /></Section>
+        <Section style={header}><Img src={LOGO_URL} width="80" height="auto" alt="Elle Make" style={{ margin: '0 auto' }} /></Section>
         <Section style={content}>
           <Heading style={h1}>Você foi convidada!</Heading>
           <Text style={text}>

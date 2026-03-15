@@ -27,7 +27,7 @@ export const ReauthenticationEmail = ({ token }: ReauthenticationEmailProps) => 
     <Preview>Seu código de verificação — Elle Make</Preview>
     <Body style={main}>
       <Container style={container}>
-        <Section style={header}><Img src={LOGO_URL} width="140" height="auto" alt="Elle Make" style={{ margin: '0 auto' }} /></Section>
+        <Section style={header}><Img src={LOGO_URL} width="80" height="auto" alt="Elle Make" style={{ margin: '0 auto' }} /></Section>
         <Section style={content}>
           <Heading style={h1}>Código de verificação</Heading>
           <Text style={text}>Use o código abaixo para confirmar sua identidade:</Text>
