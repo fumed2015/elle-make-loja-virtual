@@ -263,7 +263,7 @@ const GuestSignupCard = ({ order, onAccountCreated }: { order: any; onAccountCre
       const newUser = data?.user;
       if (newUser) {
         // Claim the guest order
-        await supabase.rpc("claim_guest_order", {
+        await (supabase.rpc as any)("claim_guest_order", {
           p_order_id: order.id,
           p_user_id: newUser.id,
         });
