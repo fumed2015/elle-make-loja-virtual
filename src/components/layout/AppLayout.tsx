@@ -28,6 +28,7 @@ const AppLayout = () => {
           <Outlet />
         </motion.main>
       </AnimatePresence>
+      <Footer />
       <BottomNav />
       <FloatingWhatsApp />
       <FloatingDeliveryBadge />
