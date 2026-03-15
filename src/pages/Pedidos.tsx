@@ -11,6 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
 import SEOHead from "@/components/SEOHead";
+import Breadcrumbs from "@/components/Breadcrumbs";
 
 const statusConfig: Record<string, { label: string; icon: any; color: string; bgColor: string; step: number }> = {
   pending:    { label: "Pendente",    icon: Clock,       color: "text-yellow-500",        bgColor: "bg-yellow-500/10",  step: 0 },
