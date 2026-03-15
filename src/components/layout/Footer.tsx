@@ -78,6 +78,8 @@ const Footer = () => {
               {[
                 { label: "Sobre Nós", to: "/sobre" },
                 { label: "Blog", to: "/blog" },
+                { label: "Quiz de Beleza", to: "/quiz-beleza" },
+                { label: "Glossário", to: "/glossario" },
                 { label: "Política de Privacidade", to: "/privacidade" },
                 { label: "Termos de Uso", to: "/termos" },
                 { label: "Contato", to: "/consultora" },

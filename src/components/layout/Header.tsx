@@ -104,6 +104,11 @@ const navLinks: NavItem[] = [
   },
   {
     label: "Blog", to: "/blog",
+    subs: [
+      { label: "Artigos", to: "/blog" },
+      { label: "Quiz de Beleza", to: "/quiz-beleza" },
+      { label: "Glossário", to: "/glossario" },
+    ],
   },
 ];
 
