@@ -115,7 +115,8 @@ const Consultora = () => {
       <Breadcrumbs items={breadcrumbItems} />
     <div className="min-h-screen max-w-lg mx-auto flex flex-col">
       {/* Header */}
-      <div className="flex items-center gap-3 px-4 pt-6 pb-4 border-b border-border">
+        <button onClick={() => navigate(-1)} className="w-10 h-10 rounded-full bg-muted flex items-center justify-center">
+          <ArrowLeft className="w-5 h-5" />
         </button>
         <div className="flex items-center gap-2">
           <div className="w-8 h-8 rounded-full bg-gradient-teal flex items-center justify-center">
