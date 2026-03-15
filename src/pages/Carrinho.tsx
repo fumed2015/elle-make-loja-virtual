@@ -15,6 +15,7 @@ import { fbTrackViewCart } from "@/hooks/useMetaPixel";
 const Carrinho = () => {
   const { items, isLoading, removeFromCart, updateQuantity, cartTotal, cartCount } = useCart();
   const { user } = useAuth();
+  const navigate = useNavigate();
   const shipping = useShipping();
   const shippingCost = shipping.selectedShipping?.price ?? 0;
   const total = cartTotal + shippingCost;
