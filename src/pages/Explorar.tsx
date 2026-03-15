@@ -13,6 +13,7 @@ import SEOHead from "@/components/SEOHead";
 import Footer from "@/components/layout/Footer";
 import { fbTrackSearch } from "@/hooks/useMetaPixel";
 import { trackSearch } from "@/hooks/useTikTokPixel";
+import Breadcrumbs, { breadcrumbJsonLd } from "@/components/Breadcrumbs";
 
 type SortOption = "recent" | "price-asc" | "price-desc" | "name" | "discount";
 
