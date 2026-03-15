@@ -367,15 +367,11 @@ const Checkout = () => {
     const contents = items.map((item: any) => ({ id: (item.products as any)?.id, quantity: item.quantity })).filter((c: any) => c.id);
     const emailForTiktok = user?.email || guestInfo.email || "";
     const phoneForTiktok = user?.user_metadata?.phone || guestInfo.phone || customerInfo.phone || "";
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (trackPurchase as any)({
+    trackPurchase({
       orderId: orderData.id,
       value: finalTotal,
       itemCount: cartCount,
       contentIds,
-      email: emailForTiktok || undefined,
-      phone: phoneForTiktok || undefined,
-      externalId: user?.id,
     });
 
     // Enrich Meta Advanced Matching with checkout data (address + CPF)
