@@ -311,7 +311,7 @@ const Produto = () => {
                 href={`https://wa.me/5591936180774?text=${whatsappMsg}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                onClick={() => fbTrackContact()}
+                onClick={() => { fbTrackContact(); trackContact(); }}
                 className="w-full min-h-[48px] text-base font-semibold border-2 border-border rounded-md flex items-center justify-center gap-2 hover:bg-muted transition-colors"
               >
                 <WhatsAppIcon className="w-5 h-5 text-accent" />

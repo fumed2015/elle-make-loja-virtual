@@ -76,6 +76,7 @@ const Perfil = () => {
         const { error } = await signUp(email, password, fullName, phone, birthday);
         if (error) throw error;
         fbTrackCompleteRegistration();
+        trackCompleteRegistration();
         toast.success("Conta criada com sucesso! 🎉");
         if (redirectTo) navigate(redirectTo);
       }
