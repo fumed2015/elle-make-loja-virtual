@@ -243,6 +243,113 @@ const OrderDetail = ({ order, onBack }: { order: any; onBack: () => void }) => {
   );
 };
 
+// ── Guest Signup Card ──
+const GuestSignupCard = ({ order, onAccountCreated }: { order: any; onAccountCreated: () => void }) => {
+  const { signUp } = useAuth();
+  const [email, setEmail] = useState(order.guest_email || "");
+  const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
+
+  const canSubmit = email.length > 3 && password.length >= 6;
+
+  const handleSignup = async () => {
+    if (!canSubmit) return;
+    setLoading(true);
+    try {
+      const { data, error } = await signUp(email, password, order.guest_name || "");
+      if (error) throw error;
+
+      const newUser = data?.user;
+      if (newUser) {
+        // Claim the guest order
+        await supabase.rpc("claim_guest_order", {
+          p_order_id: order.id,
+          p_user_id: newUser.id,
+        });
+      }
+
+      toast.success("Conta criada! Seu pedido foi vinculado à sua conta. 🎉");
+      onAccountCreated();
+    } catch (err: any) {
+      const msg = err?.message || "Erro ao criar conta";
+      if (msg.includes("already registered") || msg.includes("already been registered")) {
+        toast.error("Este e-mail já possui uma conta. Faça login na página de perfil.");
+      } else {
+        toast.error(msg);
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="bg-card rounded-2xl border-2 border-dashed border-primary/30 p-5 space-y-4"
+    >
+      <div className="flex items-center gap-2">
+        <div className="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center">
+          <UserPlus className="w-4 h-4 text-primary" />
+        </div>
+        <div>
+          <h3 className="text-sm font-semibold">Crie sua conta</h3>
+          <p className="text-[11px] text-muted-foreground">Acompanhe pedidos, ganhe pontos e compre mais rápido</p>
+        </div>
+      </div>
+
+      <div className="space-y-3">
+        <div className="space-y-1.5">
+          <Label className="text-xs">E-mail</Label>
+          <Input
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="seu@email.com"
+            className="bg-muted border-none min-h-[44px] text-sm"
+          />
+        </div>
+        <div className="space-y-1.5">
+          <Label className="text-xs">Senha (mínimo 6 caracteres)</Label>
+          <div className="relative">
+            <Input
+              type={showPassword ? "text" : "password"}
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="Crie uma senha"
+              className="bg-muted border-none min-h-[44px] text-sm pr-10"
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+            >
+              {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <Button
+        onClick={handleSignup}
+        disabled={!canSubmit || loading}
+        className="w-full bg-primary text-primary-foreground hover:bg-primary/90 min-h-[44px]"
+      >
+        {loading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <UserPlus className="w-4 h-4 mr-2" />}
+        Criar conta e vincular pedido
+      </Button>
+
+      <p className="text-[10px] text-muted-foreground text-center">
+        Já tem conta?{" "}
+        <Link to="/perfil" className="text-primary font-medium hover:underline">
+          Faça login
+        </Link>
+      </p>
+    </motion.div>
+  );
+};
+
 // ── Order List Item ──
 const OrderListItem = ({ order, index, onClick }: { order: any; index: number; onClick: () => void }) => {
   const status = statusConfig[order.status] || statusConfig.pending;
