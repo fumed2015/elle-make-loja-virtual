@@ -25,7 +25,7 @@ export type AdminTab =
   | "orders" | "coupons" | "reviews"
   | "influencers" | "leads" | "birthdays" | "checkout-leads"
   | "pixels" | "whatsapp" | "whatsapp-campaigns" | "seo" | "ai-content"
-  | "marketplaces" | "newsletter" | "notifications-monitor";
+  | "marketplaces" | "newsletter" | "notifications-monitor" | "blog";
 
 interface SidebarItem {
   id: AdminTab;
@@ -97,6 +97,7 @@ const SIDEBAR_SECTIONS: SidebarSection[] = [
     emoji: "📢",
     items: [
       { id: "marketing", label: "Marketing", icon: Megaphone },
+      { id: "blog", label: "Blog", icon: FileText },
       { id: "seo-content", label: "SEO & Blog", icon: Globe2 },
       { id: "seo", label: "Relatório SEO", icon: Search },
       { id: "pixels", label: "Pixels", icon: Code },

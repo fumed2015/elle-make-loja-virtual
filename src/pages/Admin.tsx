@@ -45,6 +45,7 @@ import MonthlyRevenueReportTab from "@/components/admin/MonthlyRevenueReportTab"
 import CollectionsTab from "@/components/admin/CollectionsTab";
 import NotificationsMonitorTab from "@/components/admin/NotificationsMonitorTab";
 import CheckoutLeadsTab from "@/components/admin/CheckoutLeadsTab";
+import BlogTab from "@/components/admin/BlogTab";
 
 const Admin = () => {
   const navigate = useNavigate();
@@ -142,6 +143,7 @@ const Admin = () => {
       case "collections": return <CollectionsTab />;
       case "notifications-monitor": return <NotificationsMonitorTab />;
       case "checkout-leads": return <CheckoutLeadsTab />;
+      case "blog": return <BlogTab />;
       default: return <DashboardTab />;
     }
   };

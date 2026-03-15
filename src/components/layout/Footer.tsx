@@ -77,6 +77,7 @@ const Footer = () => {
             <ul className="space-y-2.5">
               {[
                 { label: "Sobre Nós", to: "/sobre" },
+                { label: "Blog", to: "/blog" },
                 { label: "Política de Privacidade", to: "/privacidade" },
                 { label: "Termos de Uso", to: "/termos" },
                 { label: "Contato", to: "/consultora" },

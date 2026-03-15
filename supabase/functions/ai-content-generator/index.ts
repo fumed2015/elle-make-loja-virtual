@@ -43,7 +43,92 @@ serve(async (req) => {
       });
     }
 
-    const { action, product_id, product_ids, force_all, product_name, brand, barcode, ref_code, offset = 0, chunk_size = 3 } = await req.json();
+    const body = await req.json();
+    const { action, product_id, product_ids, force_all, product_name, brand, barcode, ref_code, offset = 0, chunk_size = 3, title: blogTitle, tags: blogTags } = body;
+
+    // Action: blog_post - Generate blog content
+    if (action === "blog_post") {
+      if (!blogTitle) {
+        return new Response(JSON.stringify({ error: "Título obrigatório" }), {
+          status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      const tagsContext = blogTags?.length ? `Tags sugeridas: ${blogTags.join(", ")}.` : "";
+      const prompt = `Você é uma redatora especialista em beleza e maquiagem para o blog da Elle Make, uma loja de cosméticos em Belém do Pará.
+
+Crie um artigo completo para o título: "${blogTitle}"
+${tagsContext}
+
+Requisitos:
+- Artigo com 800-1200 palavras em português brasileiro
+- Use headings com ## e ### para organizar o conteúdo
+- Inclua dicas práticas e linguagem acessível
+- Use **negrito** para destacar termos importantes
+- Inclua listas com - quando apropriado
+- Mencione produtos e categorias de maquiagem naturalmente
+- Tom amigável e profissional, como uma consultora de beleza
+
+Retorne um JSON com:
+- content: o artigo completo formatado
+- excerpt: resumo de 1-2 frases (max 160 chars)
+- seo_title: título SEO otimizado (max 60 chars)
+- seo_description: meta description (max 160 chars)
+- tags: array de 3-6 tags relevantes em lowercase`;
+
+      const aiResp = await fetch("https://apim.lovable.dev/chat/completions", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${LOVABLE_API_KEY}`,
+        },
+        body: JSON.stringify({
+          model: "google/gemini-2.5-flash",
+          messages: [{ role: "user", content: prompt }],
+          tools: [{
+            type: "function",
+            function: {
+              name: "save_blog_content",
+              parameters: {
+                type: "object",
+                properties: {
+                  content: { type: "string" },
+                  excerpt: { type: "string" },
+                  seo_title: { type: "string" },
+                  seo_description: { type: "string" },
+                  tags: { type: "array", items: { type: "string" } },
+                },
+                required: ["content", "excerpt", "seo_title", "seo_description", "tags"],
+              },
+            },
+          }],
+          tool_choice: { type: "function", function: { name: "save_blog_content" } },
+        }),
+      });
+
+      if (!aiResp.ok) {
+        if (aiResp.status === 402) {
+          return new Response(JSON.stringify({ error: "Créditos de IA esgotados" }), {
+            status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" },
+          });
+        }
+        if (aiResp.status === 429) {
+          return new Response(JSON.stringify({ error: "Limite de requisições atingido" }), {
+            status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" },
+          });
+        }
+        throw new Error("AI error: " + aiResp.status);
+      }
+
+      const aiData = await aiResp.json();
+      const tc = aiData.choices?.[0]?.message?.tool_calls?.[0];
+      if (!tc) throw new Error("AI não retornou conteúdo do blog");
+
+      const result = JSON.parse(tc.function.arguments);
+      return new Response(JSON.stringify(result), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
 
     // Action: generate - Generate content for a single product
     if (action === "generate") {
