@@ -431,9 +431,6 @@ export function trackPurchase(params: TrackPurchaseParams): void {
       value: params.value,
       num_items: params.itemCount,
       order_id: params.orderId,
-      email: params.email,
-      phone: params.phone,
-      external_id: params.externalId,
     })
   );
 }
