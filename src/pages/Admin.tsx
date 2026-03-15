@@ -45,6 +45,7 @@ import MonthlyRevenueReportTab from "@/components/admin/MonthlyRevenueReportTab"
 import CollectionsTab from "@/components/admin/CollectionsTab";
 import NotificationsMonitorTab from "@/components/admin/NotificationsMonitorTab";
 import CheckoutLeadsTab from "@/components/admin/CheckoutLeadsTab";
+import BlogTab from "@/components/admin/BlogTab";
 
 const Admin = () => {
   const navigate = useNavigate();
