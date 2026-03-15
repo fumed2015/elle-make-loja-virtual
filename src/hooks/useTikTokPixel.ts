@@ -371,7 +371,7 @@ export function trackPurchase(params: {
   email?: string;
   phone?: string;
   externalId?: string;
-}) {
+}): void {
   const eventId = crypto.randomUUID();
   const contents = params.contents ||
     (params.contentIds || []).map((id) => ({
