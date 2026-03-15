@@ -16,4 +16,4 @@ Disallow: /admin
 Disallow: /checkout
 Disallow: /reset-password
 
-Sitemap: https://xinkvwlhctwgdfwixzxf.supabase.co/functions/v1/sitemap
+Sitemap: https://www.ellemake.com.br/sitemap.xml
