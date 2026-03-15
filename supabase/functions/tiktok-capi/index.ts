@@ -51,8 +51,8 @@ interface TikTokEventInput {
   url?: string;
   referrer?: string;
   // properties
+  content_id?: string;
   content_ids?: string[];
-  contents?: Array<{
     content_id: string;
     content_type?: string;
     content_name?: string;

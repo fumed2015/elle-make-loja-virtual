@@ -115,6 +115,27 @@ function clientBase(eventId: string): Record<string, any> {
   return { event_id: eventId, currency: "BRL" };
 }
 
+function normalizeContentIds(ids?: Array<string | null | undefined>): string[] {
+  return (ids || [])
+    .map((id) => String(id || "").trim())
+    .filter(Boolean);
+}
+
+function normalizeContents(
+  contents?: Array<{ content_id: string; quantity?: number; price?: number; content_name?: string; content_type?: string }>
+) {
+  return (contents || [])
+    .map((item) => ({
+      ...item,
+      content_id: String(item.content_id || "").trim(),
+    }))
+    .filter((item) => item.content_id.length > 0);
+}
+
+function resolvePrimaryContentId(contentIds: string[], contents: Array<{ content_id: string }>): string | undefined {
+  return contentIds[0] || contents[0]?.content_id;
+}
+
 // ─── ViewContent ──────────────────────────────────────────────────────
 export function trackViewContent(product: {
   id: string;
