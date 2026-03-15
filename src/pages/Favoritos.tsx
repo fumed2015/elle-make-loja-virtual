@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import ProductCard from "@/components/product/ProductCard";
 import { motion } from "framer-motion";
 import SEOHead from "@/components/SEOHead";
+import Breadcrumbs from "@/components/Breadcrumbs";
 
 const Favoritos = () => {
   const { user } = useAuth();
