@@ -603,7 +603,7 @@ const Checkout = () => {
             {step === "success" && (
               <SuccessStep
                 orderId={orderId} paymentMethod={paymentMethod}
-                onViewOrders={() => navigate("/pedidos")}
+                onViewOrders={() => navigate(user ? "/pedidos" : `/pedidos?order=${orderId}`)}
                 onBackToStore={() => navigate("/")}
               />
             )}
