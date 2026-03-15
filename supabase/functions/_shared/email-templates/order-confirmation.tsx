@@ -52,7 +52,7 @@ function formatAddress(addr: ShippingAddress | string | undefined): string | nul
   return parts.length > 0 ? parts.join('\n') : null
 }
 
-const LOGO_URL = 'https://xinkvwlhctwgdfwixzxf.supabase.co/storage/v1/object/public/email-assets/logo-ellemake.png'
+const LOGO_URL = 'https://xinkvwlhctwgdfwixzxf.supabase.co/storage/v1/object/public/email-assets/logo-ellemake-circular.png'
 const SITE_URL = 'https://www.ellemake.com.br'
 
 export const OrderConfirmationEmail = ({
