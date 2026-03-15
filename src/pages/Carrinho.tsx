@@ -11,6 +11,7 @@ import FreeShippingBar from "@/components/layout/FreeShippingBar";
 import CrossSellSection from "@/components/checkout/CrossSellSection";
 import UrgencyBadge from "@/components/product/UrgencyBadge";
 import { fbTrackViewCart } from "@/hooks/useMetaPixel";
+import Breadcrumbs from "@/components/Breadcrumbs";
 
 const Carrinho = () => {
   const { items, isLoading, removeFromCart, updateQuantity, cartTotal, cartCount } = useCart();
