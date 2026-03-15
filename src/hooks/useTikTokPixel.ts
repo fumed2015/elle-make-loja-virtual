@@ -362,7 +362,7 @@ export function trackCompleteRegistration() {
 }
 
 // ─── CompletePayment (Purchase) ───────────────────────────────────────
-interface TrackPurchaseParams {
+export interface TrackPurchaseParams {
   orderId: string;
   value: number;
   itemCount: number;
