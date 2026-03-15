@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { useProducts } from "@/hooks/useProducts";
 import ProductCard from "@/components/product/ProductCard";
 import SEOHead from "@/components/SEOHead";
+import Breadcrumbs, { breadcrumbJsonLd } from "@/components/Breadcrumbs";
 import { useState } from "react";
 
 const brandNames: Record<string, string> = {
