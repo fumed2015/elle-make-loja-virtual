@@ -159,7 +159,7 @@ const OrderDetail = ({ order, onBack }: { order: any; onBack: () => void }) => {
             </button>
           </div>
           {trackingUrl && (
-            <a href={trackingUrl} target="_blank" rel="noopener noreferrer"
+            <a href={trackingUrl} target="_blank" rel="noopener noreferrer nofollow"
               className="flex items-center justify-center gap-2 w-full py-3 rounded-xl bg-primary/5 text-primary text-sm font-semibold hover:bg-primary/10 transition-colors">
               <ExternalLink className="w-4 h-4" />Rastrear no site da transportadora
             </a>
