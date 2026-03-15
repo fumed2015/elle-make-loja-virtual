@@ -196,6 +196,7 @@ const Consultora = () => {
         </div>
       </div>
     </div>
+    </div>
   );
 };
 
