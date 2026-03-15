@@ -13,8 +13,8 @@ const corsHeaders = {
     'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
 }
 
-const SENDER_DOMAIN = 'store.ellemake.com.br'
-const FROM_ADDRESS = `Elle Make <noreply@ellemake.com.br>`
+const SENDER_DOMAIN = 'notify.ellemake.com.br'
+const FROM_ADDRESS = `Elle Make <noreply@notify.ellemake.com.br>`
 
 const SUBJECTS: Record<string, string> = {
   'cart-recovery': '💄 Seus produtos estão esperando por você!',
