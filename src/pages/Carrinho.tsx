@@ -196,6 +196,7 @@ const Carrinho = () => {
         <Button onClick={() => navigate("/checkout")} className="w-full bg-primary text-primary-foreground shadow-marsala hover:bg-primary/90 min-h-[44px] press-scale">
             Garantir Meu Look ✨ <ArrowRight className="w-4 h-4 ml-1" />
         </Button>
+       </div>
       </div>
     </div>
   );

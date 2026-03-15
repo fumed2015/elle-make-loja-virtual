@@ -87,6 +87,7 @@ const Marca = () => {
           ))}
         </motion.div>
       )}
+      </div>
     </div>
   );
 };

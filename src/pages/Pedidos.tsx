@@ -526,6 +526,7 @@ const Pedidos = () => {
           </motion.div>
         )}
       </AnimatePresence>
+      </div>
     </div>
   );
 };
