@@ -1,6 +1,7 @@
 import { Outlet, useLocation } from "react-router-dom";
 import { AnimatePresence, motion } from "framer-motion";
 import Header from "./Header";
+import Footer from "./Footer";
 import BottomNav from "./BottomNav";
 import FloatingWhatsApp from "./FloatingWhatsApp";
 import FloatingDeliveryBadge from "./FloatingDeliveryBadge";
@@ -27,6 +28,7 @@ const AppLayout = () => {
           <Outlet />
         </motion.main>
       </AnimatePresence>
+      <Footer />
       <BottomNav />
       <FloatingWhatsApp />
       <FloatingDeliveryBadge />
