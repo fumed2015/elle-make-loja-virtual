@@ -151,7 +151,10 @@ const Explorar = () => {
     // Fire Meta Pixel Search event (debounced)
     if (searchDebounceRef.current) clearTimeout(searchDebounceRef.current);
     if (value.length >= 2) {
-      searchDebounceRef.current = setTimeout(() => fbTrackSearch(value), 800);
+      searchDebounceRef.current = setTimeout(() => {
+        fbTrackSearch(value);
+        trackSearch({ searchString: value });
+      }, 800);
     }
   };
 

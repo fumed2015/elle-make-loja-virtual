@@ -111,6 +111,7 @@ const NewsletterPopup = () => {
       } else {
         toast.success("Cadastro realizado com sucesso! 🎉");
         fbTrackLead();
+        trackSubmitForm({ description: "newsletter_signup" });
       }
       setSuccess(true);
       try { localStorage.setItem(STORAGE_KEY, Date.now().toString()); } catch {}

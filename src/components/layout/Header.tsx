@@ -188,6 +188,7 @@ const Header = () => {
     setShowSuggestions(false);
     if (search.trim()) {
       fbTrackSearch(search.trim());
+      trackSearch({ searchString: search.trim() });
       navigate(`/explorar?q=${encodeURIComponent(search.trim())}`);
     }
   };
