@@ -34,6 +34,8 @@ const Ofertas = lazy(() => import("./pages/Ofertas"));
 const TestPixel = lazy(() => import("./pages/TestPixel"));
 const Blog = lazy(() => import("./pages/Blog"));
 const BlogPostPage = lazy(() => import("./pages/BlogPost"));
+const QuizBeleza = lazy(() => import("./pages/QuizBeleza"));
+const Glossario = lazy(() => import("./pages/Glossario"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 const queryClient = new QueryClient();
