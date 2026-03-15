@@ -320,8 +320,51 @@ const Pedidos = () => {
   const { user } = useAuth();
   const { data: orders, isLoading } = useOrders();
   const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
+  const [searchParams] = useSearchParams();
+  const guestOrderId = searchParams.get("order");
 
-  const selectedOrder = orders?.find((o) => o.id === selectedOrderId);
+  // Guest order lookup
+  const [guestOrder, setGuestOrder] = useState<any>(null);
+  const [guestLoading, setGuestLoading] = useState(false);
+
+  useEffect(() => {
+    if (!guestOrderId || user) return;
+    setGuestLoading(true);
+    supabase
+      .from("orders")
+      .select("*")
+      .eq("id", guestOrderId)
+      .is("user_id", null)
+      .single()
+      .then(({ data }) => {
+        setGuestOrder(data);
+        setGuestLoading(false);
+      });
+  }, [guestOrderId, user]);
+
+  // Guest view: show single order detail
+  if (!user && guestOrderId) {
+    if (guestLoading) {
+      return <div className="min-h-screen flex items-center justify-center"><div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" /></div>;
+    }
+    if (!guestOrder) {
+      return (
+        <div className="min-h-screen flex flex-col items-center justify-center px-4 text-center gap-4">
+          <SEOHead title="Pedido não encontrado | Elle Make" description="Pedido não encontrado" />
+          <Package className="w-12 h-12 text-muted-foreground" />
+          <h1 className="text-xl font-display font-bold">Pedido não encontrado</h1>
+          <p className="text-sm text-muted-foreground">Este pedido não existe ou pertence a uma conta.</p>
+          <Button asChild variant="outline" className="min-h-[44px]"><Link to="/">Voltar à loja</Link></Button>
+        </div>
+      );
+    }
+    return (
+      <div className="px-4 pt-8 pb-24 max-w-lg mx-auto">
+        <SEOHead title={`Pedido #${guestOrder.id.slice(0, 8)} | Elle Make`} description="Acompanhe seu pedido" />
+        <OrderDetail order={guestOrder} onBack={() => window.location.href = "/"} />
+      </div>
+    );
+  }
 
   if (!user) {
     return (
