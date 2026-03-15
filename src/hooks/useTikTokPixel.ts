@@ -370,6 +370,7 @@ export function trackPurchase(params: {
   contents?: Array<{ content_id: string; quantity: number; price: number; content_name?: string }>;
   email?: string;
   phone?: string;
+  externalId?: string;
 }) {
   const eventId = crypto.randomUUID();
   const contents = params.contents ||
