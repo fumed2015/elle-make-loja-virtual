@@ -18,6 +18,8 @@ import ReviewStep from "@/components/checkout/ReviewStep";
 import PaymentStep from "@/components/checkout/PaymentStep";
 import SuccessStep from "@/components/checkout/SuccessStep";
 import OrderSummaryDesktop from "@/components/checkout/OrderSummaryDesktop";
+import Breadcrumbs, { breadcrumbJsonLd } from "@/components/Breadcrumbs";
+import SEOHead from "@/components/SEOHead";
 
 type Step = "address" | "review" | "payment" | "processing" | "success";
 
