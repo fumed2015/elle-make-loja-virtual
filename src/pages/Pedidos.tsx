@@ -1,10 +1,12 @@
 import { useState, useEffect } from "react";
-import { Package, Clock, CheckCircle, Truck, XCircle, MapPin, ExternalLink, ArrowLeft, ChevronRight, Copy, Phone, ShoppingBag, CreditCard, CalendarDays, Hash } from "lucide-react";
+import { Package, Clock, CheckCircle, Truck, XCircle, MapPin, ExternalLink, ArrowLeft, ChevronRight, Copy, Phone, ShoppingBag, CreditCard, CalendarDays, Hash, UserPlus, Eye, EyeOff, Loader2 } from "lucide-react";
 import { useOrders } from "@/hooks/useOrders";
 import { useAuth } from "@/hooks/useAuth";
 import { Link, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
