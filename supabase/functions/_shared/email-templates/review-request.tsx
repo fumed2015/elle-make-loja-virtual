@@ -95,7 +95,7 @@ const text = {
 const productsSection = { margin: '0 0 20px' }
 const productButton = {
   backgroundColor: '#fff',
-  color: '#800020',
+  color: '#74242c',
   fontSize: '14px',
   fontWeight: 'bold' as const,
   borderRadius: '8px',
