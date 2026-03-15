@@ -27,6 +27,7 @@ const TestPixel = () => {
       orderId: fakeOrderId,
       value: fakeValue,
       itemCount: 1,
+      contentIds: fakeContentIds,
     });
 
     setFired(true);
@@ -40,7 +41,7 @@ const TestPixel = () => {
       contentIds: ["test-product-001"],
       contents: [{ id: "test-product-001", quantity: 1 }],
     });
-    trackInitiateCheckout({ value: 149.90, itemCount: 1 });
+    trackInitiateCheckout({ value: 149.90, itemCount: 1, contentIds: ["test-product-001"] });
     toast.success("Evento InitiateCheckout disparado!");
   };
 
