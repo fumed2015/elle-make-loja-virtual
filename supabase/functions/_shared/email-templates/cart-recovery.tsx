@@ -145,7 +145,7 @@ const couponSection = {
   borderRadius: '8px',
   padding: '12px 16px',
   margin: '0 0 20px',
-  border: '1px dashed #800020',
+  border: '1px dashed #74242c',
 }
 const couponText = { fontSize: '14px', color: '#1F1F1F', margin: '0', textAlign: 'center' as const }
 const couponCode_style = { color: '#800020', fontSize: '16px' }
