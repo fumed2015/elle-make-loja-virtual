@@ -367,7 +367,7 @@ const Checkout = () => {
     const contents = items.map((item: any) => ({ id: (item.products as any)?.id, quantity: item.quantity })).filter((c: any) => c.id);
     const emailForTiktok = user?.email || guestInfo.email || "";
     const phoneForTiktok = user?.user_metadata?.phone || guestInfo.phone || customerInfo.phone || "";
-    trackPurchase({
+    const tiktokPurchaseData = {
       orderId: orderData.id,
       value: finalTotal,
       itemCount: cartCount,
@@ -375,7 +375,8 @@ const Checkout = () => {
       email: emailForTiktok || undefined,
       phone: phoneForTiktok || undefined,
       externalId: user?.id,
-    });
+    };
+    trackPurchase(tiktokPurchaseData);
 
     // Enrich Meta Advanced Matching with checkout data (address + CPF)
     const addr = (address || {}) as any;
