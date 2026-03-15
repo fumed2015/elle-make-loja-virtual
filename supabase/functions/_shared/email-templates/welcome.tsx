@@ -89,7 +89,7 @@ const text = {
 }
 const buttonContainer = { textAlign: 'center' as const, margin: '0 0 24px' }
 const button = {
-  backgroundColor: '#800020',
+  backgroundColor: '#74242c',
   color: '#F8F5F0',
   fontSize: '15px',
   fontWeight: 'bold' as const,

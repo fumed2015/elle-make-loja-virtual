@@ -101,7 +101,7 @@ const productButton = {
   borderRadius: '8px',
   padding: '10px 20px',
   textDecoration: 'none',
-  border: '1px solid #800020',
+  border: '1px solid #74242c',
   display: 'block' as const,
   textAlign: 'center' as const,
   margin: '0 0 8px',

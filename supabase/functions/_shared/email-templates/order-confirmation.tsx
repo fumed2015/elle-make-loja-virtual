@@ -226,7 +226,7 @@ const summaryValueSmall = { fontSize: '14px', color: '#1F1F1F', margin: '0' }
 const addressText = { fontSize: '14px', color: '#1F1F1F', lineHeight: '1.5', margin: '0 0 16px' }
 const ctaSection = { textAlign: 'center' as const, margin: '8px 0' }
 const ctaButton = {
-  backgroundColor: '#800020',
+  backgroundColor: '#74242c',
   color: '#ffffff',
   fontSize: '16px',
   fontWeight: 'bold' as const,
