@@ -670,6 +670,7 @@ const Checkout = () => {
         )}
       </div>
     </div>
+    </>
   );
 };
 
