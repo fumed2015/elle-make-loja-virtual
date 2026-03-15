@@ -13,6 +13,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
 import { fbTrackCompleteRegistration } from "@/hooks/useMetaPixel";
 import { trackCompleteRegistration } from "@/hooks/useTikTokPixel";
+import SEOHead from "@/components/SEOHead";
+import Breadcrumbs, { breadcrumbJsonLd } from "@/components/Breadcrumbs";
 
 const Perfil = () => {
   const navigate = useNavigate();

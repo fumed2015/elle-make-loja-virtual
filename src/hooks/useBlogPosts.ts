@@ -52,5 +52,7 @@ export const useBlogPost = (slug: string) => {
       return data as BlogPost;
     },
     enabled: !!slug,
+    staleTime: 1000 * 60 * 5,
+    gcTime: 1000 * 60 * 15,
   });
 };
