@@ -11,6 +11,7 @@ import Footer from "@/components/layout/Footer";
 import { useState, useMemo, useEffect } from "react";
 import { cn } from "@/lib/utils";
 import { fbTrackViewCategory } from "@/hooks/useMetaPixel";
+import Breadcrumbs, { breadcrumbJsonLd } from "@/components/Breadcrumbs";
 
 const categoryMeta: Record<string, { title: string; description: string; emoji: string }> = {
   rosto: { title: "Rosto", description: "Bases, corretivos, pós, blushes e contornos para um rosto perfeito.", emoji: "✨" },
