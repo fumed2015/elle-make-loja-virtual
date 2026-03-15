@@ -25,7 +25,7 @@ export type AdminTab =
   | "orders" | "coupons" | "reviews"
   | "influencers" | "leads" | "birthdays" | "checkout-leads"
   | "pixels" | "whatsapp" | "whatsapp-campaigns" | "seo" | "ai-content"
-  | "marketplaces" | "newsletter" | "notifications-monitor";
+  | "marketplaces" | "newsletter" | "notifications-monitor" | "blog";
 
 interface SidebarItem {
   id: AdminTab;
