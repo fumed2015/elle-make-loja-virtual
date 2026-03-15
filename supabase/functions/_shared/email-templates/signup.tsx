@@ -24,10 +24,11 @@ interface SignupEmailProps {
 }
 
 const LOGO_URL = 'https://xinkvwlhctwgdfwixzxf.supabase.co/storage/v1/object/public/email-assets/logo-ellemake.png'
+const MARSALA = '#800020'
 
 export const SignupEmail = ({
-  siteName,
-  siteUrl,
+  siteName = 'Elle Make',
+  siteUrl = 'https://www.ellemake.com.br',
   recipient,
   confirmationUrl,
 }: SignupEmailProps) => (
@@ -36,30 +37,24 @@ export const SignupEmail = ({
     <Preview>Confirme seu e-mail na Elle Make 💄</Preview>
     <Body style={main}>
       <Container style={container}>
-        <Section style={logoSection}>
-          <Img src={LOGO_URL} alt="Elle Make" width="160" height="auto" style={logo} />
+        <Section style={header}>
+          <Img src={LOGO_URL} width="140" height="auto" alt="Elle Make" style={{ margin: '0 auto' }} />
         </Section>
-        <Section style={card}>
-          <Heading style={h1}>Bem-vinda à Elle Make! 💕</Heading>
+        <Section style={content}>
+          <Heading style={h1}>Confirme seu e-mail</Heading>
           <Text style={text}>
-            Que bom ter você por aqui! Confirme seu e-mail (
-            <Link href={`mailto:${recipient}`} style={link}>
-              {recipient}
-            </Link>
-            ) para acessar ofertas exclusivas e acompanhar seus pedidos.
+            Obrigada por se cadastrar na{' '}
+            <Link href={siteUrl} style={link}><strong>Elle Make</strong></Link>! 💄
           </Text>
-          <Section style={buttonContainer}>
-            <Button style={button} href={confirmationUrl}>
-              Confirmar meu e-mail
-            </Button>
+          <Text style={text}>
+            Confirme seu e-mail ({recipient}) clicando no botão abaixo:
+          </Text>
+          <Section style={btnWrap}>
+            <Button style={button} href={confirmationUrl}>Confirmar E-mail</Button>
           </Section>
-          <Text style={footer}>
-            Se você não criou uma conta, pode ignorar este e-mail com segurança.
-          </Text>
+          <Text style={footerText}>Se você não criou uma conta, pode ignorar este e-mail.</Text>
         </Section>
-        <Text style={bottomText}>
-          © Elle Make · CNPJ 65.548.306/0001-22
-        </Text>
+        <Section style={brand}><Text style={brandText}>Elle Make — Beleza acessível para todas 💋</Text></Section>
       </Container>
     </Body>
   </Html>
@@ -67,39 +62,15 @@ export const SignupEmail = ({
 
 export default SignupEmail
 
-const main = { backgroundColor: '#ffffff', fontFamily: "'Playfair Display', Georgia, serif" }
-const container = { maxWidth: '520px', margin: '0 auto', padding: '20px 16px' }
-const logoSection = { textAlign: 'center' as const, padding: '24px 0 16px' }
-const logo = { margin: '0 auto' }
-const card = {
-  backgroundColor: '#FDF8F4',
-  borderRadius: '12px',
-  padding: '32px 28px',
-  border: '1px solid #EDE5DB',
-}
-const h1 = {
-  fontSize: '24px',
-  fontWeight: 'bold' as const,
-  color: '#800020',
-  margin: '0 0 16px',
-  textAlign: 'center' as const,
-}
-const text = {
-  fontSize: '15px',
-  color: '#1F1F1F',
-  lineHeight: '1.6',
-  margin: '0 0 24px',
-}
-const link = { color: '#800020', textDecoration: 'underline' }
-const buttonContainer = { textAlign: 'center' as const, margin: '0 0 24px' }
-const button = {
-  backgroundColor: '#800020',
-  color: '#F8F5F0',
-  fontSize: '15px',
-  fontWeight: 'bold' as const,
-  borderRadius: '8px',
-  padding: '14px 28px',
-  textDecoration: 'none',
-}
-const footer = { fontSize: '13px', color: '#737373', margin: '0', lineHeight: '1.5' }
-const bottomText = { fontSize: '11px', color: '#999999', textAlign: 'center' as const, margin: '20px 0 0' }
+const main = { backgroundColor: '#f8f4f0', fontFamily: "'Segoe UI', Arial, sans-serif" }
+const container = { maxWidth: '560px', margin: '0 auto', backgroundColor: '#ffffff', borderRadius: '12px', overflow: 'hidden' as const }
+const header = { backgroundColor: MARSALA, padding: '24px 20px', textAlign: 'center' as const }
+const content = { padding: '32px 28px' }
+const h1 = { fontSize: '22px', fontWeight: 'bold' as const, color: MARSALA, margin: '0 0 16px' }
+const text = { fontSize: '14px', color: '#4a4a4a', lineHeight: '1.6', margin: '0 0 16px' }
+const link = { color: MARSALA, textDecoration: 'underline' }
+const btnWrap = { textAlign: 'center' as const, margin: '30px 0' }
+const button = { backgroundColor: MARSALA, color: '#ffffff', fontSize: '15px', borderRadius: '8px', padding: '14px 28px', textDecoration: 'none', fontWeight: 'bold' as const }
+const footerText = { fontSize: '12px', color: '#999999', margin: '24px 0 0' }
+const brand = { backgroundColor: '#faf6f3', padding: '16px 28px', textAlign: 'center' as const }
+const brandText = { fontSize: '12px', color: '#999', margin: '0' }
