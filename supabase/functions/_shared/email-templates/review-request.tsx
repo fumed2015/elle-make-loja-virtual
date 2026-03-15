@@ -22,7 +22,7 @@ interface ReviewRequestEmailProps {
   siteUrl: string
 }
 
-const LOGO_URL = 'https://xinkvwlhctwgdfwixzxf.supabase.co/storage/v1/object/public/email-assets/logo-ellemake.png'
+const LOGO_URL = 'https://xinkvwlhctwgdfwixzxf.supabase.co/storage/v1/object/public/email-assets/logo-ellemake-circular.png'
 
 export const ReviewRequestEmail = ({
   firstName = 'Cliente',

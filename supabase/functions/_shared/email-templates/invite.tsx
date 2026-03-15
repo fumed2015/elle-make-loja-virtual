@@ -22,7 +22,7 @@ interface InviteEmailProps {
   confirmationUrl: string
 }
 
-const LOGO_URL = 'https://xinkvwlhctwgdfwixzxf.supabase.co/storage/v1/object/public/email-assets/logo-ellemake.png'
+const LOGO_URL = 'https://xinkvwlhctwgdfwixzxf.supabase.co/storage/v1/object/public/email-assets/logo-ellemake-circular.png'
 const MARSALA = '#800020'
 
 export const InviteEmail = ({ siteName = 'Elle Make', siteUrl = 'https://www.ellemake.com.br', confirmationUrl }: InviteEmailProps) => (
