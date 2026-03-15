@@ -184,10 +184,16 @@ export function trackAddToCart(product: {
   price: number;
   quantity: number;
 }) {
+  const contentId = String(product.id || "").trim();
+  if (!contentId) {
+    console.warn("TikTok AddToCart skipped: missing content_id");
+    return;
+  }
+
   const eventId = crypto.randomUUID();
   const contents = [
     {
-      content_id: String(product.id),
+      content_id: contentId,
       content_type: "product",
       content_name: product.name,
       quantity: product.quantity,
@@ -197,7 +203,7 @@ export function trackAddToCart(product: {
 
   fireClient("AddToCart", {
     ...clientBase(eventId),
-    content_id: String(product.id),
+    content_id: contentId,
     content_type: "product",
     content_name: product.name,
     quantity: product.quantity,
@@ -207,7 +213,8 @@ export function trackAddToCart(product: {
 
   fireServer(
     buildServerPayload("AddToCart", eventId, {
-      content_ids: [String(product.id)],
+      content_id: contentId,
+      content_ids: [contentId],
       content_type: "product",
       contents,
       value: product.price * product.quantity,
