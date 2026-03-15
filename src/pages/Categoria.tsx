@@ -106,29 +106,16 @@ const Categoria = () => {
       <SEOHead
         title={meta.title}
         description={meta.description}
-        jsonLd={{
-          "@context": "https://schema.org",
-          "@type": "BreadcrumbList",
-          itemListElement: [
-            { "@type": "ListItem", position: 1, name: "Home", item: "https://www.ellemake.com.br" },
-            { "@type": "ListItem", position: 2, name: "Explorar", item: "https://www.ellemake.com.br/explorar" },
-            { "@type": "ListItem", position: 3, name: meta.title, item: `https://www.ellemake.com.br/categoria/${slug}` },
-          ],
-        }}
+        jsonLd={breadcrumbJsonLd([
+          { label: "Explorar", href: "/explorar" },
+          { label: meta.title, href: `/categoria/${slug}` },
+        ])}
       />
 
-      {/* Breadcrumb */}
-      <div className="bg-muted/50 border-b border-border">
-        <div className="max-w-7xl mx-auto px-4 py-3">
-          <nav className="flex items-center gap-1.5 text-xs text-muted-foreground">
-            <Link to="/" className="hover:text-primary transition-colors">Início</Link>
-            <ChevronRight className="w-3 h-3" />
-            <Link to="/explorar" className="hover:text-primary transition-colors">Explorar</Link>
-            <ChevronRight className="w-3 h-3" />
-            <span className="text-foreground font-medium">{meta.title}</span>
-          </nav>
-        </div>
-      </div>
+      <Breadcrumbs items={[
+        { label: "Explorar", href: "/explorar" },
+        { label: meta.title },
+      ]} />
 
       {/* Category header */}
       <div className="bg-background border-b border-border">

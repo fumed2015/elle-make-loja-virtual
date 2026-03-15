@@ -157,28 +157,17 @@ const Produto = () => {
               ...(hasDiscount ? { priceValidUntil: new Date(Date.now() + 30 * 86400000).toISOString().split("T")[0] } : {}),
             },
           },
-          {
-            "@context": "https://schema.org",
-            "@type": "BreadcrumbList",
-            itemListElement: [
-              { "@type": "ListItem", position: 1, name: "Home", item: window.location.origin },
-              { "@type": "ListItem", position: 2, name: "Produtos", item: `${window.location.origin}/explorar` },
-              { "@type": "ListItem", position: 3, name: product.name, item: `${window.location.origin}/produto/${product.slug}` },
-            ],
-          },
+          breadcrumbJsonLd([
+            { label: "Produtos", href: "/explorar" },
+            { label: product.name, href: `/produto/${product.slug}` },
+          ]),
         ]}
       />
 
-      {/* Breadcrumb */}
-      <div className="max-w-7xl mx-auto px-4 py-3">
-        <nav className="flex items-center gap-1.5 text-xs text-muted-foreground">
-          <Link to="/" className="hover:text-primary transition-colors">Home</Link>
-          <span>/</span>
-          <Link to="/explorar" className="hover:text-primary transition-colors">Produtos</Link>
-          <span>/</span>
-          <span className="text-foreground font-medium truncate">{product.name}</span>
-        </nav>
-      </div>
+      <Breadcrumbs items={[
+        { label: "Produtos", href: "/explorar" },
+        { label: product.name },
+      ]} />
 
       {/* Main content — side by side on desktop */}
       <div className="max-w-7xl mx-auto px-4 pb-8">

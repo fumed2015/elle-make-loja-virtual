@@ -57,6 +57,7 @@ const Favoritos = () => {
           <ProductCard key={fav.id} product={fav.products} index={i} />
         ))}
       </motion.div>
+      </div>
     </div>
   );
 };

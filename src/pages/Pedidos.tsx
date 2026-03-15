@@ -508,8 +508,10 @@ const Pedidos = () => {
   const selectedOrder = orders?.find((o) => o.id === selectedOrderId);
 
   return (
-    <div className="px-4 pt-8 pb-24 max-w-lg mx-auto">
+    <div className="pb-24 max-w-lg mx-auto">
       <SEOHead title="Meus Pedidos | Elle Make" description="Acompanhe seus pedidos" />
+      <Breadcrumbs items={[{ label: "Meus Pedidos" }]} />
+      <div className="px-4 pt-6">
       <AnimatePresence mode="wait">
         {selectedOrder ? (
           <OrderDetail key="detail" order={selectedOrder} onBack={() => setSelectedOrderId(null)} />

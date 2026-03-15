@@ -49,18 +49,12 @@ const Ofertas = () => {
             description: "Melhores ofertas em maquiagem e cosméticos",
             url: "https://www.ellemake.com.br/ofertas",
           },
-          {
-            "@context": "https://schema.org",
-            "@type": "BreadcrumbList",
-            itemListElement: [
-              { "@type": "ListItem", position: 1, name: "Home", item: "https://www.ellemake.com.br" },
-              { "@type": "ListItem", position: 2, name: "Ofertas", item: "https://www.ellemake.com.br/ofertas" },
-            ],
-          },
+          breadcrumbJsonLd([{ label: "Ofertas", href: "/ofertas" }]),
         ]}
       />
 
       <div className="min-h-screen">
+        <Breadcrumbs items={[{ label: "Ofertas" }]} />
         {/* Hero */}
         <section className="bg-gradient-to-br from-destructive/10 via-primary/5 to-accent/10 px-4 py-10 md:py-14">
           <div className="max-w-7xl mx-auto text-center space-y-3">

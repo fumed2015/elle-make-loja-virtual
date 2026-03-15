@@ -38,8 +38,20 @@ const Marca = () => {
     : products;
 
   return (
-    <div className="px-4 pt-8 pb-4 max-w-7xl mx-auto">
-      <SEOHead title={brandName} description={`Produtos ${brandName} com entrega rápida em Belém. Confira toda a linha.`} />
+    <div className="pb-4 max-w-7xl mx-auto">
+      <SEOHead
+        title={brandName}
+        description={`Produtos ${brandName} com entrega rápida em Belém. Confira toda a linha.`}
+        jsonLd={breadcrumbJsonLd([
+          { label: "Explorar", href: "/explorar" },
+          { label: brandName, href: `/marca/${slug}` },
+        ])}
+      />
+      <Breadcrumbs items={[
+        { label: "Explorar", href: "/explorar" },
+        { label: brandName },
+      ]} />
+      <div className="px-4 pt-8">
 
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}>
         <h1 className="text-2xl md:text-3xl font-bold text-foreground mb-1">{brandName}</h1>

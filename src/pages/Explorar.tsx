@@ -269,28 +269,14 @@ const Explorar = () => {
           ? `Encontre os melhores produtos de ${activeCategoryName} na Elle Make. Entrega rápida em Belém.`
           : "Explore nossa coleção de maquiagens e skincare. Filtros por categoria, marca e preço com busca inteligente."
         }
-        jsonLd={{
-          "@context": "https://schema.org",
-          "@type": "BreadcrumbList",
-          itemListElement: [
-            { "@type": "ListItem", position: 1, name: "Home", item: "https://www.ellemake.com.br" },
-            { "@type": "ListItem", position: 2, name: activeCategoryName || "Explorar", item: "https://www.ellemake.com.br/explorar" },
-          ],
-        }}
+        jsonLd={breadcrumbJsonLd([
+          { label: activeCategoryName || "Explorar", href: "/explorar" },
+        ])}
       />
 
-      {/* Breadcrumb */}
-      <div className="bg-muted/50 border-b border-border">
-        <div className="max-w-7xl mx-auto px-4 py-3">
-          <nav className="flex items-center gap-1.5 text-xs text-muted-foreground">
-            <Link to="/" className="hover:text-primary transition-colors">Início</Link>
-            <ChevronRight className="w-3 h-3" />
-            <span className="text-foreground font-medium">
-              {activeCategoryName ? activeCategoryName : "Explorar"}
-            </span>
-          </nav>
-        </div>
-      </div>
+      <Breadcrumbs items={[
+        { label: activeCategoryName || "Explorar" },
+      ]} />
 
       {/* Header area */}
       <div className="bg-background border-b border-border">

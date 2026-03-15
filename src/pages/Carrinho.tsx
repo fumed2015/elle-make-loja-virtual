@@ -52,7 +52,9 @@ const Carrinho = () => {
   }
 
   return (
-    <div className="px-4 pt-8 pb-4 max-w-lg mx-auto">
+    <div className="pb-4 max-w-lg mx-auto">
+      <Breadcrumbs items={[{ label: "Carrinho" }]} />
+      <div className="px-4 pt-6">
       <h1 className="text-2xl font-display font-bold mb-6">
         Carrinho <span className="text-muted-foreground text-base">({cartCount})</span>
       </h1>
