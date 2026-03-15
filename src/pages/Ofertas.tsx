@@ -38,8 +38,25 @@ const Ofertas = () => {
   return (
     <>
       <SEOHead
-        title="Ofertas | Elle Make - Maquiagem com Desconto"
-        description="Aproveite as melhores ofertas em maquiagem e cosméticos. Descontos imperdíveis em produtos das melhores marcas."
+        title="Ofertas em Maquiagem e Cosméticos"
+        description="Aproveite as melhores ofertas em maquiagem e cosméticos. Descontos imperdíveis em produtos das melhores marcas com entrega rápida em Belém."
+        jsonLd={[
+          {
+            "@context": "https://schema.org",
+            "@type": "CollectionPage",
+            name: "Ofertas - Elle Make",
+            description: "Melhores ofertas em maquiagem e cosméticos",
+            url: "https://www.ellemake.com.br/ofertas",
+          },
+          {
+            "@context": "https://schema.org",
+            "@type": "BreadcrumbList",
+            itemListElement: [
+              { "@type": "ListItem", position: 1, name: "Home", item: "https://www.ellemake.com.br" },
+              { "@type": "ListItem", position: 2, name: "Ofertas", item: "https://www.ellemake.com.br/ofertas" },
+            ],
+          },
+        ]}
       />
 
       <div className="min-h-screen">

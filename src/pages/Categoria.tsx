@@ -102,7 +102,19 @@ const Categoria = () => {
 
   return (
     <div className="min-h-screen flex flex-col">
-      <SEOHead title={meta.title} description={meta.description} />
+      <SEOHead
+        title={meta.title}
+        description={meta.description}
+        jsonLd={{
+          "@context": "https://schema.org",
+          "@type": "BreadcrumbList",
+          itemListElement: [
+            { "@type": "ListItem", position: 1, name: "Home", item: "https://www.ellemake.com.br" },
+            { "@type": "ListItem", position: 2, name: "Explorar", item: "https://www.ellemake.com.br/explorar" },
+            { "@type": "ListItem", position: 3, name: meta.title, item: `https://www.ellemake.com.br/categoria/${slug}` },
+          ],
+        }}
+      />
 
       {/* Breadcrumb */}
       <div className="bg-muted/50 border-b border-border">

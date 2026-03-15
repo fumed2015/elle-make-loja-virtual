@@ -5,6 +5,7 @@ import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import ProductCard from "@/components/product/ProductCard";
 import { motion } from "framer-motion";
+import SEOHead from "@/components/SEOHead";
 
 const Favoritos = () => {
   const { user } = useAuth();
@@ -46,6 +47,7 @@ const Favoritos = () => {
 
   return (
     <div className="px-4 pt-8 pb-4 max-w-lg mx-auto">
+      <SEOHead title="Meus Favoritos" description="Seus produtos favoritos salvos na Elle Make." noindex />
       <h1 className="text-2xl font-display font-bold mb-6">Favoritos</h1>
       <motion.div layout className="grid grid-cols-2 gap-3">
         {favorites.map((fav, i) => (
