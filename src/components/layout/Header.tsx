@@ -102,6 +102,9 @@ const navLinks: NavItem[] = [
   {
     label: "Ofertas", to: "/ofertas",
   },
+  {
+    label: "Blog", to: "/blog",
+  },
 ];
 
 // Labels to show on mobile (reduced set to fit one line)
