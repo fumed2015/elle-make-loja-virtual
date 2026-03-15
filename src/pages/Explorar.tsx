@@ -85,7 +85,7 @@ const Explorar = () => {
   const { data: collectionProducts, isLoading: collectionLoading } = useCollectionProducts(
     collectionSlug || "lancamentos"
   );
-  const { data: salesCount } = useBestSellingProducts();
+  
 
   const { data: categories } = useCategories();
 
