@@ -70,6 +70,7 @@ const Privacidade = () => (
       </section>
     </div>
   </div>
+  </div>
 );
 
 export default Privacidade;

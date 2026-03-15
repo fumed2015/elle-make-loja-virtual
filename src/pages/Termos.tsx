@@ -64,6 +64,7 @@ const Termos = () => (
       </section>
     </div>
   </div>
+  </div>
 );
 
 export default Termos;
