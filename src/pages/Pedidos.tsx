@@ -468,9 +468,10 @@ const Pedidos = () => {
       );
     }
     return (
-      <div className="px-4 pt-8 pb-24 max-w-lg mx-auto">
+      <div className="px-4 pt-8 pb-24 max-w-lg mx-auto space-y-5">
         <SEOHead title={`Pedido #${guestOrder.id.slice(0, 8)} | Elle Make`} description="Acompanhe seu pedido" />
         <OrderDetail order={guestOrder} onBack={() => window.location.href = "/"} />
+        <GuestSignupCard order={guestOrder} onAccountCreated={() => window.location.href = "/pedidos"} />
       </div>
     );
   }
