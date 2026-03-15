@@ -1,5 +1,6 @@
 import * as React from 'npm:react@18.3.1'
 import { renderAsync } from 'npm:@react-email/components@0.0.22'
+import { sendLovableEmail } from 'npm:@lovable.dev/email-js'
 import { createClient } from 'npm:@supabase/supabase-js@2'
 import { CartRecoveryEmail } from '../_shared/email-templates/cart-recovery.tsx'
 import { OrderConfirmationEmail } from '../_shared/email-templates/order-confirmation.tsx'
@@ -14,7 +15,6 @@ const corsHeaders = {
 
 const SENDER_DOMAIN = 'store.ellemake.com.br'
 const FROM_ADDRESS = `Elle Make <noreply@ellemake.com.br>`
-const SITE_URL = 'https://ellemake.com.br'
 
 const SUBJECTS: Record<string, string> = {
   'cart-recovery': '💄 Seus produtos estão esperando por você!',
@@ -37,6 +37,7 @@ Deno.serve(async (req) => {
 
   const supabaseUrl = Deno.env.get('SUPABASE_URL')!
   const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
+  const apiKey = Deno.env.get('LOVABLE_API_KEY')!
   const supabase = createClient(supabaseUrl, supabaseServiceKey)
 
   try {
@@ -83,34 +84,50 @@ Deno.serve(async (req) => {
     }
 
     const html = await renderAsync(element)
-    const textContent = `${SUBJECTS[template] || 'Elle Make'} - Confira os detalhes em ellemake.com.br`
     const subject = data?.subject as string || SUBJECTS[template] || 'Elle Make'
-
-    // Enqueue email via pgmq
     const messageId = crypto.randomUUID()
-    const { error: enqueueError } = await supabase.rpc('enqueue_email', {
-      queue_name: 'transactional_emails',
-      payload: {
+
+    // Send email directly via Lovable Email API
+    try {
+      await sendLovableEmail(
+        {
+          to,
+          from: FROM_ADDRESS,
+          sender_domain: SENDER_DOMAIN,
+          subject,
+          html,
+          text: `${subject} - Confira os detalhes em ellemake.com.br`,
+          purpose: 'transactional',
+          label: template,
+          idempotency_key: messageId,
+        },
+        { apiKey, sendUrl: Deno.env.get('LOVABLE_SEND_URL') }
+      )
+
+      // Log success
+      await supabase.from('email_send_log').insert({
         message_id: messageId,
-        run_id: messageId,
-        to,
-        from: FROM_ADDRESS,
-        sender_domain: SENDER_DOMAIN,
-        subject,
-        html,
-        text: textContent,
-        purpose: 'transactional',
-        label: template,
-        queued_at: new Date().toISOString(),
-      },
-    })
+        template_name: template,
+        recipient_email: to,
+        status: 'sent',
+      })
 
-    if (enqueueError) {
-      console.error('Failed to enqueue email:', enqueueError)
-      return jsonResponse({ error: 'Failed to enqueue email' }, 500)
+      return jsonResponse({ success: true, message_id: messageId })
+    } catch (sendError: unknown) {
+      const errorMsg = sendError instanceof Error ? sendError.message : String(sendError)
+      console.error('Email send failed:', errorMsg)
+
+      // Log failure
+      await supabase.from('email_send_log').insert({
+        message_id: messageId,
+        template_name: template,
+        recipient_email: to,
+        status: 'failed',
+        error_message: errorMsg.slice(0, 1000),
+      })
+
+      return jsonResponse({ error: 'Failed to send email', detail: errorMsg }, 500)
     }
-
-    return jsonResponse({ success: true, message_id: messageId })
   } catch (err: unknown) {
     console.error('Transactional email error:', err)
     const message = err instanceof Error ? err.message : 'Unknown error'
