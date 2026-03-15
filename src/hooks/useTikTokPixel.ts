@@ -401,6 +401,7 @@ export function trackPurchase(params: {
       order_id: params.orderId,
       email: params.email,
       phone: params.phone,
+      external_id: params.externalId,
     })
   );
 }
