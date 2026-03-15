@@ -3,7 +3,7 @@ import { ShoppingBag, Trash2, ArrowRight, Minus, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useCart } from "@/hooks/useCart";
 import { useAuth } from "@/hooks/useAuth";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { useShipping } from "@/hooks/useShipping";
 import ShippingCalculator from "@/components/shipping/ShippingCalculator";
@@ -15,6 +15,7 @@ import { fbTrackViewCart } from "@/hooks/useMetaPixel";
 const Carrinho = () => {
   const { items, isLoading, removeFromCart, updateQuantity, cartTotal, cartCount } = useCart();
   const { user } = useAuth();
+  const navigate = useNavigate();
   const shipping = useShipping();
   const shippingCost = shipping.selectedShipping?.price ?? 0;
   const total = cartTotal + shippingCost;
@@ -189,10 +190,8 @@ const Carrinho = () => {
         <div className="bg-primary/10 rounded-lg p-2.5 text-center">
           <p className="text-xs font-semibold text-primary">🛵 Belém e Ananindeua: entrega em até 3 horas!</p>
         </div>
-        <Button asChild className="w-full bg-primary text-primary-foreground shadow-marsala hover:bg-primary/90 min-h-[44px] press-scale">
-          <Link to="/checkout">
+        <Button onClick={() => navigate("/checkout")} className="w-full bg-primary text-primary-foreground shadow-marsala hover:bg-primary/90 min-h-[44px] press-scale">
             Garantir Meu Look ✨ <ArrowRight className="w-4 h-4 ml-1" />
-          </Link>
         </Button>
       </div>
     </div>
