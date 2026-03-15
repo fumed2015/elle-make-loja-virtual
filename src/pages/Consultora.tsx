@@ -13,14 +13,28 @@ type Msg = { role: "user" | "assistant"; content: string };
 
 const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/beauty-consultant`;
 
+const CHAT_STORAGE_KEY = "ellemake_consultant_chat";
+const breadcrumbItems = [{ label: "Consultora IA" }];
+
+function loadChatHistory(): Msg[] {
+  try {
+    const stored = localStorage.getItem(CHAT_STORAGE_KEY);
+    if (stored) return JSON.parse(stored);
+  } catch {}
+  return [{ role: "assistant", content: "Olá! ✨ Sou a **Glow**, sua consultora de beleza. Posso te ajudar a encontrar os produtos ideais para sua pele e estilo. O que você gostaria de saber?" }];
+}
+
 const Consultora = () => {
   const navigate = useNavigate();
-  const [messages, setMessages] = useState<Msg[]>([
-    { role: "assistant", content: "Olá! ✨ Sou a **Glow**, sua consultora de beleza. Posso te ajudar a encontrar os produtos ideais para sua pele e estilo. O que você gostaria de saber?" },
-  ]);
+  const [messages, setMessages] = useState<Msg[]>(loadChatHistory);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
+
+  // Persist chat to localStorage
+  useEffect(() => {
+    try { localStorage.setItem(CHAT_STORAGE_KEY, JSON.stringify(messages)); } catch {}
+  }, [messages]);
 
   useEffect(() => {
     scrollRef.current?.scrollIntoView({ behavior: "smooth" });
