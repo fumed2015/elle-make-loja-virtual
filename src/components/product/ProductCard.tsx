@@ -11,7 +11,7 @@ import { motion } from "framer-motion";
 import OptimizedImage from "@/components/ui/optimized-image";
 import { cn } from "@/lib/utils";
 import { useNavigate } from "react-router-dom";
-import { trackAddToCart } from "@/hooks/useTikTokPixel";
+import { trackAddToCart, trackAddToWishlist } from "@/hooks/useTikTokPixel";
 import { fbTrackAddToCart, fbTrackAddToWishlist } from "@/hooks/useMetaPixel";
 
 interface ProductCardProps {
