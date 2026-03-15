@@ -151,7 +151,7 @@ const couponText = { fontSize: '14px', color: '#1F1F1F', margin: '0', textAlign:
 const couponCode_style = { color: '#74242c', fontSize: '16px' }
 const buttonContainer = { textAlign: 'center' as const, margin: '0 0 24px' }
 const button = {
-  backgroundColor: '#800020',
+  backgroundColor: '#74242c',
   color: '#F8F5F0',
   fontSize: '15px',
   fontWeight: 'bold' as const,
