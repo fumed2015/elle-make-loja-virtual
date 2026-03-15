@@ -552,8 +552,16 @@ const Checkout = () => {
 
   const stepIndex = step === "address" ? 0 : step === "review" ? 1 : 2;
 
+  const breadcrumbItems = [
+    { label: "Carrinho", href: "/carrinho" },
+    { label: step === "success" ? "Pedido Confirmado" : "Checkout" },
+  ];
+
   return (
-    <div className="min-h-screen max-w-5xl mx-auto px-4 pt-6 pb-4">
+    <>
+      <SEOHead title="Checkout" noindex jsonLd={breadcrumbJsonLd(breadcrumbItems)} />
+      <Breadcrumbs items={breadcrumbItems} />
+      <div className="min-h-screen max-w-5xl mx-auto px-4 pt-6 pb-4">
       <div className="flex items-center gap-3 mb-6">
         <button onClick={() => step === "address" ? navigate("/carrinho") : step === "review" ? setStep("address") : step === "payment" ? setStep("review") : null} className="w-10 h-10 rounded-full bg-muted flex items-center justify-center">
           <ArrowLeft className="w-5 h-5" />
