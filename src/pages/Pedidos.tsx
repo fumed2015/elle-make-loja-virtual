@@ -1,8 +1,9 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Package, Clock, CheckCircle, Truck, XCircle, MapPin, ExternalLink, ArrowLeft, ChevronRight, Copy, Phone, ShoppingBag, CreditCard, CalendarDays, Hash } from "lucide-react";
 import { useOrders } from "@/hooks/useOrders";
 import { useAuth } from "@/hooks/useAuth";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { motion, AnimatePresence } from "framer-motion";
