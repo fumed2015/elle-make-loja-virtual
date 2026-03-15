@@ -12,6 +12,7 @@ import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
 import { fbTrackCompleteRegistration } from "@/hooks/useMetaPixel";
+import { trackCompleteRegistration } from "@/hooks/useTikTokPixel";
 
 const Perfil = () => {
   const navigate = useNavigate();
