@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useProducts, useCategories } from "@/hooks/useProducts";
-import { useCollectionProducts, useBestSellingProducts, type CollectionSlug } from "@/hooks/useCollections";
+import { useCollectionProducts, type CollectionSlug } from "@/hooks/useCollections";
 import ProductCard from "@/components/product/ProductCard";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
