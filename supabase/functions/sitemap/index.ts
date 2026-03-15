@@ -6,8 +6,12 @@ const SITE_URL = Deno.env.get("SITE_URL") || "https://www.ellemake.com.br";
 const staticPages = [
   { loc: "/", changefreq: "daily", priority: "1.0" },
   { loc: "/explorar", changefreq: "daily", priority: "0.9" },
-  { loc: "/sobre", changefreq: "monthly", priority: "0.6" },
+  { loc: "/blog", changefreq: "daily", priority: "0.9" },
+  { loc: "/ofertas", changefreq: "daily", priority: "0.8" },
+  { loc: "/quiz-beleza", changefreq: "monthly", priority: "0.7" },
+  { loc: "/glossario", changefreq: "monthly", priority: "0.7" },
   { loc: "/consultora", changefreq: "weekly", priority: "0.7" },
+  { loc: "/sobre", changefreq: "monthly", priority: "0.6" },
   { loc: "/favoritos", changefreq: "weekly", priority: "0.5" },
   { loc: "/privacidade", changefreq: "monthly", priority: "0.3" },
   { loc: "/termos", changefreq: "monthly", priority: "0.3" },
@@ -19,15 +23,11 @@ serve(async () => {
     const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    const { data: products } = await supabase
-      .from("products")
-      .select("slug, updated_at")
-      .eq("is_active", true)
-      .order("updated_at", { ascending: false });
-
-    const { data: categories } = await supabase
-      .from("categories")
-      .select("slug, created_at");
+    const [{ data: products }, { data: categories }, { data: blogPosts }] = await Promise.all([
+      supabase.from("products").select("slug, updated_at").eq("is_active", true).order("updated_at", { ascending: false }),
+      supabase.from("categories").select("slug, created_at"),
+      supabase.from("blog_posts").select("slug, updated_at, published_at").eq("is_published", true).order("published_at", { ascending: false }),
+    ]);
 
     const now = new Date().toISOString().split("T")[0];
 
@@ -36,35 +36,27 @@ serve(async () => {
 
     // Static pages
     for (const page of staticPages) {
-      xml += `  <url>\n`;
-      xml += `    <loc>${SITE_URL}${page.loc}</loc>\n`;
-      xml += `    <lastmod>${now}</lastmod>\n`;
-      xml += `    <changefreq>${page.changefreq}</changefreq>\n`;
-      xml += `    <priority>${page.priority}</priority>\n`;
-      xml += `  </url>\n`;
+      xml += `  <url>\n    <loc>${SITE_URL}${page.loc}</loc>\n    <lastmod>${now}</lastmod>\n    <changefreq>${page.changefreq}</changefreq>\n    <priority>${page.priority}</priority>\n  </url>\n`;
     }
 
     // Category pages
     if (categories) {
       for (const cat of categories) {
-        xml += `  <url>\n`;
-        xml += `    <loc>${SITE_URL}/explorar?cat=${cat.slug}</loc>\n`;
-        xml += `    <lastmod>${cat.created_at?.split("T")[0] || now}</lastmod>\n`;
-        xml += `    <changefreq>weekly</changefreq>\n`;
-        xml += `    <priority>0.8</priority>\n`;
-        xml += `  </url>\n`;
+        xml += `  <url>\n    <loc>${SITE_URL}/explorar?cat=${cat.slug}</loc>\n    <lastmod>${cat.created_at?.split("T")[0] || now}</lastmod>\n    <changefreq>weekly</changefreq>\n    <priority>0.8</priority>\n  </url>\n`;
       }
     }
 
     // Product pages
     if (products) {
       for (const p of products) {
-        xml += `  <url>\n`;
-        xml += `    <loc>${SITE_URL}/produto/${p.slug}</loc>\n`;
-        xml += `    <lastmod>${p.updated_at?.split("T")[0] || now}</lastmod>\n`;
-        xml += `    <changefreq>weekly</changefreq>\n`;
-        xml += `    <priority>0.8</priority>\n`;
-        xml += `  </url>\n`;
+        xml += `  <url>\n    <loc>${SITE_URL}/produto/${p.slug}</loc>\n    <lastmod>${p.updated_at?.split("T")[0] || now}</lastmod>\n    <changefreq>weekly</changefreq>\n    <priority>0.8</priority>\n  </url>\n`;
+      }
+    }
+
+    // Blog posts
+    if (blogPosts) {
+      for (const post of blogPosts) {
+        xml += `  <url>\n    <loc>${SITE_URL}/blog/${post.slug}</loc>\n    <lastmod>${post.updated_at?.split("T")[0] || now}</lastmod>\n    <changefreq>weekly</changefreq>\n    <priority>0.7</priority>\n  </url>\n`;
       }
     }
 

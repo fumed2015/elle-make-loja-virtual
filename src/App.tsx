@@ -34,6 +34,8 @@ const Ofertas = lazy(() => import("./pages/Ofertas"));
 const TestPixel = lazy(() => import("./pages/TestPixel"));
 const Blog = lazy(() => import("./pages/Blog"));
 const BlogPostPage = lazy(() => import("./pages/BlogPost"));
+const QuizBeleza = lazy(() => import("./pages/QuizBeleza"));
+const Glossario = lazy(() => import("./pages/Glossario"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 const queryClient = new QueryClient();
@@ -78,6 +80,8 @@ const App = () => (
                   <Route path="/ofertas" element={<Ofertas />} />
                   <Route path="/blog" element={<Blog />} />
                   <Route path="/blog/:slug" element={<BlogPostPage />} />
+                  <Route path="/quiz-beleza" element={<QuizBeleza />} />
+                  <Route path="/glossario" element={<Glossario />} />
                   <Route path="/test-pixel" element={<TestPixel />} />
                   <Route path="/reset-password" element={<ResetPassword />} />
                 </Route>
