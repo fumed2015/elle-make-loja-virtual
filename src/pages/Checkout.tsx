@@ -363,6 +363,37 @@ const Checkout = () => {
       console.error("WhatsApp order.created notification error:", notifErr);
     }
 
+    // Send order confirmation email
+    const recipientEmail = user?.email || guestInfo.email;
+    if (recipientEmail) {
+      try {
+        const firstName = (user?.user_metadata?.full_name || guestInfo.name || "Cliente").split(" ")[0];
+        const trackingUrl = user
+          ? "https://www.ellemake.com.br/pedidos"
+          : `https://www.ellemake.com.br/pedidos?order=${orderData.id}`;
+        await supabase.functions.invoke("send-transactional-email", {
+          body: {
+            template: "order-confirmation",
+            to: recipientEmail,
+            data: {
+              firstName,
+              orderId: orderData.id,
+              items: orderItems,
+              subtotal: cartTotal,
+              shipping: shippingCost,
+              discount: appliedCoupon?.discount || 0,
+              total: finalTotal,
+              paymentMethod: paymentMethod === "pix" ? "PIX" : paymentMethod === "card" ? "Cartão de Crédito" : paymentMethod === "boleto" ? "Boleto" : "WhatsApp",
+              shippingAddress: address,
+              trackingUrl,
+            },
+          },
+        });
+      } catch (emailErr) {
+        console.error("Order confirmation email error:", emailErr);
+      }
+    }
+
     await saveDataAfterOrder();
 
     const contentIds = items.map((item: any) => (item.products as any)?.id).filter(Boolean);

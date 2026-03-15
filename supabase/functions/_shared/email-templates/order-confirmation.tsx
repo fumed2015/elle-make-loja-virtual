@@ -4,6 +4,7 @@ import * as React from 'npm:react@18.3.1'
 
 import {
   Body,
+  Button,
   Container,
   Head,
   Heading,
@@ -36,6 +37,7 @@ interface OrderConfirmationEmailProps {
   paymentMethod: string
   estimatedDelivery?: string
   shippingAddress?: ShippingAddress | string
+  trackingUrl?: string
 }
 
 function formatAddress(addr: ShippingAddress | string | undefined): string | null {
@@ -51,6 +53,7 @@ function formatAddress(addr: ShippingAddress | string | undefined): string | nul
 }
 
 const LOGO_URL = 'https://xinkvwlhctwgdfwixzxf.supabase.co/storage/v1/object/public/email-assets/logo-ellemake.png'
+const SITE_URL = 'https://www.ellemake.com.br'
 
 export const OrderConfirmationEmail = ({
   firstName = 'Cliente',
@@ -64,103 +67,114 @@ export const OrderConfirmationEmail = ({
   paymentMethod = 'PIX',
   estimatedDelivery,
   shippingAddress,
+  trackingUrl,
 }: OrderConfirmationEmailProps) => {
   const displayOrderId = orderNumber || orderId?.slice(0, 8) || ''
   const formattedTotal = typeof total === 'number' ? total.toFixed(2).replace('.', ',') : total
   const formattedAddress = formatAddress(shippingAddress)
+  const orderTrackingUrl = trackingUrl || `${SITE_URL}/pedidos?order=${orderId}`
+
   return (
-  <Html lang="pt-BR" dir="ltr">
-    <Head />
-    <Preview>Pedido confirmado! #{displayOrderId} 🎉</Preview>
-    <Body style={main}>
-      <Container style={container}>
-        <Section style={logoSection}>
-          <Img src={LOGO_URL} alt="Elle Make" width="160" height="auto" style={logo} />
-        </Section>
-        <Section style={card}>
-          <Heading style={h1}>Pedido confirmado! 🎉</Heading>
-          <Text style={text}>
-            Oi, <strong>{firstName}</strong>! Seu pedido foi recebido com sucesso.
-            Estamos preparando tudo com muito carinho para você! 💕
+    <Html lang="pt-BR" dir="ltr">
+      <Head />
+      <Preview>Pedido confirmado! #{displayOrderId} 🎉</Preview>
+      <Body style={main}>
+        <Container style={container}>
+          <Section style={logoSection}>
+            <Img src={LOGO_URL} alt="Elle Make" width="160" height="auto" style={logo} />
+          </Section>
+          <Section style={card}>
+            <Heading style={h1}>Pedido confirmado! 🎉</Heading>
+            <Text style={text}>
+              Oi, <strong>{firstName}</strong>! Seu pedido foi recebido com sucesso.
+              Estamos preparando tudo com muito carinho para você! 💕
+            </Text>
+
+            <Section style={detailBox}>
+              <Text style={detailLabel}>Nº do pedido</Text>
+              <Text style={detailValue}>#{displayOrderId}</Text>
+            </Section>
+
+            {items.length > 0 && (
+              <Section style={itemsSection}>
+                <Text style={sectionTitle}>Itens do pedido</Text>
+                {items.map((item, i) => (
+                  <Section key={i} style={itemRow}>
+                    <Text style={itemName}>{item.name} × {item.quantity}</Text>
+                    <Text style={itemPriceText}>R$ {Number(item.price * item.quantity).toFixed(2).replace('.', ',')}</Text>
+                  </Section>
+                ))}
+              </Section>
+            )}
+
+            <Hr style={divider} />
+
+            {subtotal != null && (
+              <Section style={summaryRow}>
+                <Text style={summaryLabel}>Subtotal</Text>
+                <Text style={summaryValueSmall}>R$ {Number(subtotal).toFixed(2).replace('.', ',')}</Text>
+              </Section>
+            )}
+
+            {shipping != null && shipping > 0 && (
+              <Section style={summaryRow}>
+                <Text style={summaryLabel}>Frete</Text>
+                <Text style={summaryValueSmall}>R$ {Number(shipping).toFixed(2).replace('.', ',')}</Text>
+              </Section>
+            )}
+
+            {discount != null && discount > 0 && (
+              <Section style={summaryRow}>
+                <Text style={summaryLabel}>Desconto</Text>
+                <Text style={{ ...summaryValueSmall, color: '#16a34a' }}>- R$ {Number(discount).toFixed(2).replace('.', ',')}</Text>
+              </Section>
+            )}
+
+            <Section style={summaryRow}>
+              <Text style={summaryLabel}>Total</Text>
+              <Text style={summaryValue}>R$ {formattedTotal}</Text>
+            </Section>
+
+            <Section style={summaryRow}>
+              <Text style={summaryLabel}>Pagamento</Text>
+              <Text style={summaryValueSmall}>{paymentMethod}</Text>
+            </Section>
+
+            {estimatedDelivery && (
+              <Section style={summaryRow}>
+                <Text style={summaryLabel}>Previsão de entrega</Text>
+                <Text style={summaryValueSmall}>{estimatedDelivery}</Text>
+              </Section>
+            )}
+
+            {formattedAddress && (
+              <>
+                <Hr style={divider} />
+                <Text style={sectionTitle}>Endereço de entrega</Text>
+                <Text style={addressText}>{formattedAddress}</Text>
+              </>
+            )}
+
+            <Hr style={divider} />
+
+            <Section style={ctaSection}>
+              <Button href={orderTrackingUrl} style={ctaButton}>
+                📦 Acompanhar meu pedido
+              </Button>
+            </Section>
+
+            <Hr style={divider} />
+
+            <Text style={footer}>
+              Dúvidas sobre seu pedido? Fale conosco pelo WhatsApp: (91) 93618-0774
+            </Text>
+          </Section>
+          <Text style={bottomText}>
+            © Elle Make · CNPJ 65.548.306/0001-22
           </Text>
-
-          <Section style={detailBox}>
-            <Text style={detailLabel}>Nº do pedido</Text>
-            <Text style={detailValue}>#{displayOrderId}</Text>
-          </Section>
-
-          {items.length > 0 && (
-            <Section style={itemsSection}>
-              <Text style={sectionTitle}>Itens do pedido</Text>
-              {items.map((item, i) => (
-                <Section key={i} style={itemRow}>
-                  <Text style={itemName}>{item.name} × {item.quantity}</Text>
-                  <Text style={itemPriceText}>R$ {Number(item.price * item.quantity).toFixed(2).replace('.', ',')}</Text>
-                </Section>
-              ))}
-            </Section>
-          )}
-
-          <Hr style={divider} />
-
-          {subtotal != null && (
-            <Section style={summaryRow}>
-              <Text style={summaryLabel}>Subtotal</Text>
-              <Text style={summaryValueSmall}>R$ {Number(subtotal).toFixed(2).replace('.', ',')}</Text>
-            </Section>
-          )}
-
-          {shipping != null && shipping > 0 && (
-            <Section style={summaryRow}>
-              <Text style={summaryLabel}>Frete</Text>
-              <Text style={summaryValueSmall}>R$ {Number(shipping).toFixed(2).replace('.', ',')}</Text>
-            </Section>
-          )}
-
-          {discount != null && discount > 0 && (
-            <Section style={summaryRow}>
-              <Text style={summaryLabel}>Desconto</Text>
-              <Text style={{ ...summaryValueSmall, color: '#16a34a' }}>- R$ {Number(discount).toFixed(2).replace('.', ',')}</Text>
-            </Section>
-          )}
-
-          <Section style={summaryRow}>
-            <Text style={summaryLabel}>Total</Text>
-            <Text style={summaryValue}>R$ {formattedTotal}</Text>
-          </Section>
-
-          <Section style={summaryRow}>
-            <Text style={summaryLabel}>Pagamento</Text>
-            <Text style={summaryValueSmall}>{paymentMethod}</Text>
-          </Section>
-
-          {estimatedDelivery && (
-            <Section style={summaryRow}>
-              <Text style={summaryLabel}>Previsão de entrega</Text>
-              <Text style={summaryValueSmall}>{estimatedDelivery}</Text>
-            </Section>
-          )}
-
-          {formattedAddress && (
-            <>
-              <Hr style={divider} />
-              <Text style={sectionTitle}>Endereço de entrega</Text>
-              <Text style={addressText}>{formattedAddress}</Text>
-            </>
-          )}
-
-          <Hr style={divider} />
-
-          <Text style={footer}>
-            Dúvidas sobre seu pedido? Fale conosco pelo WhatsApp: (91) 93618-0774
-          </Text>
-        </Section>
-        <Text style={bottomText}>
-          © Elle Make · CNPJ 65.548.306/0001-22
-        </Text>
-      </Container>
-    </Body>
-  </Html>
+        </Container>
+      </Body>
+    </Html>
   )
 }
 
@@ -210,5 +224,16 @@ const summaryLabel = { fontSize: '14px', color: '#737373', margin: '0' }
 const summaryValue = { fontSize: '18px', fontWeight: 'bold' as const, color: '#1F1F1F', margin: '0' }
 const summaryValueSmall = { fontSize: '14px', color: '#1F1F1F', margin: '0' }
 const addressText = { fontSize: '14px', color: '#1F1F1F', lineHeight: '1.5', margin: '0 0 16px' }
+const ctaSection = { textAlign: 'center' as const, margin: '8px 0' }
+const ctaButton = {
+  backgroundColor: '#800020',
+  color: '#ffffff',
+  fontSize: '16px',
+  fontWeight: 'bold' as const,
+  padding: '14px 32px',
+  borderRadius: '8px',
+  textDecoration: 'none',
+  display: 'inline-block' as const,
+}
 const footer = { fontSize: '13px', color: '#737373', margin: '0', lineHeight: '1.5', textAlign: 'center' as const }
 const bottomText = { fontSize: '11px', color: '#999999', textAlign: 'center' as const, margin: '20px 0 0' }
