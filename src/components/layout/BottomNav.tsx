@@ -42,9 +42,9 @@ const BottomNav = () => {
                 <motion.div
                   whileTap={{ scale: 0.8 }}
                   whileHover={{ y: -1 }}
-                  className="flex flex-col items-center gap-0.5 no-theme-transition relative"
+                  className="flex flex-col items-center gap-1 no-theme-transition relative"
                 >
-                  <item.icon className="w-5 h-5" />
+                  <item.icon className="w-5 h-5 shrink-0" />
                   {item.to === "/carrinho" && cartCount > 0 && (
                     <motion.span
                       key={`bottom-badge-${cartCount}`}
@@ -56,7 +56,7 @@ const BottomNav = () => {
                       {cartCount > 9 ? "9+" : cartCount}
                     </motion.span>
                   )}
-                  <span className="text-[10px] font-medium">{item.label}</span>
+                  <span className="text-[10px] font-medium leading-none">{item.label}</span>
                 </motion.div>
               </>
             )}
