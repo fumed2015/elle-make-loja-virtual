@@ -29,7 +29,7 @@ export const RecoveryEmail = ({ siteName = 'Elle Make', confirmationUrl }: Recov
     <Preview>Redefinir sua senha — Elle Make</Preview>
     <Body style={main}>
       <Container style={container}>
-        <Section style={header}><Img src={LOGO_URL} width="140" height="auto" alt="Elle Make" style={{ margin: '0 auto' }} /></Section>
+        <Section style={header}><Img src={LOGO_URL} width="80" height="auto" alt="Elle Make" style={{ margin: '0 auto' }} /></Section>
         <Section style={content}>
           <Heading style={h1}>Redefinir senha</Heading>
           <Text style={text}>Recebemos uma solicitação para redefinir sua senha na Elle Make. Clique no botão abaixo para escolher uma nova senha.</Text>

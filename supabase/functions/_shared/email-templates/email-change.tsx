@@ -32,7 +32,7 @@ export const EmailChangeEmail = ({ siteName = 'Elle Make', email, newEmail, conf
     <Preview>Confirme a alteração do seu e-mail — Elle Make</Preview>
     <Body style={main}>
       <Container style={container}>
-        <Section style={header}><Img src={LOGO_URL} width="140" height="auto" alt="Elle Make" style={{ margin: '0 auto' }} /></Section>
+        <Section style={header}><Img src={LOGO_URL} width="80" height="auto" alt="Elle Make" style={{ margin: '0 auto' }} /></Section>
         <Section style={content}>
           <Heading style={h1}>Alterar e-mail</Heading>
           <Text style={text}>

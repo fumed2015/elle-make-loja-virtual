@@ -39,7 +39,7 @@ export const CartRecoveryEmail = ({
     <Body style={main}>
       <Container style={container}>
         <Section style={logoSection}>
-          <Img src={LOGO_URL} alt="Elle Make" width="160" height="auto" style={logo} />
+          <Img src={LOGO_URL} alt="Elle Make" width="80" height="auto" style={logo} />
         </Section>
         <Section style={card}>
           <Heading style={h1}>Esqueceu algo? 💕</Heading>
@@ -102,7 +102,7 @@ export default CartRecoveryEmail
 
 const main = { backgroundColor: '#ffffff', fontFamily: "'Playfair Display', Georgia, serif" }
 const container = { maxWidth: '520px', margin: '0 auto', padding: '20px 16px' }
-const logoSection = { textAlign: 'center' as const, padding: '24px 0 16px' }
+const logoSection = { textAlign: 'center' as const, padding: '24px 0 16px', backgroundColor: '#800020', borderRadius: '12px 12px 0 0' }
 const logo = { margin: '0 auto' }
 const card = {
   backgroundColor: '#FDF8F4',

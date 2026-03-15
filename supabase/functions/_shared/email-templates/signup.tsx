@@ -38,7 +38,7 @@ export const SignupEmail = ({
     <Body style={main}>
       <Container style={container}>
         <Section style={header}>
-          <Img src={LOGO_URL} width="140" height="auto" alt="Elle Make" style={{ margin: '0 auto' }} />
+          <Img src={LOGO_URL} width="80" height="auto" alt="Elle Make" style={{ margin: '0 auto' }} />
         </Section>
         <Section style={content}>
           <Heading style={h1}>Confirme seu e-mail</Heading>

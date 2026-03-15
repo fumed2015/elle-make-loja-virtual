@@ -29,7 +29,7 @@ export const MagicLinkEmail = ({ siteName = 'Elle Make', confirmationUrl }: Magi
     <Preview>Seu link de acesso — Elle Make</Preview>
     <Body style={main}>
       <Container style={container}>
-        <Section style={header}><Img src={LOGO_URL} width="140" height="auto" alt="Elle Make" style={{ margin: '0 auto' }} /></Section>
+        <Section style={header}><Img src={LOGO_URL} width="80" height="auto" alt="Elle Make" style={{ margin: '0 auto' }} /></Section>
         <Section style={content}>
           <Heading style={h1}>Seu link de acesso</Heading>
           <Text style={text}>Clique no botão abaixo para acessar sua conta na Elle Make. Este link expira em breve.</Text>
