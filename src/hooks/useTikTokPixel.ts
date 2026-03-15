@@ -2,6 +2,9 @@
  * TikTok Pixel event helpers.
  * The base pixel script is injected via TrackingPixelsInjector (admin Pixels tab).
  * These helpers fire standard e-commerce events when `ttq` is available on window.
+ *
+ * TikTok requires `contents` as an array of { content_id, content_type, content_name, quantity, price }
+ * AND top-level `content_id` for Video Shopping Ads (VSA).
  */
 
 declare global {
@@ -32,12 +35,21 @@ export function trackViewContent(product: {
   brand?: string;
 }) {
   fire("ViewContent", {
-    content_id: product.id,
+    content_id: String(product.id),
     content_type: "product",
     content_name: product.name,
     value: product.price,
     currency: "BRL",
     description: [product.brand, product.category].filter(Boolean).join(" – "),
+    contents: [
+      {
+        content_id: String(product.id),
+        content_type: "product",
+        content_name: product.name,
+        quantity: 1,
+        price: product.price,
+      },
+    ],
   });
 }
 
@@ -49,12 +61,21 @@ export function trackAddToCart(product: {
   quantity: number;
 }) {
   fire("AddToCart", {
-    content_id: product.id,
+    content_id: String(product.id),
     content_type: "product",
     content_name: product.name,
     quantity: product.quantity,
     value: product.price * product.quantity,
     currency: "BRL",
+    contents: [
+      {
+        content_id: String(product.id),
+        content_type: "product",
+        content_name: product.name,
+        quantity: product.quantity,
+        price: product.price,
+      },
+    ],
   });
 }
 
@@ -62,11 +83,20 @@ export function trackAddToCart(product: {
 export function trackInitiateCheckout(params: {
   value: number;
   itemCount: number;
+  contentIds?: string[];
 }) {
+  const contents = (params.contentIds || []).map((id) => ({
+    content_id: String(id),
+    content_type: "product",
+    quantity: 1,
+  }));
+
   fire("InitiateCheckout", {
     value: params.value,
     currency: "BRL",
     quantity: params.itemCount,
+    ...(params.contentIds?.length ? { content_id: String(params.contentIds[0]) } : {}),
+    contents,
   });
 }
 
@@ -75,12 +105,21 @@ export function trackPurchase(params: {
   orderId: string;
   value: number;
   itemCount: number;
+  contentIds?: string[];
 }) {
+  const contents = (params.contentIds || []).map((id) => ({
+    content_id: String(id),
+    content_type: "product",
+    quantity: 1,
+  }));
+
   fire("CompletePayment", {
     content_type: "product",
     value: params.value,
     currency: "BRL",
     quantity: params.itemCount,
     order_id: params.orderId,
+    ...(params.contentIds?.length ? { content_id: String(params.contentIds[0]) } : {}),
+    contents,
   });
 }
