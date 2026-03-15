@@ -262,7 +262,21 @@ const Explorar = () => {
 
   return (
     <div className="min-h-screen flex flex-col">
-      <SEOHead title={activeCategoryName || "Explorar Produtos"} description="Explore nossa coleção de maquiagens e skincare. Filtros por categoria, marca e preço com busca inteligente." />
+      <SEOHead
+        title={activeCategoryName || "Explorar Produtos"}
+        description={activeCategoryName
+          ? `Encontre os melhores produtos de ${activeCategoryName} na Elle Make. Entrega rápida em Belém.`
+          : "Explore nossa coleção de maquiagens e skincare. Filtros por categoria, marca e preço com busca inteligente."
+        }
+        jsonLd={{
+          "@context": "https://schema.org",
+          "@type": "BreadcrumbList",
+          itemListElement: [
+            { "@type": "ListItem", position: 1, name: "Home", item: "https://www.ellemake.com.br" },
+            { "@type": "ListItem", position: 2, name: activeCategoryName || "Explorar", item: "https://www.ellemake.com.br/explorar" },
+          ],
+        }}
+      />
 
       {/* Breadcrumb */}
       <div className="bg-muted/50 border-b border-border">

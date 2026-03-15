@@ -15,15 +15,25 @@ const Sobre = () => (
     <SEOHead
       title="Sobre Nós"
       description="Conheça a Elle Make — loja de maquiagem e cosméticos com entrega rápida em Belém do Pará."
-      jsonLd={{
-        "@context": "https://schema.org",
-        "@type": "LocalBusiness",
-        name: "Elle Make",
-        description: "Loja de maquiagem e cosméticos com delivery rápido em Belém do Pará.",
-        address: { "@type": "PostalAddress", addressLocality: "Belém", addressRegion: "PA", addressCountry: "BR" },
-        telephone: "+5591936180774",
-        url: "https://www.ellemake.com.br",
-      }}
+      jsonLd={[
+        {
+          "@context": "https://schema.org",
+          "@type": "LocalBusiness",
+          name: "Elle Make",
+          description: "Loja de maquiagem e cosméticos com delivery rápido em Belém do Pará.",
+          address: { "@type": "PostalAddress", addressLocality: "Belém", addressRegion: "PA", addressCountry: "BR" },
+          telephone: "+5591936180774",
+          url: "https://www.ellemake.com.br",
+        },
+        {
+          "@context": "https://schema.org",
+          "@type": "BreadcrumbList",
+          itemListElement: [
+            { "@type": "ListItem", position: 1, name: "Home", item: "https://www.ellemake.com.br" },
+            { "@type": "ListItem", position: 2, name: "Sobre", item: "https://www.ellemake.com.br/sobre" },
+          ],
+        },
+      ]}
     />
 
     {/* Hero */}
