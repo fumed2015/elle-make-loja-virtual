@@ -1,4 +1,5 @@
 import SEOHead from "@/components/SEOHead";
+import Breadcrumbs, { breadcrumbJsonLd } from "@/components/Breadcrumbs";
 import { Heart, MapPin, Truck, ShieldCheck, Star } from "lucide-react";
 import WhatsAppIcon from "@/components/icons/WhatsAppIcon";
 import { Button } from "@/components/ui/button";
@@ -25,16 +26,11 @@ const Sobre = () => (
           telephone: "+5591936180774",
           url: "https://www.ellemake.com.br",
         },
-        {
-          "@context": "https://schema.org",
-          "@type": "BreadcrumbList",
-          itemListElement: [
-            { "@type": "ListItem", position: 1, name: "Home", item: "https://www.ellemake.com.br" },
-            { "@type": "ListItem", position: 2, name: "Sobre", item: "https://www.ellemake.com.br/sobre" },
-          ],
-        },
+        breadcrumbJsonLd([{ label: "Sobre", href: "/sobre" }]),
       ]}
     />
+
+    <Breadcrumbs items={[{ label: "Sobre Nós" }]} />
 
     {/* Hero */}
     <section className="bg-gradient-to-b from-primary/10 to-background px-4 py-16 text-center">

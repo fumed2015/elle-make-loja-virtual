@@ -11,6 +11,7 @@ import FreeShippingBar from "@/components/layout/FreeShippingBar";
 import CrossSellSection from "@/components/checkout/CrossSellSection";
 import UrgencyBadge from "@/components/product/UrgencyBadge";
 import { fbTrackViewCart } from "@/hooks/useMetaPixel";
+import Breadcrumbs from "@/components/Breadcrumbs";
 
 const Carrinho = () => {
   const { items, isLoading, removeFromCart, updateQuantity, cartTotal, cartCount } = useCart();
@@ -51,7 +52,9 @@ const Carrinho = () => {
   }
 
   return (
-    <div className="px-4 pt-8 pb-4 max-w-lg mx-auto">
+    <div className="pb-4 max-w-lg mx-auto">
+      <Breadcrumbs items={[{ label: "Carrinho" }]} />
+      <div className="px-4 pt-6">
       <h1 className="text-2xl font-display font-bold mb-6">
         Carrinho <span className="text-muted-foreground text-base">({cartCount})</span>
       </h1>
@@ -193,6 +196,7 @@ const Carrinho = () => {
         <Button onClick={() => navigate("/checkout")} className="w-full bg-primary text-primary-foreground shadow-marsala hover:bg-primary/90 min-h-[44px] press-scale">
             Garantir Meu Look ✨ <ArrowRight className="w-4 h-4 ml-1" />
         </Button>
+       </div>
       </div>
     </div>
   );

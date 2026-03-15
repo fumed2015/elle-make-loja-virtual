@@ -11,6 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
 import SEOHead from "@/components/SEOHead";
+import Breadcrumbs from "@/components/Breadcrumbs";
 
 const statusConfig: Record<string, { label: string; icon: any; color: string; bgColor: string; step: number }> = {
   pending:    { label: "Pendente",    icon: Clock,       color: "text-yellow-500",        bgColor: "bg-yellow-500/10",  step: 0 },
@@ -507,8 +508,10 @@ const Pedidos = () => {
   const selectedOrder = orders?.find((o) => o.id === selectedOrderId);
 
   return (
-    <div className="px-4 pt-8 pb-24 max-w-lg mx-auto">
+    <div className="pb-24 max-w-lg mx-auto">
       <SEOHead title="Meus Pedidos | Elle Make" description="Acompanhe seus pedidos" />
+      <Breadcrumbs items={[{ label: "Meus Pedidos" }]} />
+      <div className="px-4 pt-6">
       <AnimatePresence mode="wait">
         {selectedOrder ? (
           <OrderDetail key="detail" order={selectedOrder} onBack={() => setSelectedOrderId(null)} />
@@ -523,6 +526,7 @@ const Pedidos = () => {
           </motion.div>
         )}
       </AnimatePresence>
+      </div>
     </div>
   );
 };
