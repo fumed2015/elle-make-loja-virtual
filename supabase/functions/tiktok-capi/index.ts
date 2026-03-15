@@ -108,7 +108,14 @@ serve(async (req) => {
 
     // Build properties object
     const properties: Record<string, any> = {};
-    if (input.content_ids?.length) properties.content_ids = input.content_ids;
+    const normalizedContentIds = (input.content_ids || []).map((id) => String(id || "").trim()).filter(Boolean);
+    const fallbackContentId =
+      (typeof input.content_id === "string" && input.content_id.trim()) ||
+      normalizedContentIds[0] ||
+      input.contents?.find((item) => item?.content_id?.trim())?.content_id?.trim();
+
+    if (fallbackContentId) properties.content_id = fallbackContentId;
+    if (normalizedContentIds.length) properties.content_ids = normalizedContentIds;
     if (input.contents?.length) properties.contents = input.contents;
     if (input.content_type) properties.content_type = input.content_type;
     if (input.currency) properties.currency = input.currency;

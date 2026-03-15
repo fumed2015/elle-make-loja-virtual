@@ -322,27 +322,41 @@ export function trackInitiateCheckout(params: {
   contents?: Array<{ content_id: string; quantity: number; price: number; content_name?: string }>;
 }) {
   const eventId = crypto.randomUUID();
-  const contents = params.contents ||
-    (params.contentIds || []).map((id) => ({
-      content_id: String(id),
-      content_type: "product",
-      quantity: 1,
-    }));
+
+  const normalizedContentIds = normalizeContentIds(params.contentIds);
+  const normalizedContents = params.contents
+    ? normalizeContents(params.contents)
+    : normalizedContentIds.map((id) => ({
+        content_id: id,
+        content_type: "product",
+        quantity: 1,
+      }));
+
+  const primaryContentId = resolvePrimaryContentId(normalizedContentIds, normalizedContents);
+  if (!primaryContentId) {
+    console.warn("TikTok InitiateCheckout skipped: missing content_id");
+    return;
+  }
+
+  const contentIds = normalizedContentIds.length
+    ? normalizedContentIds
+    : normalizedContents.map((item) => item.content_id);
 
   fireClient("InitiateCheckout", {
     ...clientBase(eventId),
     value: params.value,
     quantity: params.itemCount,
-    ...(params.contentIds?.length ? { content_id: params.contentIds[0] } : {}),
-    content_ids: params.contentIds,
-    contents,
+    content_id: primaryContentId,
+    content_ids: contentIds,
+    contents: normalizedContents,
   });
 
   fireServer(
     buildServerPayload("InitiateCheckout", eventId, {
-      content_ids: params.contentIds,
+      content_id: primaryContentId,
+      content_ids: contentIds,
       content_type: "product",
-      contents,
+      contents: normalizedContents,
       value: params.value,
       num_items: params.itemCount,
     })
