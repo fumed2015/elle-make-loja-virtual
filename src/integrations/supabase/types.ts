@@ -1944,6 +1944,7 @@ export type Database = {
         Args: { p_influencer_id: string; p_order_id: string }
         Returns: undefined
       }
+      sync_best_sellers: { Args: never; Returns: undefined }
       validate_coupon: {
         Args: { p_code: string; p_order_total?: number }
         Returns: Json
