@@ -12,6 +12,7 @@ import { cn } from "@/lib/utils";
 import SEOHead from "@/components/SEOHead";
 import Footer from "@/components/layout/Footer";
 import { fbTrackSearch } from "@/hooks/useMetaPixel";
+import { trackSearch } from "@/hooks/useTikTokPixel";
 
 type SortOption = "recent" | "price-asc" | "price-desc" | "name" | "discount";
 
