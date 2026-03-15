@@ -130,7 +130,7 @@ const Explorar = () => {
       }
     }
     return source;
-  }, [products, collectionProducts, isCollectionPage, collectionSlug, salesCount, activeBrand, activePriceRange, sortBy]);
+  }, [products, collectionProducts, isCollectionPage, collectionSlug, activeBrand, activePriceRange, sortBy]);
 
   const activeFiltersCount = [activeBrand, activePriceRange !== null, activeCat].filter(Boolean).length;
 
