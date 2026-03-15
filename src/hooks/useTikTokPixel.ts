@@ -69,12 +69,31 @@ function fireServer(payload: Record<string, any>) {
   }
 }
 
+/** Get cached user PII for EMQ enrichment */
+function getUserPii(): { email?: string; phone?: string; external_id?: string } {
+  try {
+    const raw = localStorage.getItem("sb-xinkvwlhctwgdfwixzxf-auth-token");
+    if (!raw) return {};
+    const parsed = JSON.parse(raw);
+    const user = parsed?.user;
+    if (!user) return {};
+    return {
+      email: user.email || undefined,
+      phone: user.user_metadata?.phone || user.phone || undefined,
+      external_id: user.id || undefined,
+    };
+  } catch {
+    return {};
+  }
+}
+
 /** Build common server payload with user matching params */
 function buildServerPayload(
   event: string,
   eventId: string,
   extra: Record<string, any> = {}
 ): Record<string, any> {
+  const pii = getUserPii();
   return {
     event,
     event_id: eventId,
@@ -86,6 +105,7 @@ function buildServerPayload(
     ttclid: getTtclid(),
     locale: navigator.language,
     currency: "BRL",
+    ...pii,
     ...extra,
   };
 }
