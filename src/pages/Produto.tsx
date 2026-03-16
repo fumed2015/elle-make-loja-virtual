@@ -114,13 +114,6 @@ const Produto = () => {
   };
 
   const handleBuyNow = () => {
-    if (!user) {
-      // Guest: add to localStorage cart, then redirect to login
-      addToCart.mutate({ productId: product.id, quantity: qty, swatch: selectedSwatch }, {
-        onSuccess: () => navigate("/perfil?redirect=/checkout"),
-      });
-      return;
-    }
     addToCart.mutate({ productId: product.id, quantity: qty, swatch: selectedSwatch }, {
       onSuccess: () => navigate("/checkout"),
     });
