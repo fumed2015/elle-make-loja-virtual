@@ -103,7 +103,7 @@ const ProductCard = memo(({ product, index = 0 }: ProductCardProps) => {
               </Badge>
             )}
             {lowStock && (
-              <Badge className="bg-primary text-primary-foreground text-[7px] px-1 py-0 rounded-sm leading-tight animate-pulse">
+              <Badge className="bg-primary text-primary-foreground text-[0.4375rem] px-1 py-0 rounded-sm leading-tight animate-pulse">
                 Últimas unid.
               </Badge>
             )}
