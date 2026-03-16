@@ -366,7 +366,7 @@ const Header = () => {
 
           {/* Center: Desktop nav links */}
           <nav
-            className="hidden md:flex flex-1 items-center justify-center gap-0 overflow-visible min-w-0 mx-2 flex-nowrap"
+            className="hidden md:flex flex-1 items-center justify-center overflow-visible min-w-0 mx-[0.5em] flex-nowrap"
           >
             {navLinks.map((link) => (
               <div
@@ -377,7 +377,7 @@ const Header = () => {
               >
                 <Link
                   to={link.to}
-                  className={`flex items-center gap-0.5 px-1 lg:px-2 xl:px-2.5 py-2 text-[0.6875rem] lg:text-base xl:text-lg font-semibold transition-all tracking-wide uppercase whitespace-nowrap ${!isTransparent ? 'text-foreground hover:text-primary' : 'text-white hover:text-white/80 drop-shadow-sm'}`}
+                  className={`flex items-center gap-[0.15em] px-[0.5em] py-[0.5em] text-[clamp(0.65rem,0.9vw,1.05rem)] font-semibold transition-all tracking-wide uppercase whitespace-nowrap ${!isTransparent ? 'text-foreground hover:text-primary' : 'text-white hover:text-white/80 drop-shadow-sm'}`}
                 >
                   {link.label}
                   {link.subs && <ChevronDown className="w-2.5 h-2.5 lg:w-3 lg:h-3" />}
