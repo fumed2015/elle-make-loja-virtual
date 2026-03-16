@@ -27,7 +27,7 @@ const ProductImageGallery = ({ images, alt, children }: ProductImageGalleryProps
   };
 
   return (
-    <div className="relative rounded-xl overflow-hidden" style={{ backgroundColor: '#f8f5f2' }}>
+    <div className="relative overflow-hidden rounded-xl" style={{ backgroundColor: '#f8f5f2' }}>
       {/* Main image */}
       <AnimatePresence mode="wait">
         <motion.div
@@ -36,17 +36,16 @@ const ProductImageGallery = ({ images, alt, children }: ProductImageGalleryProps
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 0.2 }}
-          className="flex items-center justify-center w-full"
-          style={{ aspectRatio: '4/5', backgroundColor: '#f8f5f2' }}
+          style={{ aspectRatio: '1/1', backgroundColor: '#f8f5f2' }}
         >
           <OptimizedImage
             src={validImages[current]}
             alt={`${alt} - Imagem ${current + 1}`}
-            aspectRatio="4/5"
+            aspectRatio="1/1"
             displayWidth={1200}
             priority
             className="w-full h-full"
-            style={{ backgroundColor: '#f8f5f2' }}
+            placeholderColor="#f8f5f2"
           />
         </motion.div>
       </AnimatePresence>
