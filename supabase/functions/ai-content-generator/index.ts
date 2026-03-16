@@ -76,7 +76,7 @@ Retorne um JSON com:
 - seo_description: meta description (max 160 chars)
 - tags: array de 3-6 tags relevantes em lowercase`;
 
-      const aiResp = await fetch("https://apim.lovable.dev/chat/completions", {
+      const aiResp = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -145,22 +145,35 @@ Retorne um JSON com:
         });
       }
 
-      const prompt = `Você é uma copywriter especialista em e-commerce de maquiagem e cosméticos brasileiros. Gere conteúdo otimizado para SEO para o seguinte produto:
+      const prompt = `Você é uma copywriter sênior especialista em e-commerce de maquiagem e cosméticos brasileiros, com foco em SEO e conversão.
 
-Nome: ${product.name}
-Marca: ${product.brand || "N/A"}
-Categoria: ${(product.categories as any)?.name || "Maquiagem"}
-Preço: R$ ${Number(product.price).toFixed(2)}
-Tags: ${(product.tags || []).join(", ")}
-Ingredientes: ${product.ingredients || "N/A"}
+Produto:
+- Nome: ${product.name}
+- Marca: ${product.brand || "N/A"}
+- Categoria: ${(product.categories as any)?.name || "Maquiagem"}
+- Preço: R$ ${Number(product.price).toFixed(2)}
+- Tags existentes: ${(product.tags || []).join(", ")}
+- Ingredientes: ${product.ingredients || "N/A"}
 
-Gere EXATAMENTE o seguinte conteúdo usando a function tool:
-1. description: Descrição persuasiva do produto (150-250 palavras). Use linguagem sensorial. Mencione benefícios, não apenas características. Inclua palavras-chave naturais para SEO. Foque no público brasileiro.
-2. sensorial_description: Descrição sensorial curta (2-3 frases) focada na textura, fragrância e sensação ao aplicar.
-3. how_to_use: Instruções de uso detalhadas (3-5 passos). Comece cada passo com um verbo no imperativo. Inclua dicas de aplicação profissional. Seja prática e objetiva.
-4. seo_title: Título SEO otimizado (máx 60 chars) com palavra-chave principal + marca.
-5. meta_description: Meta descrição (máx 155 chars) com CTA e palavra-chave.
-6. tags: Array de 5-8 tags relevantes para filtros e SEO (ex: "pele oleosa", "longa duração", "vegano").`;
+Gere conteúdo otimizado para SEO seguindo estas diretrizes:
+
+1. **description** (250-400 palavras): Descrição completa e persuasiva formatada em HTML com:
+   - Um parágrafo de abertura envolvente com a palavra-chave principal
+   - Seção "✨ Benefícios" como lista (<ul><li>) com 4-6 benefícios
+   - Seção "💄 Características" como lista com 3-5 features técnicas
+   - Parágrafo final com CTA (chamada para ação) mencionando entrega rápida em Belém
+   - Use <strong> para palavras-chave importantes
+   - Linguagem sensorial e emocional voltada ao público feminino brasileiro
+
+2. **sensorial_description** (3-4 frases): Descrição sensorial rica focada em textura, fragrância, acabamento e sensação na pele. Use adjetivos sensoriais (aveludado, sedoso, refrescante, luminoso).
+
+3. **how_to_use** (4-6 passos): Instruções detalhadas. Cada passo começa com verbo imperativo. Inclua dicas profissionais como "Dica da consultora:" ao final.
+
+4. **seo_title**: Título SEO (max 60 chars) formato: "[Produto] [Marca] - [Benefício Principal] | Elle Make"
+
+5. **meta_description**: Meta description (max 155 chars) com CTA e urgência. Ex: "Compre agora com entrega rápida em Belém!"
+
+6. **tags**: Array de 8-12 tags SEO relevantes incluindo: tipo de produto, tipo de pele, benefícios, ocasião de uso, marca.`;
 
       const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
         method: "POST",
@@ -258,7 +271,7 @@ Gere EXATAMENTE o seguinte conteúdo usando a function tool:
 
           // Generate description if needed
           if (needsDescription) {
-            const prompt = `Gere conteúdo SEO para este produto de maquiagem:
+            const prompt = `Gere conteúdo SEO completo para este produto de maquiagem da Elle Make (Belém-PA):
 Nome: ${product.name}
 Marca: ${product.brand || "N/A"}
 Categoria: ${(product.categories as any)?.name || "Maquiagem"}
@@ -266,7 +279,11 @@ Preço: R$ ${Number(product.price).toFixed(2)}
 Tags: ${(product.tags || []).join(", ")}
 Ingredientes: ${product.ingredients || "N/A"}
 
-Gere: description (150-250 palavras, sensorial, SEO), sensorial_description (2-3 frases), how_to_use (3-5 passos com verbos imperativos), tags (5-8 tags).`;
+Gere:
+- description (250-400 palavras em HTML): parágrafo de abertura com keyword, seção ✨ Benefícios como <ul><li> com 4-6 itens, seção 💄 Características com 3-5 features, parágrafo final com CTA e entrega rápida em Belém. Use <strong> em keywords.
+- sensorial_description (3-4 frases sensoriais: textura, fragrância, acabamento)
+- how_to_use (4-6 passos com verbos imperativos + "Dica da consultora:" ao final)
+- tags (8-12 tags SEO: tipo produto, tipo pele, benefícios, ocasião, marca)`;
 
             const aiResp = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
               method: "POST",
@@ -373,7 +390,7 @@ Gere: description (150-250 palavras, sensorial, SEO), sensorial_description (2-3
 
       for (const product of products) {
         try {
-          const prompt = `Gere conteúdo SEO para este produto de maquiagem:
+          const prompt = `Gere conteúdo SEO completo para este produto da Elle Make (Belém-PA):
 Nome: ${product.name}
 Marca: ${product.brand || "N/A"}
 Categoria: ${(product.categories as any)?.name || "Maquiagem"}
@@ -382,7 +399,11 @@ Tags: ${(product.tags || []).join(", ")}
 Ingredientes: ${product.ingredients || "N/A"}
 Descrição atual: ${product.description || "NENHUMA"}
 
-Gere: description (150-250 palavras, sensorial, SEO), sensorial_description (2-3 frases), how_to_use (3-5 passos com verbos imperativos, dicas profissionais), tags (5-8 tags).`;
+Gere:
+- description (250-400 palavras em HTML): parágrafo de abertura com keyword, seção ✨ Benefícios como <ul><li> com 4-6 itens, seção 💄 Características com 3-5 features, parágrafo final com CTA e entrega rápida em Belém. Use <strong> em keywords.
+- sensorial_description (3-4 frases sensoriais: textura, fragrância, acabamento)
+- how_to_use (4-6 passos com verbos imperativos + "Dica da consultora:" ao final)
+- tags (8-12 tags SEO: tipo produto, tipo pele, benefícios, ocasião, marca)`;
 
           const aiResp = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
             method: "POST",
