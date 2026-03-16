@@ -113,7 +113,7 @@ const ProductCard = memo(({ product, index = 0 }: ProductCardProps) => {
           <motion.button
             whileTap={{ scale: 0.8 }}
             onClick={handleToggleFav}
-            className="absolute top-[10px] right-[10px] z-10 w-7 h-7 rounded-full bg-background/70 backdrop-blur-sm flex items-center justify-center md:opacity-0 md:group-hover:opacity-100 transition-opacity"
+            className="absolute top-[0.625rem] right-[0.625rem] z-10 w-7 h-7 rounded-full bg-background/70 backdrop-blur-sm flex items-center justify-center md:opacity-0 md:group-hover:opacity-100 transition-opacity"
           >
             <Heart className={cn("w-3.5 h-3.5 transition-colors", favorited ? "fill-destructive text-destructive" : "text-foreground/60")} />
           </motion.button>
