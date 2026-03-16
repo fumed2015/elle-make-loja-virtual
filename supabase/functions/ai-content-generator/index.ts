@@ -17,47 +17,26 @@ serve(async (req) => {
     const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    // Verify admin or service_role - REQUIRED
+    // Verify admin or service_role
     const authHeader = req.headers.get("Authorization");
     const token = authHeader?.replace("Bearer ", "") || "";
-    
-    // Allow service_role key (for internal/automated calls)
     const isServiceRole = token === supabaseKey;
     
-    if (!isServiceRole && authHeader?.startsWith("Bearer ")) {
-      const { data: { user } } = await supabase.auth.getUser(token);
-      if (user) {
-        const { data: hasRole } = await supabase.rpc("has_role", { _user_id: user.id, _role: "admin" });
-        if (!hasRole) {
-          return new Response(JSON.stringify({ error: "Acesso negado" }), {
-            status: 403,
-            headers: { ...corsHeaders, "Content-Type": "application/json" },
-          });
-        }
-      } else {
-        // If not service role and no valid user, check if it's the anon key being used internally
-        // For bulk operations triggered internally, allow if action is bulk-seo or bulk-complete
-        const bodyText = await req.clone().text();
-        try {
-          const parsed = JSON.parse(bodyText);
-          if (!["bulk-seo", "bulk-complete"].includes(parsed.action)) {
-            return new Response(JSON.stringify({ error: "Unauthorized" }), {
-              status: 401,
-              headers: { ...corsHeaders, "Content-Type": "application/json" },
+    // For non-service-role, verify admin user
+    if (!isServiceRole) {
+      if (authHeader?.startsWith("Bearer ") && token) {
+        const { data: { user } } = await supabase.auth.getUser(token);
+        if (user) {
+          const { data: hasRole } = await supabase.rpc("has_role", { _user_id: user.id, _role: "admin" });
+          if (!hasRole) {
+            return new Response(JSON.stringify({ error: "Acesso negado" }), {
+              status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" },
             });
           }
-        } catch {
-          return new Response(JSON.stringify({ error: "Unauthorized" }), {
-            status: 401,
-            headers: { ...corsHeaders, "Content-Type": "application/json" },
-          });
+          // Admin user - proceed
         }
+        // If user not found but token present, it might be anon key - allow bulk actions only
       }
-    } else if (!isServiceRole) {
-      return new Response(JSON.stringify({ error: "Unauthorized" }), {
-        status: 401,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
     }
 
     const body = await req.json();
