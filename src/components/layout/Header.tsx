@@ -244,9 +244,9 @@ const Header = () => {
   );
 
   return (
-    <header className="sticky top-0 z-40">
+    <header className="sticky top-0 z-[1000] flex flex-col w-full">
       {/* Promo bar with arrows — always opaque */}
-      <div className="bg-primary text-primary-foreground py-1.5 px-2 overflow-hidden min-h-[2rem] flex items-center justify-between relative z-10 flex-wrap">
+      <div className="bg-primary text-primary-foreground py-1.5 px-2 overflow-hidden min-h-[2.25rem] flex items-center justify-between z-[1] flex-wrap w-full">
         <button
           onClick={() => setPromoIndex((i) => (i - 1 + promoMessages.length) % promoMessages.length)}
           className="w-6 h-6 flex items-center justify-center flex-shrink-0 hover:bg-primary-foreground/10 rounded-full transition-colors"
@@ -278,7 +278,7 @@ const Header = () => {
       </div>
 
       {/* Desktop secondary info bar */}
-      <div className={`hidden md:flex border-b px-4 py-2 transition-all duration-500 ease-in-out ${!isTransparent ? 'bg-card/95 backdrop-blur-md border-border' : 'bg-transparent border-white/10'}`}>
+      <div className={`hidden md:flex border-b px-4 py-2 transition-all duration-500 ease-in-out w-full z-[1] ${!isTransparent ? 'bg-card/95 backdrop-blur-md border-border' : 'bg-transparent border-white/10'}`}>
         <div className="max-w-7xl mx-auto w-full flex items-center justify-between">
           <div className={`flex items-center gap-5 text-sm font-bold transition-colors duration-300 ${!isTransparent ? 'text-foreground' : 'text-white'}`}>
              <a href="https://wa.me/5591936180774" target="_blank" rel="noopener noreferrer" className={`flex items-center gap-1.5 transition-colors ${!isTransparent ? 'hover:text-primary' : 'hover:text-white/80'}`}>
@@ -300,8 +300,8 @@ const Header = () => {
       </div>
 
       {/* Main header */}
-      <div className={`border-b px-3 md:px-4 py-3 md:py-3 transition-all duration-500 ease-in-out ${!isTransparent ? 'bg-card/95 backdrop-blur-md border-border shadow-sm' : 'bg-transparent border-transparent shadow-none backdrop-blur-none'}`}>
-        <div className="max-w-7xl mx-auto w-full flex items-center min-w-0 relative overflow-visible">
+      <div className={`border-b px-3 md:px-4 py-3 md:py-3 transition-all duration-500 ease-in-out w-full z-[2] ${!isTransparent ? 'bg-card/95 backdrop-blur-md border-border shadow-sm' : 'bg-transparent border-transparent shadow-none backdrop-blur-none'}`}>
+        <div className="max-w-7xl mx-auto w-full flex items-center justify-between gap-2 overflow-visible">
           {/* Left: hamburger (mobile only) + Logo */}
           <div className="flex items-center gap-1 flex-shrink-0">
             <Sheet>
@@ -347,7 +347,7 @@ const Header = () => {
             </Sheet>
 
             {/* Logo */}
-            <div className="absolute left-1/2 -translate-x-[60%] md:static md:translate-x-0 md:flex-none">
+            <div className="flex-shrink-0">
               <Link to="/">
                 <motion.div
                   whileHover={{ scale: 1.02 }}
@@ -366,7 +366,7 @@ const Header = () => {
 
           {/* Center: Desktop nav links */}
           <nav
-            className="hidden md:flex flex-1 items-center justify-center gap-0 overflow-visible relative min-w-0 mx-2"
+            className="hidden md:flex flex-1 items-center justify-center gap-0 overflow-visible min-w-0 mx-2 flex-nowrap"
           >
             {navLinks.map((link) => (
               <div
@@ -390,7 +390,7 @@ const Header = () => {
                       animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0, y: -4 }}
                       transition={{ duration: 0.15 }}
-                      className="absolute top-full left-0 z-50 pt-1 min-w-[220px]"
+                      className="absolute top-full left-0 z-[100] pt-1 min-w-[13.75rem]"
                     >
                       <div className="bg-card border border-border shadow-lg rounded-lg">
                         <div className="px-4 py-3 space-y-1.5">
@@ -421,7 +421,7 @@ const Header = () => {
           </nav>
 
           {/* Right: search + icons */}
-          <div className="flex items-center gap-0.5 flex-shrink-0 justify-end ml-auto md:ml-2">
+          <div className="flex items-center gap-1 md:gap-2 flex-shrink-0">
             {/* Desktop search */}
             <div className="hidden md:flex relative w-[6rem] lg:w-[8rem] xl:w-[12rem]" ref={searchContainerRef}>
               <form onSubmit={handleSearch} className="w-full relative">
