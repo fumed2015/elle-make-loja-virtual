@@ -76,7 +76,7 @@ Retorne um JSON com:
 - seo_description: meta description (max 160 chars)
 - tags: array de 3-6 tags relevantes em lowercase`;
 
-      const aiResp = await fetch("https://apim.lovable.dev/chat/completions", {
+      const aiResp = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
