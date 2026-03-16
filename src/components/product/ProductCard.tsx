@@ -2,12 +2,13 @@ import { memo } from "react";
 import { Link } from "react-router-dom";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { ShoppingBag, Heart, Eye } from "lucide-react";
+import { ShoppingBag, Heart } from "lucide-react";
 import { useCart } from "@/hooks/useCart";
 import { useCartDrawer } from "@/components/cart/AddToCartDrawer";
 import { useAuth } from "@/hooks/useAuth";
 import { useFavorites } from "@/hooks/useFavorites";
 import { motion } from "framer-motion";
+import OptimizedImage from "@/components/ui/optimized-image";
 
 import { cn } from "@/lib/utils";
 import { useNavigate } from "react-router-dom";
@@ -80,14 +81,15 @@ const ProductCard = memo(({ product, index = 0 }: ProductCardProps) => {
         className="bg-card rounded-lg overflow-hidden border border-border relative"
       >
         {/* Image */}
-        <div className="relative overflow-hidden h-[13.75rem] rounded-t-lg" style={{ backgroundColor: '#f5f0eb' }}>
+        <div className="relative overflow-hidden rounded-t-lg" style={{ aspectRatio: '1/1', backgroundColor: '#f8f5f2' }}>
           {product.images?.[0] ? (
-            <img
+            <OptimizedImage
               src={product.images[0]}
               alt={product.name}
-              className="w-full h-full object-contain"
-              loading="lazy"
-              decoding="async"
+              aspectRatio="1/1"
+              displayWidth={400}
+              placeholderColor="#f8f5f2"
+              className="w-full h-full"
             />
           ) : (
             <div className="w-full h-full bg-muted flex items-center justify-center text-muted-foreground text-[0.5625rem]">
