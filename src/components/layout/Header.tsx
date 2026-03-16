@@ -278,7 +278,7 @@ const Header = () => {
       </div>
 
       {/* Desktop secondary info bar */}
-      <div className={`hidden md:flex border-b px-4 py-2 transition-all duration-500 ease-in-out ${!isTransparent ? 'bg-card/95 backdrop-blur-md border-border' : 'bg-transparent border-white/10'}`}>
+      <div className={`hidden md:flex border-b px-4 py-2 transition-all duration-500 ease-in-out w-full z-[1] ${!isTransparent ? 'bg-card/95 backdrop-blur-md border-border' : 'bg-transparent border-white/10'}`}>
         <div className="max-w-7xl mx-auto w-full flex items-center justify-between">
           <div className={`flex items-center gap-5 text-sm font-bold transition-colors duration-300 ${!isTransparent ? 'text-foreground' : 'text-white'}`}>
              <a href="https://wa.me/5591936180774" target="_blank" rel="noopener noreferrer" className={`flex items-center gap-1.5 transition-colors ${!isTransparent ? 'hover:text-primary' : 'hover:text-white/80'}`}>
