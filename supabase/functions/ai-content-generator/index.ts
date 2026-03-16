@@ -436,8 +436,9 @@ Gere:
           });
 
           if (!aiResp.ok) {
-            console.error(`AI error for product ${product.id}:`, aiResp.status);
-            results.push({ id: product.id, name: product.name, status: "error" });
+            const errText = await aiResp.text();
+            console.error(`AI error for product ${product.id}: status=${aiResp.status} body=${errText}`);
+            results.push({ id: product.id, name: product.name, status: "error", error_detail: `${aiResp.status}: ${errText.substring(0, 200)}` });
             continue;
           }
 
