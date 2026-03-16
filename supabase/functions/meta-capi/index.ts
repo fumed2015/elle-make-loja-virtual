@@ -115,10 +115,12 @@ async function buildServerEvent(data: CAPIEventData, req: Request) {
     ud.zp = [await sha256(data.user_data.zip.replace(/\D/g, "").slice(0, 5))];
   }
 
-  // Non-hashed fields — use provided values or fallback to request headers
+  // Non-hashed fields — prioritize client-captured IP (from Meta Param Builder cookie)
+  // then fall back to request headers (proxy/CDN headers)
   ud.client_ip_address = data.user_data.client_ip_address
     || req.headers.get("x-forwarded-for")?.split(",")[0]?.trim()
     || req.headers.get("cf-connecting-ip")
+    || req.headers.get("x-real-ip")
     || "";
   ud.client_user_agent = data.user_data.client_user_agent
     || req.headers.get("user-agent")

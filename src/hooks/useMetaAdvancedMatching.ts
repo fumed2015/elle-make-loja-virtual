@@ -8,7 +8,7 @@ import { fbSetUserData } from "./useMetaPixel";
  * whenever the user is authenticated. This dramatically
  * improves Event Match Quality (EMQ) score.
  *
- * Now also sends external_id (user UUID) for deterministic matching.
+ * Also sends external_id (user UUID) for deterministic matching.
  */
 export function useMetaAdvancedMatching() {
   const { user } = useAuth();
@@ -19,12 +19,11 @@ export function useMetaAdvancedMatching() {
     const fullName = user.user_metadata?.full_name || "";
     const parts = fullName.split(" ");
 
-    // Start with auth data — always include external_id
     const baseData = {
       email: user.email || "",
       firstName: parts[0] || "",
       lastName: parts.slice(1).join(" ") || "",
-      externalId: user.id, // stable UUID for cross-device matching
+      externalId: user.id,
     };
 
     // Enrich with profile data (phone, address, birthday, etc.)
@@ -45,7 +44,6 @@ export function useMetaAdvancedMatching() {
           dateOfBirth: data?.birthday || user.user_metadata?.birthday || "",
         });
       }, () => {
-        // Fallback: send what we have from auth
         fbSetUserData(baseData);
       });
   }, [user?.id]); // eslint-disable-line react-hooks/exhaustive-deps
