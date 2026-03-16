@@ -390,7 +390,7 @@ const Header = () => {
                       animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0, y: -4 }}
                       transition={{ duration: 0.15 }}
-                      className="absolute top-full left-0 z-50 pt-1 min-w-[220px]"
+                      className="absolute top-full left-0 z-[100] pt-1 min-w-[13.75rem]"
                     >
                       <div className="bg-card border border-border shadow-lg rounded-lg">
                         <div className="px-4 py-3 space-y-1.5">
