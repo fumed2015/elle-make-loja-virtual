@@ -9,12 +9,27 @@ import Breadcrumbs, { breadcrumbJsonLd } from "@/components/Breadcrumbs";
 import { useState } from "react";
 
 const brandNames: Record<string, string> = {
-  "ruby-rose": "Ruby Rose",
-  "max-love": "Max Love",
-  "sarah-beauty": "Sarah Beauty",
-  "phallebeauty": "Phallebeauty",
+  "belle-angel": "Belle Angel",
+  "bobbi-rara": "Bobbi Rara",
+  "eye": "Eye",
+  "fenzza": "Fenzza",
+  "generico": "Genérico",
+  "jummy": "Jummy",
+  "lua-e-neve": "Lua e Neve",
   "luisance": "Luisance",
   "macrilan": "Macrilan",
+  "mandala": "Mandala",
+  "max-love": "Max Love",
+  "melu-by-ruby-rose": "Melu by Ruby Rose",
+  "oceane": "Océane",
+  "phallebeauty": "Phallebeauty",
+  "pink-21": "Pink 21",
+  "playboy": "Playboy",
+  "ruby-rose": "Ruby Rose",
+  "sabrina-sato": "Sabrina Sato",
+  "sarah-beauty": "Sarah Beauty",
+  "uni-makeup": "Uni Makeup",
+  "vivai": "Vivai",
 };
 
 const container = {
