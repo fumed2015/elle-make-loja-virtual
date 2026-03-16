@@ -204,7 +204,7 @@ const HeroCarousel = () => {
   const slide = heroSlides[current];
 
   return (
-    <section className="relative overflow-hidden -mt-[88px] md:-mt-[120px]" style={{ backgroundColor: 'hsl(20 30% 88%)' }}>
+    <section className="relative overflow-hidden" style={{ backgroundColor: 'hsl(20 30% 88%)' }}>
       {/* All images stay mounted — toggle opacity instead of AnimatePresence to avoid duplicate loads */}
       {heroSlides.map((s, i) => (
         <img
