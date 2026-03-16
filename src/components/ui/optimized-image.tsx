@@ -45,13 +45,8 @@ const OptimizedImage = ({
     return () => observer.disconnect();
   }, [priority]);
 
-  // Optimize Supabase images: resize with high quality
-  const optimizedSrc = inView
-    ? getOptimizedImageUrl(src, {
-        width: displayWidth || 800,
-        quality: 90,
-      })
-    : "";
+  // Use original URL at full quality — no downsizing
+  const optimizedSrc = inView ? src : "";
 
   return (
     <div
