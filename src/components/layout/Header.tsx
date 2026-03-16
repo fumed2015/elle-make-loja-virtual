@@ -514,7 +514,7 @@ const Header = () => {
                   initial={{ scale: 0 }}
                   animate={{ scale: 1 }}
                   transition={{ type: "spring", stiffness: 500, damping: 15 }}
-                  className="absolute -top-0.5 -right-0.5 w-5 h-5 rounded-full bg-primary text-primary-foreground text-[10px] font-bold flex items-center justify-center"
+                  className="absolute -top-0.5 -right-0.5 w-[1.25rem] h-[1.25rem] rounded-full bg-primary text-primary-foreground text-[0.625rem] font-bold flex items-center justify-center"
                 >
                   {cartCount}
                 </motion.span>
