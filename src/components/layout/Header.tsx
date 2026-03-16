@@ -246,7 +246,7 @@ const Header = () => {
   return (
     <header className="sticky top-0 z-40">
       {/* Promo bar with arrows — always opaque */}
-      <div className="bg-primary text-primary-foreground py-1.5 px-2 overflow-hidden h-8 flex items-center justify-between relative z-10">
+      <div className="bg-primary text-primary-foreground py-1.5 px-2 overflow-hidden min-h-[2rem] flex items-center justify-between relative z-10 flex-wrap">
         <button
           onClick={() => setPromoIndex((i) => (i - 1 + promoMessages.length) % promoMessages.length)}
           className="w-6 h-6 flex items-center justify-center flex-shrink-0 hover:bg-primary-foreground/10 rounded-full transition-colors"
