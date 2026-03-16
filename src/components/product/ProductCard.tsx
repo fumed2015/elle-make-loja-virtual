@@ -8,7 +8,7 @@ import { useCartDrawer } from "@/components/cart/AddToCartDrawer";
 import { useAuth } from "@/hooks/useAuth";
 import { useFavorites } from "@/hooks/useFavorites";
 import { motion } from "framer-motion";
-import OptimizedImage from "@/components/ui/optimized-image";
+
 import { cn } from "@/lib/utils";
 import { useNavigate } from "react-router-dom";
 import { trackAddToCart, trackAddToWishlist } from "@/hooks/useTikTokPixel";
