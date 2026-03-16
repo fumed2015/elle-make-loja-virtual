@@ -175,7 +175,7 @@ const ProductCard = memo(({ product, index = 0 }: ProductCardProps) => {
               onClick={handleQuickAdd}
               disabled={product.stock <= 0}
               variant="outline"
-              className="w-8 h-8 p-0 rounded-md border-primary text-primary hover:bg-primary hover:text-primary-foreground"
+              className="w-[2rem] h-[2rem] p-0 rounded-md border-primary text-primary hover:bg-primary hover:text-primary-foreground"
               size="sm"
             >
               <ShoppingBag className="w-3.5 h-3.5" />
