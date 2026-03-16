@@ -121,7 +121,7 @@ const ProductCard = memo(({ product, index = 0 }: ProductCardProps) => {
 
         {/* Info */}
         <div className="p-2.5 space-y-1">
-          <p className="text-[11px] text-muted-foreground uppercase tracking-wider leading-none">{product.brand}</p>
+          <p className="text-[0.6875rem] text-muted-foreground uppercase tracking-wider leading-none">{product.brand}</p>
           <h3 className="text-sm font-semibold leading-snug line-clamp-2 text-foreground">{product.name}</h3>
 
           {/* Swatches preview */}
