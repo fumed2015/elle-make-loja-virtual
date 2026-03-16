@@ -45,13 +45,8 @@ const OptimizedImage = ({
     return () => observer.disconnect();
   }, [priority]);
 
-  // Optimize Supabase images: resize with high quality
-  const optimizedSrc = inView
-    ? getOptimizedImageUrl(src, {
-        width: displayWidth || 800,
-        quality: 90,
-      })
-    : "";
+  // Use original URL at full quality — no downsizing
+  const optimizedSrc = inView ? src : "";
 
   return (
     <div
@@ -71,28 +66,26 @@ const OptimizedImage = ({
 
       {/* Actual image */}
       {inView && (
-        <div className="flex h-full w-full items-center justify-center p-2 box-border">
-          <img
-            src={optimizedSrc}
-            alt={alt}
-            loading={priority ? "eager" : "lazy"}
-            decoding="async"
-            fetchPriority={priority ? "high" : "auto"}
-            onLoad={() => setLoaded(true)}
-            onError={() => setLoaded(true)}
-            style={{
-              width: '100%',
-              height: '100%',
-              objectFit: 'contain',
-              objectPosition: 'center',
-            }}
-            className={cn(
-              "transition-opacity duration-300",
-              loaded ? "opacity-100" : "opacity-0"
-            )}
-            {...props}
-          />
-        </div>
+        <img
+          src={optimizedSrc}
+          alt={alt}
+          loading={priority ? "eager" : "lazy"}
+          decoding="async"
+          fetchPriority={priority ? "high" : "auto"}
+          onLoad={() => setLoaded(true)}
+          onError={() => setLoaded(true)}
+          style={{
+            width: '100%',
+            height: '100%',
+            objectFit: 'contain',
+            objectPosition: 'center',
+          }}
+          className={cn(
+            "transition-opacity duration-300",
+            loaded ? "opacity-100" : "opacity-0"
+          )}
+          {...props}
+        />
       )}
     </div>
   );
