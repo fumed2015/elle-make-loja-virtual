@@ -56,15 +56,15 @@ const OptimizedImage = ({
   return (
     <div
       ref={ref}
-      className={cn("relative overflow-hidden bg-white", className)}
-      style={aspectRatio !== "auto" ? { aspectRatio } : undefined}
+      className={cn("relative overflow-hidden", className)}
+      style={{
+        aspectRatio: aspectRatio !== "auto" ? aspectRatio : undefined,
+        backgroundColor: placeholderColor || '#f8f5f2',
+      }}
     >
       {/* Shimmer placeholder */}
       {!loaded && (
-        <div
-           className="absolute inset-0 bg-muted/30"
-          style={{ backgroundColor: placeholderColor }}
-        >
+        <div className="absolute inset-0 bg-muted/30">
           <div className="w-full h-full bg-gradient-to-r from-muted/40 via-muted/20 to-muted/40 animate-pulse" />
         </div>
       )}
@@ -79,9 +79,15 @@ const OptimizedImage = ({
           fetchPriority={priority ? "high" : "auto"}
           onLoad={() => setLoaded(true)}
           onError={() => setLoaded(true)}
-          style={{ objectFit: 'contain' }}
+          style={{
+            width: '100%',
+            height: '100%',
+            objectFit: 'contain',
+            objectPosition: 'center',
+            padding: '8px',
+          }}
           className={cn(
-            "w-full h-full transition-opacity duration-300",
+            "transition-opacity duration-300",
             loaded ? "opacity-100" : "opacity-0"
           )}
           {...props}

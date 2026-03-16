@@ -27,7 +27,7 @@ const ProductImageGallery = ({ images, alt, children }: ProductImageGalleryProps
   };
 
   return (
-    <div className="relative rounded-xl overflow-hidden" style={{ backgroundColor: '#f8f5f2' }}>
+    <div className="relative overflow-hidden rounded-xl" style={{ backgroundColor: '#f8f5f2' }}>
       {/* Main image */}
       <AnimatePresence mode="wait">
         <motion.div
@@ -36,17 +36,16 @@ const ProductImageGallery = ({ images, alt, children }: ProductImageGalleryProps
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 0.2 }}
-          className="flex items-center justify-center w-full"
-          style={{ aspectRatio: '4/5', backgroundColor: '#f8f5f2' }}
+          style={{ aspectRatio: '1/1', backgroundColor: '#f8f5f2' }}
         >
           <OptimizedImage
             src={validImages[current]}
             alt={`${alt} - Imagem ${current + 1}`}
-            aspectRatio="4/5"
+            aspectRatio="1/1"
             displayWidth={1200}
             priority
             className="w-full h-full"
-            style={{ backgroundColor: '#f8f5f2' }}
+            placeholderColor="#f8f5f2"
           />
         </motion.div>
       </AnimatePresence>
@@ -90,18 +89,28 @@ const ProductImageGallery = ({ images, alt, children }: ProductImageGalleryProps
 
       {/* Thumbnails strip */}
       {validImages.length > 1 && (
-        <div className="flex gap-1.5 p-2" style={{ backgroundColor: '#f8f5f2' }}>
+        <div className="flex gap-2 p-2" style={{ backgroundColor: '#f8f5f2' }}>
           {validImages.map((img, i) => (
             <button
               key={i}
               onClick={(e) => { e.preventDefault(); e.stopPropagation(); setCurrent(i); }}
               className={cn(
-                "rounded-lg overflow-hidden border-2 transition-all flex-shrink-0 flex items-center justify-center",
+                "rounded-lg overflow-hidden border-2 transition-all flex-shrink-0",
                 i === current ? "border-primary" : "border-transparent opacity-60 hover:opacity-100"
               )}
               style={{ width: 80, height: 80, backgroundColor: '#f8f5f2' }}
             >
-              <img src={img} alt="" className="w-full h-full object-contain" style={{ backgroundColor: '#f8f5f2' }} />
+              <img
+                src={img}
+                alt=""
+                style={{
+                  width: '100%',
+                  height: '100%',
+                  objectFit: 'contain',
+                  objectPosition: 'center',
+                  padding: '4px',
+                }}
+              />
             </button>
           ))}
         </div>
