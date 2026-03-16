@@ -136,7 +136,7 @@ const ProductCard = memo(({ product, index = 0 }: ProductCardProps) => {
                 />
               ))}
               {swatches.length > 5 && (
-                <span className="text-[9px] text-muted-foreground">+{swatches.length - 5}</span>
+                <span className="text-[0.5625rem] text-muted-foreground">+{swatches.length - 5}</span>
               )}
             </div>
           )}
