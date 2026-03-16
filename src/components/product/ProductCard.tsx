@@ -2,12 +2,13 @@ import { memo } from "react";
 import { Link } from "react-router-dom";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { ShoppingBag, Heart, Eye } from "lucide-react";
+import { ShoppingBag, Heart } from "lucide-react";
 import { useCart } from "@/hooks/useCart";
 import { useCartDrawer } from "@/components/cart/AddToCartDrawer";
 import { useAuth } from "@/hooks/useAuth";
 import { useFavorites } from "@/hooks/useFavorites";
 import { motion } from "framer-motion";
+import OptimizedImage from "@/components/ui/optimized-image";
 
 import { cn } from "@/lib/utils";
 import { useNavigate } from "react-router-dom";
