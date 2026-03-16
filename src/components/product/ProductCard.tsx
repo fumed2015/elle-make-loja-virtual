@@ -151,11 +151,11 @@ const ProductCard = memo(({ product, index = 0 }: ProductCardProps) => {
             <span className="text-lg font-bold text-primary">
               R$ {Number(product.price).toFixed(2).replace(".", ",")}
             </span>
-            <p className="text-[10px] text-emerald-600 font-semibold leading-none mt-0.5">
+            <p className="text-[0.625rem] text-emerald-600 font-semibold leading-none mt-0.5">
               R$ {pixPrice} no Pix
             </p>
             {Number(product.price) >= 10 && (
-              <p className="text-[10px] text-foreground/70 font-medium leading-none mt-0.5">
+              <p className="text-[0.625rem] text-foreground/70 font-medium leading-none mt-0.5">
                 ou <span className="font-bold text-foreground">3x de R$ {(Number(product.price) / 3).toFixed(2).replace(".", ",")}</span> s/ juros
               </p>
             )}
