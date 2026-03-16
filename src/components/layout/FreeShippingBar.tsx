@@ -18,7 +18,7 @@ const FreeShippingBar = () => {
       {/* Mobile: simple inline text bar, no popup */}
       <div className="md:hidden bg-muted/60 border-b border-border px-3 py-1.5 flex items-center gap-2">
         <Truck className={`w-3.5 h-3.5 flex-shrink-0 ${achieved ? "text-accent" : "text-primary"}`} />
-        <p className="text-[10px] font-medium text-foreground truncate">
+        <p className="text-[0.625rem] font-medium text-foreground truncate">
           {achieved
             ? "Frete grátis garantido! 🎉"
             : <>Faltam <span className="text-primary font-bold">R$ {remaining.toFixed(2).replace('.', ',')}</span> p/ frete grátis</>
