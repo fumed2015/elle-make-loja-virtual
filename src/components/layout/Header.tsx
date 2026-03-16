@@ -262,7 +262,7 @@ const Header = () => {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -10 }}
               transition={{ duration: 0.3 }}
-              className="text-[13px] font-medium tracking-wide flex items-center justify-center gap-1.5"
+              className="text-[0.8125rem] font-medium tracking-wide flex items-center justify-center gap-1.5"
             >
               <span>🚚</span> {promoMessages[promoIndex]}
             </motion.p>
