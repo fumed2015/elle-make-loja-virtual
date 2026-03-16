@@ -560,7 +560,7 @@ const AdminProductsPanel = () => {
           <p className="text-[10px] text-muted-foreground">Arraste e solte ou clique em Upload para enviar fotos do seu dispositivo. Aceita JPG, PNG e WebP.</p>
         </fieldset>
 
-        {/* Swatches / Variações */}
+        {/* Swatches / Variações - CRUD Completo */}
         <fieldset className="bg-card rounded-xl p-4 border border-border space-y-3">
           <div className="flex items-center justify-between">
             <legend className="text-xs font-bold text-foreground px-2">Variações / Cores ({swatches.length})</legend>
@@ -572,54 +572,101 @@ const AdminProductsPanel = () => {
           {swatches.length > 0 && (
             <div className="space-y-2">
               {swatches.map((s, i) => (
-                <div key={i} className={cn("flex items-center gap-2 bg-muted rounded-lg px-3 py-2", !s.available && "opacity-60")}>
-                  <div className="w-6 h-6 rounded-full border border-border flex-shrink-0" style={{ backgroundColor: s.color }} />
-                  <div className="flex-1 min-w-0">
-                    <p className="text-[11px] font-semibold truncate">{s.name}</p>
-                    <div className="flex items-center gap-2 text-[9px] text-muted-foreground">
-                      {s.barcode && <span>EAN: {s.barcode}</span>}
-                      {s.ref_code && <span>Ref: {s.ref_code}</span>}
-                      <span>Est: {s.stock ?? 0}</span>
+                <div key={i} className={cn("bg-muted rounded-lg px-3 py-2 space-y-2", !s.available && "opacity-70 ring-1 ring-destructive/20")}>
+                  {/* Row 1: Color preview + Name inline edit + actions */}
+                  <div className="flex items-center gap-2">
+                    <label className="flex-shrink-0 cursor-pointer relative">
+                      <div className="w-8 h-8 rounded-full border-2 border-border" style={{ backgroundColor: s.color }} />
+                      <input
+                        type="color"
+                        value={s.color}
+                        onChange={(e) => setSwatches(swatches.map((sw, idx) => idx === i ? { ...sw, color: e.target.value } : sw))}
+                        className="absolute inset-0 opacity-0 cursor-pointer w-8 h-8"
+                        title="Alterar cor"
+                      />
+                    </label>
+                    <Input
+                      value={s.name}
+                      onChange={(e) => setSwatches(swatches.map((sw, idx) => idx === i ? { ...sw, name: e.target.value } : sw))}
+                      className="bg-background border-border min-h-[32px] text-xs font-semibold flex-1"
+                      placeholder="Nome do tom"
+                    />
+                    <div className="flex items-center gap-1 flex-shrink-0">
+                      {i > 0 && (
+                        <Button type="button" size="sm" variant="ghost" className="h-6 w-6 p-0" title="Mover para cima"
+                          onClick={() => { const arr = [...swatches]; [arr[i-1], arr[i]] = [arr[i], arr[i-1]]; setSwatches(arr); }}>
+                          <ChevronUp className="w-3 h-3" />
+                        </Button>
+                      )}
+                      {i < swatches.length - 1 && (
+                        <Button type="button" size="sm" variant="ghost" className="h-6 w-6 p-0" title="Mover para baixo"
+                          onClick={() => { const arr = [...swatches]; [arr[i], arr[i+1]] = [arr[i+1], arr[i]]; setSwatches(arr); }}>
+                          <ChevronDown className="w-3 h-3" />
+                        </Button>
+                      )}
+                      <Button type="button" size="sm" variant="ghost" onClick={() => handleToggleSwatchAvailable(i)} className="h-6 w-6 p-0" title={s.available ? "Marcar indisponível" : "Marcar disponível"}>
+                        {s.available ? <Eye className="w-3 h-3 text-foreground" /> : <EyeOff className="w-3 h-3 text-destructive" />}
+                      </Button>
+                      <Button type="button" size="sm" variant="ghost" onClick={() => handleRemoveSwatch(i)} className="h-6 w-6 p-0 hover:text-destructive" title="Remover cor">
+                        <X className="w-3 h-3" />
+                      </Button>
                     </div>
                   </div>
-                  <div className="flex items-center gap-1.5 flex-shrink-0">
-                    {!s.available && <Badge variant="secondary" className="text-[7px] px-1 py-0 bg-destructive/10 text-destructive">Indisponível</Badge>}
-                    <Button type="button" size="sm" variant="ghost" onClick={() => handleToggleSwatchAvailable(i)} className="h-6 w-6 p-0" title={s.available ? "Marcar indisponível" : "Marcar disponível"}>
-                      {s.available ? <Eye className="w-3 h-3" /> : <EyeOff className="w-3 h-3 text-destructive" />}
-                    </Button>
-                    <button type="button" onClick={() => handleRemoveSwatch(i)} className="w-5 h-5 flex items-center justify-center"><X className="w-3 h-3 text-muted-foreground" /></button>
+                  {/* Row 2: Stock, EAN, Ref inline */}
+                  <div className="grid grid-cols-3 gap-2">
+                    <div className="space-y-0.5">
+                      <Label className="text-[9px] text-muted-foreground">Estoque</Label>
+                      <Input
+                        type="number"
+                        value={s.stock ?? 0}
+                        onChange={(e) => handleSwatchStockChange(i, parseInt(e.target.value) || 0)}
+                        className="bg-background border-border min-h-[30px] text-xs h-[30px]"
+                      />
+                    </div>
+                    <div className="space-y-0.5">
+                      <Label className="text-[9px] text-muted-foreground">EAN</Label>
+                      <Input
+                        value={s.barcode || ""}
+                        onChange={(e) => setSwatches(swatches.map((sw, idx) => idx === i ? { ...sw, barcode: e.target.value } : sw))}
+                        placeholder="7891234..."
+                        className="bg-background border-border min-h-[30px] text-xs h-[30px]"
+                      />
+                    </div>
+                    <div className="space-y-0.5">
+                      <Label className="text-[9px] text-muted-foreground">Ref</Label>
+                      <Input
+                        value={s.ref_code || ""}
+                        onChange={(e) => setSwatches(swatches.map((sw, idx) => idx === i ? { ...sw, ref_code: e.target.value } : sw))}
+                        placeholder="REF-001"
+                        className="bg-background border-border min-h-[30px] text-xs h-[30px]"
+                      />
+                    </div>
                   </div>
+                  {!s.available && (
+                    <Badge variant="secondary" className="text-[8px] px-1.5 py-0.5 bg-destructive/10 text-destructive">Indisponível</Badge>
+                  )}
                 </div>
               ))}
             </div>
           )}
+          {/* Add new swatch - compact */}
           <div className="space-y-2 border-t border-border pt-3">
             <p className="text-[10px] font-semibold text-muted-foreground">Adicionar nova cor</p>
-            <div className="grid grid-cols-2 gap-2">
-              <div className="space-y-1">
-                <Label className="text-[10px]">Nome do tom *</Label>
+            <div className="flex gap-2 items-end">
+              <div className="space-y-1 flex-1">
+                <Label className="text-[10px]">Nome *</Label>
                 <Input value={newSwatch.name} onChange={(e) => setNewSwatch({ ...newSwatch, name: e.target.value })} placeholder="Ex: Bege Claro" className="bg-background border-border min-h-[36px] text-xs" onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), handleAddSwatch())} />
               </div>
-              <div className="flex gap-2 items-end">
-                <div className="space-y-1">
-                  <Label className="text-[10px]">Cor</Label>
-                  <input type="color" value={newSwatch.color} onChange={(e) => setNewSwatch({ ...newSwatch, color: e.target.value })} className="w-9 h-9 rounded border border-border cursor-pointer" />
-                </div>
-                <div className="space-y-1 flex-1">
-                  <Label className="text-[10px]">Estoque</Label>
-                  <Input type="number" value={newSwatch.stock ?? 0} onChange={(e) => setNewSwatch({ ...newSwatch, stock: parseInt(e.target.value) || 0 })} className="bg-background border-border min-h-[36px] text-xs" />
-                </div>
-              </div>
               <div className="space-y-1">
-                <Label className="text-[10px]">Cód. Barras (EAN)</Label>
-                <Input value={newSwatch.barcode || ""} onChange={(e) => setNewSwatch({ ...newSwatch, barcode: e.target.value })} placeholder="7891234567890" className="bg-background border-border min-h-[36px] text-xs" />
+                <Label className="text-[10px]">Cor</Label>
+                <input type="color" value={newSwatch.color} onChange={(e) => setNewSwatch({ ...newSwatch, color: e.target.value })} className="w-9 h-9 rounded border border-border cursor-pointer" />
               </div>
-              <div className="space-y-1">
-                <Label className="text-[10px]">Cód. Referência</Label>
-                <Input value={newSwatch.ref_code || ""} onChange={(e) => setNewSwatch({ ...newSwatch, ref_code: e.target.value })} placeholder="REF-001" className="bg-background border-border min-h-[36px] text-xs" />
+              <div className="space-y-1 w-16">
+                <Label className="text-[10px]">Est.</Label>
+                <Input type="number" value={newSwatch.stock ?? 0} onChange={(e) => setNewSwatch({ ...newSwatch, stock: parseInt(e.target.value) || 0 })} className="bg-background border-border min-h-[36px] text-xs" />
               </div>
+              <Button type="button" onClick={handleAddSwatch} size="sm" variant="outline" className="text-xs h-9 gap-1 px-3"><Plus className="w-3 h-3" /></Button>
             </div>
-            <Button type="button" onClick={handleAddSwatch} size="sm" variant="outline" className="text-xs h-8 gap-1 w-full"><Plus className="w-3 h-3" />Adicionar Cor</Button>
           </div>
         </fieldset>
 
