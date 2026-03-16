@@ -96,7 +96,7 @@ const ProductCard = memo(({ product, index = 0 }: ProductCardProps) => {
           )}
 
           {/* Badges */}
-          <div className="absolute top-[10px] left-[10px] flex flex-col gap-0.5 z-10">
+          <div className="absolute top-[0.625rem] left-[0.625rem] flex flex-col gap-0.5 z-10">
             {hasDiscount && (
               <Badge className="bg-destructive text-destructive-foreground text-[0.5rem] px-1.5 py-0 rounded-sm leading-tight">
                 -{discountPercent}%
