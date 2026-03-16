@@ -25,7 +25,7 @@ const BottomNav = () => {
             end={item.to === "/"}
             className={({ isActive }) =>
               cn(
-                "flex flex-col items-center justify-center gap-0.5 min-w-[56px] min-h-[44px] rounded-xl transition-all duration-200 relative",
+                "flex flex-col items-center justify-center gap-0.5 min-w-[3.5rem] min-h-[2.75rem] rounded-xl transition-all duration-200 relative",
                 isActive ? "text-primary" : "text-muted-foreground hover:text-foreground"
               )
             }
@@ -51,12 +51,12 @@ const BottomNav = () => {
                       initial={{ scale: 0 }}
                       animate={{ scale: 1 }}
                       transition={{ type: "spring", stiffness: 500, damping: 15 }}
-                      className="absolute -top-1.5 -right-2 w-4 h-4 rounded-full bg-primary text-primary-foreground text-[9px] font-bold flex items-center justify-center"
+                      className="absolute -top-1.5 -right-2 w-[1rem] h-[1rem] rounded-full bg-primary text-primary-foreground text-[0.5625rem] font-bold flex items-center justify-center"
                     >
                       {cartCount > 9 ? "9+" : cartCount}
                     </motion.span>
                   )}
-                  <span className="text-[10px] font-medium leading-none">{item.label}</span>
+                  <span className="text-[0.625rem] font-medium leading-none">{item.label}</span>
                 </motion.div>
               </>
             )}

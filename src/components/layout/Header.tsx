@@ -228,13 +228,13 @@ const Header = () => {
               </div>
               <div className="min-w-0 flex-1">
                 <p className="text-xs font-medium truncate">{p.name}</p>
-                <p className="text-[10px] text-primary font-bold">R$ {Number(p.price).toFixed(2).replace(".", ",")}</p>
+                <p className="text-[0.625rem] text-primary font-bold">R$ {Number(p.price).toFixed(2).replace(".", ",")}</p>
               </div>
             </button>
           ))}
           <button
             onClick={() => { setShowSuggestions(false); if (search.trim()) navigate(`/explorar?q=${encodeURIComponent(search.trim())}`); }}
-            className="w-full text-center px-3 py-2 text-[10px] font-semibold text-primary hover:bg-muted transition-colors border-t border-border"
+            className="w-full text-center px-3 py-2 text-[0.625rem] font-semibold text-primary hover:bg-muted transition-colors border-t border-border"
           >
             Ver todos os resultados →
           </button>
@@ -246,7 +246,7 @@ const Header = () => {
   return (
     <header className="sticky top-0 z-40">
       {/* Promo bar with arrows — always opaque */}
-      <div className="bg-primary text-primary-foreground py-1.5 px-2 overflow-hidden h-8 flex items-center justify-between relative z-10">
+      <div className="bg-primary text-primary-foreground py-1.5 px-2 overflow-hidden min-h-[2rem] flex items-center justify-between relative z-10 flex-wrap">
         <button
           onClick={() => setPromoIndex((i) => (i - 1 + promoMessages.length) % promoMessages.length)}
           className="w-6 h-6 flex items-center justify-center flex-shrink-0 hover:bg-primary-foreground/10 rounded-full transition-colors"
@@ -262,7 +262,7 @@ const Header = () => {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -10 }}
               transition={{ duration: 0.3 }}
-              className="text-[13px] font-medium tracking-wide flex items-center justify-center gap-1.5"
+              className="text-[0.8125rem] font-medium tracking-wide flex items-center justify-center gap-1.5"
             >
               <span>🚚</span> {promoMessages[promoIndex]}
             </motion.p>
@@ -377,7 +377,7 @@ const Header = () => {
               >
                 <Link
                   to={link.to}
-                  className={`flex items-center gap-0.5 px-1 lg:px-2 xl:px-2.5 py-2 text-[11px] lg:text-base xl:text-lg font-semibold transition-all tracking-wide uppercase whitespace-nowrap ${!isTransparent ? 'text-foreground hover:text-primary' : 'text-white hover:text-white/80 drop-shadow-sm'}`}
+                  className={`flex items-center gap-0.5 px-1 lg:px-2 xl:px-2.5 py-2 text-[0.6875rem] lg:text-base xl:text-lg font-semibold transition-all tracking-wide uppercase whitespace-nowrap ${!isTransparent ? 'text-foreground hover:text-primary' : 'text-white hover:text-white/80 drop-shadow-sm'}`}
                 >
                   {link.label}
                   {link.subs && <ChevronDown className="w-2.5 h-2.5 lg:w-3 lg:h-3" />}
@@ -423,7 +423,7 @@ const Header = () => {
           {/* Right: search + icons */}
           <div className="flex items-center gap-0.5 flex-shrink-0 justify-end ml-auto md:ml-2">
             {/* Desktop search */}
-            <div className="hidden md:flex relative w-24 lg:w-32 xl:w-48" ref={searchContainerRef}>
+            <div className="hidden md:flex relative w-[6rem] lg:w-[8rem] xl:w-[12rem]" ref={searchContainerRef}>
               <form onSubmit={handleSearch} className="w-full relative">
                 <Input
                   placeholder="Buscar"
@@ -443,7 +443,7 @@ const Header = () => {
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <button className={`hidden md:flex w-9 h-9 items-center justify-center rounded-full transition-colors relative ${!isTransparent ? 'hover:bg-muted' : 'hover:bg-white/10'}`} aria-label="Conta">
-                  <User className={`w-[18px] h-[18px] ${!isTransparent ? 'text-foreground' : 'text-white drop-shadow-sm'}`} />
+                  <User className={`w-[1.125rem] h-[1.125rem] ${!isTransparent ? 'text-foreground' : 'text-white drop-shadow-sm'}`} />
                   {user && (
                     <span className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-accent border-2 border-card" />
                   )}
@@ -506,7 +506,7 @@ const Header = () => {
                 animate={cartCount > 0 ? { scale: [1, 1.3, 1], rotate: [0, -10, 10, 0] } : {}}
                 transition={{ duration: 0.4 }}
               >
-                <ShoppingBag className={`w-[18px] h-[18px] ${!isTransparent ? 'text-foreground' : 'text-white drop-shadow-sm'}`} />
+                <ShoppingBag className={`w-[1.125rem] h-[1.125rem] ${!isTransparent ? 'text-foreground' : 'text-white drop-shadow-sm'}`} />
               </motion.div>
               {cartCount > 0 && (
                 <motion.span
@@ -514,7 +514,7 @@ const Header = () => {
                   initial={{ scale: 0 }}
                   animate={{ scale: 1 }}
                   transition={{ type: "spring", stiffness: 500, damping: 15 }}
-                  className="absolute -top-0.5 -right-0.5 w-5 h-5 rounded-full bg-primary text-primary-foreground text-[10px] font-bold flex items-center justify-center"
+                  className="absolute -top-0.5 -right-0.5 w-[1.25rem] h-[1.25rem] rounded-full bg-primary text-primary-foreground text-[0.625rem] font-bold flex items-center justify-center"
                 >
                   {cartCount}
                 </motion.span>

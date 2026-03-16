@@ -80,7 +80,7 @@ const ProductCard = memo(({ product, index = 0 }: ProductCardProps) => {
         className="bg-card rounded-lg overflow-hidden border border-border relative"
       >
         {/* Image */}
-        <div className="relative overflow-hidden h-[220px] rounded-t-lg" style={{ backgroundColor: '#f5f0eb' }}>
+        <div className="relative overflow-hidden h-[13.75rem] rounded-t-lg" style={{ backgroundColor: '#f5f0eb' }}>
           {product.images?.[0] ? (
             <img
               src={product.images[0]}
@@ -90,20 +90,20 @@ const ProductCard = memo(({ product, index = 0 }: ProductCardProps) => {
               decoding="async"
             />
           ) : (
-            <div className="w-full h-full bg-muted flex items-center justify-center text-muted-foreground text-[9px]">
+            <div className="w-full h-full bg-muted flex items-center justify-center text-muted-foreground text-[0.5625rem]">
               Sem imagem
             </div>
           )}
 
           {/* Badges */}
-          <div className="absolute top-[10px] left-[10px] flex flex-col gap-0.5 z-10">
+          <div className="absolute top-[0.625rem] left-[0.625rem] flex flex-col gap-0.5 z-10">
             {hasDiscount && (
-              <Badge className="bg-destructive text-destructive-foreground text-[8px] px-1.5 py-0 rounded-sm leading-tight">
+              <Badge className="bg-destructive text-destructive-foreground text-[0.5rem] px-1.5 py-0 rounded-sm leading-tight">
                 -{discountPercent}%
               </Badge>
             )}
             {lowStock && (
-              <Badge className="bg-primary text-primary-foreground text-[7px] px-1 py-0 rounded-sm leading-tight animate-pulse">
+              <Badge className="bg-primary text-primary-foreground text-[0.4375rem] px-1 py-0 rounded-sm leading-tight animate-pulse">
                 Últimas unid.
               </Badge>
             )}
@@ -113,7 +113,7 @@ const ProductCard = memo(({ product, index = 0 }: ProductCardProps) => {
           <motion.button
             whileTap={{ scale: 0.8 }}
             onClick={handleToggleFav}
-            className="absolute top-[10px] right-[10px] z-10 w-7 h-7 rounded-full bg-background/70 backdrop-blur-sm flex items-center justify-center md:opacity-0 md:group-hover:opacity-100 transition-opacity"
+            className="absolute top-[0.625rem] right-[0.625rem] z-10 w-7 h-7 rounded-full bg-background/70 backdrop-blur-sm flex items-center justify-center md:opacity-0 md:group-hover:opacity-100 transition-opacity"
           >
             <Heart className={cn("w-3.5 h-3.5 transition-colors", favorited ? "fill-destructive text-destructive" : "text-foreground/60")} />
           </motion.button>
@@ -121,7 +121,7 @@ const ProductCard = memo(({ product, index = 0 }: ProductCardProps) => {
 
         {/* Info */}
         <div className="p-2.5 space-y-1">
-          <p className="text-[11px] text-muted-foreground uppercase tracking-wider leading-none">{product.brand}</p>
+          <p className="text-[0.6875rem] text-muted-foreground uppercase tracking-wider leading-none">{product.brand}</p>
           <h3 className="text-sm font-semibold leading-snug line-clamp-2 text-foreground">{product.name}</h3>
 
           {/* Swatches preview */}
@@ -136,7 +136,7 @@ const ProductCard = memo(({ product, index = 0 }: ProductCardProps) => {
                 />
               ))}
               {swatches.length > 5 && (
-                <span className="text-[9px] text-muted-foreground">+{swatches.length - 5}</span>
+                <span className="text-[0.5625rem] text-muted-foreground">+{swatches.length - 5}</span>
               )}
             </div>
           )}
@@ -144,18 +144,18 @@ const ProductCard = memo(({ product, index = 0 }: ProductCardProps) => {
           {/* Price */}
           <div className="pt-0.5">
             {hasDiscount && (
-              <span className="text-[13px] text-muted-foreground line-through block leading-none">
+              <span className="text-[0.8125rem] text-muted-foreground line-through block leading-none">
                 R$ {Number(product.compare_at_price).toFixed(2).replace(".", ",")}
               </span>
             )}
             <span className="text-lg font-bold text-primary">
               R$ {Number(product.price).toFixed(2).replace(".", ",")}
             </span>
-            <p className="text-[10px] text-emerald-600 font-semibold leading-none mt-0.5">
+            <p className="text-[0.625rem] text-emerald-600 font-semibold leading-none mt-0.5">
               R$ {pixPrice} no Pix
             </p>
             {Number(product.price) >= 10 && (
-              <p className="text-[10px] text-foreground/70 font-medium leading-none mt-0.5">
+              <p className="text-[0.625rem] text-foreground/70 font-medium leading-none mt-0.5">
                 ou <span className="font-bold text-foreground">3x de R$ {(Number(product.price) / 3).toFixed(2).replace(".", ",")}</span> s/ juros
               </p>
             )}
@@ -166,7 +166,7 @@ const ProductCard = memo(({ product, index = 0 }: ProductCardProps) => {
             <Button
               onClick={handleQuickAdd}
               disabled={product.stock <= 0}
-              className="flex-1 bg-primary text-primary-foreground hover:bg-primary/90 rounded-md text-[10px] h-8 font-bold uppercase tracking-wide"
+              className="flex-1 bg-primary text-primary-foreground hover:bg-primary/90 rounded-md text-[0.625rem] h-[2rem] font-bold uppercase tracking-wide"
               size="sm"
             >
               {product.stock <= 0 ? "Esgotado" : swatches.length > 0 ? "Ver cores" : "Comprar"}
@@ -175,7 +175,7 @@ const ProductCard = memo(({ product, index = 0 }: ProductCardProps) => {
               onClick={handleQuickAdd}
               disabled={product.stock <= 0}
               variant="outline"
-              className="w-8 h-8 p-0 rounded-md border-primary text-primary hover:bg-primary hover:text-primary-foreground"
+              className="w-[2rem] h-[2rem] p-0 rounded-md border-primary text-primary hover:bg-primary hover:text-primary-foreground"
               size="sm"
             >
               <ShoppingBag className="w-3.5 h-3.5" />
