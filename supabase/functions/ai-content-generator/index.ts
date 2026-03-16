@@ -28,9 +28,8 @@ serve(async (req) => {
 
     const token = authHeader.replace("Bearer ", "");
     
-    // Allow service_role key or anon key (for internal/automated calls)
-    const anonKey = Deno.env.get("SUPABASE_ANON_KEY") || Deno.env.get("SUPABASE_PUBLISHABLE_KEY") || "";
-    const isServiceRole = token === supabaseKey || token === anonKey;
+    // Allow service_role key (for internal/automated calls)
+    const isServiceRole = token === supabaseKey;
     
     if (!isServiceRole) {
       const { data: { user } } = await supabase.auth.getUser(token);
