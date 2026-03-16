@@ -90,17 +90,18 @@ const ProductImageGallery = ({ images, alt, children }: ProductImageGalleryProps
 
       {/* Thumbnails strip */}
       {validImages.length > 1 && (
-        <div className="flex gap-1.5 p-2 bg-background/50 backdrop-blur-sm">
+        <div className="flex gap-1.5 p-2" style={{ backgroundColor: '#f8f5f2' }}>
           {validImages.map((img, i) => (
             <button
               key={i}
               onClick={(e) => { e.preventDefault(); e.stopPropagation(); setCurrent(i); }}
               className={cn(
-                "w-12 h-12 rounded-md overflow-hidden border-2 transition-all flex-shrink-0",
+                "rounded-lg overflow-hidden border-2 transition-all flex-shrink-0 flex items-center justify-center",
                 i === current ? "border-primary" : "border-transparent opacity-60 hover:opacity-100"
               )}
+              style={{ width: 80, height: 80, backgroundColor: '#f8f5f2' }}
             >
-              <img src={img} alt="" className="w-full h-full object-cover bg-white" />
+              <img src={img} alt="" className="w-full h-full object-contain" style={{ backgroundColor: '#f8f5f2' }} />
             </button>
           ))}
         </div>
