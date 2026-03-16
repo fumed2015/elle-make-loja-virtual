@@ -347,7 +347,7 @@ const Header = () => {
             </Sheet>
 
             {/* Logo */}
-            <div className="absolute left-1/2 -translate-x-[60%] md:static md:translate-x-0 md:flex-none">
+            <div className="flex-shrink-0">
               <Link to="/">
                 <motion.div
                   whileHover={{ scale: 1.02 }}
