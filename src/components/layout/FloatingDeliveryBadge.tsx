@@ -30,9 +30,9 @@ const FloatingDeliveryBadge = () => {
           className="fixed bottom-36 md:bottom-20 right-4 z-50 flex items-center gap-2 rounded-full bg-emerald-600 text-white pl-3 pr-2 py-2 shadow-lg cursor-default select-none max-w-[13.75rem]"
         >
           <Bike className="w-4 h-4 flex-shrink-0 text-white" />
-          <span className="text-[11px] font-semibold leading-tight">
+          <span className="text-[0.6875rem] font-semibold leading-tight">
             Entrega em até 3h
-            <span className="block text-[9px] font-normal opacity-80">Belém e Ananindeua</span>
+            <span className="block text-[0.5625rem] font-normal opacity-80">Belém e Ananindeua</span>
           </span>
           <button
             onClick={handleDismiss}

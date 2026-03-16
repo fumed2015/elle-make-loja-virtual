@@ -90,7 +90,7 @@ const ProductCard = memo(({ product, index = 0 }: ProductCardProps) => {
               decoding="async"
             />
           ) : (
-            <div className="w-full h-full bg-muted flex items-center justify-center text-muted-foreground text-[9px]">
+            <div className="w-full h-full bg-muted flex items-center justify-center text-muted-foreground text-[0.5625rem]">
               Sem imagem
             </div>
           )}

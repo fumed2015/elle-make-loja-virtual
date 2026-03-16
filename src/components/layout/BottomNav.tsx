@@ -25,7 +25,7 @@ const BottomNav = () => {
             end={item.to === "/"}
             className={({ isActive }) =>
               cn(
-                "flex flex-col items-center justify-center gap-0.5 min-w-[56px] min-h-[44px] rounded-xl transition-all duration-200 relative",
+                "flex flex-col items-center justify-center gap-0.5 min-w-[3.5rem] min-h-[2.75rem] rounded-xl transition-all duration-200 relative",
                 isActive ? "text-primary" : "text-muted-foreground hover:text-foreground"
               )
             }

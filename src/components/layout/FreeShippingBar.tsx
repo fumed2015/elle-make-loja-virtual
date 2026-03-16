@@ -30,7 +30,7 @@ const FreeShippingBar = () => {
       <div className="hidden md:flex bg-card border border-border rounded-xl px-3 py-2.5 items-center gap-2.5">
         <Truck className={`w-4 h-4 flex-shrink-0 ${achieved ? "text-accent" : "text-primary"}`} />
         <div className="flex-1 min-w-0">
-          <p className="text-[11px] font-semibold text-foreground leading-tight truncate">
+          <p className="text-[0.6875rem] font-semibold text-foreground leading-tight truncate">
             {achieved
               ? "Frete grátis garantido! 🎉"
               : <>Faltam <span className="text-primary">R$ {remaining.toFixed(2).replace('.', ',')}</span> p/ frete grátis (Belém/Ananindeua)</>

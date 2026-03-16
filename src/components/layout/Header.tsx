@@ -234,7 +234,7 @@ const Header = () => {
           ))}
           <button
             onClick={() => { setShowSuggestions(false); if (search.trim()) navigate(`/explorar?q=${encodeURIComponent(search.trim())}`); }}
-            className="w-full text-center px-3 py-2 text-[10px] font-semibold text-primary hover:bg-muted transition-colors border-t border-border"
+            className="w-full text-center px-3 py-2 text-[0.625rem] font-semibold text-primary hover:bg-muted transition-colors border-t border-border"
           >
             Ver todos os resultados →
           </button>
