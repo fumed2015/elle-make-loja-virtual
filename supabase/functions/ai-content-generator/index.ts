@@ -390,7 +390,7 @@ Gere:
 
       for (const product of products) {
         try {
-          const prompt = `Gere conteúdo SEO para este produto de maquiagem:
+          const prompt = `Gere conteúdo SEO completo para este produto da Elle Make (Belém-PA):
 Nome: ${product.name}
 Marca: ${product.brand || "N/A"}
 Categoria: ${(product.categories as any)?.name || "Maquiagem"}
@@ -399,7 +399,11 @@ Tags: ${(product.tags || []).join(", ")}
 Ingredientes: ${product.ingredients || "N/A"}
 Descrição atual: ${product.description || "NENHUMA"}
 
-Gere: description (150-250 palavras, sensorial, SEO), sensorial_description (2-3 frases), how_to_use (3-5 passos com verbos imperativos, dicas profissionais), tags (5-8 tags).`;
+Gere:
+- description (250-400 palavras em HTML): parágrafo de abertura com keyword, seção ✨ Benefícios como <ul><li> com 4-6 itens, seção 💄 Características com 3-5 features, parágrafo final com CTA e entrega rápida em Belém. Use <strong> em keywords.
+- sensorial_description (3-4 frases sensoriais: textura, fragrância, acabamento)
+- how_to_use (4-6 passos com verbos imperativos + "Dica da consultora:" ao final)
+- tags (8-12 tags SEO: tipo produto, tipo pele, benefícios, ocasião, marca)`;
 
           const aiResp = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
             method: "POST",
