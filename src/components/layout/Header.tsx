@@ -228,7 +228,7 @@ const Header = () => {
               </div>
               <div className="min-w-0 flex-1">
                 <p className="text-xs font-medium truncate">{p.name}</p>
-                <p className="text-[10px] text-primary font-bold">R$ {Number(p.price).toFixed(2).replace(".", ",")}</p>
+                <p className="text-[0.625rem] text-primary font-bold">R$ {Number(p.price).toFixed(2).replace(".", ",")}</p>
               </div>
             </button>
           ))}
