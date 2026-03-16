@@ -108,7 +108,6 @@ const ProductImageGallery = ({ images, alt, children }: ProductImageGalleryProps
                   height: '100%',
                   objectFit: 'contain',
                   objectPosition: 'center',
-                  padding: '4px',
                 }}
               />
             </button>
