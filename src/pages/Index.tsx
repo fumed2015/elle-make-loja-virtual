@@ -204,7 +204,7 @@ const HeroCarousel = () => {
   const slide = heroSlides[current];
 
   return (
-    <section className="relative overflow-hidden -mt-[88px] md:-mt-[120px]" style={{ backgroundColor: 'hsl(20 30% 88%)' }}>
+    <section className="relative overflow-hidden" style={{ backgroundColor: 'hsl(20 30% 88%)' }}>
       {/* All images stay mounted — toggle opacity instead of AnimatePresence to avoid duplicate loads */}
       {heroSlides.map((s, i) => (
         <img
@@ -457,7 +457,7 @@ const HeroCarousel = () => {
 
       {/* Categories — right after hero */}
       {categories && categories.length > 0 && (
-        <section className="px-4 py-8 max-w-7xl mx-auto">
+        <section className="relative z-[1] px-4 py-8 max-w-7xl mx-auto">
           <h2 className="text-lg font-bold text-foreground mb-4">Categorias</h2>
           <div className="flex gap-5 overflow-x-auto scrollbar-hide pb-2 px-2 md:justify-center">
             {categories.map((cat) => {
