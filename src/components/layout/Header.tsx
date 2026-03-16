@@ -443,7 +443,7 @@ const Header = () => {
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <button className={`hidden md:flex w-9 h-9 items-center justify-center rounded-full transition-colors relative ${!isTransparent ? 'hover:bg-muted' : 'hover:bg-white/10'}`} aria-label="Conta">
-                  <User className={`w-[18px] h-[18px] ${!isTransparent ? 'text-foreground' : 'text-white drop-shadow-sm'}`} />
+                  <User className={`w-[1.125rem] h-[1.125rem] ${!isTransparent ? 'text-foreground' : 'text-white drop-shadow-sm'}`} />
                   {user && (
                     <span className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-accent border-2 border-card" />
                   )}
