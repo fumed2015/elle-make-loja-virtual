@@ -244,7 +244,7 @@ const Header = () => {
   );
 
   return (
-    <header className="sticky top-0 z-40">
+    <header className="sticky top-0 z-[1000] flex flex-col w-full">
       {/* Promo bar with arrows — always opaque */}
       <div className="bg-primary text-primary-foreground py-1.5 px-2 overflow-hidden min-h-[2rem] flex items-center justify-between relative z-10 flex-wrap">
         <button
