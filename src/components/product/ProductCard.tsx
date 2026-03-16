@@ -166,7 +166,7 @@ const ProductCard = memo(({ product, index = 0 }: ProductCardProps) => {
             <Button
               onClick={handleQuickAdd}
               disabled={product.stock <= 0}
-              className="flex-1 bg-primary text-primary-foreground hover:bg-primary/90 rounded-md text-[10px] h-8 font-bold uppercase tracking-wide"
+              className="flex-1 bg-primary text-primary-foreground hover:bg-primary/90 rounded-md text-[0.625rem] h-[2rem] font-bold uppercase tracking-wide"
               size="sm"
             >
               {product.stock <= 0 ? "Esgotado" : swatches.length > 0 ? "Ver cores" : "Comprar"}
