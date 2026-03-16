@@ -56,7 +56,7 @@ const BottomNav = () => {
                       {cartCount > 9 ? "9+" : cartCount}
                     </motion.span>
                   )}
-                  <span className="text-[10px] font-medium leading-none">{item.label}</span>
+                  <span className="text-[0.625rem] font-medium leading-none">{item.label}</span>
                 </motion.div>
               </>
             )}
