@@ -79,8 +79,9 @@ const OptimizedImage = ({
           fetchPriority={priority ? "high" : "auto"}
           onLoad={() => setLoaded(true)}
           onError={() => setLoaded(true)}
+          style={{ objectFit: 'contain' }}
           className={cn(
-            "w-full h-full object-contain transition-opacity duration-300",
+            "w-full h-full transition-opacity duration-300",
             loaded ? "opacity-100" : "opacity-0"
           )}
           {...props}
