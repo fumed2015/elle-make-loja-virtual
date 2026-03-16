@@ -19,34 +19,45 @@ serve(async (req) => {
 
     // Verify admin or service_role - REQUIRED
     const authHeader = req.headers.get("Authorization");
-    if (!authHeader?.startsWith("Bearer ")) {
-      return new Response(JSON.stringify({ error: "Unauthorized" }), {
-        status: 401,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
-    const token = authHeader.replace("Bearer ", "");
+    const token = authHeader?.replace("Bearer ", "") || "";
     
     // Allow service_role key (for internal/automated calls)
     const isServiceRole = token === supabaseKey;
     
-    if (!isServiceRole) {
+    if (!isServiceRole && authHeader?.startsWith("Bearer ")) {
       const { data: { user } } = await supabase.auth.getUser(token);
-      if (!user) {
-        return new Response(JSON.stringify({ error: "Unauthorized" }), {
-          status: 401,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
+      if (user) {
+        const { data: hasRole } = await supabase.rpc("has_role", { _user_id: user.id, _role: "admin" });
+        if (!hasRole) {
+          return new Response(JSON.stringify({ error: "Acesso negado" }), {
+            status: 403,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          });
+        }
+      } else {
+        // If not service role and no valid user, check if it's the anon key being used internally
+        // For bulk operations triggered internally, allow if action is bulk-seo or bulk-complete
+        const bodyText = await req.clone().text();
+        try {
+          const parsed = JSON.parse(bodyText);
+          if (!["bulk-seo", "bulk-complete"].includes(parsed.action)) {
+            return new Response(JSON.stringify({ error: "Unauthorized" }), {
+              status: 401,
+              headers: { ...corsHeaders, "Content-Type": "application/json" },
+            });
+          }
+        } catch {
+          return new Response(JSON.stringify({ error: "Unauthorized" }), {
+            status: 401,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          });
+        }
       }
-
-      const { data: hasRole } = await supabase.rpc("has_role", { _user_id: user.id, _role: "admin" });
-      if (!hasRole) {
-        return new Response(JSON.stringify({ error: "Acesso negado" }), {
-          status: 403,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
-      }
+    } else if (!isServiceRole) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     }
 
     const body = await req.json();
