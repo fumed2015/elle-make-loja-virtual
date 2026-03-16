@@ -80,29 +80,15 @@ const ProductCard = memo(({ product, index = 0 }: ProductCardProps) => {
         className="bg-card rounded-lg overflow-hidden border border-border relative"
       >
         {/* Image */}
-        <div className="relative overflow-hidden h-[220px]">
+        <div className="relative overflow-hidden h-[220px] rounded-t-lg" style={{ backgroundColor: '#f5f0eb' }}>
           {product.images?.[0] ? (
-            <>
-              {/* Blurred background — clipped inside container */}
-              <div className="absolute inset-0 overflow-hidden">
-                <img
-                  src={product.images[0]}
-                  alt=""
-                  aria-hidden="true"
-                  className="w-full h-full object-cover"
-                  style={{ filter: 'blur(30px) scale(1.2)', opacity: 0.8 }}
-                  loading="lazy"
-                />
-              </div>
-              {/* Sharp foreground */}
-              <img
-                src={product.images[0]}
-                alt={product.name}
-                className="relative z-[1] w-full h-full object-contain"
-                loading="lazy"
-                decoding="async"
-              />
-            </>
+            <img
+              src={product.images[0]}
+              alt={product.name}
+              className="w-full h-full object-contain"
+              loading="lazy"
+              decoding="async"
+            />
           ) : (
             <div className="w-full h-full bg-muted flex items-center justify-center text-muted-foreground text-[9px]">
               Sem imagem
@@ -110,7 +96,7 @@ const ProductCard = memo(({ product, index = 0 }: ProductCardProps) => {
           )}
 
           {/* Badges */}
-          <div className="absolute top-2 left-2 flex flex-col gap-0.5 z-20">
+          <div className="absolute top-[10px] left-[10px] flex flex-col gap-0.5 z-10">
             {hasDiscount && (
               <Badge className="bg-destructive text-destructive-foreground text-[8px] px-1.5 py-0 rounded-sm leading-tight">
                 -{discountPercent}%
@@ -127,11 +113,10 @@ const ProductCard = memo(({ product, index = 0 }: ProductCardProps) => {
           <motion.button
             whileTap={{ scale: 0.8 }}
             onClick={handleToggleFav}
-            className="absolute top-2 right-2 z-20 w-7 h-7 rounded-full bg-background/70 backdrop-blur-sm flex items-center justify-center md:opacity-0 md:group-hover:opacity-100 transition-opacity"
+            className="absolute top-[10px] right-[10px] z-10 w-7 h-7 rounded-full bg-background/70 backdrop-blur-sm flex items-center justify-center md:opacity-0 md:group-hover:opacity-100 transition-opacity"
           >
             <Heart className={cn("w-3.5 h-3.5 transition-colors", favorited ? "fill-destructive text-destructive" : "text-foreground/60")} />
           </motion.button>
-
         </div>
 
         {/* Info */}
