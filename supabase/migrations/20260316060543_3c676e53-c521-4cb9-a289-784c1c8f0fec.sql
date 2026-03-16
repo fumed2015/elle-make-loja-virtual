@@ -1,0 +1,1 @@
+UPDATE products SET slug = 'cilios-posticos-sabrina-sato-6d-f007' WHERE slug = 'cilios-posticos-sabrina-sato-6D F007';
