@@ -12,10 +12,10 @@
  * OPTIMIZATIONS (EMQ improvement):
  * - Every event includes event_id (eventID) for CAPI deduplication
  * - User data (PII) is sent alongside events via userData injection
- * - fbc/fbp are read from cookies/localStorage for attribution
+ * - fbc/fbp/IP are read from cookies for attribution (via Meta Param Builder)
  */
 
-import { getFbc, getFbp } from "./useMetaFbclid";
+import { getFbc, getFbp, getClientIp } from "./useMetaParamBuilder";
 
 declare global {
   interface Window {
@@ -26,7 +26,6 @@ declare global {
 const PIXEL_ID = "1447990610311925";
 
 // ─── Shared user data cache ───────────────────────────────────────────
-// Stores the latest normalized user data for injection into every event
 let _cachedUserData: Record<string, string> = {};
 
 /**
@@ -36,10 +35,6 @@ function generateEventId(): string {
   return crypto.randomUUID?.() || `${Date.now()}-${Math.random().toString(36).slice(2, 11)}`;
 }
 
-/**
- * Store the last generated event_id so it can be retrieved
- * for server-side CAPI deduplication.
- */
 let _lastEventId: string | null = null;
 export function getLastEventId(): string | null {
   return _lastEventId;
@@ -72,8 +67,8 @@ export function fbSetUserData(data: {
   country?: string;
   externalId?: string;
   cpf?: string;
-  dateOfBirth?: string; // YYYY-MM-DD or DD/MM/YYYY
-  gender?: string; // 'm' or 'f'
+  dateOfBirth?: string;
+  gender?: string;
 }) {
   try {
     if (typeof window === "undefined" || typeof window.fbq !== "function") return;
@@ -98,11 +93,9 @@ export function fbSetUserData(data: {
     // Date of birth: normalize to YYYYMMDD
     if (data.dateOfBirth) {
       const raw = data.dateOfBirth.replace(/\D/g, "");
-      // If already YYYYMMDD (8 digits starting with 19 or 20)
       if (raw.length === 8 && (raw.startsWith("19") || raw.startsWith("20"))) {
         ud.db = raw;
       } else if (raw.length === 8) {
-        // Assume DDMMYYYY
         ud.db = raw.slice(4) + raw.slice(2, 4) + raw.slice(0, 2);
       }
     }
@@ -113,10 +106,10 @@ export function fbSetUserData(data: {
       if (g === "m" || g === "f") ud.ge = g;
     }
 
-    // external_id: use user UUID as stable identifier
+    // external_id
     if (data.externalId) ud.external_id = data.externalId;
 
-    // Inject fbc and fbp from cookies/persistence
+    // Inject fbc, fbp, and client IP from Meta Param Builder cookies
     const fbc = getFbc();
     if (fbc) ud.fbc = fbc;
     const fbp = getFbp();
@@ -141,7 +134,6 @@ function fire(event: string, params?: Record<string, any>) {
       const eventId = generateEventId();
       _lastEventId = eventId;
 
-      // Store event_id in sessionStorage for CAPI deduplication
       try {
         sessionStorage.setItem(`_meta_eid_${event}`, eventId);
       } catch { /* ignore */ }
@@ -245,9 +237,6 @@ export function fbTrackAddPaymentInfo(params: {
   });
 }
 
-/**
- * Purchase – returns the event_id for CAPI deduplication.
- */
 export function fbTrackPurchase(params: {
   orderId: string;
   value: number;
@@ -340,7 +329,19 @@ export function fbTrackViewCart(params: {
 
 /**
  * Get the cached user data for CAPI usage.
+ * Now includes client_ip_address from Meta Param Builder.
  */
 export function getCachedUserData(): Record<string, string> {
-  return { ..._cachedUserData };
+  const data = { ..._cachedUserData };
+
+  // Always inject latest fbc/fbp/IP from cookies
+  const fbc = getFbc();
+  if (fbc) data.fbc = fbc;
+  const fbp = getFbp();
+  if (fbp) data.fbp = fbp;
+  const ip = getClientIp();
+  if (ip) data.client_ip_address = ip;
+  data.client_user_agent = navigator.userAgent;
+
+  return data;
 }
