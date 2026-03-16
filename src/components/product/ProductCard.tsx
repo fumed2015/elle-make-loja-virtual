@@ -80,7 +80,7 @@ const ProductCard = memo(({ product, index = 0 }: ProductCardProps) => {
         className="bg-card rounded-lg overflow-hidden border border-border relative"
       >
         {/* Image */}
-        <div className="relative overflow-hidden h-[220px] rounded-t-lg" style={{ backgroundColor: '#f5f0eb' }}>
+        <div className="relative overflow-hidden h-[13.75rem] rounded-t-lg" style={{ backgroundColor: '#f5f0eb' }}>
           {product.images?.[0] ? (
             <img
               src={product.images[0]}
