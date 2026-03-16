@@ -83,20 +83,22 @@ const ProductCard = memo(({ product, index = 0 }: ProductCardProps) => {
         <div className="relative overflow-hidden h-[220px]">
           {product.images?.[0] ? (
             <>
-              {/* Blurred background fill — same image stretched & blurred */}
-              <img
-                src={product.images[0]}
-                alt=""
-                aria-hidden="true"
-                className="absolute inset-0 w-full h-full object-cover"
-                style={{ filter: 'blur(30px) scale(1.2)', opacity: 0.8 }}
-                loading="lazy"
-              />
-              {/* Sharp foreground — fully visible, no crop */}
+              {/* Blurred background — clipped inside container */}
+              <div className="absolute inset-0 overflow-hidden">
+                <img
+                  src={product.images[0]}
+                  alt=""
+                  aria-hidden="true"
+                  className="w-full h-full object-cover"
+                  style={{ filter: 'blur(30px) scale(1.2)', opacity: 0.8 }}
+                  loading="lazy"
+                />
+              </div>
+              {/* Sharp foreground */}
               <img
                 src={product.images[0]}
                 alt={product.name}
-                className="relative z-10 w-full h-full object-contain"
+                className="relative z-[1] w-full h-full object-contain"
                 loading="lazy"
                 decoding="async"
               />
@@ -108,7 +110,7 @@ const ProductCard = memo(({ product, index = 0 }: ProductCardProps) => {
           )}
 
           {/* Badges */}
-          <div className="absolute top-1 left-1 flex flex-col gap-0.5">
+          <div className="absolute top-2 left-2 flex flex-col gap-0.5 z-20">
             {hasDiscount && (
               <Badge className="bg-destructive text-destructive-foreground text-[8px] px-1.5 py-0 rounded-sm leading-tight">
                 -{discountPercent}%
@@ -125,7 +127,7 @@ const ProductCard = memo(({ product, index = 0 }: ProductCardProps) => {
           <motion.button
             whileTap={{ scale: 0.8 }}
             onClick={handleToggleFav}
-            className="absolute top-1 right-1 w-7 h-7 rounded-full bg-background/70 backdrop-blur-sm flex items-center justify-center md:opacity-0 md:group-hover:opacity-100 transition-opacity"
+            className="absolute top-2 right-2 z-20 w-7 h-7 rounded-full bg-background/70 backdrop-blur-sm flex items-center justify-center md:opacity-0 md:group-hover:opacity-100 transition-opacity"
           >
             <Heart className={cn("w-3.5 h-3.5 transition-colors", favorited ? "fill-destructive text-destructive" : "text-foreground/60")} />
           </motion.button>
