@@ -71,27 +71,28 @@ const OptimizedImage = ({
 
       {/* Actual image */}
       {inView && (
-        <img
-          src={optimizedSrc}
-          alt={alt}
-          loading={priority ? "eager" : "lazy"}
-          decoding="async"
-          fetchPriority={priority ? "high" : "auto"}
-          onLoad={() => setLoaded(true)}
-          onError={() => setLoaded(true)}
-          style={{
-            width: '100%',
-            height: '100%',
-            objectFit: 'contain',
-            objectPosition: 'center',
-            padding: '8px',
-          }}
-          className={cn(
-            "transition-opacity duration-300",
-            loaded ? "opacity-100" : "opacity-0"
-          )}
-          {...props}
-        />
+        <div className="flex h-full w-full items-center justify-center p-2 box-border">
+          <img
+            src={optimizedSrc}
+            alt={alt}
+            loading={priority ? "eager" : "lazy"}
+            decoding="async"
+            fetchPriority={priority ? "high" : "auto"}
+            onLoad={() => setLoaded(true)}
+            onError={() => setLoaded(true)}
+            style={{
+              width: '100%',
+              height: '100%',
+              objectFit: 'contain',
+              objectPosition: 'center',
+            }}
+            className={cn(
+              "transition-opacity duration-300",
+              loaded ? "opacity-100" : "opacity-0"
+            )}
+            {...props}
+          />
+        </div>
       )}
     </div>
   );
