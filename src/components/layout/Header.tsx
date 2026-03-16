@@ -301,9 +301,9 @@ const Header = () => {
 
       {/* Main header */}
       <div className={`border-b px-3 md:px-4 py-3 md:py-3 transition-all duration-500 ease-in-out w-full z-[2] ${!isTransparent ? 'bg-card/95 backdrop-blur-md border-border shadow-sm' : 'bg-transparent border-transparent shadow-none backdrop-blur-none'}`}>
-        <div className="max-w-7xl mx-auto w-full flex items-center justify-between gap-2 overflow-visible">
+        <div className="max-w-7xl mx-auto w-full flex items-center justify-between gap-[0.5em] overflow-visible">
           {/* Left: hamburger (mobile only) + Logo */}
-          <div className="flex items-center gap-1 flex-shrink-0">
+          <div className="flex items-center gap-[0.25em] flex-shrink-0">
             <Sheet>
               <SheetTrigger asChild>
                 <button className={`md:hidden w-10 h-10 flex items-center justify-center rounded-full transition-colors ${!isTransparent ? 'hover:bg-muted' : 'hover:bg-white/10'}`} aria-label="Menu">
@@ -366,7 +366,7 @@ const Header = () => {
 
           {/* Center: Desktop nav links */}
           <nav
-            className="hidden md:flex flex-1 items-center justify-center gap-0 overflow-visible min-w-0 mx-2 flex-nowrap"
+            className="hidden md:flex flex-1 items-center justify-center overflow-visible min-w-0 mx-[0.5em] flex-nowrap"
           >
             {navLinks.map((link) => (
               <div
@@ -377,7 +377,7 @@ const Header = () => {
               >
                 <Link
                   to={link.to}
-                  className={`flex items-center gap-0.5 px-1 lg:px-2 xl:px-2.5 py-2 text-[0.6875rem] lg:text-base xl:text-lg font-semibold transition-all tracking-wide uppercase whitespace-nowrap ${!isTransparent ? 'text-foreground hover:text-primary' : 'text-white hover:text-white/80 drop-shadow-sm'}`}
+                  className={`flex items-center gap-[0.15em] px-[0.5em] py-[0.5em] text-[clamp(0.65rem,0.9vw,1.05rem)] font-semibold transition-all tracking-wide uppercase whitespace-nowrap ${!isTransparent ? 'text-foreground hover:text-primary' : 'text-white hover:text-white/80 drop-shadow-sm'}`}
                 >
                   {link.label}
                   {link.subs && <ChevronDown className="w-2.5 h-2.5 lg:w-3 lg:h-3" />}
@@ -421,9 +421,9 @@ const Header = () => {
           </nav>
 
           {/* Right: search + icons */}
-          <div className="flex items-center gap-1 md:gap-2 flex-shrink-0">
+          <div className="flex items-center gap-[0.25em] md:gap-[0.5em] flex-shrink-0">
             {/* Desktop search */}
-            <div className="hidden md:flex relative w-[6rem] lg:w-[8rem] xl:w-[12rem]" ref={searchContainerRef}>
+            <div className="hidden md:flex relative w-[clamp(5rem,10vw,12rem)]" ref={searchContainerRef}>
               <form onSubmit={handleSearch} className="w-full relative">
                 <Input
                   placeholder="Buscar"
