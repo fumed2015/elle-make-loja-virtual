@@ -80,25 +80,25 @@ const ProductCard = memo(({ product, index = 0 }: ProductCardProps) => {
         className="bg-card rounded-lg overflow-hidden border border-border relative"
       >
         {/* Image */}
-        <div className="relative overflow-hidden" style={{ aspectRatio: '4/5' }}>
+        <div className="relative overflow-hidden h-[220px]">
           {product.images?.[0] ? (
             <>
-              {/* Blurred background fill */}
+              {/* Blurred background fill — same image stretched & blurred */}
               <img
                 src={product.images[0]}
                 alt=""
                 aria-hidden="true"
-                className="absolute inset-0 w-full h-full object-cover opacity-80"
-                style={{ filter: 'blur(25px) scale(1.2)' }}
+                className="absolute inset-0 w-full h-full object-cover"
+                style={{ filter: 'blur(30px) scale(1.2)', opacity: 0.8 }}
                 loading="lazy"
               />
-              {/* Sharp foreground */}
-              <OptimizedImage
+              {/* Sharp foreground — fully visible, no crop */}
+              <img
                 src={product.images[0]}
                 alt={product.name}
-                className="relative z-10 transition-opacity duration-300"
-                aspectRatio="4/5"
-                displayWidth={600}
+                className="relative z-10 w-full h-full object-contain"
+                loading="lazy"
+                decoding="async"
               />
             </>
           ) : (
