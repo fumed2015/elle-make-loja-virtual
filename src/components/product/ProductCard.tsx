@@ -144,7 +144,7 @@ const ProductCard = memo(({ product, index = 0 }: ProductCardProps) => {
           {/* Price */}
           <div className="pt-0.5">
             {hasDiscount && (
-              <span className="text-[13px] text-muted-foreground line-through block leading-none">
+              <span className="text-[0.8125rem] text-muted-foreground line-through block leading-none">
                 R$ {Number(product.compare_at_price).toFixed(2).replace(".", ",")}
               </span>
             )}
