@@ -154,6 +154,15 @@ const Explorar = () => {
     return source;
   }, [products, collectionProducts, isCollectionPage, collectionSlug, activeBrand, activePriceRange, sortBy]);
 
+  // Reset page when filters change
+  useEffect(() => { setCurrentPage(1); }, [activeBrand, activePriceRange, sortBy, activeCat, searchQuery]);
+
+  const totalPages = Math.ceil(filteredProducts.length / PRODUCTS_PER_PAGE);
+  const paginatedProducts = useMemo(
+    () => filteredProducts.slice((currentPage - 1) * PRODUCTS_PER_PAGE, currentPage * PRODUCTS_PER_PAGE),
+    [filteredProducts, currentPage]
+  );
+
   const activeFiltersCount = [activeBrand, activePriceRange !== null, activeCat].filter(Boolean).length;
 
   const searchDebounceRef = useRef<ReturnType<typeof setTimeout>>();
