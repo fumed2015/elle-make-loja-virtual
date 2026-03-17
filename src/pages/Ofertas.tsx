@@ -29,6 +29,14 @@ const Ofertas = () => {
   }, [curatedProducts, allProducts]);
 
   const isLoading = loadingCurated || loadingAll;
+  const totalPages = Math.ceil(products.length / PRODUCTS_PER_PAGE);
+  const paginatedProducts = useMemo(
+    () => products.slice((currentPage - 1) * PRODUCTS_PER_PAGE, currentPage * PRODUCTS_PER_PAGE),
+    [products, currentPage]
+  );
+
+  // Reset page when products change
+  useEffect(() => { setCurrentPage(1); }, [products.length]);
 
   return (
     <>
