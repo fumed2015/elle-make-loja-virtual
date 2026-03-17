@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { motion } from "framer-motion";
-import { Megaphone, Tag, TrendingUp, Calendar, Plus, Trash2, DollarSign, Percent, Users } from "lucide-react";
+import { Megaphone, Tag, TrendingUp, Calendar, Plus, Trash2, DollarSign, Percent, Users, Download, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
 const MarketingTab = () => {
