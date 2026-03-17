@@ -97,6 +97,15 @@ const Categoria = () => {
     return result;
   }, [products, search, activeBrand, activePriceRange, sortBy, isOfertas]);
 
+  // Reset page on filter change
+  useEffect(() => { setCurrentPage(1); }, [activeBrand, activePriceRange, sortBy, search, slug]);
+
+  const totalPages = Math.ceil(filteredProducts.length / PRODUCTS_PER_PAGE);
+  const paginatedProducts = useMemo(
+    () => filteredProducts.slice((currentPage - 1) * PRODUCTS_PER_PAGE, currentPage * PRODUCTS_PER_PAGE),
+    [filteredProducts, currentPage]
+  );
+
   const activeFiltersCount = [activeBrand, activePriceRange !== null].filter(Boolean).length;
   const otherCategories = categories?.filter(c => c.slug !== slug) || [];
 
