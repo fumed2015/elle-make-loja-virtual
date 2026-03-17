@@ -222,16 +222,32 @@ serve(async (req) => {
           continue;
         }
 
-        // Check if user already completed an order recently
+        // Check if user already completed an order recently (any status including cancelled/deleted)
         const { data: recentOrders } = await supabase
           .from("orders")
-          .select("id")
+          .select("id, status")
           .eq("user_id", event.user_id)
           .gt("created_at", event.created_at)
-          .not("status", "eq", "cancelled")
           .limit(1);
 
         if (recentOrders && recentOrders.length > 0) {
+          await supabase
+            .from("cart_abandonment_events")
+            .update({ recovered_at: new Date().toISOString(), notification_count: 99 })
+            .eq("id", event.id);
+          continue;
+        }
+
+        // Also check if user has ANY cancelled/refunded orders (means they interacted, stop recovery)
+        const { data: cancelledOrders } = await supabase
+          .from("orders")
+          .select("id")
+          .eq("user_id", event.user_id)
+          .in("status", ["cancelled", "refunded"])
+          .gt("created_at", event.created_at)
+          .limit(1);
+
+        if (cancelledOrders && cancelledOrders.length > 0) {
           await supabase
             .from("cart_abandonment_events")
             .update({ recovered_at: new Date().toISOString(), notification_count: 99 })
@@ -502,13 +518,12 @@ serve(async (req) => {
       if (error) return jsonResponse({ error: error.message }, 500);
       if (!leads || leads.length === 0) return jsonResponse({ processed: 0, message: "No checkout leads to recover" });
 
-      // Check if user completed an order after the lead was created
+      // Check if user completed OR cancelled an order after the lead was created
       const userIds = leads.map((l: any) => l.user_id);
       const { data: recentOrders } = await supabase
         .from("orders")
-        .select("user_id, created_at")
+        .select("user_id, created_at, status")
         .in("user_id", userIds)
-        .not("status", "eq", "cancelled")
         .order("created_at", { ascending: false });
 
       const usersWithOrders = new Set<string>();

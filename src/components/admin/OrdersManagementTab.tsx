@@ -241,11 +241,18 @@ const OrdersManagementTab = () => {
     
     // Also clean up any checkout_leads and cart_abandonment_events for this user
     if (order?.user_id) {
-      await supabase
-        .from("cart_abandonment_events")
-        .update({ recovered_at: new Date().toISOString() })
-        .eq("user_id", order.user_id)
-        .is("recovered_at", null);
+      await Promise.all([
+        supabase
+          .from("cart_abandonment_events")
+          .update({ recovered_at: new Date().toISOString() })
+          .eq("user_id", order.user_id)
+          .is("recovered_at", null),
+        supabase
+          .from("checkout_leads")
+          .update({ converted_at: new Date().toISOString() })
+          .eq("user_id", order.user_id)
+          .is("converted_at", null),
+      ]);
     }
     
     // Now delete the order
