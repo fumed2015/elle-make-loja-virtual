@@ -7,7 +7,6 @@ import { useCart } from "@/hooks/useCart";
 import { useCartDrawer } from "@/components/cart/AddToCartDrawer";
 import { useAuth } from "@/hooks/useAuth";
 import { useFavorites } from "@/hooks/useFavorites";
-import { motion } from "framer-motion";
 import OptimizedImage from "@/components/ui/optimized-image";
 
 import { cn } from "@/lib/utils";
@@ -38,7 +37,6 @@ const ProductCard = memo(({ product, index = 0 }: ProductCardProps) => {
     e.preventDefault();
     e.stopPropagation();
     if (product.stock <= 0) return;
-    // If product has swatches, navigate to product page instead
     const swatches = typeof product.swatches === 'string' ? JSON.parse(product.swatches) : (product.swatches || []);
     if (swatches.length > 0) {
       navigate(`/produto/${product.slug}`);
@@ -74,11 +72,8 @@ const ProductCard = memo(({ product, index = 0 }: ProductCardProps) => {
 
   return (
     <Link to={`/produto/${product.slug}`} className="block group">
-      <motion.div
-        whileHover={{ y: -4, boxShadow: "0 8px 30px -10px hsl(var(--foreground) / 0.1)" }}
-        whileTap={{ scale: 0.98 }}
-        transition={{ type: "spring", stiffness: 400, damping: 25 }}
-        className="bg-card rounded-lg overflow-hidden border border-border relative"
+      <div
+        className="bg-card rounded-lg overflow-hidden border border-border relative transition-transform transition-shadow duration-200 hover:-translate-y-1 hover:shadow-md"
       >
         {/* Image */}
         <div className="relative overflow-hidden rounded-t-lg" style={{ aspectRatio: '1/1', backgroundColor: '#f8f5f2' }}>
@@ -90,6 +85,8 @@ const ProductCard = memo(({ product, index = 0 }: ProductCardProps) => {
               displayWidth={400}
               placeholderColor="#f8f5f2"
               className="w-full h-full"
+              width={400}
+              height={400}
             />
           ) : (
             <div className="w-full h-full bg-muted flex items-center justify-center text-muted-foreground text-[0.5625rem]">
@@ -111,14 +108,13 @@ const ProductCard = memo(({ product, index = 0 }: ProductCardProps) => {
             )}
           </div>
 
-          {/* Favorite button */}
-          <motion.button
-            whileTap={{ scale: 0.8 }}
+          {/* Favorite button — no backdrop-blur */}
+          <button
             onClick={handleToggleFav}
-            className="absolute top-[0.625rem] right-[0.625rem] z-10 w-7 h-7 rounded-full bg-background/70 backdrop-blur-sm flex items-center justify-center md:opacity-0 md:group-hover:opacity-100 transition-opacity"
+            className="absolute top-[0.625rem] right-[0.625rem] z-10 w-7 h-7 rounded-full bg-background/80 flex items-center justify-center md:opacity-0 md:group-hover:opacity-100 transition-opacity active:scale-90"
           >
             <Heart className={cn("w-3.5 h-3.5 transition-colors", favorited ? "fill-destructive text-destructive" : "text-foreground/60")} />
-          </motion.button>
+          </button>
         </div>
 
         {/* Info */}
@@ -163,7 +159,7 @@ const ProductCard = memo(({ product, index = 0 }: ProductCardProps) => {
             )}
           </div>
 
-          {/* Add to cart - always visible */}
+          {/* Add to cart */}
           <div className="flex gap-1.5 mt-1.5">
             <Button
               onClick={handleQuickAdd}
@@ -184,7 +180,7 @@ const ProductCard = memo(({ product, index = 0 }: ProductCardProps) => {
             </Button>
           </div>
         </div>
-      </motion.div>
+      </div>
     </Link>
   );
 });

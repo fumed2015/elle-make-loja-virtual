@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useProducts, useCategories } from "@/hooks/useProducts";
 import ProductCard from "@/components/product/ProductCard";
+import ProductPagination from "@/components/ui/ProductPagination";
 import SEOHead from "@/components/SEOHead";
 import Footer from "@/components/layout/Footer";
 import { useState, useMemo, useEffect } from "react";
@@ -51,6 +52,8 @@ const Categoria = () => {
   const [activeBrand, setActiveBrand] = useState("");
   const [activePriceRange, setActivePriceRange] = useState<number | null>(null);
   const [showMobileFilters, setShowMobileFilters] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const PRODUCTS_PER_PAGE = 24;
 
   const meta = categoryMeta[slug || ""] || { title: slug || "Categoria", description: "", emoji: "✨" };
   const isOfertas = slug === "ofertas";
@@ -95,6 +98,15 @@ const Categoria = () => {
     }
     return result;
   }, [products, search, activeBrand, activePriceRange, sortBy, isOfertas]);
+
+  // Reset page on filter change
+  useEffect(() => { setCurrentPage(1); }, [activeBrand, activePriceRange, sortBy, search, slug]);
+
+  const totalPages = Math.ceil(filteredProducts.length / PRODUCTS_PER_PAGE);
+  const paginatedProducts = useMemo(
+    () => filteredProducts.slice((currentPage - 1) * PRODUCTS_PER_PAGE, currentPage * PRODUCTS_PER_PAGE),
+    [filteredProducts, currentPage]
+  );
 
   const activeFiltersCount = [activeBrand, activePriceRange !== null].filter(Boolean).length;
   const otherCategories = categories?.filter(c => c.slug !== slug) || [];
@@ -359,13 +371,14 @@ const Categoria = () => {
                 )}
               </div>
             ) : (
-              <motion.div variants={container} initial="hidden" animate="show" className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
-                {filteredProducts.map((product, i) => (
-                  <motion.div key={product.id} variants={item}>
-                    <ProductCard product={product} index={i} />
-                  </motion.div>
-                ))}
-              </motion.div>
+              <>
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+                  {paginatedProducts.map((product, i) => (
+                    <ProductCard key={product.id} product={product} index={i} />
+                  ))}
+                </div>
+                <ProductPagination currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} />
+              </>
             )}
           </div>
         </div>
