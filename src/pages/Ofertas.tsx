@@ -8,16 +8,10 @@ import SEOHead from "@/components/SEOHead";
 import Footer from "@/components/layout/Footer";
 import Breadcrumbs, { breadcrumbJsonLd } from "@/components/Breadcrumbs";
 
-const container = {
-  hidden: { opacity: 0 },
-  show: { opacity: 1, transition: { staggerChildren: 0.05 } },
-};
-const item = {
-  hidden: { opacity: 0, y: 16 },
-  show: { opacity: 1, y: 0 },
-};
+const PRODUCTS_PER_PAGE = 24;
 
 const Ofertas = () => {
+  const [currentPage, setCurrentPage] = useState(1);
   const { data: curatedProducts, isLoading: loadingCurated } = useCollectionProducts("ofertas");
   const { data: allProducts, isLoading: loadingAll } = useAllProductsUnified();
 
