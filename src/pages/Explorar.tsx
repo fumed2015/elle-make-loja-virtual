@@ -82,7 +82,9 @@ const Explorar = () => {
   const [showSortMenu, setShowSortMenu] = useState(false);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [gridCols, setGridCols] = useState<2 | 3>(savedFilters.gridCols || 2);
+  const [currentPage, setCurrentPage] = useState(1);
   const searchRef = useRef<HTMLDivElement>(null);
+  const PRODUCTS_PER_PAGE = 24;
 
   // Persist filter preferences
   useEffect(() => {
