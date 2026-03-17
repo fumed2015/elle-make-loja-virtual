@@ -1,8 +1,8 @@
-import { useMemo } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { useCollectionProducts } from "@/hooks/useCollections";
 import { useAllProductsUnified } from "@/hooks/useProducts";
 import ProductCard from "@/components/product/ProductCard";
-import { motion } from "framer-motion";
+import ProductPagination from "@/components/ui/ProductPagination";
 import { Tag, Flame } from "lucide-react";
 import SEOHead from "@/components/SEOHead";
 import Footer from "@/components/layout/Footer";
