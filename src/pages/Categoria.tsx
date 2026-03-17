@@ -52,6 +52,8 @@ const Categoria = () => {
   const [activeBrand, setActiveBrand] = useState("");
   const [activePriceRange, setActivePriceRange] = useState<number | null>(null);
   const [showMobileFilters, setShowMobileFilters] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const PRODUCTS_PER_PAGE = 24;
 
   const meta = categoryMeta[slug || ""] || { title: slug || "Categoria", description: "", emoji: "✨" };
   const isOfertas = slug === "ofertas";
