@@ -222,16 +222,32 @@ serve(async (req) => {
           continue;
         }
 
-        // Check if user already completed an order recently
+        // Check if user already completed an order recently (any status including cancelled/deleted)
         const { data: recentOrders } = await supabase
           .from("orders")
-          .select("id")
+          .select("id, status")
           .eq("user_id", event.user_id)
           .gt("created_at", event.created_at)
-          .not("status", "eq", "cancelled")
           .limit(1);
 
         if (recentOrders && recentOrders.length > 0) {
+          await supabase
+            .from("cart_abandonment_events")
+            .update({ recovered_at: new Date().toISOString(), notification_count: 99 })
+            .eq("id", event.id);
+          continue;
+        }
+
+        // Also check if user has ANY cancelled/refunded orders (means they interacted, stop recovery)
+        const { data: cancelledOrders } = await supabase
+          .from("orders")
+          .select("id")
+          .eq("user_id", event.user_id)
+          .in("status", ["cancelled", "refunded"])
+          .gt("created_at", event.created_at)
+          .limit(1);
+
+        if (cancelledOrders && cancelledOrders.length > 0) {
           await supabase
             .from("cart_abandonment_events")
             .update({ recovered_at: new Date().toISOString(), notification_count: 99 })
