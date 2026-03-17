@@ -73,9 +73,38 @@ const MarketingTab = () => {
 
   const fmt = (v: number) => `R$ ${v.toFixed(2).replace(".", ",")}`;
 
+  const [downloadingCatalog, setDownloadingCatalog] = useState(false);
+
+  const handleDownloadCatalog = async () => {
+    setDownloadingCatalog(true);
+    try {
+      const projectId = import.meta.env.VITE_SUPABASE_PROJECT_ID;
+      const res = await fetch(`https://${projectId}.supabase.co/functions/v1/meta-catalog-feed`);
+      if (!res.ok) throw new Error("Erro ao gerar catálogo");
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "meta-catalog-ellemake.csv";
+      a.click();
+      URL.revokeObjectURL(url);
+      toast.success("Catálogo baixado com sucesso!");
+    } catch (err: any) {
+      toast.error(err.message || "Erro ao baixar catálogo");
+    } finally {
+      setDownloadingCatalog(false);
+    }
+  };
+
   return (
     <div className="space-y-4">
-      <h2 className="text-sm font-bold">📣 Marketing</h2>
+      <div className="flex items-center justify-between">
+        <h2 className="text-sm font-bold">📣 Marketing</h2>
+        <Button size="sm" variant="outline" onClick={handleDownloadCatalog} disabled={downloadingCatalog}>
+          {downloadingCatalog ? <Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" /> : <Download className="w-3.5 h-3.5 mr-1.5" />}
+          Catálogo Meta (CSV)
+        </Button>
+      </div>
 
       {/* Overall coupon stats */}
       <div className="grid grid-cols-2 gap-3">
