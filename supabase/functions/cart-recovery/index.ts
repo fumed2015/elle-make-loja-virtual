@@ -518,13 +518,12 @@ serve(async (req) => {
       if (error) return jsonResponse({ error: error.message }, 500);
       if (!leads || leads.length === 0) return jsonResponse({ processed: 0, message: "No checkout leads to recover" });
 
-      // Check if user completed an order after the lead was created
+      // Check if user completed OR cancelled an order after the lead was created
       const userIds = leads.map((l: any) => l.user_id);
       const { data: recentOrders } = await supabase
         .from("orders")
-        .select("user_id, created_at")
+        .select("user_id, created_at, status")
         .in("user_id", userIds)
-        .not("status", "eq", "cancelled")
         .order("created_at", { ascending: false });
 
       const usersWithOrders = new Set<string>();
