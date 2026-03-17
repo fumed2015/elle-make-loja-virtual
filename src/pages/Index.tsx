@@ -344,10 +344,10 @@ const HeroCarousel = () => {
       </AnimatePresence>
 
       {/* Side arrows */}
-      <button onClick={prev} className="absolute left-3 md:left-6 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/80 backdrop-blur-sm flex items-center justify-center shadow-lg hover:bg-white transition-colors z-10">
+      <button onClick={prev} className="absolute left-3 md:left-6 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/90 flex items-center justify-center border border-border hover:bg-white transition-colors z-10">
         <ChevronLeft className="w-5 h-5 text-foreground" />
       </button>
-      <button onClick={next} className="absolute right-3 md:right-6 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/80 backdrop-blur-sm flex items-center justify-center shadow-lg hover:bg-white transition-colors z-10">
+      <button onClick={next} className="absolute right-3 md:right-6 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/90 flex items-center justify-center border border-border hover:bg-white transition-colors z-10">
         <ChevronRight className="w-5 h-5 text-foreground" />
       </button>
 

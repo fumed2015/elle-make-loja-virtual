@@ -369,13 +369,14 @@ const Categoria = () => {
                 )}
               </div>
             ) : (
-              <motion.div variants={container} initial="hidden" animate="show" className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
-                {filteredProducts.map((product, i) => (
-                  <motion.div key={product.id} variants={item}>
-                    <ProductCard product={product} index={i} />
-                  </motion.div>
-                ))}
-              </motion.div>
+              <>
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+                  {paginatedProducts.map((product, i) => (
+                    <ProductCard key={product.id} product={product} index={i} />
+                  ))}
+                </div>
+                <ProductPagination currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} />
+              </>
             )}
           </div>
         </div>

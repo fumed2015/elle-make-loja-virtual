@@ -88,18 +88,14 @@ const Ofertas = () => {
               <p className="text-sm text-muted-foreground">Novas ofertas são adicionadas frequentemente. Volte em breve!</p>
             </div>
           ) : (
-            <motion.div
-              variants={container}
-              initial="hidden"
-              animate="show"
-              className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 md:gap-4"
-            >
-              {products.map((product: any, index: number) => (
-                <motion.div key={product.id} variants={item}>
-                  <ProductCard product={product} index={index} />
-                </motion.div>
-              ))}
-            </motion.div>
+            <>
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 md:gap-4">
+                {paginatedProducts.map((product: any, index: number) => (
+                  <ProductCard key={product.id} product={product} index={index} />
+                ))}
+              </div>
+              <ProductPagination currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} />
+            </>
           )}
         </section>
 
