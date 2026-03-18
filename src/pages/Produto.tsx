@@ -297,7 +297,7 @@ const Produto = () => {
                 onClick={() => { fbTrackContact(); trackContact(); }}
                 className="w-full min-h-[48px] text-base font-semibold border-2 border-border rounded-md flex items-center justify-center gap-2 hover:bg-muted transition-colors"
               >
-                <WhatsAppIcon className="w-5 h-5 text-accent" />
+                <WhatsAppIcon className="w-5 h-5 text-[#25D366]" />
                 Comprar pelo WhatsApp
               </a>
             </div>
