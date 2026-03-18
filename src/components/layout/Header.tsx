@@ -292,8 +292,8 @@ const Header = () => {
       </div>
 
       {/* Main header */}
-      <div className={`border-b px-3 md:px-4 py-3 md:py-3 transition-all duration-500 ease-in-out w-full z-[2] ${!isTransparent ? 'bg-card/95 backdrop-blur-md border-border shadow-sm' : 'bg-transparent border-transparent shadow-none backdrop-blur-none'}`}>
-        <div className="max-w-7xl mx-auto w-full flex items-center gap-3 overflow-visible">
+      <div className={`border-b px-3 md:px-6 lg:px-8 py-3 transition-all duration-500 ease-in-out w-full z-[2] ${!isTransparent ? 'bg-card/95 backdrop-blur-md border-border shadow-sm' : 'bg-transparent border-transparent shadow-none backdrop-blur-none'}`}>
+        <div className="max-w-[1400px] mx-auto w-full flex items-center gap-2 md:gap-4 lg:gap-6 overflow-visible">
           {/* Left: hamburger (mobile only) + Logo */}
           <div className="flex items-center gap-1 flex-shrink-0">
             <Sheet>
