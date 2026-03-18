@@ -270,8 +270,8 @@ const Header = () => {
       </div>
 
       {/* Desktop secondary info bar */}
-      <div className={`hidden md:flex border-b px-4 py-2 transition-all duration-500 ease-in-out w-full z-[1] ${!isTransparent ? 'bg-card/95 backdrop-blur-md border-border' : 'bg-transparent border-white/10'}`}>
-        <div className="max-w-7xl mx-auto w-full flex items-center justify-between">
+      <div className={`hidden md:flex border-b px-4 md:px-6 lg:px-8 py-2 transition-all duration-500 ease-in-out w-full z-[1] ${!isTransparent ? 'bg-card/95 backdrop-blur-md border-border' : 'bg-transparent border-white/10'}`}>
+        <div className="max-w-[1400px] mx-auto w-full flex items-center justify-between">
           <div className={`flex items-center gap-5 text-sm font-bold transition-colors duration-300 ${!isTransparent ? 'text-foreground' : 'text-white'}`}>
              <a href="https://wa.me/5591936180774" target="_blank" rel="noopener noreferrer" className={`flex items-center gap-1.5 transition-colors ${!isTransparent ? 'hover:text-primary' : 'hover:text-white/80'}`}>
               <WhatsAppIcon className="w-4 h-4" /> <span className="underline">WhatsApp</span>
@@ -292,8 +292,8 @@ const Header = () => {
       </div>
 
       {/* Main header */}
-      <div className={`border-b px-3 md:px-4 py-3 md:py-3 transition-all duration-500 ease-in-out w-full z-[2] ${!isTransparent ? 'bg-card/95 backdrop-blur-md border-border shadow-sm' : 'bg-transparent border-transparent shadow-none backdrop-blur-none'}`}>
-        <div className="max-w-7xl mx-auto w-full flex items-center gap-3 overflow-visible">
+      <div className={`border-b px-3 md:px-6 lg:px-8 py-3 transition-all duration-500 ease-in-out w-full z-[2] ${!isTransparent ? 'bg-card/95 backdrop-blur-md border-border shadow-sm' : 'bg-transparent border-transparent shadow-none backdrop-blur-none'}`}>
+        <div className="max-w-[1400px] mx-auto w-full flex items-center gap-2 md:gap-4 lg:gap-6 overflow-visible">
           {/* Left: hamburger (mobile only) + Logo */}
           <div className="flex items-center gap-1 flex-shrink-0">
             <Sheet>
@@ -349,7 +349,7 @@ const Header = () => {
                   <img 
                     src={logoEllemake} 
                     alt="Elle Make" 
-                    className={`h-8 md:h-9 object-contain transition-all duration-300 ${isTransparent ? 'brightness-0 invert drop-shadow-lg' : ''}`}
+                    className={`h-7 md:h-8 lg:h-9 object-contain transition-all duration-300 ${isTransparent ? 'brightness-0 invert drop-shadow-lg' : ''}`}
                   />
                 </motion.div>
               </Link>
@@ -363,13 +363,13 @@ const Header = () => {
             {navLinks.map((link) => (
               <div
                 key={link.label}
-                className={`relative ${hiddenAtMdLabels.has(link.label) ? 'hidden 2xl:block' : ''}`}
+                className={`relative ${hiddenAtMdLabels.has(link.label) ? 'hidden xl:block' : ''}`}
                 onMouseEnter={() => handleMouseEnter(link.label)}
                 onMouseLeave={handleMouseLeave}
               >
                 <Link
                   to={link.to}
-                  className={`flex items-center gap-1 px-2.5 py-2 text-[clamp(0.7rem,1vw,0.875rem)] font-semibold transition-all tracking-wide uppercase whitespace-nowrap ${!isTransparent ? 'text-foreground hover:text-primary' : 'text-white hover:text-white/80 drop-shadow-sm'}`}
+                  className={`flex items-center gap-0.5 px-1.5 lg:px-2.5 xl:px-3 py-2 text-[0.6875rem] lg:text-xs xl:text-sm font-semibold transition-all tracking-wide uppercase whitespace-nowrap ${!isTransparent ? 'text-foreground hover:text-primary' : 'text-white hover:text-white/80 drop-shadow-sm'}`}
                 >
                   {link.label}
                   {link.subs && <ChevronDown className="w-2.5 h-2.5 lg:w-3 lg:h-3" />}
@@ -413,9 +413,9 @@ const Header = () => {
           </nav>
 
           {/* Right: search + icons */}
-          <div className="flex items-center gap-1 md:gap-2 flex-shrink-0 ml-auto">
+          <div className="flex items-center gap-1 md:gap-1.5 lg:gap-2 flex-shrink-0 ml-auto">
             {/* Desktop search */}
-            <div className="hidden md:flex relative w-[clamp(5rem,10vw,12rem)]" ref={searchContainerRef}>
+            <div className="hidden md:flex relative w-[clamp(6rem,12vw,14rem)]" ref={searchContainerRef}>
               <form onSubmit={handleSearch} className="w-full relative">
                 <Input
                   placeholder="Buscar"
