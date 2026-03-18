@@ -247,6 +247,11 @@ const Produto = () => {
                             <span className="w-[120%] h-[2px] bg-foreground/60 rotate-45 absolute" />
                           </span>
                         )}
+                        {selectedSwatch?.color === s.color && !isUnavailable && (
+                          <span className="absolute -bottom-5 left-1/2 -translate-x-1/2 text-[0.5rem] font-semibold text-primary whitespace-nowrap leading-none">
+                            {s.name}
+                          </span>
+                        )}
                       </motion.button>
                     );
                   })}
