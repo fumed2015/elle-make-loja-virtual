@@ -580,25 +580,8 @@ const HeroCarousel = () => {
         )}
       </section>
 
-      {/* Mais Produtos */}
-      <section className="px-4 py-8 max-w-7xl mx-auto">
-        <div className="flex items-center justify-between mb-5">
-          <div>
-            <h2 className="text-xl font-bold text-foreground">🛍️ Mais Produtos</h2>
-            <p className="text-xs text-muted-foreground">Explore todo nosso catálogo</p>
-          </div>
-          <Link to="/explorar" className="text-xs text-primary font-semibold hover:underline flex items-center gap-1">Ver catálogo <ArrowRight className="w-3 h-3" /></Link>
-        </div>
-        {!isLoading && (
-          <motion.div variants={container} initial="hidden" whileInView="show" viewport={{ once: true }} className="grid grid-cols-2 md:grid-cols-5 lg:grid-cols-6 gap-3">
-            {moreProducts.map((product, i) => (
-              <motion.div key={product.id} variants={item}>
-                <ProductCard product={product} index={i} />
-              </motion.div>
-            ))}
-          </motion.div>
-        )}
-      </section>
+      {/* Todos os Produtos */}
+      <AllProductsSection products={moreProducts} isLoading={isLoading} />
 
       {/* Glow – Consultora IA inline (lazy loaded) */}
       <Suspense fallback={
