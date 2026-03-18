@@ -39,7 +39,7 @@ interface NavItem {
 
 const navLinks: NavItem[] = [
   {
-    label: "Novidades", to: "/explorar?cat=novidades",
+    label: "Todos os Produtos", to: "/explorar",
     subs: [
       { label: "Lançamentos", to: "/explorar?cat=novidades&q=lancamento" },
       { label: "Mais Vendidos", to: "/explorar?cat=novidades&q=vendido" },
@@ -101,14 +101,6 @@ const navLinks: NavItem[] = [
   },
   {
     label: "Ofertas", to: "/ofertas",
-  },
-  {
-    label: "Blog", to: "/blog",
-    subs: [
-      { label: "Artigos", to: "/blog" },
-      { label: "Quiz de Beleza", to: "/quiz-beleza" },
-      { label: "Glossário", to: "/glossario" },
-    ],
   },
 ];
 
