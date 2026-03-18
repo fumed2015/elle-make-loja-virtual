@@ -161,14 +161,33 @@ const ProductCard = memo(({ product, index = 0 }: ProductCardProps) => {
 
           {/* Add to cart */}
           <div className="flex gap-1.5 mt-1.5">
-            <Button
-              onClick={handleQuickAdd}
-              disabled={product.stock <= 0}
-              className="flex-1 bg-primary text-primary-foreground hover:bg-primary/90 rounded-md text-[0.625rem] h-[2rem] font-bold uppercase tracking-wide"
-              size="sm"
-            >
-              {product.stock <= 0 ? "Esgotado" : swatches.length > 0 ? "Ver cores" : "Comprar"}
-            </Button>
+            {product.stock <= 0 ? (
+              <Button
+                disabled
+                className="flex-1 rounded-md text-[0.625rem] h-[2rem] font-bold uppercase tracking-wide"
+                size="sm"
+              >
+                Esgotado
+              </Button>
+            ) : swatches.length > 0 ? (
+              <Button
+                onClick={handleQuickAdd}
+                variant="outline"
+                className="flex-1 border-primary text-primary hover:bg-primary hover:text-primary-foreground rounded-md text-[0.625rem] h-[2rem] font-bold uppercase tracking-wide"
+                size="sm"
+                title="Escolher cor e comprar"
+              >
+                Ver cores
+              </Button>
+            ) : (
+              <Button
+                onClick={handleQuickAdd}
+                className="flex-1 bg-primary text-primary-foreground hover:bg-primary/90 rounded-md text-[0.625rem] h-[2rem] font-bold uppercase tracking-wide"
+                size="sm"
+              >
+                Comprar
+              </Button>
+            )}
             <Button
               onClick={handleQuickAdd}
               disabled={product.stock <= 0}
