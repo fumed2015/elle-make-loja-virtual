@@ -163,6 +163,7 @@ const heroSlides = [
   {
     image: "/hero-banner.jpg",
     label: "Maquiagem & Cosméticos",
+    subtitle: "Maquiagem com entrega em até 3h em Belém",
     title: "ELLE\nMAKE",
     cta: "Ver Catálogo",
     link: "/explorar",
@@ -170,6 +171,7 @@ const heroSlides = [
   {
     image: "/hero-banner-2.jpg",
     label: "Lábios Perfeitos",
+    subtitle: "Os melhores batons e glosses nacionais",
     title: "BATONS\n& GLOSS",
     cta: "Ver Coleção",
     link: "/categoria/labios",
@@ -177,8 +179,9 @@ const heroSlides = [
   {
     image: "/hero-banner-3.jpg",
     label: "Base & Skincare",
+    subtitle: "Bases, séruns e proteção solar",
     title: "PELE\nPERFEITA",
-    cta: "Ver Catálogo",
+    cta: "Ver Skincare",
     link: "/categoria/rosto",
   },
 ];
