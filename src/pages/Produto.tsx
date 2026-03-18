@@ -41,6 +41,8 @@ const Produto = () => {
   const [selectedSwatch, setSelectedSwatch] = useState<any>(null);
   const [qty, setQty] = useState(1);
   const shipping = useShipping();
+  const categorySlug = (product as any)?.categories?.slug;
+  const { data: relatedProducts } = useProducts({ categorySlug });
 
   // Auto-select first available swatch when product loads
   useEffect(() => {
