@@ -224,7 +224,7 @@ const Produto = () => {
                 <p className="text-sm font-medium mb-2">Cor: <span className="text-primary">{selectedSwatch?.name || "Selecione"}</span>
                   {selectedSwatch?.available === false && <span className="text-destructive text-xs ml-2">(Indisponível)</span>}
                 </p>
-                <div className="flex flex-wrap gap-2.5">
+                <div className="flex flex-wrap gap-2.5 pb-6">
                   {swatches.map((s: any, i: number) => {
                     const isUnavailable = s.available === false;
                     return (
