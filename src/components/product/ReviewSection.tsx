@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { Star, Send } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { Star, Send, LogIn } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { useReviews, useCreateReview } from "@/hooks/useReviews";
@@ -8,6 +9,7 @@ import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
 
 const ReviewSection = ({ productId }: { productId: string }) => {
+  const navigate = useNavigate();
   const { data: reviews, isLoading } = useReviews(productId);
   const createReview = useCreateReview();
   const { user } = useAuth();
@@ -39,9 +41,14 @@ const ReviewSection = ({ productId }: { productId: string }) => {
             </div>
           )}
         </div>
-        {user && (
+        {user ? (
           <Button variant="ghost" size="sm" onClick={() => setShowForm(!showForm)} className="text-xs text-primary">
             {showForm ? "Cancelar" : "Avaliar"}
+          </Button>
+        ) : (
+          <Button variant="ghost" size="sm" onClick={() => navigate("/perfil")} className="text-xs text-muted-foreground">
+            <LogIn className="w-3.5 h-3.5 mr-1" />
+            Entre para avaliar
           </Button>
         )}
       </div>
@@ -79,7 +86,23 @@ const ReviewSection = ({ productId }: { productId: string }) => {
       {isLoading ? (
         <div className="space-y-2">{[1, 2].map((i) => <div key={i} className="h-20 bg-muted rounded-xl animate-pulse" />)}</div>
       ) : reviews?.length === 0 ? (
-        <p className="text-xs text-muted-foreground text-center py-4">Nenhuma avaliação ainda. Seja a primeira!</p>
+        <div className="flex flex-col items-center gap-2 py-6">
+          <div className="flex gap-0.5">
+            {[1, 2, 3, 4, 5].map((i) => (
+              <Star key={i} className="w-5 h-5 text-muted-foreground/40" />
+            ))}
+          </div>
+          <p className="text-xs text-muted-foreground">Nenhuma avaliação ainda.</p>
+          {user ? (
+            <Button variant="outline" size="sm" onClick={() => setShowForm(true)} className="text-xs mt-1">
+              Seja a primeira a avaliar
+            </Button>
+          ) : (
+            <Button variant="outline" size="sm" onClick={() => navigate("/perfil")} className="text-xs mt-1">
+              Entre e avalie este produto
+            </Button>
+          )}
+        </div>
       ) : (
         <div className="space-y-3">
           {reviews?.slice(0, 5).map((review) => (
