@@ -105,7 +105,7 @@ const navLinks: NavItem[] = [
 ];
 
 // Labels to show on mobile (reduced set to fit one line)
-const mobileNavLabels = new Set(["Novidades", "Marcas", "Rosto", "Olhos", "Lábios", "Ofertas"]);
+const mobileNavLabels = new Set(["Todos os Produtos", "Marcas", "Rosto", "Olhos", "Lábios", "Ofertas"]);
 
 // Labels hidden at md/lg/xl to prevent overflow — shown at 2xl (1400px+)
 const hiddenAtMdLabels = new Set(["Skincare", "Acessórios", "Blog"]);
