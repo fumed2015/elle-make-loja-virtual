@@ -10,6 +10,7 @@ import { useAllProductsUnified, useCategories } from "@/hooks/useProducts";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import ProductCard from "@/components/product/ProductCard";
+import ProductPagination from "@/components/ui/ProductPagination";
 
 import Footer from "@/components/layout/Footer";
 import { useState } from "react";
