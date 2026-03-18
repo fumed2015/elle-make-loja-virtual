@@ -222,8 +222,8 @@ const HeroCarousel = () => {
       ))}
 
       {/* Gradient overlays */}
-      <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-black/20 to-transparent hidden md:block pointer-events-none z-[2]" />
-      <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-transparent to-black/40 md:hidden pointer-events-none z-[2]" />
+      <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/30 to-transparent hidden md:block pointer-events-none z-[2]" />
+      <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-transparent to-black/50 md:hidden pointer-events-none z-[2]" />
 
       {/* Clickable banner overlay */}
       <Link to={slide.link} className="absolute inset-0 z-[3]" aria-label={slide.label} />
