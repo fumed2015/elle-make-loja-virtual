@@ -336,7 +336,14 @@ const Produto = () => {
               </TabsTrigger>
             </TabsList>
             <TabsContent value="descricao" className="pt-4">
-              <p className="text-sm text-foreground/80 leading-relaxed">{product.description || "Descrição não disponível."}</p>
+              <div className="text-sm text-foreground/80 leading-relaxed space-y-2">
+                {(product.description || "Descrição não disponível.")
+                  .split('\n')
+                  .filter(Boolean)
+                  .map((paragraph: string, i: number) => (
+                    <p key={i}>{paragraph}</p>
+                  ))}
+              </div>
               {product.sensorial_description && (
                 <div className="bg-card rounded-xl p-4 border border-border mt-4">
                   <p className="text-xs font-medium text-primary mb-1">✨ Experiência Sensorial</p>
