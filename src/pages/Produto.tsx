@@ -224,7 +224,7 @@ const Produto = () => {
                 <p className="text-sm font-medium mb-2">Cor: <span className="text-primary">{selectedSwatch?.name || "Selecione"}</span>
                   {selectedSwatch?.available === false && <span className="text-destructive text-xs ml-2">(Indisponível)</span>}
                 </p>
-                <div className="flex flex-wrap gap-2.5">
+                <div className="flex flex-wrap gap-2.5 pb-6">
                   {swatches.map((s: any, i: number) => {
                     const isUnavailable = s.available === false;
                     return (
@@ -245,6 +245,11 @@ const Produto = () => {
                         {isUnavailable && (
                           <span className="absolute inset-0 flex items-center justify-center">
                             <span className="w-[120%] h-[2px] bg-foreground/60 rotate-45 absolute" />
+                          </span>
+                        )}
+                        {selectedSwatch?.color === s.color && !isUnavailable && (
+                          <span className="absolute -bottom-5 left-1/2 -translate-x-1/2 text-[0.5rem] font-semibold text-primary whitespace-nowrap leading-none">
+                            {s.name}
                           </span>
                         )}
                       </motion.button>
