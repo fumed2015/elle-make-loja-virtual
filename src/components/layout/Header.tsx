@@ -279,9 +279,9 @@ const Header = () => {
             <span className="flex items-center gap-1.5">
               <Phone className="w-3.5 h-3.5" /> (91) 93618-0774
             </span>
-            <span className="flex items-center gap-1.5">
+            <a href="mailto:ellemakeloja@gmail.com" className={`flex items-center gap-1.5 transition-colors ${!isTransparent ? 'hover:text-primary' : 'hover:text-white/80'}`}>
               <Mail className="w-3.5 h-3.5" /> ellemakeloja@gmail.com
-            </span>
+            </a>
           </div>
           <div className={`flex items-center gap-3 transition-colors duration-300 ${!isTransparent ? 'text-foreground' : 'text-white'}`}>
             <a href="https://instagram.com/ellemakebelem" target="_blank" rel="noopener noreferrer" className={`transition-colors ${!isTransparent ? 'hover:text-primary' : 'hover:text-white/80'}`} aria-label="Instagram">
