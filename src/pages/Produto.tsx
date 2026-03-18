@@ -5,7 +5,8 @@ import { Heart, Minus, Plus, ShoppingBag, Truck, CreditCard, ShieldCheck, Messag
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { useProduct } from "@/hooks/useProducts";
+import { useProduct, useProducts } from "@/hooks/useProducts";
+import ProductCard from "@/components/product/ProductCard";
 import { useCart } from "@/hooks/useCart";
 import { useCartDrawer } from "@/components/cart/AddToCartDrawer";
 import { useAuth } from "@/hooks/useAuth";
@@ -40,6 +41,8 @@ const Produto = () => {
   const [selectedSwatch, setSelectedSwatch] = useState<any>(null);
   const [qty, setQty] = useState(1);
   const shipping = useShipping();
+  const categorySlug = (product as any)?.categories?.slug;
+  const { data: relatedProducts } = useProducts({ categorySlug });
 
   // Auto-select first available swatch when product loads
   useEffect(() => {
@@ -382,6 +385,22 @@ const Produto = () => {
             </div>
           ))}
         </div>
+
+        {/* Related Products */}
+        {(() => {
+          const filtered = relatedProducts?.filter(p => p.slug !== slug).slice(0, 4);
+          if (!filtered || filtered.length === 0) return null;
+          return (
+            <div className="mt-10">
+              <h3 className="text-base font-bold text-foreground mb-4">Você também pode gostar</h3>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                {filtered.map((p, i) => (
+                  <ProductCard key={p.id} product={p} index={i} />
+                ))}
+              </div>
+            </div>
+          );
+        })()}
 
         {/* WhatsApp CTA */}
         <div className="mt-10 bg-card rounded-2xl p-6 md:p-8 text-center border border-border">
