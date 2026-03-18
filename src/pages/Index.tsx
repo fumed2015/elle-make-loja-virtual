@@ -314,6 +314,10 @@ const HeroCarousel = () => {
             {slide.label}
           </span>
 
+          <p className="text-sm opacity-90 mb-2" style={{ color: '#FAF3E8', fontFamily: 'Montserrat, sans-serif' }}>
+            {slide.subtitle}
+          </p>
+
           <h1
             className="text-4xl font-bold leading-none mb-6 tracking-tight whitespace-pre-line"
             style={{
