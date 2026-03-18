@@ -148,15 +148,16 @@ const Footer = () => {
             {/* Security seals */}
             <div className="flex items-center gap-8 md:gap-12">
               {[
-                { icon: ShieldCheck, label: "Site Protegido" },
-                { icon: Lock, label: "Transações Seguras" },
-                { icon: Globe, label: "Certificado SSL" },
+                { icon: ShieldCheck, label: "Site Protegido", detail: "Ambiente 100% seguro" },
+                { icon: Lock, label: "Pagamento Seguro", detail: "Criptografia SSL 256-bit" },
+                { icon: Globe, label: "Loja Verificada", detail: "CNPJ 65.548.306/0001-22" },
               ].map((seal) => (
                 <div key={seal.label} className="flex flex-col items-center gap-2">
                   <div className="w-16 h-16 md:w-20 md:h-20 rounded-full bg-primary-foreground/10 border border-primary-foreground/20 flex items-center justify-center">
                     <seal.icon className="w-7 h-7 md:w-9 md:h-9 text-primary-foreground/80" />
                   </div>
                   <span className="text-[11px] md:text-xs font-bold text-primary-foreground/70 text-center leading-tight tracking-wide uppercase">{seal.label}</span>
+                  <span className="text-[10px] text-primary-foreground/40 text-center leading-tight">{seal.detail}</span>
                 </div>
               ))}
             </div>
