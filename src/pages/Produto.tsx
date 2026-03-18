@@ -5,7 +5,8 @@ import { Heart, Minus, Plus, ShoppingBag, Truck, CreditCard, ShieldCheck, Messag
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { useProduct } from "@/hooks/useProducts";
+import { useProduct, useProducts } from "@/hooks/useProducts";
+import ProductCard from "@/components/product/ProductCard";
 import { useCart } from "@/hooks/useCart";
 import { useCartDrawer } from "@/components/cart/AddToCartDrawer";
 import { useAuth } from "@/hooks/useAuth";
