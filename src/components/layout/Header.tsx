@@ -39,7 +39,7 @@ interface NavItem {
 
 const navLinks: NavItem[] = [
   {
-    label: "Novidades", to: "/explorar?cat=novidades",
+    label: "Todos os Produtos", to: "/explorar",
     subs: [
       { label: "Lançamentos", to: "/explorar?cat=novidades&q=lancamento" },
       { label: "Mais Vendidos", to: "/explorar?cat=novidades&q=vendido" },
@@ -102,21 +102,13 @@ const navLinks: NavItem[] = [
   {
     label: "Ofertas", to: "/ofertas",
   },
-  {
-    label: "Blog", to: "/blog",
-    subs: [
-      { label: "Artigos", to: "/blog" },
-      { label: "Quiz de Beleza", to: "/quiz-beleza" },
-      { label: "Glossário", to: "/glossario" },
-    ],
-  },
 ];
 
 // Labels to show on mobile (reduced set to fit one line)
-const mobileNavLabels = new Set(["Novidades", "Marcas", "Rosto", "Olhos", "Lábios", "Ofertas"]);
+const mobileNavLabels = new Set(["Todos os Produtos", "Marcas", "Rosto", "Olhos", "Lábios", "Ofertas"]);
 
 // Labels hidden at md/lg/xl to prevent overflow — shown at 2xl (1400px+)
-const hiddenAtMdLabels = new Set(["Skincare", "Acessórios", "Blog"]);
+const hiddenAtMdLabels = new Set(["Skincare", "Acessórios"]);
 
 const Header = () => {
   const { cartCount } = useCart();
@@ -301,9 +293,9 @@ const Header = () => {
 
       {/* Main header */}
       <div className={`border-b px-3 md:px-4 py-3 md:py-3 transition-all duration-500 ease-in-out w-full z-[2] ${!isTransparent ? 'bg-card/95 backdrop-blur-md border-border shadow-sm' : 'bg-transparent border-transparent shadow-none backdrop-blur-none'}`}>
-        <div className="max-w-7xl mx-auto w-full flex items-center justify-between gap-[0.5em] overflow-visible">
+        <div className="max-w-7xl mx-auto w-full flex items-center gap-3 overflow-visible">
           {/* Left: hamburger (mobile only) + Logo */}
-          <div className="flex items-center gap-[0.25em] flex-shrink-0">
+          <div className="flex items-center gap-1 flex-shrink-0">
             <Sheet>
               <SheetTrigger asChild>
                 <button className={`md:hidden w-10 h-10 flex items-center justify-center rounded-full transition-colors ${!isTransparent ? 'hover:bg-muted' : 'hover:bg-white/10'}`} aria-label="Menu">
@@ -366,7 +358,7 @@ const Header = () => {
 
           {/* Center: Desktop nav links */}
           <nav
-            className="hidden md:flex flex-1 items-center justify-center overflow-visible min-w-0 mx-[0.5em] flex-nowrap"
+            className="hidden md:flex flex-1 items-center justify-start overflow-visible min-w-0 flex-nowrap"
           >
             {navLinks.map((link) => (
               <div
@@ -421,7 +413,7 @@ const Header = () => {
           </nav>
 
           {/* Right: search + icons */}
-          <div className="flex items-center gap-[0.25em] md:gap-[0.5em] flex-shrink-0">
+          <div className="flex items-center gap-1 md:gap-2 flex-shrink-0 ml-auto">
             {/* Desktop search */}
             <div className="hidden md:flex relative w-[clamp(5rem,10vw,12rem)]" ref={searchContainerRef}>
               <form onSubmit={handleSearch} className="w-full relative">
