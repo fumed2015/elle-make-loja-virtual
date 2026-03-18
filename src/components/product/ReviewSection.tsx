@@ -9,6 +9,7 @@ import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
 
 const ReviewSection = ({ productId }: { productId: string }) => {
+  const navigate = useNavigate();
   const { data: reviews, isLoading } = useReviews(productId);
   const createReview = useCreateReview();
   const { user } = useAuth();
