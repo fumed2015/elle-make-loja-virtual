@@ -384,6 +384,24 @@ const Produto = () => {
           ))}
         </div>
 
+        {/* Related Products */}
+        {(() => {
+          const categorySlug = (product as any)?.categories?.slug;
+          const { data: relatedProducts } = useProducts({ categorySlug });
+          const filtered = relatedProducts?.filter(p => p.slug !== slug).slice(0, 4);
+          if (!filtered || filtered.length === 0) return null;
+          return (
+            <div className="mt-10">
+              <h3 className="text-base font-bold text-foreground mb-4">Você também pode gostar</h3>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                {filtered.map((p, i) => (
+                  <ProductCard key={p.id} product={p} index={i} />
+                ))}
+              </div>
+            </div>
+          );
+        })()}
+
         {/* WhatsApp CTA */}
         <div className="mt-10 bg-card rounded-2xl p-6 md:p-8 text-center border border-border">
           <h3 className="text-lg font-bold text-foreground mb-1">Dúvidas sobre este produto?</h3>
