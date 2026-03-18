@@ -41,9 +41,14 @@ const ReviewSection = ({ productId }: { productId: string }) => {
             </div>
           )}
         </div>
-        {user && (
+        {user ? (
           <Button variant="ghost" size="sm" onClick={() => setShowForm(!showForm)} className="text-xs text-primary">
             {showForm ? "Cancelar" : "Avaliar"}
+          </Button>
+        ) : (
+          <Button variant="ghost" size="sm" onClick={() => navigate("/perfil")} className="text-xs text-muted-foreground">
+            <LogIn className="w-3.5 h-3.5 mr-1" />
+            Entre para avaliar
           </Button>
         )}
       </div>
