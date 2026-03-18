@@ -388,8 +388,6 @@ const Produto = () => {
 
         {/* Related Products */}
         {(() => {
-          const categorySlug = (product as any)?.categories?.slug;
-          const { data: relatedProducts } = useProducts({ categorySlug });
           const filtered = relatedProducts?.filter(p => p.slug !== slug).slice(0, 4);
           if (!filtered || filtered.length === 0) return null;
           return (
