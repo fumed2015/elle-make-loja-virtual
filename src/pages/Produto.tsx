@@ -297,7 +297,7 @@ const Produto = () => {
                 onClick={() => { fbTrackContact(); trackContact(); }}
                 className="w-full min-h-[48px] text-base font-semibold border-2 border-border rounded-md flex items-center justify-center gap-2 hover:bg-muted transition-colors"
               >
-                <WhatsAppIcon className="w-5 h-5 text-accent" />
+                <WhatsAppIcon className="w-5 h-5 text-[#25D366]" />
                 Comprar pelo WhatsApp
               </a>
             </div>
@@ -391,11 +391,11 @@ const Produto = () => {
             href={`https://wa.me/5591936180774?text=${encodeURIComponent(`Olá! Tenho dúvidas sobre: ${product.name}`)}`}
             target="_blank"
             rel="noopener noreferrer"
+            className="inline-flex items-center gap-2 min-h-[44px] px-6 rounded-md font-semibold text-sm text-white transition-opacity hover:opacity-90"
+            style={{ backgroundColor: '#25D366' }}
           >
-            <Button className="bg-accent text-accent-foreground hover:bg-accent/90 min-h-[44px] px-6">
-              <WhatsAppIcon className="w-5 h-5 mr-2" />
-              WhatsApp (91) 93618-0774
-            </Button>
+            <WhatsAppIcon className="w-5 h-5" />
+            WhatsApp (91) 93618-0774
           </a>
         </div>
       </div>
