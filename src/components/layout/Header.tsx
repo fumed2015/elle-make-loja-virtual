@@ -108,7 +108,7 @@ const navLinks: NavItem[] = [
 const mobileNavLabels = new Set(["Todos os Produtos", "Marcas", "Rosto", "Olhos", "Lábios", "Ofertas"]);
 
 // Labels hidden at md/lg/xl to prevent overflow — shown at 2xl (1400px+)
-const hiddenAtMdLabels = new Set(["Skincare", "Acessórios", "Blog"]);
+const hiddenAtMdLabels = new Set(["Skincare", "Acessórios"]);
 
 const Header = () => {
   const { cartCount } = useCart();
