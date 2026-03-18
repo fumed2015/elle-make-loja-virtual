@@ -366,6 +366,42 @@ const HeroCarousel = () => {
   );
 };
 
+const PRODUCTS_PER_PAGE = 24;
+
+const AllProductsSection = ({ products, isLoading }: { products: any[]; isLoading: boolean }) => {
+  const [page, setPage] = useState(1);
+  const totalPages = Math.ceil((products?.length || 0) / PRODUCTS_PER_PAGE);
+  const paginated = useMemo(
+    () => (products || []).slice((page - 1) * PRODUCTS_PER_PAGE, page * PRODUCTS_PER_PAGE),
+    [products, page]
+  );
+
+  useEffect(() => { setPage(1); }, [products?.length]);
+
+  if (isLoading) return null;
+
+  return (
+    <section className="px-4 py-8 max-w-7xl mx-auto">
+      <div className="flex items-center justify-between mb-5">
+        <div>
+          <h2 className="text-xl font-bold text-foreground">🛍️ Todos os Produtos</h2>
+          <p className="text-xs text-muted-foreground">
+            {products?.length || 0} produtos no catálogo
+          </p>
+        </div>
+        <Link to="/explorar" className="text-xs text-primary font-semibold hover:underline flex items-center gap-1">
+          Ver catálogo <ArrowRight className="w-3 h-3" />
+        </Link>
+      </div>
+      <div className="grid grid-cols-2 md:grid-cols-5 lg:grid-cols-6 gap-3">
+        {paginated.map((product: any, i: number) => (
+          <ProductCard key={product.id} product={product} index={i} />
+        ))}
+      </div>
+      <ProductPagination currentPage={page} totalPages={totalPages} onPageChange={setPage} />
+    </section>
+  );
+};
 
 
   return (
