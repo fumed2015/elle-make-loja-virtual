@@ -358,7 +358,7 @@ const Header = () => {
 
           {/* Center: Desktop nav links */}
           <nav
-            className="hidden md:flex flex-1 items-center justify-center overflow-visible min-w-0 mx-[0.5em] flex-nowrap"
+            className="hidden md:flex flex-1 items-center justify-start overflow-visible min-w-0 flex-nowrap"
           >
             {navLinks.map((link) => (
               <div
