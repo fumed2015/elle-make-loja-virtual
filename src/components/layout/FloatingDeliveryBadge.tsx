@@ -23,11 +23,11 @@ const FloatingDeliveryBadge = () => {
     <AnimatePresence>
       {visible && !dismissed && (
         <motion.div
-          initial={{ x: 100, opacity: 0 }}
+          initial={{ x: -100, opacity: 0 }}
           animate={{ x: 0, opacity: 1 }}
-          exit={{ x: 100, opacity: 0 }}
+          exit={{ x: -100, opacity: 0 }}
           transition={{ type: "spring", stiffness: 300, damping: 25 }}
-          className="fixed bottom-36 md:bottom-20 right-4 z-50 flex items-center gap-2 rounded-full bg-emerald-600 text-white pl-3 pr-2 py-2 shadow-lg cursor-default select-none max-w-[13.75rem]"
+          className="fixed bottom-24 md:bottom-6 left-4 z-50 flex items-center gap-2 rounded-full bg-emerald-600 text-white pl-3 pr-2 py-2 shadow-lg cursor-default select-none max-w-[13.75rem]"
         >
           <Bike className="w-4 h-4 flex-shrink-0 text-white" />
           <span className="text-[0.6875rem] font-semibold leading-tight">
