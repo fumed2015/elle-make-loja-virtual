@@ -86,7 +86,23 @@ const ReviewSection = ({ productId }: { productId: string }) => {
       {isLoading ? (
         <div className="space-y-2">{[1, 2].map((i) => <div key={i} className="h-20 bg-muted rounded-xl animate-pulse" />)}</div>
       ) : reviews?.length === 0 ? (
-        <p className="text-xs text-muted-foreground text-center py-4">Nenhuma avaliação ainda. Seja a primeira!</p>
+        <div className="flex flex-col items-center gap-2 py-6">
+          <div className="flex gap-0.5">
+            {[1, 2, 3, 4, 5].map((i) => (
+              <Star key={i} className="w-5 h-5 text-muted-foreground/40" />
+            ))}
+          </div>
+          <p className="text-xs text-muted-foreground">Nenhuma avaliação ainda.</p>
+          {user ? (
+            <Button variant="outline" size="sm" onClick={() => setShowForm(true)} className="text-xs mt-1">
+              Seja a primeira a avaliar
+            </Button>
+          ) : (
+            <Button variant="outline" size="sm" onClick={() => navigate("/perfil")} className="text-xs mt-1">
+              Entre e avalie este produto
+            </Button>
+          )}
+        </div>
       ) : (
         <div className="space-y-3">
           {reviews?.slice(0, 5).map((review) => (
