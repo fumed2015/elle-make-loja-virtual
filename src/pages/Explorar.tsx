@@ -84,7 +84,8 @@ const Explorar = () => {
   const [gridCols, setGridCols] = useState<2 | 3>(savedFilters.gridCols || 2);
   const [currentPage, setCurrentPage] = useState(1);
   const searchRef = useRef<HTMLDivElement>(null);
-  const PRODUCTS_PER_PAGE = 24;
+  const limitParam = searchParams.get("limit");
+  const PRODUCTS_PER_PAGE = limitParam ? Math.min(Number(limitParam) || 9999, 9999) : 24;
 
   // Persist filter preferences
   useEffect(() => {
