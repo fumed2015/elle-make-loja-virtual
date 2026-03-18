@@ -89,8 +89,9 @@ const ProductCard = memo(({ product, index = 0 }: ProductCardProps) => {
               height={400}
             />
           ) : (
-            <div className="w-full h-full bg-muted flex items-center justify-center text-muted-foreground text-[0.5625rem]">
-              Sem imagem
+            <div className="w-full h-full bg-muted flex flex-col items-center justify-center gap-1 text-muted-foreground">
+              <ShoppingBag className="w-8 h-8 opacity-20" />
+              <span className="text-[0.5625rem] font-medium opacity-40">Foto em breve</span>
             </div>
           )}
 
