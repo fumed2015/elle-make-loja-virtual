@@ -128,7 +128,7 @@ const Footer = () => {
               </li>
               <li className="flex items-center gap-2.5 text-xs">
                 <Mail className="w-3.5 h-3.5 flex-shrink-0 text-primary-foreground/50" />
-                ellemakeloja@gmail.com
+                <a href="mailto:ellemakeloja@gmail.com" className="hover:text-primary-foreground transition-colors">ellemakeloja@gmail.com</a>
               </li>
               <li className="flex items-start gap-2.5 text-xs mt-2">
                 <Clock className="w-3.5 h-3.5 flex-shrink-0 mt-0.5 text-primary-foreground/50" />
