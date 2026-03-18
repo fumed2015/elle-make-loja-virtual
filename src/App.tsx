@@ -36,6 +36,7 @@ const Blog = lazy(() => import("./pages/Blog"));
 const BlogPostPage = lazy(() => import("./pages/BlogPost"));
 const QuizBeleza = lazy(() => import("./pages/QuizBeleza"));
 const Glossario = lazy(() => import("./pages/Glossario"));
+const Catalogo = lazy(() => import("./pages/Catalogo"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 const queryClient = new QueryClient();
@@ -84,6 +85,7 @@ const App = () => (
                   <Route path="/glossario" element={<Glossario />} />
                   <Route path="/test-pixel" element={<TestPixel />} />
                   <Route path="/reset-password" element={<ResetPassword />} />
+                  <Route path="/catalogo" element={<Catalogo />} />
                 </Route>
                 <Route path="*" element={<NotFound />} />
               </Routes>
