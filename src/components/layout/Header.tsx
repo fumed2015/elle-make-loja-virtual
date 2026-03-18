@@ -349,7 +349,7 @@ const Header = () => {
                   <img 
                     src={logoEllemake} 
                     alt="Elle Make" 
-                    className={`h-8 md:h-9 object-contain transition-all duration-300 ${isTransparent ? 'brightness-0 invert drop-shadow-lg' : ''}`}
+                    className={`h-7 md:h-8 lg:h-9 object-contain transition-all duration-300 ${isTransparent ? 'brightness-0 invert drop-shadow-lg' : ''}`}
                   />
                 </motion.div>
               </Link>
