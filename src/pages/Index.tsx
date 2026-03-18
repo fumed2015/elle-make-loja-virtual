@@ -360,18 +360,7 @@ const HeroCarousel = () => {
   );
 };
 
-const PRODUCTS_PER_PAGE = 24;
-
 const AllProductsSection = ({ products, isLoading }: { products: any[]; isLoading: boolean }) => {
-  const [page, setPage] = useState(1);
-  const totalPages = Math.ceil((products?.length || 0) / PRODUCTS_PER_PAGE);
-  const paginated = useMemo(
-    () => (products || []).slice((page - 1) * PRODUCTS_PER_PAGE, page * PRODUCTS_PER_PAGE),
-    [products, page]
-  );
-
-  useEffect(() => { setPage(1); }, [products?.length]);
-
   if (isLoading) return null;
 
   return (
@@ -388,11 +377,10 @@ const AllProductsSection = ({ products, isLoading }: { products: any[]; isLoadin
         </Link>
       </div>
       <div className="grid grid-cols-2 md:grid-cols-5 lg:grid-cols-6 gap-3">
-        {paginated.map((product: any, i: number) => (
+        {(products || []).map((product: any, i: number) => (
           <ProductCard key={product.id} product={product} index={i} />
         ))}
       </div>
-      <ProductPagination currentPage={page} totalPages={totalPages} onPageChange={setPage} />
     </section>
   );
 };
