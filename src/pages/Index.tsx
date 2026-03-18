@@ -705,8 +705,6 @@ const AllProductsSection = ({ products, isLoading }: { products: any[]; isLoadin
         </div>
       </section>
 
-      {/* Footer */}
-      <Footer />
 
       {/* Newsletter Popup */}
       <Suspense fallback={null}>
