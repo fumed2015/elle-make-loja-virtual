@@ -10,6 +10,7 @@ import { useAllProductsUnified, useCategories } from "@/hooks/useProducts";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import ProductCard from "@/components/product/ProductCard";
+import ProductPagination from "@/components/ui/ProductPagination";
 
 import Footer from "@/components/layout/Footer";
 import { useState } from "react";
@@ -143,14 +144,14 @@ const Index = () => {
     }
   ), [allProducts, sectionConfigs]);
 
-  // Mais Produtos: curated > remaining products
+  // Mais Produtos: curated > ALL remaining products (no cap)
   const moreProducts = useMemo(() => getCuratedProducts(
     "mais_produtos",
     () => {
       if (!allProducts?.length) return [];
       const usedIds = new Set([...featured, ...offers].map((p: any) => p?.id).filter(Boolean));
       const remaining = allProducts.filter(p => !usedIds.has(p.id));
-      return remaining.length > 0 ? remaining.slice(0, 10) : allProducts.slice(0, 10);
+      return remaining.length > 0 ? remaining : allProducts;
     }
   ), [allProducts, sectionConfigs, featured, offers]);
 
@@ -365,6 +366,42 @@ const HeroCarousel = () => {
   );
 };
 
+const PRODUCTS_PER_PAGE = 24;
+
+const AllProductsSection = ({ products, isLoading }: { products: any[]; isLoading: boolean }) => {
+  const [page, setPage] = useState(1);
+  const totalPages = Math.ceil((products?.length || 0) / PRODUCTS_PER_PAGE);
+  const paginated = useMemo(
+    () => (products || []).slice((page - 1) * PRODUCTS_PER_PAGE, page * PRODUCTS_PER_PAGE),
+    [products, page]
+  );
+
+  useEffect(() => { setPage(1); }, [products?.length]);
+
+  if (isLoading) return null;
+
+  return (
+    <section className="px-4 py-8 max-w-7xl mx-auto">
+      <div className="flex items-center justify-between mb-5">
+        <div>
+          <h2 className="text-xl font-bold text-foreground">🛍️ Todos os Produtos</h2>
+          <p className="text-xs text-muted-foreground">
+            {products?.length || 0} produtos no catálogo
+          </p>
+        </div>
+        <Link to="/explorar" className="text-xs text-primary font-semibold hover:underline flex items-center gap-1">
+          Ver catálogo <ArrowRight className="w-3 h-3" />
+        </Link>
+      </div>
+      <div className="grid grid-cols-2 md:grid-cols-5 lg:grid-cols-6 gap-3">
+        {paginated.map((product: any, i: number) => (
+          <ProductCard key={product.id} product={product} index={i} />
+        ))}
+      </div>
+      <ProductPagination currentPage={page} totalPages={totalPages} onPageChange={setPage} />
+    </section>
+  );
+};
 
 
   return (
@@ -579,25 +616,8 @@ const HeroCarousel = () => {
         )}
       </section>
 
-      {/* Mais Produtos */}
-      <section className="px-4 py-8 max-w-7xl mx-auto">
-        <div className="flex items-center justify-between mb-5">
-          <div>
-            <h2 className="text-xl font-bold text-foreground">🛍️ Mais Produtos</h2>
-            <p className="text-xs text-muted-foreground">Explore todo nosso catálogo</p>
-          </div>
-          <Link to="/explorar" className="text-xs text-primary font-semibold hover:underline flex items-center gap-1">Ver catálogo <ArrowRight className="w-3 h-3" /></Link>
-        </div>
-        {!isLoading && (
-          <motion.div variants={container} initial="hidden" whileInView="show" viewport={{ once: true }} className="grid grid-cols-2 md:grid-cols-5 lg:grid-cols-6 gap-3">
-            {moreProducts.map((product, i) => (
-              <motion.div key={product.id} variants={item}>
-                <ProductCard product={product} index={i} />
-              </motion.div>
-            ))}
-          </motion.div>
-        )}
-      </section>
+      {/* Todos os Produtos */}
+      <AllProductsSection products={moreProducts} isLoading={isLoading} />
 
       {/* Glow – Consultora IA inline (lazy loaded) */}
       <Suspense fallback={
