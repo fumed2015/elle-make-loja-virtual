@@ -144,16 +144,10 @@ const Index = () => {
     }
   ), [allProducts, sectionConfigs]);
 
-  // Mais Produtos: curated > ALL remaining products (no cap)
-  const moreProducts = useMemo(() => getCuratedProducts(
-    "mais_produtos",
-    () => {
-      if (!allProducts?.length) return [];
-      const usedIds = new Set([...featured, ...offers].map((p: any) => p?.id).filter(Boolean));
-      const remaining = allProducts.filter(p => !usedIds.has(p.id));
-      return remaining.length > 0 ? remaining : allProducts;
-    }
-  ), [allProducts, sectionConfigs, featured, offers]);
+  // Todos os Produtos: show ALL products (no exclusions)
+  const moreProducts = useMemo(() => {
+    return allProducts || [];
+  }, [allProducts]);
 
   useEffect(() => {
     // Immediate scroll
