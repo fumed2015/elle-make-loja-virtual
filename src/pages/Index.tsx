@@ -163,6 +163,7 @@ const heroSlides = [
   {
     image: "/hero-banner.jpg",
     label: "Maquiagem & Cosméticos",
+    subtitle: "Maquiagem com entrega em até 3h em Belém",
     title: "ELLE\nMAKE",
     cta: "Ver Catálogo",
     link: "/explorar",
@@ -170,6 +171,7 @@ const heroSlides = [
   {
     image: "/hero-banner-2.jpg",
     label: "Lábios Perfeitos",
+    subtitle: "Os melhores batons e glosses nacionais",
     title: "BATONS\n& GLOSS",
     cta: "Ver Coleção",
     link: "/categoria/labios",
@@ -177,8 +179,9 @@ const heroSlides = [
   {
     image: "/hero-banner-3.jpg",
     label: "Base & Skincare",
+    subtitle: "Bases, séruns e proteção solar",
     title: "PELE\nPERFEITA",
-    cta: "Ver Catálogo",
+    cta: "Ver Skincare",
     link: "/categoria/rosto",
   },
 ];
@@ -219,8 +222,8 @@ const HeroCarousel = () => {
       ))}
 
       {/* Gradient overlays */}
-      <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-black/20 to-transparent hidden md:block pointer-events-none z-[2]" />
-      <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-transparent to-black/40 md:hidden pointer-events-none z-[2]" />
+      <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/30 to-transparent hidden md:block pointer-events-none z-[2]" />
+      <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-transparent to-black/50 md:hidden pointer-events-none z-[2]" />
 
       {/* Clickable banner overlay */}
       <Link to={slide.link} className="absolute inset-0 z-[3]" aria-label={slide.label} />
@@ -249,6 +252,10 @@ const HeroCarousel = () => {
             >
               {slide.label}
             </span>
+
+            <p className="text-sm opacity-90 mb-2" style={{ color: '#FAF3E8', fontFamily: 'Montserrat, sans-serif' }}>
+              {slide.subtitle}
+            </p>
 
             <h1
               className="text-6xl lg:text-8xl font-bold leading-[0.85] mb-8 tracking-tight whitespace-pre-line"
@@ -306,6 +313,10 @@ const HeroCarousel = () => {
           >
             {slide.label}
           </span>
+
+          <p className="text-sm opacity-90 mb-2" style={{ color: '#FAF3E8', fontFamily: 'Montserrat, sans-serif' }}>
+            {slide.subtitle}
+          </p>
 
           <h1
             className="text-4xl font-bold leading-none mb-6 tracking-tight whitespace-pre-line"
