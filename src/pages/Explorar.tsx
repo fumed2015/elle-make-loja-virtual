@@ -547,9 +547,8 @@ const Explorar = () => {
           </div>
         </div>
       </div>
-
-      <Footer />
     </div>
+  );
   );
 };
 

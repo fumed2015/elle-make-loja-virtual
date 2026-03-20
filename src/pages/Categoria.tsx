@@ -383,9 +383,8 @@ const Categoria = () => {
           </div>
         </div>
       </div>
-
-      <Footer />
     </div>
+  );
   );
 };
 

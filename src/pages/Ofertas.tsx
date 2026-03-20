@@ -98,9 +98,8 @@ const Ofertas = () => {
             </>
           )}
         </section>
-
-        <Footer />
       </div>
+    </>
     </>
   );
 };
