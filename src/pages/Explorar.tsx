@@ -293,7 +293,7 @@ const Explorar = () => {
   );
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="flex flex-col">
       <SEOHead
         title={activeCategoryName || "Explorar Produtos"}
         description={activeCategoryName

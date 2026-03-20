@@ -114,7 +114,7 @@ const Categoria = () => {
   const clearFilters = () => { setActiveBrand(""); setActivePriceRange(null); setSortBy("recent"); };
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="flex flex-col">
       <SEOHead
         title={meta.title}
         description={meta.description}

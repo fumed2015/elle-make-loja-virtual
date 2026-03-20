@@ -55,7 +55,7 @@ const Ofertas = () => {
         ]}
       />
 
-      <div className="min-h-screen">
+      <div>
         <Breadcrumbs items={[{ label: "Ofertas" }]} />
         {/* Hero */}
         <section className="bg-gradient-to-br from-destructive/10 via-primary/5 to-accent/10 px-4 py-10 md:py-14">
