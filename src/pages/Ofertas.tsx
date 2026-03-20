@@ -100,7 +100,6 @@ const Ofertas = () => {
         </section>
       </div>
     </>
-    </>
   );
 };
 

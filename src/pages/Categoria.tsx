@@ -385,7 +385,6 @@ const Categoria = () => {
       </div>
     </div>
   );
-  );
 };
 
 export default Categoria;

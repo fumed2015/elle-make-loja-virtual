@@ -549,7 +549,6 @@ const Explorar = () => {
       </div>
     </div>
   );
-  );
 };
 
 export default Explorar;
