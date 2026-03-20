@@ -5,7 +5,7 @@ import ProductCard from "@/components/product/ProductCard";
 import ProductPagination from "@/components/ui/ProductPagination";
 import { Tag, Flame } from "lucide-react";
 import SEOHead from "@/components/SEOHead";
-import Footer from "@/components/layout/Footer";
+
 import Breadcrumbs, { breadcrumbJsonLd } from "@/components/Breadcrumbs";
 
 const PRODUCTS_PER_PAGE = 24;
