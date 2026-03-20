@@ -11,7 +11,7 @@ import ProductPagination from "@/components/ui/ProductPagination";
 import { AnimatePresence, motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 import SEOHead from "@/components/SEOHead";
-import Footer from "@/components/layout/Footer";
+
 import { fbTrackSearch } from "@/hooks/useMetaPixel";
 import { trackSearch } from "@/hooks/useTikTokPixel";
 import Breadcrumbs, { breadcrumbJsonLd } from "@/components/Breadcrumbs";
@@ -547,8 +547,6 @@ const Explorar = () => {
           </div>
         </div>
       </div>
-
-      <Footer />
     </div>
   );
 };

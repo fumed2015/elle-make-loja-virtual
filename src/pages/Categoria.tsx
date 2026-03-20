@@ -8,7 +8,7 @@ import { useProducts, useCategories } from "@/hooks/useProducts";
 import ProductCard from "@/components/product/ProductCard";
 import ProductPagination from "@/components/ui/ProductPagination";
 import SEOHead from "@/components/SEOHead";
-import Footer from "@/components/layout/Footer";
+
 import { useState, useMemo, useEffect } from "react";
 import { cn } from "@/lib/utils";
 import { fbTrackViewCategory } from "@/hooks/useMetaPixel";
@@ -383,8 +383,6 @@ const Categoria = () => {
           </div>
         </div>
       </div>
-
-      <Footer />
     </div>
   );
 };
