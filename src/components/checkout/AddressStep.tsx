@@ -39,7 +39,7 @@ interface AddressStepProps {
   formatCpf: (v: string) => string;
   formatPhone: (v: string) => string;
   isGuest?: boolean;
-  guestInfo?: { name: string; email: string; phone: string };
+  guestInfo?: { name: string; email: string; phone: string; cpf: string };
   setGuestInfo?: (info: any) => void;
 }
 
@@ -54,7 +54,7 @@ const AddressStep = ({
   const cpfValid = useMemo(() => customerInfo.cpf.length < 11 || validateCpf(customerInfo.cpf), [customerInfo.cpf]);
 
   const guestCanContinue = isGuest && guestInfo
-    ? guestInfo.name.trim().length >= 3 && validateEmail(guestInfo.email) && guestInfo.phone.length >= 10 && validateCpf(customerInfo.cpf) && address.zip.length >= 8 && !!address.street && !!address.number && !!address.neighborhood
+    ? guestInfo.name.trim().length >= 3 && validateEmail(guestInfo.email) && guestInfo.phone.length >= 10 && validateCpf(guestInfo.cpf) && address.zip.length >= 8 && !!address.street && !!address.number && !!address.neighborhood
     : false;
 
   const loggedCanContinue = !isGuest
