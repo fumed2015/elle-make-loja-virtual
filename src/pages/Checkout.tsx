@@ -496,36 +496,42 @@ const Checkout = () => {
     };
   };
 
-    // Guest validation
-    if (!user) {
-      if (!guestInfo.name || !guestInfo.name.trim()) {
-        toast.error("Nome é obrigatório");
-        return;
-      }
-      if (!guestInfo.email || !guestInfo.email.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)) {
-        toast.error("Email válido é obrigatório");
-        return;
-      }
-      if (!guestInfo.phone || guestInfo.phone.replace(/\D/g, "").length < 10) {
-        toast.error("Telefone válido é obrigatório");
-        return;
-      }
-    }
   const handlePlaceOrder = async () => {
-    const cpfDigits = user ? customerInfo.cpf.replace(/\D/g, "") : ((guestInfo as any).cpf || "").replace(/\D/g, "");
-    if (!cpfDigits || cpfDigits.length !== 11) { toast.error("CPF é obrigatório para pagamento (11 dígitos)"); return; }
-    if (!isValidCpf(cpfDigits)) { toast.error("CPF inválido. Verifique os dígitos."); return; }
-    if (!address.street || !address.number || !address.neighborhood || !address.zip) {
-      toast.error("Preencha o endereço completo antes de continuar.");
-      setStep("address"); return;
-    }
-    setSubmitting(true);
-    // Fire AddPaymentInfo event
-    const contentIds = items.map((item: any) => (item.products as any)?.id).filter(Boolean);
-    const contents = items.map((item: any) => ({ id: (item.products as any)?.id, quantity: item.quantity })).filter((c: any) => c.id);
-    fbTrackAddPaymentInfo({ value: finalTotal, contentIds, paymentMethod, contents });
-    trackAddPaymentInfo({ value: finalTotal, contentIds, contents: contents.map(c => ({ content_id: c.id, quantity: c.quantity, price: 0 })) });
     try {
+      // Guest validation (must be done before CPF check)
+      if (!user) {
+        if (!guestInfo.name || !guestInfo.name.trim()) {
+          toast.error("Nome é obrigatório");
+          return;
+        }
+        if (!guestInfo.email || !guestInfo.email.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)) {
+          toast.error("Email válido é obrigatório");
+          return;
+        }
+        if (!guestInfo.phone || guestInfo.phone.replace(/\D/g, "").length < 10) {
+          toast.error("Telefone válido é obrigatório");
+          return;
+        }
+        if (!(guestInfo as any).cpf || ((guestInfo as any).cpf || "").replace(/\D/g, "").length !== 11) {
+          toast.error("CPF é obrigatório para pagamento (11 dígitos)");
+          return;
+        }
+      }
+
+      const cpfDigits = user ? customerInfo.cpf.replace(/\D/g, "") : ((guestInfo as any).cpf || "").replace(/\D/g, "");
+      if (!cpfDigits || cpfDigits.length !== 11) { toast.error("CPF é obrigatório para pagamento (11 dígitos)"); return; }
+      if (!isValidCpf(cpfDigits)) { toast.error("CPF inválido. Verifique os dígitos."); return; }
+      if (!address.street || !address.number || !address.neighborhood || !address.zip) {
+        toast.error("Preencha o endereço completo antes de continuar.");
+        setStep("address"); return;
+      }
+      setSubmitting(true);
+      // Fire AddPaymentInfo event
+      const contentIds = items.map((item: any) => (item.products as any)?.id).filter(Boolean);
+      const contents = items.map((item: any) => ({ id: (item.products as any)?.id, quantity: item.quantity })).filter((c: any) => c.id);
+      fbTrackAddPaymentInfo({ value: finalTotal, contentIds, paymentMethod, contents });
+      trackAddPaymentInfo({ value: finalTotal, contentIds, contents: contents.map(c => ({ content_id: c.id, quantity: c.quantity, price: 0 })) });
+
       // For WhatsApp, create order with pending_contact status (no payment gateway needed)
       const newOrderId = await createOrder(paymentMethod === "whatsapp" ? "pending_contact" : "pending");
       setOrderId(newOrderId);
