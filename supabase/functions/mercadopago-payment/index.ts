@@ -545,8 +545,11 @@ async function createCardPayment(body: any, token: string, notificationUrl: stri
 
 async function createBoletoPayment(body: any, token: string, notificationUrl: string) {
   const { amount, description, payer_email, payer_cpf, payer_first_name, payer_last_name, external_reference } = body;
+  console.log("🟡 Boleto Edge Function called with:", { amount, payer_email, payer_cpf, payer_first_name, payer_last_name, external_reference });
+
   const parsedAmount = Math.round(Number(amount) * 100) / 100;
   if (!parsedAmount || parsedAmount <= 0 || isNaN(parsedAmount)) {
+    console.error("Invalid amount:", amount);
     throw new Error("transaction_amount deve ser maior que zero");
   }
   const payload = {
@@ -563,6 +566,8 @@ async function createBoletoPayment(body: any, token: string, notificationUrl: st
     external_reference: external_reference || "",
   };
 
+  console.log("🟡 Boleto payload being sent to MP:", JSON.stringify(payload));
+
   const res = await fetch(`${MP_API}/v1/payments`, {
     method: "POST",
     headers: {
@@ -574,6 +579,7 @@ async function createBoletoPayment(body: any, token: string, notificationUrl: st
   });
 
   const data = await res.json();
+  console.log("🟡 Boleto MP response:", { status: res.status, data });
   if (!res.ok) {
     console.error("MP Boleto error:", JSON.stringify(data));
     throw new Error(data.message || `MP API error ${res.status}`);

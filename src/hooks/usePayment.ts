@@ -108,6 +108,7 @@ export const usePayment = () => {
     setLoading(true);
     setError(null);
     try {
+      console.log("🟡 Boleto: Starting payment creation", { amount, payer, externalReference });
       if (!payer.email || !payer.cpf) {
         throw new Error("Email e CPF do pagador são obrigatórios");
       }
@@ -119,14 +120,17 @@ export const usePayment = () => {
           external_reference: externalReference,
         },
       });
+      console.log("🟡 Boleto: Response received", { data, fnError });
       if (fnError) throw new Error(`Erro na função: ${fnError.message}`);
       if (!data) throw new Error("Resposta vazia do servidor");
       if (data?.error) throw new Error(data.error);
+      console.log("✅ Boleto: Success", data);
       return data as BoletoResult;
     } catch (err: any) {
       const errMsg = err?.message || "Erro ao gerar boleto";
       setError(errMsg);
-      console.error("Boleto creation error:", err);
+      console.error("❌ Boleto creation error:", err);
+      console.error("Error details:", JSON.stringify(err, null, 2));
       return null;
     } finally {
       setLoading(false);

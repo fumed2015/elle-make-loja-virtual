@@ -561,6 +561,8 @@ const Checkout = () => {
 
       setStep("processing");
       const payer = getPayer();
+      console.log("🔵 Checkout: Payer info", payer);
+      console.log("🔵 Checkout: Payment method", paymentMethod);
 
       if (paymentMethod === "pix") {
         const result = await payment.createPixPayment(finalTotal, payer, newOrderId);
