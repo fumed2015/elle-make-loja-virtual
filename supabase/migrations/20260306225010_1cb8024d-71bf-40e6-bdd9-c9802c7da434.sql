@@ -1,0 +1,1 @@
+ALTER TABLE public.financial_premises ALTER COLUMN packaging_cost SET DEFAULT 1.92;

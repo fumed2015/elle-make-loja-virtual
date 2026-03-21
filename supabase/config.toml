@@ -1,0 +1,43 @@
+project_id = "xinkvwlhctwgdfwixzxf"
+
+[functions]
+  [functions.ai-content-generator]
+    verify_jwt = false
+  [functions.auth-email-hook]
+    verify_jwt = false
+  [functions.beauty-consultant]
+    verify_jwt = false
+  [functions.cart-recovery]
+    verify_jwt = false
+  [functions.catalog-consultant]
+    verify_jwt = false
+  [functions.catalog-drive-import]
+    verify_jwt = false
+  [functions.export-auth-users]
+    verify_jwt = false
+  [functions.marketplace-amazon]
+    verify_jwt = false
+  [functions.marketplace-mercadolivre]
+    verify_jwt = false
+  [functions.marketplace-shopee]
+    verify_jwt = false
+  [functions.marketplace-tiktokshop]
+    verify_jwt = false
+  [functions.melhor-envio-shipping]
+    verify_jwt = false
+  [functions.mercadopago-payment]
+    verify_jwt = false
+  [functions.migrate-data]
+    verify_jwt = false
+  [functions.migrate-storage]
+    verify_jwt = false
+  [functions.process-email-queue]
+    verify_jwt = true
+  [functions.seo-report]
+    verify_jwt = false
+  [functions.sitemap]
+    verify_jwt = false
+  [functions.send-transactional-email]
+    verify_jwt = false
+  [functions.whatsapp-notifications]
+    verify_jwt = false

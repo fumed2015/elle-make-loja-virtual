@@ -1,0 +1,1 @@
+ALTER TABLE public.checkout_leads ADD CONSTRAINT checkout_leads_user_id_unique UNIQUE (user_id);

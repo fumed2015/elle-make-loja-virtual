@@ -1,0 +1,217 @@
+#lovable-badge {
+  display: none !important;
+}
+
+html {
+  overscroll-behavior: none;
+}
+
+body {
+  overflow-x: hidden;
+}
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Fonts loaded via index.html preload */
+
+@layer base {
+  :root {
+    --background: 44 41% 95%;
+    --foreground: 0 0% 12%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 0 0% 12%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 0 0% 12%;
+
+    --primary: 354 53% 30%;
+    --primary-foreground: 44 41% 95%;
+
+    --secondary: 44 41% 89%;
+    --secondary-foreground: 0 0% 12%;
+
+    --muted: 44 30% 92%;
+    --muted-foreground: 0 0% 45%;
+
+    --accent: 37 60% 54%;
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 98%;
+
+    --border: 44 25% 86%;
+    --input: 44 25% 86%;
+    --ring: 354 53% 30%;
+
+    --radius: 0.5rem;
+
+    --sidebar-background: 354 53% 30%;
+    --sidebar-foreground: 44 41% 95%;
+    --sidebar-primary: 44 41% 89%;
+    --sidebar-primary-foreground: 354 53% 30%;
+    --sidebar-accent: 354 45% 24%;
+    --sidebar-accent-foreground: 44 41% 95%;
+    --sidebar-border: 354 40% 35%;
+    --sidebar-ring: 44 41% 89%;
+
+    --marsala: 354 53% 30%;
+    --marsala-light: 354 40% 40%;
+    --cream: 44 41% 89%;
+    --cream-dark: 44 30% 82%;
+    --whatsapp: 145 63% 42%;
+    --whatsapp-dark: 145 63% 36%;
+    --gold-star: 37 60% 54%;
+  }
+
+  .dark {
+    --background: 0 0% 6%;
+    --foreground: 44 10% 92%;
+
+    --card: 0 0% 9%;
+    --card-foreground: 44 10% 92%;
+
+    --popover: 0 0% 9%;
+    --popover-foreground: 44 10% 92%;
+
+    --primary: 354 45% 38%;
+    --primary-foreground: 44 41% 95%;
+
+    --secondary: 0 0% 14%;
+    --secondary-foreground: 44 10% 92%;
+
+    --muted: 0 0% 14%;
+    --muted-foreground: 0 0% 55%;
+
+    --accent: 37 50% 48%;
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 98%;
+
+    --border: 0 0% 16%;
+    --input: 0 0% 16%;
+    --ring: 354 45% 38%;
+
+    --sidebar-background: 0 0% 8%;
+    --sidebar-foreground: 44 10% 92%;
+    --sidebar-primary: 354 45% 38%;
+    --sidebar-primary-foreground: 44 41% 95%;
+    --sidebar-accent: 0 0% 14%;
+    --sidebar-accent-foreground: 44 10% 92%;
+    --sidebar-border: 0 0% 16%;
+    --sidebar-ring: 354 45% 38%;
+
+    --marsala: 354 45% 38%;
+    --marsala-light: 354 35% 48%;
+    --cream: 0 0% 14%;
+    --cream-dark: 0 0% 10%;
+    --whatsapp: 145 55% 38%;
+    --whatsapp-dark: 145 55% 32%;
+    --gold-star: 37 50% 48%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground font-sans antialiased;
+    font-family: 'DM Sans', sans-serif;
+    transition: background-color 0.4s ease, color 0.3s ease;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 700;
+  }
+
+  /* Smooth theme transitions — scoped to themed properties only on key elements */
+  [data-theme-transition],
+  [data-theme-transition] * {
+    transition-property: background-color, border-color, color;
+    transition-duration: 0.3s;
+    transition-timing-function: ease;
+  }
+
+  /* Exclude transforms/opacity from global transition so animations aren't slowed */
+  .no-theme-transition,
+  .no-theme-transition * {
+    transition-property: none !important;
+  }
+}
+
+@layer utilities {
+  .font-serif-accent {
+    font-family: 'Playfair Display', serif;
+    font-style: italic;
+  }
+
+  .text-gradient-marsala {
+    @apply bg-clip-text text-transparent;
+    background-image: linear-gradient(135deg, hsl(var(--marsala)), hsl(var(--marsala-light)));
+  }
+
+  .bg-gradient-marsala {
+    background-image: linear-gradient(135deg, hsl(var(--marsala)), hsl(var(--marsala-light)));
+  }
+
+  .bg-gradient-whatsapp {
+    background-image: linear-gradient(135deg, hsl(var(--whatsapp)), hsl(var(--whatsapp-dark)));
+  }
+
+  .shadow-marsala {
+    box-shadow: 0 4px 20px -4px hsl(var(--marsala) / 0.25);
+  }
+
+  .shadow-whatsapp {
+    box-shadow: 0 4px 20px -4px hsl(var(--whatsapp) / 0.3);
+  }
+
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+
+  .safe-area-bottom {
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+
+  .glass {
+    background: hsl(var(--card) / 0.85);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+  }
+
+  /* Micro-interaction utilities */
+  .hover-lift {
+    @apply transition-transform duration-200;
+  }
+  .hover-lift:hover {
+    transform: translateY(-2px);
+  }
+  .hover-lift:active {
+    transform: translateY(0);
+  }
+
+  .press-scale {
+    @apply transition-transform duration-150;
+  }
+  .press-scale:active {
+    transform: scale(0.97);
+  }
+
+  .hover-glow {
+    @apply transition-shadow duration-300;
+  }
+  .hover-glow:hover {
+    box-shadow: 0 0 20px hsl(var(--primary) / 0.15);
+  }
+}
