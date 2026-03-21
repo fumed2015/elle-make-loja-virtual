@@ -78,7 +78,7 @@ const Checkout = () => {
   const [profileLoaded, setProfileLoaded] = useState(false);
   const [addressLoaded, setAddressLoaded] = useState(false);
   const [showAddressPicker, setShowAddressPicker] = useState(false);
-  const [guestInfo, setGuestInfo] = useState({ name: "", email: "", phone: "" });
+  const [guestInfo, setGuestInfo] = useState({ name: "", email: "", phone: "", cpf: "" });
 
   const [pixData, setPixData] = useState<{ qr_code: string; qr_code_base64: string } | null>(null);
   const [boletoData, setBoletoData] = useState<{ barcode: string; boleto_url: string } | null>(null);
@@ -487,16 +487,32 @@ const Checkout = () => {
   const getPayer = () => {
     const fullName = user?.user_metadata?.full_name || guestInfo.name || "";
     const parts = fullName.split(" ");
+    const cpf = user ? customerInfo.cpf : (guestInfo as any).cpf || "";
     return {
       email: user?.email || guestInfo.email || "",
-      cpf: customerInfo.cpf.replace(/\D/g, ""),
+      cpf: cpf.replace(/\D/g, ""),
       firstName: parts[0] || "Cliente",
       lastName: parts.slice(1).join(" ") || "",
     };
   };
 
+    // Guest validation
+    if (!user) {
+      if (!guestInfo.name || !guestInfo.name.trim()) {
+        toast.error("Nome é obrigatório");
+        return;
+      }
+      if (!guestInfo.email || !guestInfo.email.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)) {
+        toast.error("Email válido é obrigatório");
+        return;
+      }
+      if (!guestInfo.phone || guestInfo.phone.replace(/\D/g, "").length < 10) {
+        toast.error("Telefone válido é obrigatório");
+        return;
+      }
+    }
   const handlePlaceOrder = async () => {
-    const cpfDigits = customerInfo.cpf.replace(/\D/g, "");
+    const cpfDigits = user ? customerInfo.cpf.replace(/\D/g, "") : ((guestInfo as any).cpf || "").replace(/\D/g, "");
     if (!cpfDigits || cpfDigits.length !== 11) { toast.error("CPF é obrigatório para pagamento (11 dígitos)"); return; }
     if (!isValidCpf(cpfDigits)) { toast.error("CPF inválido. Verifique os dígitos."); return; }
     if (!address.street || !address.number || !address.neighborhood || !address.zip) {
