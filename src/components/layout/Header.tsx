@@ -1,4 +1,5 @@
 import { Search, User, ShoppingBag, ChevronDown, LogIn, LogOut, Settings, Menu, ChevronLeft, ChevronRight, X, Mail, Phone, Instagram, Facebook, Youtube } from "lucide-react";
+import { fuzzyFilter } from "@/lib/fuzzy-search";
 
 import WhatsAppIcon from "@/components/icons/WhatsAppIcon";
 import logoEllemake from "@/assets/logo-ellemake.png";
