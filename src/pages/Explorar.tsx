@@ -370,7 +370,7 @@ const Explorar = () => {
       </div>
 
       {/* Main content */}
-      <div className="max-w-7xl mx-auto px-4 py-6 flex-1">
+      <div className="max-w-7xl mx-auto px-4 py-6 flex-1 overflow-x-hidden">
         <div className="flex gap-8">
           {/* Desktop sidebar */}
           <aside className="hidden lg:block w-56 flex-shrink-0">
@@ -382,13 +382,13 @@ const Explorar = () => {
           {/* Products area */}
           <div className="flex-1 min-w-0">
             {/* Toolbar */}
-            <div className="flex items-center gap-2 mb-5">
+            <div className="flex flex-wrap items-center gap-2 mb-5 overflow-x-hidden">
               {/* Mobile filter trigger */}
               <Button
                 variant="outline"
                 size="sm"
                 onClick={() => setShowMobileFilters(!showMobileFilters)}
-                className="lg:hidden text-xs gap-1.5 h-9 relative"
+                className="lg:hidden text-xs gap-1.5 h-9 relative flex-shrink-0"
               >
                 <SlidersHorizontal className="w-3.5 h-3.5" />
                 Filtros
@@ -400,7 +400,7 @@ const Explorar = () => {
               </Button>
 
               {/* Mobile category pills */}
-              <div className="flex gap-1.5 overflow-x-auto scrollbar-hide lg:hidden flex-1">
+              <div className="order-3 w-full min-w-0 flex gap-1.5 overflow-x-auto scrollbar-hide lg:hidden">
                 {categories?.slice(0, 6).map((cat) => (
                   <button
                     key={cat.id}
@@ -416,7 +416,7 @@ const Explorar = () => {
               </div>
 
               {/* Sort & view options */}
-              <div className="flex items-center gap-2 ml-auto">
+              <div className="flex items-center gap-2 lg:ml-auto flex-shrink-0">
                 {/* View toggle (desktop only) */}
                 <div className="hidden md:flex items-center border border-border rounded-lg overflow-hidden">
                   <button
@@ -434,7 +434,7 @@ const Explorar = () => {
                 </div>
 
                 {/* Sort dropdown */}
-                <div className="relative">
+                <div className="relative ml-auto lg:ml-0">
                   <Button
                     variant="outline"
                     size="sm"
@@ -516,7 +516,7 @@ const Explorar = () => {
 
             {/* Product grid */}
             {(isCollectionPage ? collectionLoading : isLoading) ? (
-              <div className={cn("grid gap-3", gridCols === 3 ? "grid-cols-2 md:grid-cols-3 lg:grid-cols-4" : "grid-cols-2 md:grid-cols-3")}>
+              <div className={cn("grid gap-3 grid-cols-2", gridCols === 3 ? "md:grid-cols-3 lg:grid-cols-4" : "md:grid-cols-3")}>
                 {[...Array(8)].map((_, i) => (
                   <div key={i} className="aspect-[3/4] rounded-xl bg-muted animate-pulse" />
                 ))}
@@ -536,7 +536,7 @@ const Explorar = () => {
               </div>
             ) : (
               <>
-                <div className={cn("grid gap-3", gridCols === 3 ? "grid-cols-2 md:grid-cols-3 lg:grid-cols-4" : "grid-cols-2 md:grid-cols-3")}>
+                <div className={cn("grid gap-3 grid-cols-2", gridCols === 3 ? "md:grid-cols-3 lg:grid-cols-4" : "md:grid-cols-3")}>
                   {paginatedProducts.map((product, i) => (
                     <ProductCard key={product.id} product={product} index={i} />
                   ))}

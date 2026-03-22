@@ -114,7 +114,7 @@ const Categoria = () => {
   const clearFilters = () => { setActiveBrand(""); setActivePriceRange(null); setSortBy("recent"); };
 
   return (
-    <div className="flex flex-col">
+    <div className="flex flex-col overflow-x-hidden">
       <SEOHead
         title={meta.title}
         description={meta.description}
@@ -148,7 +148,7 @@ const Categoria = () => {
       </div>
 
       {/* Main content */}
-      <div className="max-w-7xl mx-auto px-4 py-6 flex-1">
+      <div className="max-w-7xl mx-auto px-4 py-6 flex-1 overflow-x-hidden">
         <div className="flex gap-8">
           {/* Desktop sidebar */}
           <aside className="hidden lg:block w-56 flex-shrink-0">
@@ -233,9 +233,9 @@ const Categoria = () => {
           {/* Products area */}
           <div className="flex-1 min-w-0">
             {/* Toolbar */}
-            <div className="flex items-center gap-2 mb-5">
+            <div className="flex flex-wrap items-center gap-2 mb-5 overflow-x-hidden">
               {/* Mobile search */}
-              <div className="relative flex-1 lg:hidden">
+              <div className="relative basis-full lg:hidden">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                 <Input
                   placeholder={`Buscar em ${meta.title}...`}
@@ -261,7 +261,7 @@ const Categoria = () => {
               </Button>
 
               {/* Sort */}
-              <div className="relative ml-auto lg:ml-0">
+              <div className="relative ml-auto lg:ml-0 flex-shrink-0">
                 <Button variant="outline" size="sm" onClick={() => setShowSortMenu(!showSortMenu)} className="text-xs gap-1.5 h-9">
                   <ArrowUpDown className="w-3.5 h-3.5" />
                   <span className="hidden sm:inline">{sortLabels[sortBy]}</span>
