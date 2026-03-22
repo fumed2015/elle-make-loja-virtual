@@ -62,6 +62,7 @@ interface CAPIEventData {
     state?: string;
     city?: string;
     zip?: string;
+    fb_login_id?: string;
   };
   custom_data?: Record<string, any>;
 }
