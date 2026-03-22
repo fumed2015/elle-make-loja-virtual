@@ -484,7 +484,8 @@ const Header = () => {
               </DropdownMenuContent>
             </DropdownMenu>
 
-            {/* Search icon (mobile) */}
+            {/* Search icon (mobile) — hidden on /explorar */}
+            {!isExplorar && (
             <button
               onClick={() => setMobileSearchOpen(prev => !prev)}
               className={`md:hidden w-10 h-10 flex items-center justify-center rounded-full transition-colors ${!isTransparent ? 'hover:bg-muted' : 'hover:bg-white/10'}`}
@@ -492,6 +493,7 @@ const Header = () => {
             >
               <Search className={`w-5 h-5 ${!isTransparent ? 'text-foreground' : 'text-white drop-shadow-sm'}`} />
             </button>
+            )}
 
             {/* Account icon (mobile) */}
             <Link to="/perfil" className={`md:hidden w-10 h-10 flex items-center justify-center rounded-full transition-colors relative ${!isTransparent ? 'hover:bg-muted' : 'hover:bg-white/10'}`} aria-label="Conta">
