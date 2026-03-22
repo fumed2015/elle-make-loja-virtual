@@ -180,6 +180,7 @@ const Explorar = () => {
       searchDebounceRef.current = setTimeout(() => {
         fbTrackSearch(value);
         trackSearch({ searchString: value });
+        capiSearch(value, getLastEventId() || undefined);
       }, 800);
     }
   };
