@@ -350,6 +350,22 @@ serve(async (req) => {
         user_id: order.user_id,
       });
 
+      // Mark cart abandonment events and checkout leads as recovered when order is paid/created
+      if (order.user_id && ["order.paid", "order.created"].includes(event_type)) {
+        await Promise.all([
+          supabase
+            .from("cart_abandonment_events")
+            .update({ recovered_at: new Date().toISOString(), notification_count: 99 })
+            .eq("user_id", order.user_id)
+            .is("recovered_at", null),
+          supabase
+            .from("checkout_leads")
+            .update({ converted_at: new Date().toISOString() })
+            .eq("user_id", order.user_id)
+            .is("converted_at", null),
+        ]);
+      }
+
       return jsonResponse({ sent: true, event_type });
     }
 

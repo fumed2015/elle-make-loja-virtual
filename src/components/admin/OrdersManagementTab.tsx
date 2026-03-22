@@ -26,6 +26,7 @@ const STATUS_CONFIG: Record<string, { label: string; icon: any; color: string; b
   shipped: { label: "Enviado", icon: Truck, color: "text-purple-500", bg: "bg-purple-500/10" },
   delivered: { label: "Entregue", icon: CheckCircle, color: "text-green-600", bg: "bg-green-600/10" },
   cancelled: { label: "Cancelado", icon: XCircle, color: "text-destructive", bg: "bg-destructive/10" },
+  refunded: { label: "Reembolsado", icon: XCircle, color: "text-orange-500", bg: "bg-orange-500/10" },
 };
 
 const ALL_STATUSES = Object.keys(STATUS_CONFIG);
@@ -130,12 +131,32 @@ const OrdersManagementTab = () => {
   }, [orders]);
 
   const handleUpdateStatus = async (orderId: string, newStatus: string) => {
+    // Find the order to get user_id
+    const order = orders?.find(o => o.id === orderId);
+    
     const { error } = await supabase.from("orders").update({ status: newStatus }).eq("id", orderId);
     if (error) {
       toast.error("Erro ao atualizar status");
     } else {
       toast.success(`Status atualizado para ${STATUS_CONFIG[newStatus]?.label || newStatus}`);
       refetch();
+
+      // Mark cart abandonment events and checkout leads as recovered when order is paid/confirmed
+      const confirmedStatuses = ['confirmed', 'approved', 'processing', 'shipped', 'delivered'];
+      if (confirmedStatuses.includes(newStatus) && order?.user_id) {
+        await Promise.all([
+          supabase
+            .from("cart_abandonment_events")
+            .update({ recovered_at: new Date().toISOString(), notification_count: 99 })
+            .eq("user_id", order.user_id)
+            .is("recovered_at", null),
+          supabase
+            .from("checkout_leads")
+            .update({ converted_at: new Date().toISOString() })
+            .eq("user_id", order.user_id)
+            .is("converted_at", null),
+        ]);
+      }
 
       // Auto WhatsApp notification for status changes
       const statusEventMap: Record<string, string> = {
@@ -144,6 +165,7 @@ const OrdersManagementTab = () => {
         shipped: "order.shipped",
         delivered: "order.delivered",
         cancelled: "order.cancelled",
+        refunded: "order.cancelled",
       };
       const eventType = statusEventMap[newStatus];
       if (eventType) {
