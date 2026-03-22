@@ -134,7 +134,7 @@ async function buildServerEvent(data: CAPIEventData, req: Request) {
     event_time: data.event_time || Math.floor(Date.now() / 1000),
     event_id: data.event_id || crypto.randomUUID(),
     action_source: data.action_source || "website",
-    event_source_url: data.event_source_url || "https://ellemake2.lovable.app",
+    event_source_url: data.event_source_url || "https://www.ellemake.com.br",
     user_data: ud,
     custom_data: data.custom_data || {},
   };
