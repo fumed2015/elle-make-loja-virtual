@@ -118,6 +118,7 @@ const Header = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const isHome = location.pathname === "/";
+  const isExplorar = location.pathname === "/explorar";
   const [search, setSearch] = useState("");
   const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
   const [hoveredNav, setHoveredNav] = useState<string | null>(null);
@@ -423,7 +424,8 @@ const Header = () => {
 
           {/* Right: search + icons */}
           <div className="flex items-center gap-1 md:gap-1.5 lg:gap-2 flex-shrink-0 ml-auto">
-            {/* Desktop search */}
+            {/* Desktop search — hidden on /explorar (page has its own) */}
+            {!isExplorar && (
             <div className="hidden md:flex relative w-[clamp(6rem,12vw,14rem)]" ref={searchContainerRef}>
               <form onSubmit={handleSearch} className="w-full relative">
                 <Input
@@ -439,6 +441,7 @@ const Header = () => {
               </form>
               <SuggestionsDropdown />
             </div>
+            )}
 
             {/* User dropdown (desktop) */}
             <DropdownMenu>
@@ -481,7 +484,8 @@ const Header = () => {
               </DropdownMenuContent>
             </DropdownMenu>
 
-            {/* Search icon (mobile) */}
+            {/* Search icon (mobile) — hidden on /explorar */}
+            {!isExplorar && (
             <button
               onClick={() => setMobileSearchOpen(prev => !prev)}
               className={`md:hidden w-10 h-10 flex items-center justify-center rounded-full transition-colors ${!isTransparent ? 'hover:bg-muted' : 'hover:bg-white/10'}`}
@@ -489,6 +493,7 @@ const Header = () => {
             >
               <Search className={`w-5 h-5 ${!isTransparent ? 'text-foreground' : 'text-white drop-shadow-sm'}`} />
             </button>
+            )}
 
             {/* Account icon (mobile) */}
             <Link to="/perfil" className={`md:hidden w-10 h-10 flex items-center justify-center rounded-full transition-colors relative ${!isTransparent ? 'hover:bg-muted' : 'hover:bg-white/10'}`} aria-label="Conta">
