@@ -1,4 +1,5 @@
 import { useState, useMemo, useRef, useEffect } from "react";
+import { fuzzyFilter } from "@/lib/fuzzy-search";
 import { useSearchParams, Link } from "react-router-dom";
 import { Search, SlidersHorizontal, X, ArrowUpDown, ChevronDown, ChevronRight, LayoutGrid, List, Sparkles } from "lucide-react";
 import { Input } from "@/components/ui/input";
