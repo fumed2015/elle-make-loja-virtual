@@ -372,8 +372,8 @@ const Explorar = () => {
       </div>
 
       {/* Main content */}
-      <div className="max-w-7xl mx-auto px-4 py-6 flex-1 overflow-x-hidden">
-        <div className="flex gap-8">
+      <div className="max-w-7xl mx-auto px-3 sm:px-4 py-6 flex-1">
+        <div className="flex gap-8 min-w-0">
           {/* Desktop sidebar */}
           <aside className="hidden lg:block w-56 flex-shrink-0">
             <div className="sticky top-28">
