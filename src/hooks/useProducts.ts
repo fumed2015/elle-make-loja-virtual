@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { fuzzyFilter } from "@/lib/fuzzy-search";
 
 export const useProducts = (options?: { featured?: boolean; categorySlug?: string; search?: string }) => {
   return useQuery({
@@ -12,16 +13,19 @@ export const useProducts = (options?: { featured?: boolean; categorySlug?: strin
         const { data: cat } = await supabase.from("categories").select("id").eq("slug", options.categorySlug).single();
         if (cat) query = query.eq("category_id", cat.id);
       }
-      if (options?.search) {
-        query = query.or(`name.ilike.%${options.search}%,description.ilike.%${options.search}%,ingredients.ilike.%${options.search}%,tags.cs.{${options.search}}`);
-      }
 
       const { data, error } = await query.order("created_at", { ascending: false });
       if (error) throw error;
+
+      // Apply fuzzy search client-side for typo tolerance
+      if (options?.search && data) {
+        return fuzzyFilter(data, options.search, 0.25);
+      }
+
       return data;
     },
-    staleTime: 1000 * 60 * 5, // 5 min cache
-    gcTime: 1000 * 60 * 10,   // 10 min GC
+    staleTime: 1000 * 60 * 5,
+    gcTime: 1000 * 60 * 10,
   });
 };
 
