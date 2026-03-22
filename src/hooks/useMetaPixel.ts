@@ -110,6 +110,9 @@ export function fbSetUserData(data: {
     // external_id
     if (data.externalId) ud.external_id = data.externalId;
 
+    // fb_login_id for Facebook OAuth users
+    if (data.fbLoginId) ud.fb_login_id = data.fbLoginId;
+
     // Inject fbc, fbp, and client IP from Meta Param Builder cookies
     const fbc = getFbc();
     if (fbc) ud.fbc = fbc;
