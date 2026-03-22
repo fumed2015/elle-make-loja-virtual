@@ -424,7 +424,8 @@ const Header = () => {
 
           {/* Right: search + icons */}
           <div className="flex items-center gap-1 md:gap-1.5 lg:gap-2 flex-shrink-0 ml-auto">
-            {/* Desktop search */}
+            {/* Desktop search — hidden on /explorar (page has its own) */}
+            {!isExplorar && (
             <div className="hidden md:flex relative w-[clamp(6rem,12vw,14rem)]" ref={searchContainerRef}>
               <form onSubmit={handleSearch} className="w-full relative">
                 <Input
@@ -440,6 +441,7 @@ const Header = () => {
               </form>
               <SuggestionsDropdown />
             </div>
+            )}
 
             {/* User dropdown (desktop) */}
             <DropdownMenu>
