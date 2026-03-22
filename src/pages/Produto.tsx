@@ -108,6 +108,7 @@ const Produto = () => {
     const atcParams = { id: product.id, name: product.name, price: Number(product.price), quantity: qty };
     trackAddToCart(atcParams);
     fbTrackAddToCart(atcParams);
+    capiAddToCart(atcParams, getLastEventId() || undefined);
   };
 
   const handleToggleFavorite = () => {
@@ -116,6 +117,7 @@ const Produto = () => {
       const wishlistParams = { id: product.id, name: product.name, price: Number(product.price) };
       fbTrackAddToWishlist(wishlistParams);
       trackAddToWishlist(wishlistParams);
+      capiAddToWishlist(wishlistParams, getLastEventId() || undefined);
     }
     toggleFavorite.mutate(product.id);
   };
