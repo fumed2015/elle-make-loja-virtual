@@ -9,8 +9,9 @@ import { useCart } from "@/hooks/useCart";
 import { useAuth } from "@/hooks/useAuth";
 import { useProducts } from "@/hooks/useProducts";
 import { useState, useEffect, useRef, useCallback, useMemo } from "react";
-import { fbTrackSearch } from "@/hooks/useMetaPixel";
+import { fbTrackSearch, getLastEventId } from "@/hooks/useMetaPixel";
 import { trackSearch } from "@/hooks/useTikTokPixel";
+import { capiSearch } from "@/hooks/useMetaCapi";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   DropdownMenu,
