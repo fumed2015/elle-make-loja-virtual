@@ -555,6 +555,7 @@ const Checkout = () => {
       const contents = items.map((item: any) => ({ id: (item.products as any)?.id, quantity: item.quantity })).filter((c: any) => c.id);
       fbTrackAddPaymentInfo({ value: finalTotal, contentIds, paymentMethod, contents });
       trackAddPaymentInfo({ value: finalTotal, contentIds, contents: contents.map(c => ({ content_id: c.id, quantity: c.quantity, price: 0 })) });
+      capiAddPaymentInfo({ value: finalTotal, contentIds, paymentMethod, contents }, getLastEventId() || undefined);
 
       // For WhatsApp, create order with pending_contact status (no payment gateway needed)
       const newOrderId = await createOrder(paymentMethod === "whatsapp" ? "pending_contact" : "pending");
