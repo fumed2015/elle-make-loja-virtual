@@ -181,13 +181,22 @@ const Header = () => {
     return () => document.removeEventListener("mousedown", handler);
   }, []);
 
+  // Close mobile search & suggestions on route change
+  useEffect(() => {
+    setMobileSearchOpen(false);
+    setShowSuggestions(false);
+    setSearch("");
+  }, [location.pathname, location.search]);
+
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     setShowSuggestions(false);
+    setMobileSearchOpen(false);
     if (search.trim()) {
       fbTrackSearch(search.trim());
       trackSearch({ searchString: search.trim() });
       navigate(`/explorar?q=${encodeURIComponent(search.trim())}`);
+      setSearch("");
     }
   };
 
