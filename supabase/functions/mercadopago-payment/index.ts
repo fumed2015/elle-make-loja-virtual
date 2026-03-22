@@ -344,22 +344,24 @@ serve(async (req) => {
     return jsonResponse({ error: "MERCADO_PAGO_ACCESS_TOKEN not configured" }, 500);
   }
 
-  // Handle webhook notifications (POST from MP without auth header, or GET with query params)
   const url = new URL(req.url);
-  const hasWebhookParams = url.searchParams.has("topic") || url.searchParams.has("type") || url.searchParams.has("data.id");
   const authHeader = req.headers.get("Authorization");
-  const isWebhook = hasWebhookParams || (req.method === "POST" && !authHeader);
+  const contentType = req.headers.get("content-type") || "";
 
-  if (isWebhook && !authHeader) {
+  // ─── Webhook detection ───────────────────────────────────────
+  // Mercado Pago webhooks come with query params (topic/type/data.id)
+  // OR with x-signature header. They NEVER have our Supabase auth header.
+  const hasWebhookParams = url.searchParams.has("topic") || url.searchParams.has("type") || url.searchParams.has("data.id");
+  const hasWebhookSignature = !!req.headers.get("x-signature");
+  const isWebhook = hasWebhookParams || hasWebhookSignature;
+
+  if (isWebhook) {
     const rawBody = await req.text();
-    
-    // Verify webhook signature
     const isValid = await verifyWebhookSignature(req, rawBody);
     if (!isValid) {
       console.error("Webhook signature verification failed");
       return jsonResponse({ error: "Invalid signature" }, 403);
     }
-    
     return await handleWebhook(req, rawBody, ACCESS_TOKEN);
   }
 
@@ -367,7 +369,7 @@ serve(async (req) => {
     const body = await req.json();
     const { action } = body;
 
-    // Check if body looks like a webhook payload (has type + data.id)
+    // Check if body looks like a webhook payload (has type + data.id but no action)
     if (!action && body?.type && body?.data?.id) {
       const rawBody = JSON.stringify(body);
       const isValid = await verifyWebhookSignature(req, rawBody);
@@ -384,9 +386,34 @@ serve(async (req) => {
       return jsonResponse({ public_key: publicKey });
     }
 
-    // Status check doesn't need auth either (polling)
+    // Status check: update order status server-side using service role
     if (action === "get-status") {
-      return await getPaymentStatus(body, ACCESS_TOKEN);
+      const result = await getPaymentStatus(body, ACCESS_TOKEN);
+      // Also update order status server-side so guests don't need RLS
+      if (body.order_id) {
+        try {
+          const resultData = await result.clone().json();
+          if (resultData?.status) {
+            const statusMap: Record<string, string> = {
+              approved: "confirmed",
+              in_process: "pending",
+              pending: "pending",
+              rejected: "cancelled",
+              cancelled: "cancelled",
+            };
+            const orderStatus = statusMap[resultData.status];
+            if (orderStatus) {
+              const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+              const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+              const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey);
+              await supabaseAdmin.from("orders").update({ status: orderStatus }).eq("id", body.order_id);
+            }
+          }
+        } catch (e) {
+          console.error("Server-side order status update error:", e);
+        }
+      }
+      return result;
     }
 
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
@@ -397,11 +424,15 @@ serve(async (req) => {
     // Authenticate if token provided; allow guest checkout otherwise
     let authUserId: string | null = null;
     if (authHeader?.startsWith("Bearer ")) {
-      const supabaseAuth = createClient(supabaseUrl, supabaseAnonKey, {
-        global: { headers: { Authorization: authHeader } },
-      });
-      const { data: { user: authUser } } = await supabaseAuth.auth.getUser();
-      authUserId = authUser?.id || null;
+      try {
+        const supabaseAuth = createClient(supabaseUrl, supabaseAnonKey, {
+          global: { headers: { Authorization: authHeader } },
+        });
+        const { data: { user: authUser } } = await supabaseAuth.auth.getUser();
+        authUserId = authUser?.id || null;
+      } catch (authErr) {
+        console.warn("Auth check failed (proceeding as guest):", authErr);
+      }
     }
 
     // For payment creation, verify the order belongs to the caller (or is a guest order)
