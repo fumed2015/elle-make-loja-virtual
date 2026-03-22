@@ -384,7 +384,7 @@ const Explorar = () => {
           {/* Products area */}
           <div className="flex-1 min-w-0">
             {/* Toolbar */}
-            <div className="flex flex-wrap items-center gap-2 mb-5 overflow-x-hidden">
+            <div className="flex flex-wrap items-center gap-2 mb-5">
               {/* Mobile filter trigger */}
               <Button
                 variant="outline"
