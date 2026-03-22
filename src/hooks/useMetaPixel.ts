@@ -69,6 +69,7 @@ export function fbSetUserData(data: {
   cpf?: string;
   dateOfBirth?: string;
   gender?: string;
+  fbLoginId?: string;
 }) {
   try {
     if (typeof window === "undefined" || typeof window.fbq !== "function") return;
