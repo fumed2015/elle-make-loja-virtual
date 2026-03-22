@@ -382,7 +382,7 @@ const Explorar = () => {
           </aside>
 
           {/* Products area */}
-          <div className="flex-1 min-w-0 overflow-x-hidden">
+          <div className="flex-1 min-w-0 w-full max-w-full overflow-x-hidden">
             {/* Toolbar */}
             <div className="flex flex-wrap items-center gap-2 mb-5 overflow-x-hidden">
               {/* Mobile filter trigger */}
