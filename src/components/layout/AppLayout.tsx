@@ -14,7 +14,7 @@ const AppLayout = () => {
   useMetaAdvancedMatching();
 
   return (
-    <div className="min-h-screen bg-background transition-colors duration-300 overscroll-none">
+    <div className="min-h-screen bg-background transition-colors duration-300 overscroll-none overflow-x-hidden">
       <Header />
       <AnimatePresence mode="wait">
         <motion.main
