@@ -518,6 +518,7 @@ const Checkout = () => {
             return;
           }
         }
+      }
 
       // CPF validation only for payment gateway methods (not WhatsApp)
       if (paymentMethod !== "whatsapp") {
