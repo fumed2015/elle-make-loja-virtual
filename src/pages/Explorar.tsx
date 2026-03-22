@@ -122,8 +122,7 @@ const Explorar = () => {
 
   const suggestions = useMemo(() => {
     if (!searchQuery || searchQuery.length < 2 || !products) return [];
-    const q = searchQuery.toLowerCase();
-    return products.filter((p) => p.name.toLowerCase().includes(q)).slice(0, 5);
+    return fuzzyFilter(products, searchQuery, 0.3).slice(0, 6);
   }, [searchQuery, products]);
 
   const filteredProducts = useMemo(() => {

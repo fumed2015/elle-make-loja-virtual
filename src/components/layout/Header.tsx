@@ -132,10 +132,7 @@ const Header = () => {
 
   const suggestions = useMemo(() => {
     if (!search || search.length < 2 || !allProducts) return [];
-    const q = search.toLowerCase();
-    return allProducts
-      .filter(p => p.name.toLowerCase().includes(q) || p.brand?.toLowerCase().includes(q))
-      .slice(0, 5);
+    return fuzzyFilter(allProducts, search, 0.3).slice(0, 6);
   }, [search, allProducts]);
 
   const closeTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
