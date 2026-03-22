@@ -108,29 +108,45 @@ const Checkout = () => {
     return () => clearTimeout(timer);
   }, [step, user]);
 
-  // Ghost lead capture: save phone to checkout_leads as user types
+  // Ghost lead capture: save phone to checkout_leads as user types (logged or guest)
   const ghostLeadTimer = React.useRef<ReturnType<typeof setTimeout> | null>(null);
   useEffect(() => {
-    if (!user || step === "success" || step === "processing") return;
-    const phoneDigits = customerInfo.phone.replace(/\D/g, "");
-    if (phoneDigits.length < 10) return; // need at least 10 digits
+    if (step === "success" || step === "processing") return;
+
+    // Determine phone from logged user or guest
+    const phoneSource = user ? customerInfo.phone : guestInfo.phone;
+    const phoneDigits = (phoneSource || "").replace(/\D/g, "");
+    if (phoneDigits.length < 10) return;
 
     if (ghostLeadTimer.current) clearTimeout(ghostLeadTimer.current);
     ghostLeadTimer.current = setTimeout(() => {
-      const firstName = user.user_metadata?.full_name?.split(" ")[0] || "Cliente";
-      supabase.from("checkout_leads").upsert({
-        user_id: user.id,
+      const firstName = user
+        ? (user.user_metadata?.full_name?.split(" ")[0] || "Cliente")
+        : (guestInfo.name?.split(" ")[0] || "Visitante");
+
+      const leadPayload: any = {
         phone: phoneDigits,
         first_name: firstName,
         step,
         cart_total: cartTotal,
         items_count: items.length,
         updated_at: new Date().toISOString(),
-      } as any, { onConflict: "user_id", ignoreDuplicates: false }).then(() => {});
-    }, 2000); // debounce 2s
+      };
+
+      if (user) {
+        leadPayload.user_id = user.id;
+      }
+
+      supabase.from("checkout_leads").upsert(leadPayload, {
+        onConflict: "checkout_leads_phone_active_idx",
+        ignoreDuplicates: false,
+      }).then(({ error }) => {
+        if (error) console.warn("Ghost lead upsert error:", error.message);
+      });
+    }, 2000);
 
     return () => { if (ghostLeadTimer.current) clearTimeout(ghostLeadTimer.current); };
-  }, [customerInfo.phone, step, user, cartTotal, items.length]);
+  }, [customerInfo.phone, guestInfo.phone, guestInfo.name, step, user, cartTotal, items.length]);
 
   const clearCart = useCallback(async () => {
     try {
