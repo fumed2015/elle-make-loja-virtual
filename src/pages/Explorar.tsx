@@ -295,7 +295,7 @@ const Explorar = () => {
   );
 
   return (
-    <div className="flex flex-col overflow-x-hidden">
+    <div className="flex flex-col w-full min-w-0">
       <SEOHead
         title={activeCategoryName || "Explorar Produtos"}
         description={activeCategoryName
@@ -372,8 +372,8 @@ const Explorar = () => {
       </div>
 
       {/* Main content */}
-      <div className="max-w-7xl mx-auto px-4 py-6 flex-1 overflow-x-hidden">
-        <div className="flex gap-8">
+      <div className="max-w-7xl mx-auto px-3 sm:px-4 py-6 flex-1">
+        <div className="flex gap-8 min-w-0">
           {/* Desktop sidebar */}
           <aside className="hidden lg:block w-56 flex-shrink-0">
             <div className="sticky top-28">
@@ -384,7 +384,7 @@ const Explorar = () => {
           {/* Products area */}
           <div className="flex-1 min-w-0">
             {/* Toolbar */}
-            <div className="flex flex-wrap items-center gap-2 mb-5 overflow-x-hidden">
+            <div className="flex flex-wrap items-center gap-2 mb-5">
               {/* Mobile filter trigger */}
               <Button
                 variant="outline"
@@ -538,7 +538,7 @@ const Explorar = () => {
               </div>
             ) : (
               <>
-                <div className={cn("grid gap-3 grid-cols-2", gridCols === 3 ? "md:grid-cols-3 lg:grid-cols-4" : "md:grid-cols-3")}>
+                <div className={cn("grid gap-2.5 sm:gap-3 grid-cols-2 w-full", gridCols === 3 ? "md:grid-cols-3 lg:grid-cols-4" : "md:grid-cols-3")}>
                   {paginatedProducts.map((product, i) => (
                     <ProductCard key={product.id} product={product} index={i} />
                   ))}
