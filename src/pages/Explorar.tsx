@@ -295,7 +295,7 @@ const Explorar = () => {
   );
 
   return (
-    <div className="flex flex-col overflow-x-hidden">
+    <div className="flex flex-col overflow-x-hidden w-full max-w-full">
       <SEOHead
         title={activeCategoryName || "Explorar Produtos"}
         description={activeCategoryName
@@ -372,8 +372,8 @@ const Explorar = () => {
       </div>
 
       {/* Main content */}
-      <div className="max-w-7xl mx-auto px-4 py-6 flex-1 overflow-x-hidden">
-        <div className="flex gap-8">
+      <div className="max-w-7xl w-full mx-auto px-4 py-6 flex-1 overflow-x-hidden box-border">
+        <div className="flex gap-8 w-full max-w-full">
           {/* Desktop sidebar */}
           <aside className="hidden lg:block w-56 flex-shrink-0">
             <div className="sticky top-28">
@@ -382,9 +382,9 @@ const Explorar = () => {
           </aside>
 
           {/* Products area */}
-          <div className="flex-1 min-w-0">
+          <div className="flex-1 min-w-0 w-full max-w-full overflow-x-hidden">
             {/* Toolbar */}
-            <div className="flex flex-wrap items-center gap-2 mb-5">
+            <div className="flex flex-wrap items-center gap-2 mb-5 overflow-x-hidden">
               {/* Mobile filter trigger */}
               <Button
                 variant="outline"
