@@ -196,6 +196,7 @@ const Header = () => {
     if (search.trim()) {
       fbTrackSearch(search.trim());
       trackSearch({ searchString: search.trim() });
+      capiSearch(search.trim(), getLastEventId() || undefined);
       navigate(`/explorar?q=${encodeURIComponent(search.trim())}`);
       setSearch("");
     }
