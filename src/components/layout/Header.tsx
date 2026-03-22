@@ -191,10 +191,12 @@ const Header = () => {
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     setShowSuggestions(false);
+    setMobileSearchOpen(false);
     if (search.trim()) {
       fbTrackSearch(search.trim());
       trackSearch({ searchString: search.trim() });
       navigate(`/explorar?q=${encodeURIComponent(search.trim())}`);
+      setSearch("");
     }
   };
 
