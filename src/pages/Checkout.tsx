@@ -483,11 +483,12 @@ const Checkout = () => {
         console.error("Meta Pixel tracking error:", metaErr);
       }
 
-      // Mark ghost lead as converted
-      if (user) {
+      // Mark ghost lead as converted (by phone for both logged and guest)
+      const leadPhone = user ? customerInfo.phone.replace(/\D/g, "") : guestInfo.phone.replace(/\D/g, "");
+      if (leadPhone && leadPhone.length >= 10) {
         try {
           await supabase.from("checkout_leads").update({ converted_at: new Date().toISOString() } as any)
-            .eq("user_id", user.id).is("converted_at" as any, null);
+            .eq("phone", leadPhone).is("converted_at" as any, null);
         } catch (leadErr) {
           console.error("Ghost lead conversion error:", leadErr);
         }
