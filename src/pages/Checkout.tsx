@@ -512,11 +512,12 @@ const Checkout = () => {
           toast.error("Telefone válido é obrigatório");
           return;
         }
-        if (!(guestInfo as any).cpf || ((guestInfo as any).cpf || "").replace(/\D/g, "").length !== 11) {
-          toast.error("CPF é obrigatório para pagamento (11 dígitos)");
-          return;
+        if (paymentMethod !== "whatsapp") {
+          if (!(guestInfo as any).cpf || ((guestInfo as any).cpf || "").replace(/\D/g, "").length !== 11) {
+            toast.error("CPF é obrigatório para pagamento (11 dígitos)");
+            return;
+          }
         }
-      }
 
       // CPF validation only for payment gateway methods (not WhatsApp)
       if (paymentMethod !== "whatsapp") {
