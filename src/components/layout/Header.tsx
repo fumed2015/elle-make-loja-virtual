@@ -181,6 +181,13 @@ const Header = () => {
     return () => document.removeEventListener("mousedown", handler);
   }, []);
 
+  // Close mobile search & suggestions on route change
+  useEffect(() => {
+    setMobileSearchOpen(false);
+    setShowSuggestions(false);
+    setSearch("");
+  }, [location.pathname, location.search]);
+
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     setShowSuggestions(false);
