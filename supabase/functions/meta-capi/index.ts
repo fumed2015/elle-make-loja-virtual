@@ -129,6 +129,8 @@ async function buildServerEvent(data: CAPIEventData, req: Request) {
 
   if (data.user_data.fbc) ud.fbc = data.user_data.fbc;
   if (data.user_data.fbp) ud.fbp = data.user_data.fbp;
+  // fb_login_id — NOT hashed per Meta spec
+  if (data.user_data.fb_login_id) ud.fb_login_id = data.user_data.fb_login_id;
 
   return {
     event_name: data.event_name,
