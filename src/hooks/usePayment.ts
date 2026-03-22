@@ -142,35 +142,12 @@ export const usePayment = () => {
       if (!paymentId) throw new Error("Payment ID é obrigatório");
 
       const { data, error: fnError } = await supabase.functions.invoke("mercadopago-payment", {
-        body: { action: "get-status", payment_id: paymentId },
+        body: { action: "get-status", payment_id: paymentId, order_id: orderId || null },
       });
       if (fnError) throw new Error(`Erro ao verificar status: ${fnError.message}`);
       if (!data) throw new Error("Resposta vazia do servidor");
 
-      const result = data as { id: string; status: PaymentStatus; status_detail: string } | null;
-
-      // Also update local order status based on payment status
-      if (result?.status && orderId) {
-        const statusMap: Record<string, string> = {
-          approved: "confirmed",
-          in_process: "pending",
-          pending: "pending",
-          rejected: "cancelled",
-          cancelled: "cancelled",
-        };
-        const orderStatus = statusMap[result.status];
-        if (orderStatus) {
-          const { error: updateErr } = await supabase
-            .from("orders")
-            .update({ status: orderStatus })
-            .eq("id", orderId);
-          if (updateErr) {
-            console.error("Order status update error:", updateErr);
-          }
-        }
-      }
-
-      return result;
+      return data as { id: string; status: PaymentStatus; status_detail: string } | null;
     } catch (err: any) {
       console.error("Payment status check error:", err);
       return null;
