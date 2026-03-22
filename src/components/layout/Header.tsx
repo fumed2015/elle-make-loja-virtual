@@ -246,7 +246,7 @@ const Header = () => {
         >
           <ChevronLeft className="w-4 h-4" />
         </button>
-        <div className="flex-1 text-center overflow-hidden">
+        <div className="flex-1 min-w-0 text-center overflow-hidden">
           <AnimatePresence mode="wait">
             <motion.p
               key={promoIndex}
@@ -254,7 +254,7 @@ const Header = () => {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -10 }}
               transition={{ duration: 0.3 }}
-              className="text-[0.8125rem] font-medium tracking-wide flex items-center justify-center gap-1.5"
+              className="text-xs sm:text-[0.8125rem] leading-tight font-medium tracking-wide flex items-center justify-center gap-1.5 max-w-full"
             >
               <span>🚚</span> {promoMessages[promoIndex]}
             </motion.p>
@@ -292,8 +292,8 @@ const Header = () => {
       </div>
 
       {/* Main header */}
-      <div className={`border-b px-3 md:px-6 lg:px-8 py-3 transition-all duration-500 ease-in-out w-full z-[2] ${!isTransparent ? 'bg-card/95 backdrop-blur-md border-border shadow-sm' : 'bg-transparent border-transparent shadow-none backdrop-blur-none'}`}>
-        <div className="max-w-[1400px] mx-auto w-full flex items-center gap-2 md:gap-4 lg:gap-6 overflow-visible">
+      <div className={`border-b px-3 md:px-6 lg:px-8 py-3 transition-all duration-500 ease-in-out w-full z-[2] overflow-x-clip ${!isTransparent ? 'bg-card/95 backdrop-blur-md border-border shadow-sm' : 'bg-transparent border-transparent shadow-none backdrop-blur-none'}`}>
+        <div className="max-w-[1400px] mx-auto w-full flex items-center gap-2 md:gap-4 lg:gap-6 overflow-visible min-w-0">
           {/* Left: hamburger (mobile only) + Logo */}
           <div className="flex items-center gap-1 flex-shrink-0">
             <Sheet>

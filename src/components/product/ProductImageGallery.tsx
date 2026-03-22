@@ -89,7 +89,7 @@ const ProductImageGallery = ({ images, alt, children }: ProductImageGalleryProps
 
       {/* Thumbnails strip */}
       {validImages.length > 1 && (
-        <div className="flex gap-2 p-2" style={{ backgroundColor: '#f8f5f2' }}>
+        <div className="flex gap-2 p-2 overflow-x-auto scrollbar-hide" style={{ backgroundColor: '#f8f5f2' }}>
           {validImages.map((img, i) => (
             <button
               key={i}
@@ -98,7 +98,7 @@ const ProductImageGallery = ({ images, alt, children }: ProductImageGalleryProps
                 "rounded-lg overflow-hidden border-2 transition-all flex-shrink-0",
                 i === current ? "border-primary" : "border-transparent opacity-60 hover:opacity-100"
               )}
-              style={{ width: 80, height: 80, backgroundColor: '#f8f5f2' }}
+              style={{ width: 64, height: 64, backgroundColor: '#f8f5f2' }}
             >
               <img
                 src={img}

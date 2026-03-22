@@ -119,9 +119,9 @@ const ProductCard = memo(({ product, index = 0 }: ProductCardProps) => {
         </div>
 
         {/* Info */}
-        <div className="p-2.5 space-y-1">
-          <p className="text-[0.6875rem] text-muted-foreground uppercase tracking-wider leading-none">{product.brand}</p>
-          <h3 className="text-sm font-semibold leading-snug line-clamp-2 text-foreground">{product.name}</h3>
+        <div className="p-2 space-y-1 md:p-2.5">
+          <p className="text-[0.625rem] md:text-[0.6875rem] text-muted-foreground uppercase tracking-wider leading-none truncate">{product.brand}</p>
+          <h3 className="text-[0.8125rem] md:text-sm font-semibold leading-snug line-clamp-2 text-foreground">{product.name}</h3>
 
           {/* Swatches preview */}
           {swatches.length > 0 && (
@@ -143,18 +143,18 @@ const ProductCard = memo(({ product, index = 0 }: ProductCardProps) => {
           {/* Price */}
           <div className="pt-0.5">
             {hasDiscount && (
-              <span className="text-[0.8125rem] text-muted-foreground line-through block leading-none">
+                <span className="text-[0.75rem] md:text-[0.8125rem] text-muted-foreground line-through block leading-none">
                 R$ {Number(product.compare_at_price).toFixed(2).replace(".", ",")}
               </span>
             )}
-            <span className="text-lg font-bold text-primary">
+            <span className="text-base md:text-lg font-bold text-primary">
               R$ {Number(product.price).toFixed(2).replace(".", ",")}
             </span>
-            <p className="text-[0.625rem] text-emerald-600 font-semibold leading-none mt-0.5">
+            <p className="text-[0.5625rem] md:text-[0.625rem] text-accent font-semibold leading-none mt-0.5">
               R$ {pixPrice} no Pix
             </p>
             {Number(product.price) >= 10 && (
-              <p className="text-[0.625rem] text-foreground/70 font-medium leading-none mt-0.5">
+              <p className="text-[0.5625rem] md:text-[0.625rem] text-foreground/70 font-medium leading-none mt-0.5">
                 ou <span className="font-bold text-foreground">3x de R$ {(Number(product.price) / 3).toFixed(2).replace(".", ",")}</span> s/ juros
               </p>
             )}
@@ -165,7 +165,7 @@ const ProductCard = memo(({ product, index = 0 }: ProductCardProps) => {
             {product.stock <= 0 ? (
               <Button
                 disabled
-                className="flex-1 rounded-md text-[0.625rem] h-[2rem] font-bold uppercase tracking-wide"
+                className="flex-1 rounded-md text-[0.5625rem] md:text-[0.625rem] h-8 md:h-[2rem] font-bold uppercase tracking-wide px-2"
                 size="sm"
               >
                 Esgotado
@@ -174,7 +174,7 @@ const ProductCard = memo(({ product, index = 0 }: ProductCardProps) => {
               <Button
                 onClick={handleQuickAdd}
                 variant="outline"
-                className="flex-1 border-primary text-primary hover:bg-primary hover:text-primary-foreground rounded-md text-[0.625rem] h-[2rem] font-bold uppercase tracking-wide"
+                className="flex-1 border-primary text-primary hover:bg-primary hover:text-primary-foreground rounded-md text-[0.5625rem] md:text-[0.625rem] h-8 md:h-[2rem] font-bold uppercase tracking-wide px-2"
                 size="sm"
                 title="Escolher cor e comprar"
               >
@@ -183,7 +183,7 @@ const ProductCard = memo(({ product, index = 0 }: ProductCardProps) => {
             ) : (
               <Button
                 onClick={handleQuickAdd}
-                className="flex-1 bg-primary text-primary-foreground hover:bg-primary/90 rounded-md text-[0.625rem] h-[2rem] font-bold uppercase tracking-wide"
+                className="flex-1 bg-primary text-primary-foreground hover:bg-primary/90 rounded-md text-[0.5625rem] md:text-[0.625rem] h-8 md:h-[2rem] font-bold uppercase tracking-wide px-2"
                 size="sm"
               >
                 Comprar
@@ -193,7 +193,7 @@ const ProductCard = memo(({ product, index = 0 }: ProductCardProps) => {
               onClick={handleQuickAdd}
               disabled={product.stock <= 0}
               variant="outline"
-              className="w-[2rem] h-[2rem] p-0 rounded-md border-primary text-primary hover:bg-primary hover:text-primary-foreground"
+              className="w-8 h-8 md:w-[2rem] md:h-[2rem] p-0 rounded-md border-primary text-primary hover:bg-primary hover:text-primary-foreground flex-shrink-0"
               size="sm"
             >
               <ShoppingBag className="w-3.5 h-3.5" />
