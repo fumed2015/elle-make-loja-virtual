@@ -46,6 +46,7 @@ import CollectionsTab from "@/components/admin/CollectionsTab";
 import NotificationsMonitorTab from "@/components/admin/NotificationsMonitorTab";
 import CheckoutLeadsTab from "@/components/admin/CheckoutLeadsTab";
 import BlogTab from "@/components/admin/BlogTab";
+import ManualOrderTab from "@/components/admin/ManualOrderTab";
 
 const Admin = () => {
   const navigate = useNavigate();
@@ -144,6 +145,7 @@ const Admin = () => {
       case "notifications-monitor": return <NotificationsMonitorTab />;
       case "checkout-leads": return <CheckoutLeadsTab />;
       case "blog": return <BlogTab />;
+      case "manual-order": return <ManualOrderTab />;
       default: return <DashboardTab />;
     }
   };
