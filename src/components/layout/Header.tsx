@@ -118,6 +118,7 @@ const Header = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const isHome = location.pathname === "/";
+  const isExplorar = location.pathname === "/explorar";
   const [search, setSearch] = useState("");
   const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
   const [hoveredNav, setHoveredNav] = useState<string | null>(null);
