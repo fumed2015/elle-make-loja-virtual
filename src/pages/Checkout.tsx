@@ -518,9 +518,12 @@ const Checkout = () => {
         }
       }
 
-      const cpfDigits = user ? customerInfo.cpf.replace(/\D/g, "") : ((guestInfo as any).cpf || "").replace(/\D/g, "");
-      if (!cpfDigits || cpfDigits.length !== 11) { toast.error("CPF é obrigatório para pagamento (11 dígitos)"); return; }
-      if (!isValidCpf(cpfDigits)) { toast.error("CPF inválido. Verifique os dígitos."); return; }
+      // CPF validation only for payment gateway methods (not WhatsApp)
+      if (paymentMethod !== "whatsapp") {
+        const cpfDigits = user ? customerInfo.cpf.replace(/\D/g, "") : ((guestInfo as any).cpf || "").replace(/\D/g, "");
+        if (!cpfDigits || cpfDigits.length !== 11) { toast.error("CPF é obrigatório para pagamento (11 dígitos)"); return; }
+        if (!isValidCpf(cpfDigits)) { toast.error("CPF inválido. Verifique os dígitos."); return; }
+      }
       if (!address.street || !address.number || !address.neighborhood || !address.zip) {
         toast.error("Preencha o endereço completo antes de continuar.");
         setStep("address"); return;
