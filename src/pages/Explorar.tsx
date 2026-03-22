@@ -295,7 +295,7 @@ const Explorar = () => {
   );
 
   return (
-    <div className="flex flex-col w-full min-w-0">
+    <div className="flex flex-col overflow-x-hidden">
       <SEOHead
         title={activeCategoryName || "Explorar Produtos"}
         description={activeCategoryName
