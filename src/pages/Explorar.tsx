@@ -13,8 +13,9 @@ import { AnimatePresence, motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 import SEOHead from "@/components/SEOHead";
 
-import { fbTrackSearch } from "@/hooks/useMetaPixel";
+import { fbTrackSearch, getLastEventId } from "@/hooks/useMetaPixel";
 import { trackSearch } from "@/hooks/useTikTokPixel";
+import { capiSearch } from "@/hooks/useMetaCapi";
 import Breadcrumbs, { breadcrumbJsonLd } from "@/components/Breadcrumbs";
 
 type SortOption = "recent" | "price-asc" | "price-desc" | "name" | "discount";
@@ -179,6 +180,7 @@ const Explorar = () => {
       searchDebounceRef.current = setTimeout(() => {
         fbTrackSearch(value);
         trackSearch({ searchString: value });
+        capiSearch(value, getLastEventId() || undefined);
       }, 800);
     }
   };

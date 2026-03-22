@@ -16,7 +16,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
 const PIXEL_ID = "1447990610311925";
@@ -134,7 +134,7 @@ async function buildServerEvent(data: CAPIEventData, req: Request) {
     event_time: data.event_time || Math.floor(Date.now() / 1000),
     event_id: data.event_id || crypto.randomUUID(),
     action_source: data.action_source || "website",
-    event_source_url: data.event_source_url || "https://ellemake2.lovable.app",
+    event_source_url: data.event_source_url || "https://www.ellemake.com.br",
     user_data: ud,
     custom_data: data.custom_data || {},
   };

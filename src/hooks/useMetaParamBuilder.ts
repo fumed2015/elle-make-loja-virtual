@@ -4,7 +4,7 @@
  * Implements Meta's Parameter Configuration Library best practices:
  * 1. Captures fbc (click ID) from fbclid query param on landing
  * 2. Generates/reads fbp (browser ID) as early as possible
- * 3. Captures client_ip_address via lightweight API
+ * 3. Captures client_ip_address via lightweight API (PRIORITIZES IPv6)
  * 4. Stores all params in cookies for CAPI server-side retrieval
  *
  * Format spec:
@@ -30,17 +30,22 @@ function getCookie(name: string): string | null {
   return match ? decodeURIComponent(match[1]) : null;
 }
 
+// ─── IPv6 detection ────────────────────────────────────────────────────
+
+function isIPv6(ip: string): boolean {
+  return ip.includes(":");
+}
+
+function isIPv4(ip: string): boolean {
+  return /^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$/.test(ip);
+}
+
 // ─── FBP (Browser ID) ─────────────────────────────────────────────────
 
-/**
- * Ensures _fbp cookie exists. If Meta's pixel.js hasn't set it yet,
- * we generate one following Meta's format: fb.1.<creation_time>.<random_number>
- */
 export function ensureFbp(): string {
   const existing = getCookie("_fbp");
   if (existing) return existing;
 
-  // Generate fbp: fb.1.<timestamp>.<random 10-digit number>
   const timestamp = Date.now();
   const random = Math.floor(1000000000 + Math.random() * 9000000000);
   const fbp = `fb.1.${timestamp}.${random}`;
@@ -51,12 +56,6 @@ export function ensureFbp(): string {
 
 // ─── FBC (Click ID) ───────────────────────────────────────────────────
 
-/**
- * Captures fbclid from URL and persists as _fbc cookie.
- * Format: fb.1.<creation_time>.<fbclid>
- *
- * CRITICAL: _fbc is case-sensitive — never convert to lowercase.
- */
 export function captureFbc(): string | null {
   try {
     const params = new URLSearchParams(window.location.search);
@@ -66,14 +65,10 @@ export function captureFbc(): string | null {
       const timestamp = Date.now();
       const fbcValue = `fb.1.${timestamp}.${fbclid}`;
 
-      // Primary: cookie (case-sensitive, do NOT modify the value)
       setCookie("_fbc", fbcValue, COOKIE_MAX_AGE);
-
-      // Fallback: localStorage for cookie-blocked browsers
       localStorage.setItem("_fbc", fbcValue);
       localStorage.setItem("_fbclid_raw", fbclid);
 
-      console.debug("[Meta ParamBuilder] fbc captured:", fbcValue);
       return fbcValue;
     }
   } catch {
@@ -83,22 +78,23 @@ export function captureFbc(): string | null {
   return getCookie("_fbc") || localStorage.getItem("_fbc");
 }
 
-// ─── Client IP Address ─────────────────────────────────────────────────
+// ─── Client IP Address (IPv6 priority) ─────────────────────────────────
 
 /**
  * Retrieves the client's IP address using a lightweight API.
- * Prioritizes IPv6 over IPv4 per Meta's recommendation.
- * Stores result in cookie for server-side CAPI retrieval.
+ * ALWAYS prioritizes IPv6 per Meta's recommendation.
+ * If a cached IPv4 exists, forces re-fetch to try to get IPv6.
  */
 export async function captureClientIp(): Promise<string | null> {
-  // Check cached value first
+  // Check cached value — if it's already IPv6, use it
   const cached = getCookie(IP_COOKIE) || localStorage.getItem(IP_STORAGE_KEY);
-  if (cached) return cached;
+  if (cached && isIPv6(cached)) return cached;
 
+  // If cached is IPv4 or no cache, try to get IPv6
   try {
-    // Try IPv6-first endpoint
+    // api64.ipify.org returns IPv6 when available
     const res = await fetch("https://api64.ipify.org?format=json", {
-      signal: AbortSignal.timeout(3000),
+      signal: AbortSignal.timeout(4000),
     });
     const data = await res.json();
     const ip = data.ip;
@@ -106,11 +102,13 @@ export async function captureClientIp(): Promise<string | null> {
     if (ip) {
       setCookie(IP_COOKIE, ip, COOKIE_MAX_AGE);
       localStorage.setItem(IP_STORAGE_KEY, ip);
-      console.debug("[Meta ParamBuilder] client IP captured:", ip);
       return ip;
     }
   } catch {
-    // Fallback: try IPv4-only endpoint
+    // If api64 fails and we have a cached IPv4, keep it
+    if (cached) return cached;
+
+    // Last resort: try IPv4-only endpoint
     try {
       const res = await fetch("https://api.ipify.org?format=json", {
         signal: AbortSignal.timeout(3000),
@@ -128,7 +126,7 @@ export async function captureClientIp(): Promise<string | null> {
     }
   }
 
-  return null;
+  return cached || null;
 }
 
 // ─── Get stored params ─────────────────────────────────────────────────

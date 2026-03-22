@@ -20,7 +20,8 @@ import { cn } from "@/lib/utils";
 import SEOHead from "@/components/SEOHead";
 import UrgencyBadge from "@/components/product/UrgencyBadge";
 import { trackViewContent, trackAddToCart, trackAddToWishlist, trackContact } from "@/hooks/useTikTokPixel";
-import { fbTrackViewContent, fbTrackAddToCart, fbTrackAddToWishlist, fbTrackContact } from "@/hooks/useMetaPixel";
+import { fbTrackViewContent, fbTrackAddToCart, fbTrackAddToWishlist, fbTrackContact, getLastEventId } from "@/hooks/useMetaPixel";
+import { capiViewContent, capiAddToCart, capiAddToWishlist } from "@/hooks/useMetaCapi";
 import Breadcrumbs, { breadcrumbJsonLd } from "@/components/Breadcrumbs";
 
 const trustBadges = [
@@ -54,12 +55,15 @@ const Produto = () => {
     }
   }, [product?.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Pixels: ViewContent
+  // Pixels: ViewContent (browser + CAPI)
   useEffect(() => {
     if (!product) return;
     const params = { id: product.id, name: product.name, price: Number(product.price), brand: product.brand || undefined };
     trackViewContent(params);
     fbTrackViewContent(params);
+    // Send via CAPI with dedup event_id
+    const eventId = getLastEventId();
+    capiViewContent(params, eventId || undefined);
   }, [product?.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
   if (isLoading) {
@@ -104,6 +108,7 @@ const Produto = () => {
     const atcParams = { id: product.id, name: product.name, price: Number(product.price), quantity: qty };
     trackAddToCart(atcParams);
     fbTrackAddToCart(atcParams);
+    capiAddToCart(atcParams, getLastEventId() || undefined);
   };
 
   const handleToggleFavorite = () => {
@@ -112,6 +117,7 @@ const Produto = () => {
       const wishlistParams = { id: product.id, name: product.name, price: Number(product.price) };
       fbTrackAddToWishlist(wishlistParams);
       trackAddToWishlist(wishlistParams);
+      capiAddToWishlist(wishlistParams, getLastEventId() || undefined);
     }
     toggleFavorite.mutate(product.id);
   };

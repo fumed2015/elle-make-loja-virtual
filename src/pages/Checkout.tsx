@@ -11,7 +11,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
 import { trackInitiateCheckout, trackPurchase, trackAddPaymentInfo, trackPlaceAnOrder } from "@/hooks/useTikTokPixel";
-import { fbTrackInitiateCheckout, fbTrackPurchase, fbTrackAddPaymentInfo, fbSetUserData } from "@/hooks/useMetaPixel";
+import { fbTrackInitiateCheckout, fbTrackPurchase, fbTrackAddPaymentInfo, fbSetUserData, getLastEventId } from "@/hooks/useMetaPixel";
+import { capiInitiateCheckout, capiPurchase, capiAddPaymentInfo } from "@/hooks/useMetaCapi";
 
 import AddressStep from "@/components/checkout/AddressStep";
 import ReviewStep from "@/components/checkout/ReviewStep";
@@ -94,6 +95,7 @@ const Checkout = () => {
       trackInitiateCheckout({ value: cartTotal, itemCount: cartCount, contentIds });
       const contents = items.map((item: any) => ({ id: (item.products as any)?.id, quantity: item.quantity })).filter((c: any) => c.id);
       fbTrackInitiateCheckout({ value: cartTotal, itemCount: cartCount, contentIds, contents });
+      capiInitiateCheckout({ value: cartTotal, itemCount: cartCount, contentIds, contents }, getLastEventId() || undefined);
     }
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -478,7 +480,28 @@ const Checkout = () => {
           externalId: user?.id || "",
         });
 
-        fbTrackPurchase({ orderId: orderData.id, value: finalTotal, itemCount: cartCount, contentIds, contents });
+        const purchaseEventId = fbTrackPurchase({ orderId: orderData.id, value: finalTotal, itemCount: cartCount, contentIds, contents });
+
+        // Send Purchase via CAPI with full user data for maximum EMQ
+        const phoneForCapi = user?.user_metadata?.phone || guestInfo.phone || customerInfo.phone || "";
+        let normalizedPhone = phoneForCapi.replace(/\D/g, "").replace(/^0+/, "");
+        if (normalizedPhone.length === 10 || normalizedPhone.length === 11) normalizedPhone = "55" + normalizedPhone;
+
+        capiPurchase(
+          { orderId: orderData.id, value: finalTotal, itemCount: cartCount, contentIds, contents },
+          purchaseEventId,
+          {
+            em: emailForPixel.trim().toLowerCase(),
+            ph: normalizedPhone,
+            fn: (nameForPixel.split(" ")[0] || "").trim().toLowerCase(),
+            ln: (nameForPixel.split(" ").slice(1).join(" ") || "").trim().toLowerCase(),
+            ct: (addr.city || "").trim().toLowerCase(),
+            st: (addr.state || "").trim().toLowerCase().slice(0, 2),
+            zp: (addr.zip || "").replace(/\D/g, ""),
+            country: "br",
+            external_id: user?.id || "",
+          }
+        );
       } catch (metaErr) {
         console.error("Meta Pixel tracking error:", metaErr);
       }
@@ -553,6 +576,7 @@ const Checkout = () => {
       const contents = items.map((item: any) => ({ id: (item.products as any)?.id, quantity: item.quantity })).filter((c: any) => c.id);
       fbTrackAddPaymentInfo({ value: finalTotal, contentIds, paymentMethod, contents });
       trackAddPaymentInfo({ value: finalTotal, contentIds, contents: contents.map(c => ({ content_id: c.id, quantity: c.quantity, price: 0 })) });
+      capiAddPaymentInfo({ value: finalTotal, contentIds, paymentMethod, contents }, getLastEventId() || undefined);
 
       // For WhatsApp, create order with pending_contact status (no payment gateway needed)
       const newOrderId = await createOrder(paymentMethod === "whatsapp" ? "pending_contact" : "pending");
