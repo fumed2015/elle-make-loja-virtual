@@ -55,12 +55,15 @@ const Produto = () => {
     }
   }, [product?.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Pixels: ViewContent
+  // Pixels: ViewContent (browser + CAPI)
   useEffect(() => {
     if (!product) return;
     const params = { id: product.id, name: product.name, price: Number(product.price), brand: product.brand || undefined };
     trackViewContent(params);
     fbTrackViewContent(params);
+    // Send via CAPI with dedup event_id
+    const eventId = getLastEventId();
+    capiViewContent(params, eventId || undefined);
   }, [product?.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
   if (isLoading) {
