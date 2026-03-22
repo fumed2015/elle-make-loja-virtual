@@ -95,6 +95,7 @@ const Checkout = () => {
       trackInitiateCheckout({ value: cartTotal, itemCount: cartCount, contentIds });
       const contents = items.map((item: any) => ({ id: (item.products as any)?.id, quantity: item.quantity })).filter((c: any) => c.id);
       fbTrackInitiateCheckout({ value: cartTotal, itemCount: cartCount, contentIds, contents });
+      capiInitiateCheckout({ value: cartTotal, itemCount: cartCount, contentIds, contents }, getLastEventId() || undefined);
     }
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
