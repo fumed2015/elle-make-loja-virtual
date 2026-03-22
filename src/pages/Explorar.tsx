@@ -518,7 +518,7 @@ const Explorar = () => {
 
             {/* Product grid */}
             {(isCollectionPage ? collectionLoading : isLoading) ? (
-              <div className={cn("grid gap-3 grid-cols-2", gridCols === 3 ? "md:grid-cols-3 lg:grid-cols-4" : "md:grid-cols-3")}>
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
                 {[...Array(8)].map((_, i) => (
                   <div key={i} className="aspect-[3/4] rounded-xl bg-muted animate-pulse" />
                 ))}
