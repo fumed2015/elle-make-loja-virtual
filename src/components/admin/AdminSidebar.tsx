@@ -2,7 +2,7 @@ import { useLocation } from "react-router-dom";
 import {
   TrendingUp, DollarSign, Target, Settings2, Megaphone, BarChart3, Heart, Truck, Gift, Globe2,
   Box, Package, FolderOpen, ShoppingCart, Tag, Star, Users, UserPlus, Cake, Code, MessageCircle,
-  Search, Wand2, LayoutDashboard, Store, FileText, Send, Ghost,
+  Search, Wand2, LayoutDashboard, Store, FileText, Send, Ghost, ClipboardPlus,
 } from "lucide-react";
 import {
   Sidebar,
@@ -19,7 +19,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 
 export type AdminTab =
-  | "dashboard" | "financeiro" | "comercial" | "operacional" | "marketing" | "revenue-report"
+  | "dashboard" | "financeiro" | "comercial" | "operacional" | "marketing" | "revenue-report" | "manual-order"
   | "sales-intelligence" | "crm" | "logistics" | "marketing-conversion" | "seo-content"
   | "products" | "stock" | "categories" | "homepage-sections" | "catalog-drive" | "collections"
   | "orders" | "coupons" | "reviews"
@@ -75,6 +75,7 @@ const SIDEBAR_SECTIONS: SidebarSection[] = [
     emoji: "🛒",
     items: [
       { id: "orders", label: "Pedidos", icon: ShoppingCart },
+      { id: "manual-order", label: "Novo Pedido", icon: ClipboardPlus },
       { id: "coupons", label: "Cupons", icon: Tag },
       { id: "marketing-conversion", label: "Promoções", icon: Gift },
     ],
