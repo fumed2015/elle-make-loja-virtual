@@ -125,7 +125,7 @@ const Produto = () => {
   const whatsappMsg = encodeURIComponent(`Olá! Gostaria de comprar: ${product.name}${selectedSwatch ? ` - Cor: ${selectedSwatch.name}` : ''} (${qty}x)`);
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen overflow-x-hidden">
       <SEOHead
         title={product.name}
         description={product.description || `${product.name} - ${product.brand}`}
@@ -169,8 +169,8 @@ const Produto = () => {
       <div className="max-w-7xl mx-auto px-4 pb-8">
         <div className="grid grid-cols-1 md:grid-cols-[minmax(0,2fr)_minmax(0,3fr)] gap-6 md:gap-10">
           {/* Left: Image */}
-          <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} className="relative md:max-w-[380px]">
-            <div className="sticky top-24">
+          <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} className="relative md:max-w-[380px] min-w-0">
+            <div className="md:sticky md:top-24">
               <ProductImageGallery images={product.images || []} alt={product.name}>
                 {hasDiscount && (
                   <Badge className="absolute top-3 left-3 bg-destructive text-destructive-foreground text-xs px-2.5 py-0.5 z-10">
