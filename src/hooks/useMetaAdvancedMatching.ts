@@ -19,11 +19,19 @@ export function useMetaAdvancedMatching() {
     const fullName = user.user_metadata?.full_name || "";
     const parts = fullName.split(" ");
 
+    // Capture fb_login_id for users who signed in via Facebook OAuth
+    const providerIdentities = (user as any).identities || [];
+    const fbIdentity = providerIdentities.find((i: any) => i.provider === "facebook");
+    const fbLoginId = fbIdentity?.id || user.app_metadata?.providers?.includes("facebook") 
+      ? user.user_metadata?.provider_id || "" 
+      : "";
+
     const baseData = {
       email: user.email || "",
       firstName: parts[0] || "",
       lastName: parts.slice(1).join(" ") || "",
       externalId: user.id,
+      fbLoginId: fbLoginId || "",
     };
 
     // Enrich with profile data (phone, address, birthday, etc.)

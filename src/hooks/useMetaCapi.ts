@@ -70,6 +70,8 @@ export async function sendCapiEvent(options: CapiEventOptions): Promise<void> {
     if (mergedUserData.fbp) capiUserData.fbp = mergedUserData.fbp;
     if (mergedUserData.client_ip_address) capiUserData.client_ip_address = mergedUserData.client_ip_address;
     if (mergedUserData.client_user_agent) capiUserData.client_user_agent = mergedUserData.client_user_agent;
+    // fb_login_id for Facebook Login users
+    if (mergedUserData.fb_login_id) capiUserData.fb_login_id = mergedUserData.fb_login_id;
 
     // Use the event_id from the pixel fire for deduplication
     const finalEventId = eventId || getLastEventId() || crypto.randomUUID?.() || `${Date.now()}`;
