@@ -20,7 +20,8 @@ import { cn } from "@/lib/utils";
 import SEOHead from "@/components/SEOHead";
 import UrgencyBadge from "@/components/product/UrgencyBadge";
 import { trackViewContent, trackAddToCart, trackAddToWishlist, trackContact } from "@/hooks/useTikTokPixel";
-import { fbTrackViewContent, fbTrackAddToCart, fbTrackAddToWishlist, fbTrackContact } from "@/hooks/useMetaPixel";
+import { fbTrackViewContent, fbTrackAddToCart, fbTrackAddToWishlist, fbTrackContact, getLastEventId } from "@/hooks/useMetaPixel";
+import { capiViewContent, capiAddToCart, capiAddToWishlist } from "@/hooks/useMetaCapi";
 import Breadcrumbs, { breadcrumbJsonLd } from "@/components/Breadcrumbs";
 
 const trustBadges = [
