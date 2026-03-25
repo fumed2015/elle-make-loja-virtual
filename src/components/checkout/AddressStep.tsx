@@ -8,7 +8,8 @@ import { useMemo } from "react";
 
 const validateEmail = (email: string): boolean => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 
-const validateCpf = (cpf: string): boolean => {
+const validateCpf = (raw: string): boolean => {
+  const cpf = raw.replace(/\D/g, "");
   if (cpf.length !== 11 || /^(\d)\1{10}$/.test(cpf)) return false;
   let sum = 0;
   for (let i = 0; i < 9; i++) sum += parseInt(cpf[i]) * (10 - i);
