@@ -122,8 +122,8 @@ const AddressStep = ({
             </div>
             <div className="space-y-2">
               <Label>CPF *</Label>
-              <Input value={formatCpf(customerInfo.cpf)} onChange={(e) => setCustomerInfo({ ...customerInfo, cpf: e.target.value.replace(/\D/g, "").slice(0, 11) })} placeholder="000.000.000-00" className={`bg-muted border-none min-h-[44px] ${!cpfValid ? "ring-2 ring-destructive" : ""}`} inputMode="numeric" required />
-              {!cpfValid && <p className="text-[11px] text-destructive">CPF inválido</p>}
+              <Input value={formatCpf(guestInfo.cpf)} onChange={(e) => setGuestInfo({ ...guestInfo, cpf: e.target.value.replace(/\D/g, "").slice(0, 11) })} placeholder="000.000.000-00" className={`bg-muted border-none min-h-[44px] ${guestInfo.cpf.length === 11 && !validateCpf(guestInfo.cpf) ? "ring-2 ring-destructive" : ""}`} inputMode="numeric" required />
+              {guestInfo.cpf.length === 11 && !validateCpf(guestInfo.cpf) && <p className="text-[11px] text-destructive">CPF inválido</p>}
             </div>
           </div>
 
