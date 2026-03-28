@@ -413,7 +413,7 @@ const GrupoVip = () => {
         animate={{ y: showSticky ? 0 : 100 }}
         className="fixed bottom-0 inset-x-0 z-50 p-3 bg-[#7B1C2A]/95 backdrop-blur border-t border-[#F5C842]/20 md:hidden"
       >
-        <a href={VIP_LINK} target="_blank" rel="noopener noreferrer" className="block">
+        <a href={VIP_LINK} target="_blank" rel="noopener noreferrer" className="block" onClick={() => handleCTAClick("sticky_mobile")}>
           <Button className="w-full bg-[#F5C842] hover:bg-[#e0b636] text-[#7B1C2A] font-bold rounded-full py-5 text-base flex items-center justify-center gap-2">
             <MessageCircle className="w-5 h-5" /> ENTRAR NO GRUPO VIP
           </Button>
