@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef, useCallback } from "react";
-import grupoVipLogo from "@/assets/grupo-vip-logo.png";
+import grupoVipLogo from "@/assets/grupo-vip-logo-cropped.png";
 import { motion } from "framer-motion";
 import { Zap, Ticket, Rocket, Truck, Star, Lock, ChevronRight, MessageCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -113,7 +113,7 @@ const GrupoVip = () => {
 
       <div className="font-['DM_Sans',sans-serif] overflow-x-hidden">
         {/* ═══ LOGO ═══ */}
-        <div className="bg-white flex justify-center py-3 md:py-4">
+        <div className="bg-[#7B1C2A] flex justify-center py-3 md:py-4">
           <img
             src={grupoVipLogo}
             alt="Grupo VIP Elle Make"
