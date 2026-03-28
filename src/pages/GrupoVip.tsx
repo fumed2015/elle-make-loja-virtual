@@ -95,6 +95,22 @@ const GrupoVip = () => {
     return () => clearInterval(t);
   }, []);
 
+  // Track page view as ViewContent + custom event on mount
+  useEffect(() => {
+    fbTrackCustom("ViewLandingPage", {
+      content_name: "Grupo VIP Elle Make",
+      content_category: "Landing Page",
+    });
+    sendCapiEvent({
+      eventName: "ViewContent",
+      customData: {
+        content_name: "Grupo VIP Elle Make",
+        content_category: "Landing Page",
+        content_type: "product_group",
+      },
+    });
+  }, []);
+
   // Decreasing spots counter
   const [spots, setSpots] = useState(47);
   useEffect(() => {
@@ -196,7 +212,7 @@ const GrupoVip = () => {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.5 }}
             >
-              <CTAButton className="text-lg md:text-xl px-10 py-7">
+              <CTAButton className="text-lg md:text-xl px-10 py-7" location="hero">
                 ✨ QUERO ENTRAR NO GRUPO VIP
               </CTAButton>
             </motion.div>
@@ -314,7 +330,7 @@ const GrupoVip = () => {
               ))}
             </div>
             <div className="mt-10">
-              <CTAButton>✨ QUERO ENTRAR NO GRUPO VIP</CTAButton>
+              <CTAButton location="steps">✨ QUERO ENTRAR NO GRUPO VIP</CTAButton>
             </div>
           </div>
         </Section>
@@ -338,7 +354,7 @@ const GrupoVip = () => {
               <p className="font-['Playfair_Display',serif] text-5xl font-bold">{spots}</p>
             </motion.div>
             <div>
-              <a href={VIP_LINK} target="_blank" rel="noopener noreferrer">
+              <a href={VIP_LINK} target="_blank" rel="noopener noreferrer" onClick={() => handleCTAClick("urgency")}>
                 <Button className="bg-[#7B1C2A] hover:bg-[#5e1520] text-white font-bold text-base md:text-lg rounded-full px-8 py-6 shadow-lg">
                   GARANTIR MINHA VAGA AGORA <ChevronRight className="w-5 h-5 ml-1" />
                 </Button>
@@ -381,7 +397,7 @@ const GrupoVip = () => {
             <p className="text-white/70 mb-10 text-base md:text-lg">
               Maquiagem e skincare com desconto real, toda semana. É de graça entrar.
             </p>
-            <CTAButton className="text-lg md:text-xl px-10 py-7">
+            <CTAButton className="text-lg md:text-xl px-10 py-7" location="footer_cta">
               ✨ ENTRAR NO GRUPO VIP AGORA
             </CTAButton>
             <p className="mt-6 text-xs text-white/40 flex items-center justify-center gap-1.5">
