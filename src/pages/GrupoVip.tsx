@@ -1,4 +1,5 @@
 import { useEffect, useState, useRef, useCallback } from "react";
+import grupoVipLogo from "@/assets/grupo-vip-logo.png";
 import { motion } from "framer-motion";
 import { Zap, Ticket, Rocket, Truck, Star, Lock, ChevronRight, MessageCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -111,6 +112,16 @@ const GrupoVip = () => {
       />
 
       <div className="font-['DM_Sans',sans-serif] overflow-x-hidden">
+        {/* ═══ LOGO ═══ */}
+        <div className="bg-[#7B1C2A] flex justify-center py-6 md:py-8">
+          <img
+            src={grupoVipLogo}
+            alt="Grupo VIP Elle Make"
+            className="w-[120px] md:w-[160px] h-auto pointer-events-none select-none"
+            draggable={false}
+          />
+        </div>
+
         {/* ═══ HERO ═══ */}
         <section className="relative bg-gradient-to-br from-[#7B1C2A] via-[#5e1520] to-[#3d0e15] text-white py-16 md:py-24 overflow-hidden">
           {/* subtle texture overlay */}
