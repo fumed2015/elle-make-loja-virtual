@@ -113,11 +113,11 @@ const GrupoVip = () => {
 
       <div className="font-['DM_Sans',sans-serif] overflow-x-hidden">
         {/* ═══ LOGO ═══ */}
-        <div className="bg-[#7B1C2A] flex justify-center py-6 md:py-8">
+        <div className="bg-white flex justify-center py-3 md:py-4">
           <img
             src={grupoVipLogo}
             alt="Grupo VIP Elle Make"
-            className="w-[120px] md:w-[160px] h-auto pointer-events-none select-none"
+            className="w-[80px] md:w-[100px] h-auto pointer-events-none select-none"
             draggable={false}
           />
         </div>
