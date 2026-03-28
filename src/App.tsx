@@ -87,8 +87,8 @@ const App = () => (
                   <Route path="/test-pixel" element={<TestPixel />} />
                   <Route path="/reset-password" element={<ResetPassword />} />
                   <Route path="/catalogo" element={<Catalogo />} />
-                  <Route path="/grupo-vip" element={<GrupoVip />} />
                 </Route>
+                <Route path="/grupo-vip" element={<GrupoVip />} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </Suspense>
