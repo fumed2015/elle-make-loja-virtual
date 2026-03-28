@@ -5,6 +5,8 @@ import { Zap, Ticket, Rocket, Truck, Star, Lock, ChevronRight, MessageCircle } f
 import { Button } from "@/components/ui/button";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import SEOHead from "@/components/SEOHead";
+import { fbTrackLead, fbTrackContact, fbTrackCustom } from "@/hooks/useMetaPixel";
+import { capiLead, sendCapiEvent } from "@/hooks/useMetaCapi";
 
 const VIP_LINK = "https://chat.whatsapp.com/ELKPRGGU2wMJHV4ex1xAQX";
 
@@ -37,8 +39,39 @@ const Section = ({ children, className = "", delay = 0 }: { children: React.Reac
   );
 };
 
-const CTAButton = ({ children, className = "", size = "lg" }: { children: React.ReactNode; className?: string; size?: "lg" | "default" }) => (
-  <a href={VIP_LINK} target="_blank" rel="noopener noreferrer" className="inline-block">
+const handleCTAClick = (ctaLocation: string) => {
+  // Lead event (standard — optimizable in Meta Ads)
+  fbTrackLead();
+  capiLead();
+
+  // Contact event (standard)
+  fbTrackContact();
+  sendCapiEvent({ eventName: "Contact" });
+
+  // Custom event for granular tracking
+  fbTrackCustom("JoinVIPGroup", {
+    content_name: "Grupo VIP Elle Make",
+    content_category: "WhatsApp Group",
+    cta_location: ctaLocation,
+  });
+  sendCapiEvent({
+    eventName: "JoinVIPGroup",
+    customData: {
+      content_name: "Grupo VIP Elle Make",
+      content_category: "WhatsApp Group",
+      cta_location: ctaLocation,
+    },
+  });
+};
+
+const CTAButton = ({ children, className = "", size = "lg", location = "unknown" }: { children: React.ReactNode; className?: string; size?: "lg" | "default"; location?: string }) => (
+  <a
+    href={VIP_LINK}
+    target="_blank"
+    rel="noopener noreferrer"
+    className="inline-block"
+    onClick={() => handleCTAClick(location)}
+  >
     <Button
       size={size}
       className={`bg-[#F5C842] hover:bg-[#e0b636] text-[#7B1C2A] font-bold text-base md:text-lg rounded-full px-8 py-6 shadow-lg hover:shadow-xl transition-all duration-300 animate-[pulse_2.5s_ease-in-out_infinite] hover:animate-none ${className}`}
