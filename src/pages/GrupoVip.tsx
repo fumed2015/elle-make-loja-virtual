@@ -5,6 +5,8 @@ import { Zap, Ticket, Rocket, Truck, Star, Lock, ChevronRight, MessageCircle } f
 import { Button } from "@/components/ui/button";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import SEOHead from "@/components/SEOHead";
+import { fbTrackLead, fbTrackContact, fbTrackCustom } from "@/hooks/useMetaPixel";
+import { capiLead, sendCapiEvent } from "@/hooks/useMetaCapi";
 
 const VIP_LINK = "https://chat.whatsapp.com/ELKPRGGU2wMJHV4ex1xAQX";
 
@@ -37,8 +39,39 @@ const Section = ({ children, className = "", delay = 0 }: { children: React.Reac
   );
 };
 
-const CTAButton = ({ children, className = "", size = "lg" }: { children: React.ReactNode; className?: string; size?: "lg" | "default" }) => (
-  <a href={VIP_LINK} target="_blank" rel="noopener noreferrer" className="inline-block">
+const handleCTAClick = (ctaLocation: string) => {
+  // Lead event (standard — optimizable in Meta Ads)
+  fbTrackLead();
+  capiLead();
+
+  // Contact event (standard)
+  fbTrackContact();
+  sendCapiEvent({ eventName: "Contact" });
+
+  // Custom event for granular tracking
+  fbTrackCustom("JoinVIPGroup", {
+    content_name: "Grupo VIP Elle Make",
+    content_category: "WhatsApp Group",
+    cta_location: ctaLocation,
+  });
+  sendCapiEvent({
+    eventName: "JoinVIPGroup",
+    customData: {
+      content_name: "Grupo VIP Elle Make",
+      content_category: "WhatsApp Group",
+      cta_location: ctaLocation,
+    },
+  });
+};
+
+const CTAButton = ({ children, className = "", size = "lg", location = "unknown" }: { children: React.ReactNode; className?: string; size?: "lg" | "default"; location?: string }) => (
+  <a
+    href={VIP_LINK}
+    target="_blank"
+    rel="noopener noreferrer"
+    className="inline-block"
+    onClick={() => handleCTAClick(location)}
+  >
     <Button
       size={size}
       className={`bg-[#F5C842] hover:bg-[#e0b636] text-[#7B1C2A] font-bold text-base md:text-lg rounded-full px-8 py-6 shadow-lg hover:shadow-xl transition-all duration-300 animate-[pulse_2.5s_ease-in-out_infinite] hover:animate-none ${className}`}
@@ -60,6 +93,22 @@ const GrupoVip = () => {
   useEffect(() => {
     const t = setInterval(() => setProofIdx(i => (i + 1) % proofs.length), 3000);
     return () => clearInterval(t);
+  }, []);
+
+  // Track page view as ViewContent + custom event on mount
+  useEffect(() => {
+    fbTrackCustom("ViewLandingPage", {
+      content_name: "Grupo VIP Elle Make",
+      content_category: "Landing Page",
+    });
+    sendCapiEvent({
+      eventName: "ViewContent",
+      customData: {
+        content_name: "Grupo VIP Elle Make",
+        content_category: "Landing Page",
+        content_type: "product_group",
+      },
+    });
   }, []);
 
   // Decreasing spots counter
@@ -163,7 +212,7 @@ const GrupoVip = () => {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.5 }}
             >
-              <CTAButton className="text-lg md:text-xl px-10 py-7">
+              <CTAButton className="text-lg md:text-xl px-10 py-7" location="hero">
                 ✨ QUERO ENTRAR NO GRUPO VIP
               </CTAButton>
             </motion.div>
@@ -281,7 +330,7 @@ const GrupoVip = () => {
               ))}
             </div>
             <div className="mt-10">
-              <CTAButton>✨ QUERO ENTRAR NO GRUPO VIP</CTAButton>
+              <CTAButton location="steps">✨ QUERO ENTRAR NO GRUPO VIP</CTAButton>
             </div>
           </div>
         </Section>
@@ -305,7 +354,7 @@ const GrupoVip = () => {
               <p className="font-['Playfair_Display',serif] text-5xl font-bold">{spots}</p>
             </motion.div>
             <div>
-              <a href={VIP_LINK} target="_blank" rel="noopener noreferrer">
+              <a href={VIP_LINK} target="_blank" rel="noopener noreferrer" onClick={() => handleCTAClick("urgency")}>
                 <Button className="bg-[#7B1C2A] hover:bg-[#5e1520] text-white font-bold text-base md:text-lg rounded-full px-8 py-6 shadow-lg">
                   GARANTIR MINHA VAGA AGORA <ChevronRight className="w-5 h-5 ml-1" />
                 </Button>
@@ -348,7 +397,7 @@ const GrupoVip = () => {
             <p className="text-white/70 mb-10 text-base md:text-lg">
               Maquiagem e skincare com desconto real, toda semana. É de graça entrar.
             </p>
-            <CTAButton className="text-lg md:text-xl px-10 py-7">
+            <CTAButton className="text-lg md:text-xl px-10 py-7" location="footer_cta">
               ✨ ENTRAR NO GRUPO VIP AGORA
             </CTAButton>
             <p className="mt-6 text-xs text-white/40 flex items-center justify-center gap-1.5">
@@ -364,7 +413,7 @@ const GrupoVip = () => {
         animate={{ y: showSticky ? 0 : 100 }}
         className="fixed bottom-0 inset-x-0 z-50 p-3 bg-[#7B1C2A]/95 backdrop-blur border-t border-[#F5C842]/20 md:hidden"
       >
-        <a href={VIP_LINK} target="_blank" rel="noopener noreferrer" className="block">
+        <a href={VIP_LINK} target="_blank" rel="noopener noreferrer" className="block" onClick={() => handleCTAClick("sticky_mobile")}>
           <Button className="w-full bg-[#F5C842] hover:bg-[#e0b636] text-[#7B1C2A] font-bold rounded-full py-5 text-base flex items-center justify-center gap-2">
             <MessageCircle className="w-5 h-5" /> ENTRAR NO GRUPO VIP
           </Button>
