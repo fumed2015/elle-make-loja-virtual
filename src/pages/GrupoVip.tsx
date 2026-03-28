@@ -112,22 +112,21 @@ const GrupoVip = () => {
       />
 
       <div className="font-['DM_Sans',sans-serif] overflow-x-hidden">
-        {/* ═══ LOGO ═══ */}
-        <div className="bg-[#7B1C2A] flex justify-center py-3 md:py-4">
-          <img
-            src={grupoVipLogo}
-            alt="Grupo VIP Elle Make"
-            className="w-[80px] md:w-[100px] h-auto pointer-events-none select-none"
-            draggable={false}
-          />
-        </div>
-
         {/* ═══ HERO ═══ */}
-        <section className="relative bg-gradient-to-br from-[#7B1C2A] via-[#5e1520] to-[#3d0e15] text-white py-16 md:py-24 overflow-hidden">
+        <section className="relative bg-gradient-to-br from-[#7B1C2A] via-[#5e1520] to-[#3d0e15] text-white pt-6 md:pt-8 pb-16 md:pb-24 overflow-hidden">
           {/* subtle texture overlay */}
           <div className="absolute inset-0 opacity-[0.04]" style={{ backgroundImage: "url(\"data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23ffffff' fill-opacity='1'%3E%3Ccircle cx='30' cy='30' r='1'/%3E%3C/g%3E%3C/svg%3E\")" }} />
 
           <div className="relative max-w-5xl mx-auto px-4 text-center">
+            {/* Logo */}
+            <div className="flex justify-center mb-6">
+              <img
+                src={grupoVipLogo}
+                alt="Grupo VIP Elle Make"
+                className="w-[80px] md:w-[100px] h-auto pointer-events-none select-none"
+                draggable={false}
+              />
+            </div>
             {/* Badge */}
             <motion.div
               initial={{ opacity: 0, scale: 0.8 }}
