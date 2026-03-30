@@ -13,6 +13,7 @@ import { toast } from "sonner";
 import { trackInitiateCheckout, trackPurchase, trackAddPaymentInfo, trackPlaceAnOrder } from "@/hooks/useTikTokPixel";
 import { fbTrackInitiateCheckout, fbTrackPurchase, fbTrackAddPaymentInfo, fbSetUserData, getLastEventId } from "@/hooks/useMetaPixel";
 import { capiInitiateCheckout, capiPurchase, capiAddPaymentInfo } from "@/hooks/useMetaCapi";
+import { saveFormDataForMeta } from "@/hooks/useMetaUserData";
 
 import AddressStep from "@/components/checkout/AddressStep";
 import ReviewStep from "@/components/checkout/ReviewStep";
@@ -727,7 +728,20 @@ const Checkout = () => {
                 savedAddresses={savedAddresses} showAddressPicker={showAddressPicker}
                 setShowAddressPicker={setShowAddressPicker} selectSavedAddress={selectSavedAddress}
                 cepLoading={cepLoading} items={items} cartTotal={cartTotal} cartCount={cartCount}
-                onContinue={() => setStep("review")} formatCpf={formatCpf} formatPhone={formatPhone}
+                onContinue={() => {
+                  // Persist checkout PII for Meta Pixel EMQ
+                  saveFormDataForMeta({
+                    email: guestInfo?.email || user?.email || undefined,
+                    phone: customerInfo.phone || guestInfo?.phone || undefined,
+                    firstName: guestInfo?.name?.split(" ")[0] || user?.user_metadata?.full_name?.split(" ")[0] || undefined,
+                    lastName: guestInfo?.name?.split(" ").slice(1).join(" ") || user?.user_metadata?.full_name?.split(" ").slice(1).join(" ") || undefined,
+                    city: address.city || undefined,
+                    state: address.state || undefined,
+                    zip: address.zip || undefined,
+                    cpf: customerInfo.cpf || guestInfo?.cpf || undefined,
+                  });
+                  setStep("review");
+                }} formatCpf={formatCpf} formatPhone={formatPhone}
                 isGuest={!user} guestInfo={guestInfo} setGuestInfo={setGuestInfo}
               />
             )}

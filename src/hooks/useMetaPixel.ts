@@ -11,11 +11,11 @@
  *
  * OPTIMIZATIONS (EMQ improvement):
  * - Every event includes event_id (eventID) for CAPI deduplication
- * - User data (PII) is sent alongside events via userData injection
- * - fbc/fbp/IP are read from cookies for attribution (via Meta Param Builder)
+ * - User data is re-init'd on every event fire via centralized getMetaUserData()
+ * - fbc/fbp/IP are always injected from cookies/localStorage
  */
 
-import { getFbc, getFbp, getClientIp } from "./useMetaParamBuilder";
+import { getMetaUserData, type MetaUserDataRaw } from "./useMetaUserData";
 
 declare global {
   interface Window {
@@ -25,12 +25,8 @@ declare global {
 
 const PIXEL_ID = "1447990610311925";
 
-// ─── Shared user data cache ───────────────────────────────────────────
-let _cachedUserData: Record<string, string> = {};
+// ─── Event ID ─────────────────────────────────────────────────────────
 
-/**
- * Generate a unique event_id (UUID v4) for deduplication with CAPI.
- */
 function generateEventId(): string {
   return crypto.randomUUID?.() || `${Date.now()}-${Math.random().toString(36).slice(2, 11)}`;
 }
@@ -40,22 +36,42 @@ export function getLastEventId(): string | null {
   return _lastEventId;
 }
 
-// ─── Advanced Matching ─────────────────────────────────────────────────
+// ─── Advanced Matching (re-init with PII on every event) ──────────────
+
 /**
- * Re-initialises the pixel with user PII so Meta can match conversions
- * to real people (improves Event Match Quality / EMQ score).
- *
- * Data is sent in clear-text to fbq(); the JS SDK hashes it
- * automatically before transmitting.
- *
- * Normalisation follows Meta's spec:
- *  - email: trim + lowercase
- *  - phone: digits only, strip leading zeros, prepend country code 55 (BR)
- *  - names / city: trim + lowercase, remove diacritics
- *  - state: 2-letter lowercase
- *  - zip: digits only
- *  - external_id: stable user identifier (user UUID)
+ * Re-initialises the pixel with current user data before firing an event.
+ * This ensures every event carries the best available PII for matching.
  */
+function reinitWithUserData(): MetaUserDataRaw {
+  const ud = getMetaUserData();
+  try {
+    if (typeof window !== "undefined" && typeof window.fbq === "function") {
+      // Build the init object with all available fields
+      const initData: Record<string, string> = {};
+      if (ud.em) initData.em = ud.em;
+      if (ud.ph) initData.ph = ud.ph;
+      if (ud.fn) initData.fn = ud.fn;
+      if (ud.ln) initData.ln = ud.ln;
+      if (ud.ct) initData.ct = ud.ct;
+      if (ud.st) initData.st = ud.st;
+      if (ud.zp) initData.zp = ud.zp;
+      if (ud.country) initData.country = ud.country;
+      if (ud.db) initData.db = ud.db;
+      if (ud.ge) initData.ge = ud.ge;
+      if (ud.external_id) initData.external_id = ud.external_id;
+      if (ud.fb_login_id) initData.fb_login_id = ud.fb_login_id;
+      if (ud.fbc) initData.fbc = ud.fbc;
+      if (ud.fbp) initData.fbp = ud.fbp;
+
+      if (Object.keys(initData).length > 0) {
+        window.fbq("init", PIXEL_ID, initData);
+      }
+    }
+  } catch { /* ignore */ }
+  return ud;
+}
+
+// ─── Legacy: keep fbSetUserData for backward compat (useMetaAdvancedMatching) ──
 export function fbSetUserData(data: {
   email?: string;
   phone?: string;
@@ -71,63 +87,21 @@ export function fbSetUserData(data: {
   gender?: string;
   fbLoginId?: string;
 }) {
-  try {
-    if (typeof window === "undefined" || typeof window.fbq !== "function") return;
-
-    const ud: Record<string, string> = {};
-
-    if (data.email) ud.em = data.email.trim().toLowerCase();
-
-    if (data.phone) {
-      let ph = data.phone.replace(/\D/g, "").replace(/^0+/, "");
-      if (ph.length === 10 || ph.length === 11) ph = "55" + ph;
-      if (ph) ud.ph = ph;
-    }
-
-    if (data.firstName) ud.fn = data.firstName.trim().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-    if (data.lastName) ud.ln = data.lastName.trim().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-    if (data.city) ud.ct = data.city.trim().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/\s/g, "");
-    if (data.state) ud.st = data.state.trim().toLowerCase().slice(0, 2);
-    if (data.zip) ud.zp = data.zip.replace(/\D/g, "").slice(0, 5);
-    ud.country = (data.country || "br").toLowerCase();
-
-    // Date of birth: normalize to YYYYMMDD
-    if (data.dateOfBirth) {
-      const raw = data.dateOfBirth.replace(/\D/g, "");
-      if (raw.length === 8 && (raw.startsWith("19") || raw.startsWith("20"))) {
-        ud.db = raw;
-      } else if (raw.length === 8) {
-        ud.db = raw.slice(4) + raw.slice(2, 4) + raw.slice(0, 2);
-      }
-    }
-
-    // Gender
-    if (data.gender) {
-      const g = data.gender.trim().toLowerCase().charAt(0);
-      if (g === "m" || g === "f") ud.ge = g;
-    }
-
-    // external_id
-    if (data.externalId) ud.external_id = data.externalId;
-
-    // fb_login_id for Facebook OAuth users
-    if (data.fbLoginId) ud.fb_login_id = data.fbLoginId;
-
-    // Inject fbc, fbp, and client IP from Meta Param Builder cookies
-    const fbc = getFbc();
-    if (fbc) ud.fbc = fbc;
-    const fbp = getFbp();
-    if (fbp) ud.fbp = fbp;
-
-    // Cache for future events and CAPI
-    _cachedUserData = { ..._cachedUserData, ...ud };
-
-    if (Object.keys(ud).length > 1) {
-      window.fbq("init", PIXEL_ID, ud);
-    }
-  } catch {
-    // silently ignore
-  }
+  // Import saveUserDataToStorage to persist
+  import("./useMetaUserData").then(({ saveFormDataForMeta }) => {
+    saveFormDataForMeta({
+      email: data.email,
+      phone: data.phone,
+      firstName: data.firstName,
+      lastName: data.lastName,
+      city: data.city,
+      state: data.state,
+      zip: data.zip,
+      dateOfBirth: data.dateOfBirth,
+    });
+  });
+  // Also do immediate init
+  reinitWithUserData();
 }
 
 // ─── Internal fire helpers ─────────────────────────────────────────────
@@ -135,6 +109,9 @@ export function fbSetUserData(data: {
 function fire(event: string, params?: Record<string, any>) {
   try {
     if (typeof window !== "undefined" && typeof window.fbq === "function") {
+      // Re-init with latest user data before every event
+      reinitWithUserData();
+
       const eventId = generateEventId();
       _lastEventId = eventId;
 
@@ -148,14 +125,15 @@ function fire(event: string, params?: Record<string, any>) {
         window.fbq("track", event, {}, { eventID: eventId });
       }
     }
-  } catch {
-    // silently ignore
-  }
+  } catch { /* ignore */ }
 }
 
 function fireCustom(event: string, params?: Record<string, any>) {
   try {
     if (typeof window !== "undefined" && typeof window.fbq === "function") {
+      // Re-init with latest user data before every event
+      reinitWithUserData();
+
       const eventId = generateEventId();
       _lastEventId = eventId;
 
@@ -165,9 +143,7 @@ function fireCustom(event: string, params?: Record<string, any>) {
         window.fbq("trackCustom", event, {}, { eventID: eventId });
       }
     }
-  } catch {
-    // silently ignore
-  }
+  } catch { /* ignore */ }
 }
 
 // ─── Standard Events ───────────────────────────────────────────────────
@@ -248,6 +224,9 @@ export function fbTrackPurchase(params: {
   contentIds: string[];
   contents?: Array<{ id: string; quantity: number }>;
 }): string {
+  // Re-init with latest user data
+  reinitWithUserData();
+
   const eventId = generateEventId();
   _lastEventId = eventId;
 
@@ -332,20 +311,28 @@ export function fbTrackViewCart(params: {
 }
 
 /**
- * Get the cached user data for CAPI usage.
- * Now includes client_ip_address from Meta Param Builder.
+ * Get the current user data for CAPI usage.
+ * Returns data in CAPI field names.
  */
 export function getCachedUserData(): Record<string, string> {
-  const data = { ..._cachedUserData };
-
-  // Always inject latest fbc/fbp/IP from cookies
-  const fbc = getFbc();
-  if (fbc) data.fbc = fbc;
-  const fbp = getFbp();
-  if (fbp) data.fbp = fbp;
-  const ip = getClientIp();
-  if (ip) data.client_ip_address = ip;
+  const raw = getMetaUserData();
+  // Return in the same em/ph/fn format for backward compat with CAPI hook
+  const data: Record<string, string> = {};
+  if (raw.em) data.em = raw.em;
+  if (raw.ph) data.ph = raw.ph;
+  if (raw.fn) data.fn = raw.fn;
+  if (raw.ln) data.ln = raw.ln;
+  if (raw.ct) data.ct = raw.ct;
+  if (raw.st) data.st = raw.st;
+  if (raw.zp) data.zp = raw.zp;
+  if (raw.country) data.country = raw.country;
+  if (raw.db) data.db = raw.db;
+  if (raw.ge) data.ge = raw.ge;
+  if (raw.external_id) data.external_id = raw.external_id;
+  if (raw.fb_login_id) data.fb_login_id = raw.fb_login_id;
+  if (raw.fbc) data.fbc = raw.fbc;
+  if (raw.fbp) data.fbp = raw.fbp;
+  if (raw.client_ip_address) data.client_ip_address = raw.client_ip_address;
   data.client_user_agent = navigator.userAgent;
-
   return data;
 }

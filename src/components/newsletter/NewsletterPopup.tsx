@@ -7,6 +7,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
 import { fbTrackLead } from "@/hooks/useMetaPixel";
 import { trackSubmitForm } from "@/hooks/useTikTokPixel";
+import { saveFormDataForMeta } from "@/hooks/useMetaUserData";
 
 const STORAGE_KEY = "ellemake_newsletter_dismissed";
 const POPUP_DELAY_MS = 8000;
@@ -110,6 +111,7 @@ const NewsletterPopup = () => {
         else throw error;
       } else {
         toast.success("Cadastro realizado com sucesso! 🎉");
+        saveFormDataForMeta({ email: trimmed });
         fbTrackLead();
         trackSubmitForm({ description: "newsletter_signup" });
       }
