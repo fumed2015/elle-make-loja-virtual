@@ -13,6 +13,7 @@ import { toast } from "sonner";
 import { trackInitiateCheckout, trackPurchase, trackAddPaymentInfo, trackPlaceAnOrder } from "@/hooks/useTikTokPixel";
 import { fbTrackInitiateCheckout, fbTrackPurchase, fbTrackAddPaymentInfo, fbSetUserData, getLastEventId } from "@/hooks/useMetaPixel";
 import { capiInitiateCheckout, capiPurchase, capiAddPaymentInfo } from "@/hooks/useMetaCapi";
+import { saveFormDataForMeta } from "@/hooks/useMetaUserData";
 
 import AddressStep from "@/components/checkout/AddressStep";
 import ReviewStep from "@/components/checkout/ReviewStep";
