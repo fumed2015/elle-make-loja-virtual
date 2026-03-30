@@ -7,6 +7,7 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 import SEOHead from "@/components/SEOHead";
 import { fbTrackLead, fbTrackContact, fbTrackCustom } from "@/hooks/useMetaPixel";
 import { capiLead, sendCapiEvent } from "@/hooks/useMetaCapi";
+import { getMetaUserData, toCapiUserData } from "@/hooks/useMetaUserData";
 
 const VIP_LINK = "https://chat.whatsapp.com/ELKPRGGU2wMJHV4ex1xAQX";
 
