@@ -1,21 +1,15 @@
 /**
  * Meta CAPI (Conversions API) — Client-Side Sender
  *
- * Sends server-side events to meta-capi edge function for ALL standard events:
- * PageView, ViewContent, AddToCart, InitiateCheckout, AddPaymentInfo, Purchase, Search, etc.
+ * Sends server-side events to meta-capi edge function for ALL standard events.
+ * Uses centralized user data from useMetaUserData for maximum EMQ score.
  *
- * This dramatically improves Event Match Quality (EMQ) because:
- * 1. Server events are deduplicated with browser pixel via event_id
- * 2. Full PII (email, phone, name, birthday, etc.) is sent hashed server-side
- * 3. IPv6 client_ip_address is forwarded
- * 4. fbc/fbp attribution params are included
- *
- * Usage: call sendCapiEvent() right after each fbq('track', ...) call.
+ * Deduplication with browser pixel via shared event_id.
  */
 
 import { supabase } from "@/integrations/supabase/client";
-import { getCachedUserData, getLastEventId } from "./useMetaPixel";
-import { getMetaParams } from "./useMetaParamBuilder";
+import { getLastEventId } from "./useMetaPixel";
+import { getMetaUserData, toCapiUserData } from "./useMetaUserData";
 
 interface CapiEventOptions {
   eventName: string;
@@ -33,45 +27,15 @@ export async function sendCapiEvent(options: CapiEventOptions): Promise<void> {
   try {
     const { eventName, eventId, customData, userData } = options;
 
-    // Get all available user data
-    const cachedUserData = getCachedUserData();
-    const metaParams = getMetaParams();
+    // Get all available user data from centralized store
+    const rawUserData = getMetaUserData();
+    const capiUserData = toCapiUserData(rawUserData);
 
-    // Merge user data: cached PII + meta params + explicit overrides
-    const mergedUserData: Record<string, string> = {
-      ...cachedUserData,
+    // Merge with explicit overrides
+    const finalUserData: Record<string, string> = {
+      ...capiUserData,
       ...(userData || {}),
     };
-
-    // Ensure meta attribution params are included
-    if (metaParams.fbc && !mergedUserData.fbc) mergedUserData.fbc = metaParams.fbc;
-    if (metaParams.fbp && !mergedUserData.fbp) mergedUserData.fbp = metaParams.fbp;
-    if (metaParams.client_ip_address && !mergedUserData.client_ip_address) {
-      mergedUserData.client_ip_address = metaParams.client_ip_address;
-    }
-    if (metaParams.client_user_agent && !mergedUserData.client_user_agent) {
-      mergedUserData.client_user_agent = metaParams.client_user_agent;
-    }
-
-    // Map our cached field names to CAPI field names
-    const capiUserData: Record<string, string> = {};
-    if (mergedUserData.em) capiUserData.email = mergedUserData.em;
-    if (mergedUserData.ph) capiUserData.phone = mergedUserData.ph;
-    if (mergedUserData.fn) capiUserData.first_name = mergedUserData.fn;
-    if (mergedUserData.ln) capiUserData.last_name = mergedUserData.ln;
-    if (mergedUserData.db) capiUserData.date_of_birth = mergedUserData.db;
-    if (mergedUserData.ge) capiUserData.gender = mergedUserData.ge;
-    if (mergedUserData.external_id) capiUserData.external_id = mergedUserData.external_id;
-    if (mergedUserData.country) capiUserData.country = mergedUserData.country;
-    if (mergedUserData.st) capiUserData.state = mergedUserData.st;
-    if (mergedUserData.ct) capiUserData.city = mergedUserData.ct;
-    if (mergedUserData.zp) capiUserData.zip = mergedUserData.zp;
-    if (mergedUserData.fbc) capiUserData.fbc = mergedUserData.fbc;
-    if (mergedUserData.fbp) capiUserData.fbp = mergedUserData.fbp;
-    if (mergedUserData.client_ip_address) capiUserData.client_ip_address = mergedUserData.client_ip_address;
-    if (mergedUserData.client_user_agent) capiUserData.client_user_agent = mergedUserData.client_user_agent;
-    // fb_login_id for Facebook Login users
-    if (mergedUserData.fb_login_id) capiUserData.fb_login_id = mergedUserData.fb_login_id;
 
     // Use the event_id from the pixel fire for deduplication
     const finalEventId = eventId || getLastEventId() || crypto.randomUUID?.() || `${Date.now()}`;
@@ -82,11 +46,11 @@ export async function sendCapiEvent(options: CapiEventOptions): Promise<void> {
       event_time: Math.floor(Date.now() / 1000),
       action_source: "website",
       event_source_url: window.location.href,
-      user_data: capiUserData,
+      user_data: finalUserData,
       custom_data: customData || {},
     };
 
-    // Fire and forget — don't await in caller
+    // Fire and forget
     supabase.functions.invoke("meta-capi", {
       body: { events: [event] },
     }).then(({ error }) => {
@@ -97,7 +61,7 @@ export async function sendCapiEvent(options: CapiEventOptions): Promise<void> {
   }
 }
 
-// ─── Convenience wrappers for each standard event ──────────────────────
+// ─── Convenience wrappers ──────────────────────────────────────────────
 
 export function capiPageView() {
   sendCapiEvent({ eventName: "PageView" });

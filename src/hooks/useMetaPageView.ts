@@ -6,19 +6,22 @@ import { capiPageView } from "./useMetaCapi";
 /**
  * Fires Meta Pixel PageView on every route change.
  * Also sends PageView via CAPI for server-side deduplication.
- * Must be used inside a <BrowserRouter>.
+ *
+ * Delays slightly to allow:
+ * 1. fbc/fbp cookies to be captured (useMetaFbclid runs in parallel)
+ * 2. IP capture to complete
+ * 3. User data from localStorage to be available
  */
 export function useMetaPageView() {
   const location = useLocation();
 
   useEffect(() => {
-    fbTrackPageView();
-
-    // Send PageView via CAPI (server-side) — fires after a short delay
-    // to allow IP capture and user data to be available
+    // Small delay to let fbc/fbp/IP/userData populate
     const timer = setTimeout(() => {
+      fbTrackPageView();
+      // CAPI PageView — fires with all available user data
       capiPageView();
-    }, 500);
+    }, 300);
 
     return () => clearTimeout(timer);
   }, [location.pathname]);
