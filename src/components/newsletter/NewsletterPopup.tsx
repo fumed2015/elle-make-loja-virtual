@@ -111,6 +111,7 @@ const NewsletterPopup = () => {
         else throw error;
       } else {
         toast.success("Cadastro realizado com sucesso! 🎉");
+        saveFormDataForMeta({ email: trimmed });
         fbTrackLead();
         trackSubmitForm({ description: "newsletter_signup" });
       }
