@@ -99,7 +99,12 @@ export function getMetaUserData(): MetaUserDataRaw {
   const ip = getClientIp();
   if (ip) data.client_ip_address = ip;
   data.client_user_agent = navigator.userAgent;
-  if (!data.country) data.country = "br";
+
+  // ALWAYS set country=br and persist it so every event includes it
+  data.country = "br";
+  if (!stored.country) {
+    saveUserDataToStorage({ country: "br" });
+  }
 
   return data;
 }

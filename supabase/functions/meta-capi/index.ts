@@ -116,16 +116,30 @@ async function buildServerEvent(data: CAPIEventData, req: Request) {
     ud.zp = [await sha256(data.user_data.zip.replace(/\D/g, "").slice(0, 5))];
   }
 
-  // Non-hashed fields — prioritize client-captured IP (from Meta Param Builder cookie)
-  // then fall back to request headers (proxy/CDN headers)
-  ud.client_ip_address = data.user_data.client_ip_address
-    || req.headers.get("x-forwarded-for")?.split(",")[0]?.trim()
+  // Non-hashed fields — prioritize client-captured IP (IPv6 preferred per Meta spec)
+  // Client sends IPv6 from api64.ipify.org; prefer that over proxy headers (often IPv4)
+  const clientIp = data.user_data.client_ip_address || "";
+  const headerIp = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim()
     || req.headers.get("cf-connecting-ip")
     || req.headers.get("x-real-ip")
     || "";
+  // Prefer IPv6: if client sent IPv6, use it; otherwise use header (which may be IPv6 from CDN)
+  const isIpv6 = (ip: string) => ip.includes(":");
+  if (clientIp && isIpv6(clientIp)) {
+    ud.client_ip_address = clientIp;
+  } else if (headerIp && isIpv6(headerIp)) {
+    ud.client_ip_address = headerIp;
+  } else {
+    ud.client_ip_address = clientIp || headerIp || "";
+  }
   ud.client_user_agent = data.user_data.client_user_agent
     || req.headers.get("user-agent")
     || "";
+
+  // ALWAYS include country=br if not provided by client
+  if (!data.user_data.country) {
+    ud.country = [await sha256("br")];
+  }
 
   if (data.user_data.fbc) ud.fbc = data.user_data.fbc;
   if (data.user_data.fbp) ud.fbp = data.user_data.fbp;

@@ -75,7 +75,25 @@ export function captureFbc(): string | null {
     // silently ignore
   }
 
-  return getCookie("_fbc") || localStorage.getItem("_fbc");
+  // Also sync between cookie and localStorage for redundancy
+  const fromCookie = getCookie("_fbc");
+  const fromStorage = localStorage.getItem("_fbc");
+  if (fromCookie && !fromStorage) {
+    try { localStorage.setItem("_fbc", fromCookie); } catch {}
+  } else if (fromStorage && !fromCookie) {
+    try { setCookie("_fbc", fromStorage, COOKIE_MAX_AGE); } catch {}
+  }
+
+  return fromCookie || fromStorage;
+}
+
+/**
+ * Synchronously captures fbc + fbp + ensures country is set.
+ * Call this BEFORE firing any event on page load.
+ */
+export function ensureAllParamsSync(): void {
+  captureFbc();
+  ensureFbp();
 }
 
 // ─── Client IP Address (IPv6 priority) ─────────────────────────────────

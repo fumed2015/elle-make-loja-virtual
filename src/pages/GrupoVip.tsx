@@ -8,6 +8,7 @@ import SEOHead from "@/components/SEOHead";
 import { fbTrackLead, fbTrackContact, fbTrackCustom } from "@/hooks/useMetaPixel";
 import { capiLead, sendCapiEvent } from "@/hooks/useMetaCapi";
 import { getMetaUserData, toCapiUserData } from "@/hooks/useMetaUserData";
+import { ensureAllParamsSync, captureClientIp } from "@/hooks/useMetaParamBuilder";
 
 const VIP_LINK = "https://chat.whatsapp.com/ELKPRGGU2wMJHV4ex1xAQX";
 
@@ -96,20 +97,29 @@ const GrupoVip = () => {
     return () => clearInterval(t);
   }, []);
 
-  // Track page view as ViewContent + custom event on mount
+  // Ensure all Meta params are captured before firing events
   useEffect(() => {
-    fbTrackCustom("ViewLandingPage", {
-      content_name: "Grupo VIP Elle Make",
-      content_category: "Landing Page",
-    });
-    sendCapiEvent({
-      eventName: "ViewContent",
-      customData: {
+    // Synchronously capture fbc/fbp immediately
+    ensureAllParamsSync();
+    // Async: capture IPv6 IP
+    captureClientIp();
+
+    // Delay events slightly to let IP capture complete
+    const timer = setTimeout(() => {
+      fbTrackCustom("ViewLandingPage", {
         content_name: "Grupo VIP Elle Make",
         content_category: "Landing Page",
-        content_type: "product_group",
-      },
-    });
+      });
+      sendCapiEvent({
+        eventName: "ViewContent",
+        customData: {
+          content_name: "Grupo VIP Elle Make",
+          content_category: "Landing Page",
+          content_type: "product_group",
+        },
+      });
+    }, 500);
+    return () => clearTimeout(timer);
   }, []);
 
   // Decreasing spots counter
