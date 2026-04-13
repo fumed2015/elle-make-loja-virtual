@@ -308,7 +308,30 @@ const Produto = () => {
                 href={`https://wa.me/5591936180774?text=${whatsappMsg}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                onClick={() => { fbTrackContact(); trackContact(); }}
+                onClick={() => {
+                  fbTrackContact();
+                  trackContact();
+                  const atcParams = { id: product.id, name: product.name, price: Number(product.price), quantity: qty };
+                  fbTrackAddToCart(atcParams);
+                  trackAddToCart(atcParams);
+                  if (typeof window !== 'undefined' && (window as any).dataLayer) {
+                    (window as any).dataLayer.push({
+                      event: 'add_to_cart',
+                      ecommerce: {
+                        currency: 'BRL',
+                        value: Number(product.price) * qty,
+                        items: [{
+                          item_id: product.id,
+                          item_name: product.name,
+                          item_brand: product.brand || '',
+                          price: Number(product.price),
+                          quantity: qty,
+                          item_variant: selectedSwatch?.name || '',
+                        }],
+                      },
+                    });
+                  }
+                }}
                 className="w-full min-h-[48px] text-base font-semibold border-2 border-border rounded-md flex items-center justify-center gap-2 hover:bg-muted transition-colors"
               >
                 <WhatsAppIcon className="w-5 h-5 text-[#25D366]" />
