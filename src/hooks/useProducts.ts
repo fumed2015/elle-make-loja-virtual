@@ -60,13 +60,14 @@ export const useCategories = () => {
 };
 
 // Unified query: fetches all products once, used by Index to derive featured + offers + more
+// Slim payload: only fields needed for cards/listings (no description/ingredients/how_to_use/swatches)
 export const useAllProductsUnified = () => {
   return useQuery({
     queryKey: ["products-unified"],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("products")
-        .select("*, categories(name, slug)")
+        .select("id, name, slug, price, compare_at_price, images, brand, stock, is_featured, is_active, category_id, tags, created_at, categories(name, slug)")
         .eq("is_active", true)
         .order("created_at", { ascending: false });
       if (error) throw error;
