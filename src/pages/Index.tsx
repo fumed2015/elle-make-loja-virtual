@@ -706,10 +706,6 @@ const AllProductsSection = ({ products, isLoading }: { products: any[]; isLoadin
       </section>
 
 
-      {/* Newsletter Popup */}
-      <Suspense fallback={null}>
-        <NewsletterPopup />
-      </Suspense>
     </div>
   );
 };
