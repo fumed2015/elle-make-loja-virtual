@@ -18,7 +18,7 @@ import { toast } from "sonner";
 
 // Lazy load heavy InlineConsultant (pulls react-markdown ~69KB)
 const InlineConsultant = lazy(() => import("@/components/chat/InlineConsultant"));
-const NewsletterPopup = lazy(() => import("@/components/newsletter/NewsletterPopup"));
+
 
 const container = {
   hidden: { opacity: 0 },
