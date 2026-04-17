@@ -113,7 +113,7 @@ const QuizBeleza = () => {
         let score = 0;
         const pTags = (p.tags || []).map((t: string) => t.toLowerCase());
         const pName = p.name.toLowerCase();
-        const pDesc = (p.description || "").toLowerCase();
+        const pDesc = ((p as any).description || "").toLowerCase();
         const pCatSlug = (p as any).categories?.slug || "";
 
         for (const tag of tags) {
