@@ -11,9 +11,8 @@ import { ScrollToTop } from "@/components/ScrollToTop";
 import AppLayout from "@/components/layout/AppLayout";
 import TrackingPixelsInjector from "@/components/TrackingPixelsInjector";
 import MetaPixelProvider from "@/components/MetaPixelProvider";
-import Index from "./pages/Index";
-
-// Lazy load non-critical routes
+// Lazy load all routes including Index for smaller initial bundle
+const Index = lazy(() => import("./pages/Index"));
 const Explorar = lazy(() => import("./pages/Explorar"));
 const Produto = lazy(() => import("./pages/Produto"));
 const Carrinho = lazy(() => import("./pages/Carrinho"));
